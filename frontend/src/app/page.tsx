@@ -126,11 +126,6 @@ export default function Home() {
   const triggerSOS = (e: React.FormEvent) => {
     e.preventDefault();
     setSosSent(true);
-    setTimeout(() => {
-      setSosSent(false);
-      setSosReason('');
-      alert("🚨 Simulated SOS Transmission Success: Local emergency dispatch notified with location telemetry!");
-    }, 3000);
   };
 
   // Community post submit
@@ -156,7 +151,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-cream text-charcoal">
+    <div className="min-h-screen bg-warmBg flex flex-col font-sans text-charcoal">
       
       {/* GLOBAL TOP BRAND HEADER */}
       <Header deferredPrompt={deferredPrompt} onInstallClick={handleInstallClick} />
@@ -166,12 +161,12 @@ export default function Home() {
         
         {/* HOME TAB SCREEN */}
         {activeTab === 'home' && (
-          <div className="flex flex-col gap-6">
+          <main className="w-full max-w-2xl mx-auto bg-white rounded-3xl p-4 md:p-8 flex flex-col gap-6 shadow-sm transition-all duration-300">
             <HeroSection />
             <NavigationGrid />
             <NeighborhoodRadar />
             <MarketplaceCategories onExploreMoreClick={() => setActiveTab('marketplace')} />
-          </div>
+          </main>
         )}
 
         {/* MARKETPLACE TAB SCREEN */}
@@ -186,6 +181,11 @@ export default function Home() {
             setEmergencyType={setEmergencyType}
             sosSent={sosSent}
             onSubmitSos={triggerSOS}
+            onResetSos={() => {
+              setSosSent(false);
+              setSosReason('');
+              setActiveTab('home');
+            }}
           />
         )}
 
