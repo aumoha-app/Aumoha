@@ -5,6 +5,7 @@ import Header from '../components/Header';
 import HeroSection from '../components/HeroSection';
 import NavigationGrid from '../components/NavigationGrid';
 import NeighborhoodRadar from '../components/NeighborhoodRadar';
+import MarketplaceCategories from '../components/MarketplaceCategories';
 import Marketplace from '../components/Marketplace';
 import EmergencyDispatch from '../components/EmergencyDispatch';
 import CommunityBoard from '../components/CommunityBoard';
@@ -169,6 +170,7 @@ export default function Home() {
             <HeroSection />
             <NavigationGrid />
             <NeighborhoodRadar />
+            <MarketplaceCategories onExploreMoreClick={() => setActiveTab('marketplace')} />
           </div>
         )}
 
