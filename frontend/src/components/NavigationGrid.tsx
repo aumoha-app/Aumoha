@@ -1,6 +1,10 @@
 'use client';
 
-export default function NavigationGrid() {
+interface NavigationGridProps {
+  onGroomingClick?: () => void;
+}
+
+export default function NavigationGrid({ onGroomingClick }: NavigationGridProps) {
   return (
     <div className="w-full select-none">
       {/* 3-Column Responsive Grid Container (Locked columns, fits within screen width on mobile) */}
@@ -33,7 +37,7 @@ export default function NavigationGrid() {
         </div>
 
         {/* Card 3: Grooming & Care */}
-        <div className="bg-[#FCFAF7] border border-warmBeige rounded-[16px] md:rounded-[20px] p-3 md:p-5 flex flex-col items-center md:items-start gap-2.5 md:gap-4 hover:border-clay/40 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md group">
+        <div onClick={onGroomingClick} className="bg-[#FCFAF7] border border-warmBeige rounded-[16px] md:rounded-[20px] p-3 md:p-5 flex flex-col items-center md:items-start gap-2.5 md:gap-4 hover:border-clay/40 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md group">
           <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-[#F3EDE4] flex items-center justify-center text-clay transition-colors group-hover:bg-[#EAE1D5]">
             <svg viewBox="0 0 24 24" width="18" height="18" className="md:w-5 md:h-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />

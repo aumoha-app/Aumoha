@@ -7,6 +7,7 @@ import NavigationGrid from '../components/NavigationGrid';
 import NeighborhoodRadar from '../components/NeighborhoodRadar';
 import MarketplaceCategories from '../components/MarketplaceCategories';
 import Marketplace from '../components/Marketplace';
+import PetCareFeature from '../components/PetCareFeature';
 import EmergencyDispatch from '../components/EmergencyDispatch';
 import CommunityBoard from '../components/CommunityBoard';
 import Profile from '../components/Profile';
@@ -15,7 +16,7 @@ import { BackendInfo, CommunityPost } from '../types';
 
 export default function Home() {
   // Navigation active tab
-  const [activeTab, setActiveTab] = useState<'home' | 'marketplace' | 'report' | 'community' | 'profile'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'marketplace' | 'petcare' | 'report' | 'community' | 'profile'>('home');
 
   // General App / Connection States
   const [isOnline, setIsOnline] = useState<boolean>(true);
@@ -163,11 +164,14 @@ export default function Home() {
         {activeTab === 'home' && (
           <main className="w-full max-w-2xl mx-auto bg-white rounded-3xl p-4 md:p-8 flex flex-col gap-6 shadow-sm transition-all duration-300">
             <HeroSection />
-            <NavigationGrid />
+            <NavigationGrid onGroomingClick={() => setActiveTab('petcare')} />
             <NeighborhoodRadar />
             <MarketplaceCategories onExploreMoreClick={() => setActiveTab('marketplace')} />
           </main>
         )}
+
+        {/* PET CARE FEATURE SCREEN */}
+        {activeTab === 'petcare' && <PetCareFeature />}
 
         {/* MARKETPLACE TAB SCREEN */}
         {activeTab === 'marketplace' && <Marketplace />}

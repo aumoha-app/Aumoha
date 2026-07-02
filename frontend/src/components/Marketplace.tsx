@@ -226,60 +226,59 @@ export default function Marketplace() {
                 key={product.id}
                 className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-[24px] p-3 flex flex-col gap-3.5 relative hover:shadow-md transition-all duration-300 group"
               >
-                {/* 10% OFF Badge at top left */}
-                {product.discountBadge && (
-                  <div className="absolute top-3.5 left-3.5 bg-[#2A3E31] text-[#FDFBF7] font-bold text-[9px] px-2 py-0.5 rounded-md select-none z-10">
-                    {product.discountBadge}
-                  </div>
-                )}
-
-                {/* Product Image Area */}
-                <div className="aspect-square w-full rounded-2xl bg-[#FAF6F0] overflow-hidden relative select-none">
-                  <img
-                    src={product.imageUrl}
-                    alt={product.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-
-                {/* Product Title and Details */}
-                <div className="flex flex-col flex-grow min-w-0 px-0.5">
-                  <h3 className="font-serif text-sm md:text-base font-normal text-[#1C1A17] leading-tight truncate">{product.title}</h3>
-                  <p className="text-[10px] text-stone-400 font-medium leading-normal mt-0.5">{product.description}</p>
-                </div>
-
-                {/* Bottom Row: Prices and Add Button */}
-                <div className="flex items-center justify-between mt-auto px-0.5">
-                  <div className="flex flex-col leading-none">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-xs md:text-sm font-extrabold text-[#1C1A17] leading-none">
-                        ₹{product.price}
-                      </span>
-                      {product.originalPrice && (
-                        <span className="text-[10px] text-stone-400 line-through leading-none">
-                          ₹{product.originalPrice}
-                        </span>
-                      )}
+                  {/* 10% OFF Badge at top left */}
+                  {product.discountBadge && (
+                    <div className="absolute top-3.5 left-3.5 bg-[#2A3E31] text-[#FDFBF7] font-bold text-[9px] px-2 py-0.5 rounded-md select-none z-10">
+                      {product.discountBadge}
                     </div>
-                  </div>
-                  
-                  {/* Add Button */}
-                  <button 
-                    onClick={handleAddToCart}
-                    className="px-4 py-1.5 bg-[#2A3E31] hover:bg-[#1E2E24] active:scale-95 text-white font-bold rounded-xl text-[10px] md:text-xs transition-all duration-200 cursor-pointer shadow-sm"
-                  >
-                    Add
-                  </button>
-                </div>
+                  )}
 
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 select-none">
-            <p className="text-xs md:text-sm text-stone-400 font-medium">No products match your search query.</p>
-          </div>
-        )}
+                  {/* Product Image Area */}
+                  <div className="aspect-square w-full rounded-2xl bg-[#FAF6F0] overflow-hidden relative select-none">
+                    <img
+                      src={product.imageUrl}
+                      alt={product.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+
+                  {/* Product Title and Details */}
+                  <div className="flex flex-col flex-grow min-w-0 px-0.5">
+                    <h3 className="font-serif text-sm md:text-base font-normal text-[#1C1A17] leading-tight truncate">{product.title}</h3>
+                    <p className="text-[10px] text-stone-400 font-medium leading-normal mt-0.5">{product.description}</p>
+                  </div>
+
+                  {/* Bottom Row: Prices and Add Button */}
+                  <div className="flex items-center justify-between mt-auto px-0.5">
+                    <div className="flex flex-col leading-none">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-xs md:text-sm font-extrabold text-[#1C1A17] leading-none">
+                          ₹{product.price}
+                        </span>
+                        {product.originalPrice && (
+                          <span className="text-[10px] text-stone-400 line-through leading-none">
+                            ₹{product.originalPrice}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Add Button */}
+                    <button 
+                      onClick={handleAddToCart}
+                      className="px-4 py-1.5 bg-[#2A3E31] hover:bg-[#1E2E24] active:scale-95 text-white font-bold rounded-xl text-[10px] md:text-xs transition-all duration-200 cursor-pointer shadow-sm"
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 select-none">
+              <p className="text-xs md:text-sm text-stone-400 font-medium">No products match your search query.</p>
+            </div>
+          )}
       </section>
 
     </main>
