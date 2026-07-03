@@ -1,6 +1,6 @@
 'use client';
 
-type TabType = 'home' | 'marketplace' | 'report' | 'community' | 'profile';
+type TabType = 'home' | 'marketplace' | 'report' | 'community' | 'profile' | 'petcare';
 
 interface BottomNavProps {
   activeTab: TabType;
