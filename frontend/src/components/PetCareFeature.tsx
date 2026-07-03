@@ -38,7 +38,7 @@ export default function PetCareFeature() {
 
       <PetCareServices activeFilter={activeFilter} />
 
-      <section className="rounded-[28px] border border-[#E0E8DD] bg-[#F5FAF3] p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <section className="sticky bottom-[96px] z-[50] rounded-[28px] border border-[#D4E2D0] bg-[#F5FAF3]/95 backdrop-blur-md p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between shadow-md transition-all">
         <div>
           <p className="text-sm md:text-base font-bold text-[#1C1A17]">Need help choosing?</p>
           <p className="text-xs md:text-sm text-stone-600">Our advisors can match your pet with the right care plan.</p>

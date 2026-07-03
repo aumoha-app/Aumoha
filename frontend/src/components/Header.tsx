@@ -8,11 +8,19 @@ interface HeaderProps {
 export default function Header({ deferredPrompt, onInstallClick }: HeaderProps) {
   return (
     <header className="w-full max-w-2xl mx-auto px-4 pt-8 pb-4 flex justify-between items-center select-none">
-      {/* Left Side: Brand Text */}
-      <div className="flex flex-col">
-        <span className="font-serif text-[28px] tracking-wide text-charcoal leading-none font-normal">MOHA</span>
-        <span className="text-xs text-clay font-semibold mt-1">Mohalla of Humans & Animals</span>
+      {/* Left Side: Brand Logo & Text */}
+      <div className="flex items-center gap-3">
+        <img 
+          src="/logo.png" 
+          alt="Aumoha Logo" 
+          className="h-12 md:h-14 w-auto object-contain"
+        />
+        <div className="flex flex-col justify-center">
+          <span className="font-serif text-[24px] md:text-[28px] tracking-normal text-charcoal leading-none font-normal lowercase">aumoha</span>
+          <span className="text-[10px] md:text-xs text-clay font-semibold mt-1">Rescue • Protect • Care</span>
+        </div>
       </div>
+
 
       {/* Right Side: Install Button & Bell Icon */}
       <div className="flex items-center gap-4">

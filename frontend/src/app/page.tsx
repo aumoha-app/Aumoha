@@ -13,10 +13,22 @@ import CommunityBoard from '../components/CommunityBoard';
 import Profile from '../components/Profile';
 import BottomNav from '../components/BottomNav';
 import { BackendInfo, CommunityPost } from '../types';
+import { useAuth } from '../context/AuthContext';
+import AuthScreen from '../components/AuthScreen';
+import OnboardingScreen from '../components/OnboardingScreen';
+
 
 export default function Home() {
+  const { firebaseUser, user, loading, isNewUser } = useAuth();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Navigation active tab
   const [activeTab, setActiveTab] = useState<'home' | 'marketplace' | 'petcare' | 'report' | 'community' | 'profile'>('home');
+
 
   // General App / Connection States
   const [isOnline, setIsOnline] = useState<boolean>(true);
@@ -151,6 +163,17 @@ export default function Home() {
     setPosts(posts.map(p => p.id === id ? { ...p, likes: p.likes + 1 } : p));
   };
 
+  if (!mounted || loading) {
+    return (
+      <div className="min-h-screen bg-warmBg flex flex-col items-center justify-center font-sans text-charcoal">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-full border-4 border-[#EBE3D5] border-t-[#4A5D4E] animate-spin" />
+          <p className="text-xs font-semibold text-stone-500">Connecting to Moha network...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-warmBg flex flex-col font-sans text-charcoal">
       
@@ -160,57 +183,67 @@ export default function Home() {
       {/* MAIN CONTENT AREA */}
       <div className="flex-grow w-full max-w-2xl mx-auto px-4 py-4 pb-28">
         
-        {/* HOME TAB SCREEN */}
-        {activeTab === 'home' && (
-          <main className="w-full max-w-2xl mx-auto bg-white rounded-3xl p-4 md:p-8 flex flex-col gap-6 shadow-sm transition-all duration-300">
-            <HeroSection />
-            <NavigationGrid onGroomingClick={() => setActiveTab('petcare')} />
-            <NeighborhoodRadar />
-            <MarketplaceCategories onExploreMoreClick={() => setActiveTab('marketplace')} />
-          </main>
+        {!firebaseUser ? (
+          <AuthScreen />
+        ) : isNewUser ? (
+          <OnboardingScreen />
+        ) : (
+          <>
+            {/* HOME TAB SCREEN */}
+            {activeTab === 'home' && (
+              <main className="w-full max-w-2xl mx-auto bg-white rounded-3xl p-4 md:p-8 flex flex-col gap-6 shadow-sm transition-all duration-300">
+                <HeroSection />
+                <NavigationGrid onGroomingClick={() => setActiveTab('petcare')} />
+                <NeighborhoodRadar />
+                <MarketplaceCategories onExploreMoreClick={() => setActiveTab('marketplace')} />
+              </main>
+            )}
+
+            {/* PET CARE FEATURE SCREEN */}
+            {activeTab === 'petcare' && <PetCareFeature />}
+
+            {/* MARKETPLACE TAB SCREEN */}
+            {activeTab === 'marketplace' && <Marketplace />}
+
+            {/* REPORT / SOS TAB SCREEN */}
+            {activeTab === 'report' && (
+              <EmergencyDispatch 
+                sosReason={sosReason}
+                setSosReason={setSosReason}
+                emergencyType={emergencyType}
+                setEmergencyType={setEmergencyType}
+                sosSent={sosSent}
+                onSubmitSos={triggerSOS}
+                onResetSos={() => {
+                  setSosSent(false);
+                  setSosReason('');
+                  setActiveTab('home');
+                }}
+              />
+            )}
+
+            {/* COMMUNITY TAB SCREEN */}
+            {activeTab === 'community' && (
+              <CommunityBoard 
+                posts={posts}
+                newPostText={newPostText}
+                setNewPostText={setNewPostText}
+                onSubmitPost={submitPost}
+                onLikePost={handleLike}
+              />
+            )}
+
+            {/* PROFILE TAB SCREEN */}
+            {activeTab === 'profile' && <Profile />}
+          </>
         )}
-
-        {/* PET CARE FEATURE SCREEN */}
-        {activeTab === 'petcare' && <PetCareFeature />}
-
-        {/* MARKETPLACE TAB SCREEN */}
-        {activeTab === 'marketplace' && <Marketplace />}
-
-        {/* REPORT / SOS TAB SCREEN */}
-        {activeTab === 'report' && (
-          <EmergencyDispatch 
-            sosReason={sosReason}
-            setSosReason={setSosReason}
-            emergencyType={emergencyType}
-            setEmergencyType={setEmergencyType}
-            sosSent={sosSent}
-            onSubmitSos={triggerSOS}
-            onResetSos={() => {
-              setSosSent(false);
-              setSosReason('');
-              setActiveTab('home');
-            }}
-          />
-        )}
-
-        {/* COMMUNITY TAB SCREEN */}
-        {activeTab === 'community' && (
-          <CommunityBoard 
-            posts={posts}
-            newPostText={newPostText}
-            setNewPostText={setNewPostText}
-            onSubmitPost={submitPost}
-            onLikePost={handleLike}
-          />
-        )}
-
-        {/* PROFILE TAB SCREEN */}
-        {activeTab === 'profile' && <Profile />}
         
       </div>
 
       {/* BOTTOM TAB NAVIGATION BAR */}
-      <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
+      {firebaseUser && !isNewUser && (
+        <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
+      )}
       
     </div>
   );

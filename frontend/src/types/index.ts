@@ -12,3 +12,15 @@ export interface CommunityPost {
   content: string;
   likes: number;
 }
+
+export interface UserProfile {
+  firebaseUid?: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  address: string;
+  profilePic?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
