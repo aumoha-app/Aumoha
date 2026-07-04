@@ -3,5 +3,17 @@ node_modules/
 
 # Lock files & config
 package-lock.json
-
 package.json
+
+# Environment variables
+.env
+*.env
+.env.*
+backend/.env
+frontend/.env
+
+# Build outputs
+dist/
+backend/dist/
+frontend/.next/
+frontend/out/

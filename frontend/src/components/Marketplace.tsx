@@ -1,103 +1,82 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import CartDrawer, { type CartItem } from './CartDrawer';
+import { useAuth } from '../context/AuthContext';
+import { Product } from '../types';
 
-interface Product {
-  id: number;
-  category: 'food' | 'toys' | 'medical';
-  title: string;
-  description: string;
-  price: number;
-  originalPrice: number | null;
-  discountBadge: string | null;
-  imageUrl: string;
+interface MarketplaceProps {
+  onOpenAdmin?: () => void;
 }
 
-const ALL_PRODUCTS: Product[] = [
-  {
-    id: 1,
-    category: 'food',
-    title: 'Plant-Based Dog Treats',
-    description: 'Wholesome daily treats',
-    price: 499,
-    originalPrice: null,
-    discountBadge: null,
-    imageUrl: '/product-1.png'
-  },
-  {
-    id: 2,
-    category: 'medical',
-    title: 'Paw Wash',
-    description: 'Gentle & calming',
-    price: 449,
-    originalPrice: 499,
-    discountBadge: '10% OFF',
-    imageUrl: '/product-2.png'
-  },
-  {
-    id: 3,
-    category: 'toys',
-    title: 'Eco Rope Ball',
-    description: 'Durable & safe play',
-    price: 349,
-    originalPrice: null,
-    discountBadge: null,
-    imageUrl: '/product-3.png'
-  },
-  {
-    id: 4,
-    category: 'toys',
-    title: 'Plush Buddy',
-    description: 'Soft & comforting',
-    price: 399,
-    originalPrice: null,
-    discountBadge: null,
-    imageUrl: '/product-4.png'
-  },
-  {
-    id: 5,
-    category: 'medical',
-    title: 'Skin & Coat Support',
-    description: 'Nourishment from within',
-    price: 899,
-    originalPrice: 999,
-    discountBadge: '10% OFF',
-    imageUrl: '/product-5.png'
-  },
-  {
-    id: 6,
-    category: 'toys',
-    title: 'Comfort Collar',
-    description: 'Soft. Secure. Everyday.',
-    price: 499,
-    originalPrice: null,
-    discountBadge: null,
-    imageUrl: '/product-6.png'
-  }
-];
+export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
+  const { token } = useAuth();
+  
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
-export default function Marketplace() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'food' | 'toys' | 'medical'>('all');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [addedProductId, setAddedProductId] = useState<number | null>(null);
+  const [addedProductId, setAddedProductId] = useState<string | number | null>(null);
+
+  // Fetch products from MongoDB
+  const fetchProducts = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch('http://localhost:5001/api/products');
+      if (res.ok) {
+        const data = await res.json();
+        setProducts(data.products || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch products from MongoDB:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  // Check if current user is admin whitelisted
+  useEffect(() => {
+    if (token) {
+      fetch('http://localhost:5001/api/auth/admin-config', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          setIsAdmin(data.isAdmin);
+        }
+      })
+      .catch(err => console.error('Failed to retrieve admin configuration:', err));
+    } else {
+      setIsAdmin(false);
+    }
+  }, [token]);
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const handleAddToCart = useCallback((product: Product) => {
+    const prodId = product._id || product.id || '';
     setCartItems(prev => {
-      const existing = prev.find(item => item.id === product.id);
+      const existing = prev.find(item => item.id === prodId);
       if (existing) {
         return prev.map(item =>
-          item.id === product.id
+          item.id === prodId
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
       return [...prev, {
-        id: product.id,
+        id: prodId,
         title: product.title,
         price: product.price,
         originalPrice: product.originalPrice,
@@ -107,11 +86,11 @@ export default function Marketplace() {
     });
 
     // Visual feedback: briefly show "Added" on the button
-    setAddedProductId(product.id);
+    setAddedProductId(prodId);
     setTimeout(() => setAddedProductId(null), 1200);
   }, []);
 
-  const handleUpdateQuantity = useCallback((id: number, delta: number) => {
+  const handleUpdateQuantity = useCallback((id: string | number, delta: number) => {
     setCartItems(prev =>
       prev
         .map(item =>
@@ -123,7 +102,7 @@ export default function Marketplace() {
     );
   }, []);
 
-  const handleRemoveItem = useCallback((id: number) => {
+  const handleRemoveItem = useCallback((id: string | number) => {
     setCartItems(prev => prev.filter(item => item.id !== id));
   }, []);
 
@@ -132,13 +111,13 @@ export default function Marketplace() {
   }, []);
 
   // Get quantity in cart for a product (for button label)
-  const getCartQuantity = (productId: number) => {
+  const getCartQuantity = (productId: string | number) => {
     const item = cartItems.find(i => i.id === productId);
     return item ? item.quantity : 0;
   };
 
   // Filter products based on category and search query
-  const filteredProducts = ALL_PRODUCTS.filter(product => {
+  const filteredProducts = products.filter(product => {
     const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
     const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           product.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -149,9 +128,12 @@ export default function Marketplace() {
     <>
       <main className="w-full max-w-2xl mx-auto bg-white rounded-3xl p-4 md:p-8 flex flex-col gap-5 transition-all duration-300">
         
-        {/* 1. HEADER: Title and Shopping Cart Icon */}
+        {/* 1. HEADER: Title, Admin Panel Badge, and Shopping Cart Icon */}
         <header className="flex items-center justify-between w-full select-none px-1">
-          <h1 className="font-serif text-3xl md:text-4xl text-[#1C1A17] font-normal tracking-tight">Marketplace</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="font-serif text-3xl md:text-4xl text-[#1C1A17] font-normal tracking-tight">Marketplace</h1>
+            {/* Admin Panel button removed from here */}
+          </div>
           
           {/* Shopping Cart Icon with item counter */}
           <button 
@@ -279,15 +261,20 @@ export default function Marketplace() {
 
         {/* 5. PRODUCT GRID */}
         <section className="w-full">
-          {filteredProducts.length > 0 ? (
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-12 gap-3 text-stone-400 select-none">
+              <div className="w-8 h-8 rounded-full border-2 border-stone-200 border-t-[#4A5D4E] animate-spin" />
+              <p className="text-[11px] font-semibold">Loading marketplace...</p>
+            </div>
+          ) : filteredProducts.length > 0 ? (
             <div className="grid grid-cols-2 gap-4 w-full">
               {filteredProducts.map((product) => {
-                const inCartQty = getCartQuantity(product.id);
-                const justAdded = addedProductId === product.id;
+                const prodId = product._id || product.id || '';
+                const inCartQty = getCartQuantity(prodId);
 
                 return (
                   <div 
-                    key={product.id}
+                    key={prodId}
                     className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-[24px] p-3 flex flex-col gap-3.5 relative hover:shadow-md transition-all duration-300 group"
                   >
                     {/* 10% OFF Badge at top left */}
@@ -303,13 +290,17 @@ export default function Marketplace() {
                         src={product.imageUrl}
                         alt={product.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => {
+                          // Fallback to placeholder image if load fails
+                          e.currentTarget.src = '/sw.js'; // fallback target placeholder
+                        }}
                       />
                     </div>
 
                     {/* Product Title and Details */}
                     <div className="flex flex-col flex-grow min-w-0 px-0.5">
                       <h3 className="font-serif text-sm md:text-base font-normal text-[#1C1A17] leading-tight truncate">{product.title}</h3>
-                      <p className="text-[10px] text-stone-400 font-medium leading-normal mt-0.5">{product.description}</p>
+                      <p className="text-[10px] text-stone-400 font-medium leading-normal mt-0.5 line-clamp-2">{product.description}</p>
                     </div>
 
                     {/* Bottom Row: Prices and +/- Stepper */}
@@ -341,7 +332,7 @@ export default function Marketplace() {
                           style={{ animation: 'scaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)' }}
                         >
                           <button
-                            onClick={() => handleUpdateQuantity(product.id, -1)}
+                            onClick={() => handleUpdateQuantity(prodId, -1)}
                             className="w-7 h-7 flex items-center justify-center text-white hover:bg-[#1E2E24] active:scale-90 transition-all cursor-pointer"
                             aria-label="Decrease quantity"
                           >
@@ -390,3 +381,4 @@ export default function Marketplace() {
     </>
   );
 }
+

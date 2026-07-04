@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import EmergencySubmitted from './EmergencySubmitted';
+import { useAuth } from '../context/AuthContext';
 
 interface EmergencyDispatchProps {
   sosReason: string;
@@ -9,7 +10,14 @@ interface EmergencyDispatchProps {
   emergencyType: string;
   setEmergencyType: (val: string) => void;
   sosSent: boolean;
-  onSubmitSos: (e: React.FormEvent) => void;
+  onSubmitSos: (
+    category: string,
+    severity: 'critical' | 'urgent' | 'stable',
+    reason: string,
+    location: string,
+    photo?: string,
+    audio?: string
+  ) => void;
   onResetSos: () => void;
 }
 
@@ -22,12 +30,261 @@ export default function EmergencyDispatch({
   onSubmitSos,
   onResetSos
 }: EmergencyDispatchProps) {
+  const { token } = useAuth();
+
   // Stateful form components
+  const [subTab, setSubTab] = useState<'report' | 'my-reports'>('report');
+  const [myReports, setMyReports] = useState<any[]>([]);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+
   const [activeCategory, setActiveCategory] = useState<string>('Accident');
   const [locationMode, setLocationMode] = useState<'current' | 'manual'>('current');
+  const [locationText, setLocationText] = useState<string>('Detecting location...');
+  const [currentAddress, setCurrentAddress] = useState<string>('Detecting location...');
   const [severity, setSeverity] = useState<'critical' | 'urgent' | 'stable'>('critical');
   const [photoSelected, setPhotoSelected] = useState<boolean>(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string>('');
   const [isRecording, setIsRecording] = useState<boolean>(false);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [audioPlayUrl, setAudioPlayUrl] = useState<string>('');
+  const [micError, setMicError] = useState<string | null>(null);
+
+  // Hook to fetch initial browser geolocation and reverse-geocode it on component mount
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setLocationText('Location not supported. Please pin manually.');
+      setCurrentAddress('Location not supported. Please pin manually.');
+      return;
+    }
+
+    setLocationText('Detecting GPS location...');
+    setCurrentAddress('Detecting GPS location...');
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        setLocationText('Resolving street address...');
+        setCurrentAddress('Resolving street address...');
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`, {
+            headers: {
+              'Accept-Language': 'en'
+            }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.display_name) {
+              setLocationText(data.display_name);
+              setCurrentAddress(data.display_name);
+            } else {
+              const coordStr = `Current Coordinates: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+              setLocationText(coordStr);
+              setCurrentAddress(coordStr);
+            }
+          } else {
+            const coordStr = `Current Coordinates: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+            setLocationText(coordStr);
+            setCurrentAddress(coordStr);
+          }
+        } catch (err) {
+          const coordStr = `Current Coordinates: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+          setLocationText(coordStr);
+          setCurrentAddress(coordStr);
+        }
+      },
+      (error) => {
+        console.warn('Geolocation access failed or denied:', error);
+        let errorMsg = 'Location access disabled. Please pin manually.';
+        if (error.code === error.PERMISSION_DENIED) {
+          errorMsg = 'Location permission denied. Please pin manually.';
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          errorMsg = 'GPS signal unavailable. Please pin manually.';
+        } else if (error.code === error.TIMEOUT) {
+          errorMsg = 'Location request timed out. Please pin manually.';
+        }
+        setLocationText(errorMsg);
+        setCurrentAddress(errorMsg);
+      },
+      { timeout: 8000 }
+    );
+  }, []);
+
+  const reverseGeocode = async (lat: number, lng: number) => {
+    setLocationText(`Fetching pinned address...`);
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`, {
+        headers: {
+          'Accept-Language': 'en'
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.display_name) {
+          setLocationText(data.display_name);
+        } else {
+          setLocationText(`Pinned Location: ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+        }
+      } else {
+        setLocationText(`Pinned Location: ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+      }
+    } catch (err) {
+      setLocationText(`Pinned Location: ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+    }
+  };
+
+  // Dynamic Leaflet Map loader & initialization
+  useEffect(() => {
+    if (locationMode !== 'manual') {
+      if (locationMode === 'current') {
+        setLocationText(currentAddress);
+      }
+      return;
+    }
+
+    let mapInstance: any = null;
+    let markerInstance: any = null;
+
+    const initMap = (L: any) => {
+      const defaultLat = 22.2587;
+      const defaultLng = 84.8510; // Rourkela center
+
+      const mapDiv = document.getElementById('leaflet-map');
+      if (!mapDiv) return;
+
+      mapInstance = L.map('leaflet-map').setView([defaultLat, defaultLng], 14);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(mapInstance);
+
+      // Fix default marker icons loaded from CDN
+      const DefaultIcon = L.icon({
+        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41]
+      });
+      L.Marker.prototype.options.icon = DefaultIcon;
+
+      // Create draggable marker
+      markerInstance = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(mapInstance);
+
+      setLocationText(`Pinned Location: ${defaultLat.toFixed(5)}, ${defaultLng.toFixed(5)}`);
+      reverseGeocode(defaultLat, defaultLng);
+
+      // Drag event
+      markerInstance.on('dragend', () => {
+        const position = markerInstance.getLatLng();
+        reverseGeocode(position.lat, position.lng);
+      });
+
+      // Click map event
+      mapInstance.on('click', (e: any) => {
+        const coords = e.latlng;
+        markerInstance.setLatLng(coords);
+        reverseGeocode(coords.lat, coords.lng);
+      });
+    };
+
+    // CDN Dynamic load helpers
+    const loadLeaflet = () => {
+      const win = window as any;
+      if (win.L) {
+        initMap(win.L);
+        return;
+      }
+
+      if (!document.getElementById('leaflet-css')) {
+        const link = document.createElement('link');
+        link.id = 'leaflet-css';
+        link.rel = 'stylesheet';
+        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        document.head.appendChild(link);
+      }
+
+      const script = document.createElement('script');
+      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      script.onload = () => {
+        if (win.L) {
+          initMap(win.L);
+        }
+      };
+      document.body.appendChild(script);
+    };
+
+    loadLeaflet();
+
+    return () => {
+      if (mapInstance) {
+        mapInstance.remove();
+      }
+    };
+  }, [locationMode]);
+
+  const fileToBase64 = (file: File | Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  // Intercept and pass local states to the page submit handler
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    let photoBase64 = '';
+    let audioBase64 = '';
+
+    if (photoFile) {
+      try {
+        photoBase64 = await fileToBase64(photoFile);
+      } catch (err) {
+        console.error('Error converting photo to base64:', err);
+      }
+    }
+
+    if (audioBlob) {
+      try {
+        audioBase64 = await fileToBase64(audioBlob);
+      } catch (err) {
+        console.error('Error converting audio to base64:', err);
+      }
+    }
+
+    onSubmitSos(activeCategory, severity, sosReason, locationText, photoBase64, audioBase64);
+  };
+
+  const fetchMyReports = async () => {
+    if (!token) return;
+    setIsHistoryLoading(true);
+    try {
+      const res = await fetch('http://localhost:5001/api/sos/my', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setMyReports(data.reports || []);
+      }
+    } catch (err) {
+      console.error('Error fetching my reports:', err);
+    } finally {
+      setIsHistoryLoading(false);
+    }
+  };
+
+  // Poll user's reports for real-time dispatch state tracking
+  useEffect(() => {
+    if (subTab === 'my-reports') {
+      fetchMyReports();
+      const interval = setInterval(fetchMyReports, 10000);
+      return () => clearInterval(interval);
+    }
+  }, [subTab, token]);
 
   // File Upload Reference
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -38,12 +295,64 @@ export default function EmergencyDispatch({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      setPhotoFile(file);
       setPhotoSelected(true);
+      setPhotoPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
+  const mediaRecorderRef = useRef<any>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+
+  const startRecording = async () => {
+    try {
+      setMicError(null);
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        setAudioBlob(blob);
+        const url = URL.createObjectURL(blob);
+        setAudioPlayUrl(url);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (err: any) {
+      console.error('Failed to access microphone:', err);
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setMicError('Microphone permission denied. Please allow microphone access in your browser settings.');
+      } else {
+        setMicError('Failed to access microphone. Please check your recording device.');
+      }
+      setIsRecording(false);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
     }
   };
 
   const toggleRecording = () => {
-    setIsRecording(prev => !prev);
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
   };
 
   const handleCategorySelect = (categoryName: string, distressType: string) => {
@@ -116,8 +425,39 @@ export default function EmergencyDispatch({
         </a>
       </div>
 
-      {/* Form Submission Wrapper */}
-      <form onSubmit={onSubmitSos} className="flex flex-col gap-6 relative z-10 w-full">
+      {/* Sub-Tab Navigation */}
+      <div className="flex border-b border-warmBeige/60 mb-2 select-none relative z-10">
+        <button
+          type="button"
+          onClick={() => setSubTab('report')}
+          className={`px-4 py-2 text-xs font-bold transition-all border-b-2 cursor-pointer ${
+            subTab === 'report'
+              ? 'border-[#9B1C1C] text-[#9B1C1C]'
+              : 'border-transparent text-stone-400 hover:text-[#9B1C1C]'
+          }`}
+        >
+          Report Distress
+        </button>
+        <button
+          type="button"
+          onClick={() => setSubTab('my-reports')}
+          className={`px-4 py-2 text-xs font-bold transition-all border-b-2 cursor-pointer flex items-center gap-1.5 ${
+            subTab === 'my-reports'
+              ? 'border-[#4A5D4E] text-[#4A5D4E]'
+              : 'border-transparent text-stone-400 hover:text-[#4A5D4E]'
+          }`}
+        >
+          <span>My Reports</span>
+          {myReports.length > 0 && (
+            <span className="bg-[#4A5D4E] text-white text-[8px] px-1.5 py-0.5 rounded-full font-extrabold">
+              {myReports.length}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {subTab === 'report' && (
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6 relative z-10 w-full">
 
         {/* Section 1: What happened? (2x4 Grid of cards) */}
         <div className="flex flex-col gap-2.5">
@@ -307,7 +647,7 @@ export default function EmergencyDispatch({
                 </svg>
                 <div className="flex flex-col">
                   <span className="text-xs font-bold text-charcoal leading-tight">Use Current Location</span>
-                  <span className="text-[10px] text-stone-500 font-semibold mt-0.5">Santi Nagar, Rourkela</span>
+                  <span className="text-[10px] text-stone-500 font-semibold mt-0.5">{locationMode === 'current' ? locationText : 'Santi Nagar, Rourkela'}</span>
                 </div>
               </div>
               
@@ -323,26 +663,37 @@ export default function EmergencyDispatch({
             {/* Bottom Bar: Pin Location Manually */}
             <div 
               onClick={() => setLocationMode('manual')}
-              className={`rounded-2xl p-4 flex items-center justify-between cursor-pointer border transition-all ${
+              className={`rounded-2xl p-4 flex flex-col cursor-pointer border transition-all ${
                 locationMode === 'manual'
                   ? 'bg-[#F1F5F2] border-[#C2D6C6]'
                   : 'bg-white border-stone-200'
               }`}
             >
-              <div className="flex items-center gap-3">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#78716C" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-stone-500">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                  <circle cx="12" cy="10" r="3" />
-                </svg>
-                <div className="flex flex-col">
-                  <span className="text-xs font-bold text-charcoal leading-tight">Pin Location Manually</span>
-                  <span className="text-[10px] text-stone-500 font-semibold mt-0.5">Select on map</span>
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-3">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#78716C" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-stone-500">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-charcoal leading-tight">Pin Location Manually</span>
+                    <span className="text-[10px] text-stone-500 font-semibold mt-0.5">Select on map</span>
+                  </div>
                 </div>
+                {/* Right Chevron arrow */}
+                <span className="text-stone-400 font-bold text-sm select-none mr-1">›</span>
               </div>
-              {/* Right Chevron arrow */}
-              <span className="text-stone-400 font-bold text-sm select-none mr-1">›</span>
-            </div>
 
+              {locationMode === 'manual' && (
+                <div className="mt-3 w-full flex flex-col gap-2 relative z-10" onClick={(e) => e.stopPropagation()}>
+                  <div id="leaflet-map" style={{ height: '180px' }} className="w-full rounded-xl border border-stone-200 bg-stone-100 shadow-inner" />
+                  <div className="bg-white border border-stone-200 rounded-xl p-2.5 text-[10px] text-stone-600 leading-normal flex items-start gap-1.5 shadow-sm">
+                    <span>📍</span>
+                    <span className="font-semibold text-charcoal break-all">{locationText}</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -358,74 +709,161 @@ export default function EmergencyDispatch({
             className="hidden" 
           />
 
-          <div 
-            onClick={handlePhotoClick}
-            className="w-full bg-[#FCFAF7] border border-warmBeige rounded-[20px] p-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-clay/40 transition-all select-none"
-          >
-            {/* Camera line icon */}
-            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#888" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-stone-400">
-              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-              <circle cx="12" cy="13" r="4" />
-            </svg>
-            
-            <div className="flex flex-col items-center">
-              <span className="text-xs font-bold text-charcoal">
-                {photoSelected ? "✓ Photo Attached Successfully" : "Tap to add photo"}
-              </span>
-              <span className="text-[10px] text-stone-500 mt-0.5">Helps rescuers understand better</span>
+          {photoSelected ? (
+            <div className="w-full bg-[#FCFAF7] border border-[#EBE3D5] rounded-2xl p-4 flex items-center justify-between gap-4 shadow-sm select-none">
+              <div className="flex items-center gap-3.5">
+                <img 
+                  src={photoPreviewUrl} 
+                  alt="Attached preview" 
+                  className="w-14 h-14 object-cover rounded-xl border border-[#EBE3D5] shadow-sm"
+                />
+                <div className="flex flex-col min-w-0">
+                  <span className="text-xs font-bold text-charcoal truncate">
+                    {photoFile?.name || 'attached_image.jpg'}
+                  </span>
+                  <span className="text-[9px] text-[#4A5D4E] font-bold flex items-center gap-1 mt-0.5">
+                    <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="3" className="text-emerald-600">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    Ready for upload ({( (photoFile?.size || 0) / 1024 / 1024 ).toFixed(2)} MB)
+                  </span>
+                </div>
+              </div>
+              
+              <button
+                type="button"
+                onClick={() => {
+                  setPhotoFile(null);
+                  setPhotoSelected(false);
+                  setPhotoPreviewUrl('');
+                  if (fileInputRef.current) fileInputRef.current.value = '';
+                }}
+                className="p-2 bg-rose-50 hover:bg-rose-100/80 text-rose-600 rounded-xl transition-all cursor-pointer active:scale-95 shadow-sm flex items-center justify-center shrink-0"
+                title="Remove photo"
+              >
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+              </button>
             </div>
-            
-            <span className="text-[10px] text-stone-400 underline hover:text-charcoal mt-1">Skip for now</span>
-          </div>
+          ) : (
+            <div 
+              onClick={handlePhotoClick}
+              className="w-full bg-[#FDFBF9] hover:bg-[#F9F6F0] border-2 border-dashed border-[#EBE3D5] rounded-2xl p-6 flex flex-col items-center justify-center gap-2.5 cursor-pointer hover:border-stone-400 transition-all select-none group"
+            >
+              <div className="p-3 bg-[#F5F2EC] rounded-full text-stone-500 group-hover:scale-105 transition-transform duration-200">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                  <circle cx="12" cy="13" r="4" />
+                </svg>
+              </div>
+              <div className="flex flex-col items-center text-center">
+                <span className="text-xs font-bold text-charcoal">Upload Emergency Photo</span>
+                <span className="text-[10px] text-stone-400 font-semibold mt-0.5">JPEG, PNG up to 10MB</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Section 4: Voice Note Recorder */}
         <div className="flex flex-col gap-2.5">
           <label className="text-xs md:text-sm font-bold text-charcoal select-none">4. Voice Note <span className="text-stone-400 font-normal">(optional)</span></label>
           
-          <div className="w-full bg-[#FAF6F0] rounded-[20px] p-5 flex items-center justify-between gap-4 select-none relative overflow-hidden">
-            {/* Left Soundwave Vector Lines */}
-            <div className={`flex items-center gap-0.5 text-stone-300 opacity-60 ${isRecording ? 'animate-pulse' : ''}`}>
-              <div className="w-[2px] h-3 bg-current" />
-              <div className="w-[2px] h-5 bg-current" />
-              <div className="w-[2px] h-7 bg-current" />
-              <div className="w-[2px] h-4 bg-current" />
-              <div className="w-[2px] h-2 bg-current" />
-            </div>
+          {audioPlayUrl ? (
+            <div className="w-full bg-[#FCFAF7] border border-[#EBE3D5] rounded-2xl p-4 flex flex-col gap-3 shadow-sm select-none">
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 bg-[#F5F2EC] rounded-xl text-[#4A5D4E]">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                    </svg>
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-xs font-bold text-charcoal">Voice Note Recording</span>
+                    <span className="text-[9px] text-[#4A5D4E] font-bold flex items-center gap-1 mt-0.5">
+                      ✓ Saved & Ready to submit
+                    </span>
+                  </div>
+                </div>
 
-            {/* Center microphone recording button */}
-            <div className="flex flex-col items-center gap-2">
-              <div 
-                onClick={toggleRecording}
-                className={`w-12 h-12 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 ${
-                  isRecording 
-                    ? 'bg-red-700 scale-105 shadow-md shadow-red-200 animate-pulse text-white' 
-                    : 'bg-[#D95D39] text-white hover:bg-red-700 shadow-sm active:scale-95'
-                }`}
-              >
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-                  <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8" />
-                </svg>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAudioBlob(null);
+                    setAudioPlayUrl('');
+                  }}
+                  className="p-2 bg-rose-50 hover:bg-rose-100/80 text-rose-600 rounded-xl transition-all cursor-pointer active:scale-95 shadow-sm flex items-center justify-center shrink-0"
+                  title="Discard recording"
+                >
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                  </svg>
+                </button>
               </div>
-              <div className="flex flex-col items-center">
-                <span className="text-xs font-bold text-charcoal">
-                  {isRecording ? "🔴 Recording Voice Note..." : "Tap to record"}
-                </span>
-                <span className="text-[10px] text-stone-500 mt-0.5">Describe what you see</span>
-              </div>
-              <span className="text-[10px] text-stone-400 underline hover:text-charcoal mt-1">Skip instead</span>
-            </div>
 
-            {/* Right Soundwave Vector Lines */}
-            <div className={`flex items-center gap-0.5 text-stone-300 opacity-60 ${isRecording ? 'animate-pulse' : ''}`}>
-              <div className="w-[2px] h-2 bg-current" />
-              <div className="w-[2px] h-4 bg-current" />
-              <div className="w-[2px] h-7 bg-current" />
-              <div className="w-[2px] h-5 bg-current" />
-              <div className="w-[2px] h-3 bg-current" />
+              <div className="w-full bg-white border border-[#F0EBE1] rounded-xl p-2 shadow-inner">
+                <audio src={audioPlayUrl} controls className="w-full h-8 rounded-lg scale-90" />
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="w-full bg-[#FDFBF9] border border-[#EBE3D5] rounded-2xl p-5 flex items-center justify-between gap-4 select-none relative overflow-hidden">
+              {/* Animated visual wave lines during recording */}
+              <div className="flex items-center gap-1 text-[#4A5D4E] min-w-[40px] opacity-40">
+                <div className={`w-[3px] h-3 bg-current rounded-full transition-all duration-300 ${isRecording ? 'animate-bounce [animation-delay:0.1s]' : ''}`} />
+                <div className={`w-[3px] h-5 bg-current rounded-full transition-all duration-300 ${isRecording ? 'animate-bounce [animation-delay:0.3s]' : ''}`} />
+                <div className={`w-[3px] h-2 bg-current rounded-full transition-all duration-300 ${isRecording ? 'animate-bounce [animation-delay:0.5s]' : ''}`} />
+              </div>
+
+              {/* Center Recording Control Button */}
+              <div className="flex flex-col items-center gap-2">
+                <button
+                  type="button"
+                  onClick={toggleRecording}
+                  className={`w-12 h-12 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 shadow-sm active:scale-95 ${
+                    isRecording 
+                      ? 'bg-rose-600 text-white animate-pulse shadow-md shadow-rose-200' 
+                      : 'bg-clay text-white hover:bg-clay/90'
+                  }`}
+                >
+                  {isRecording ? (
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                      <rect x="4" y="4" width="16" height="16" rx="2" />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                      <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8" />
+                    </svg>
+                  )}
+                </button>
+                <div className="flex flex-col items-center text-center">
+                  <span className="text-xs font-bold text-charcoal">
+                    {isRecording ? "Recording Live Audio..." : "Tap to record voice"}
+                  </span>
+                  <span className="text-[9px] text-stone-400 font-semibold mt-0.5">
+                    {isRecording ? "Tap square to stop" : "Describe coordinates and details"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Animated visual wave lines during recording */}
+              <div className="flex items-center gap-1 text-[#4A5D4E] min-w-[40px] opacity-40 justify-end">
+                <div className={`w-[3px] h-2 bg-current rounded-full transition-all duration-300 ${isRecording ? 'animate-bounce [animation-delay:0.2s]' : ''}`} />
+                <div className={`w-[3px] h-5 bg-current rounded-full transition-all duration-300 ${isRecording ? 'animate-bounce [animation-delay:0.4s]' : ''}`} />
+                <div className={`w-[3px] h-3 bg-current rounded-full transition-all duration-300 ${isRecording ? 'animate-bounce [animation-delay:0.6s]' : ''}`} />
+              </div>
+            </div>
+          )}
+
+          {micError && (
+            <div className="w-full flex items-start gap-2 bg-[#FDF2F2] border border-[#F8B4B4] rounded-xl p-2.5 mt-1 text-[10px] text-rose-700 font-semibold select-none leading-normal">
+              <span className="shrink-0 text-xs mt-[1px]">⚠️</span>
+              <span className="flex-1">{micError}</span>
+            </div>
+          )}
         </div>
 
         {/* Section 5: How serious is the situation? (Triage view) */}
@@ -519,6 +957,172 @@ export default function EmergencyDispatch({
         </button>
 
       </form>
+      )}
+
+      {subTab === 'my-reports' && (
+        <section className="flex flex-col gap-4 relative z-10 mt-1 select-none">
+          <div className="flex items-center justify-between border-b border-[#EBE3D5] pb-3 mb-2">
+            <div>
+              <h3 className="font-serif text-lg text-charcoal font-medium">Distress Signals</h3>
+              <p className="text-[10px] text-stone-400 font-semibold mt-0.5">Real-time status of your active rescue alerts</p>
+            </div>
+            <button
+              type="button"
+              onClick={fetchMyReports}
+              className="p-2 bg-[#FCFAF7] border border-[#EBE3D5] text-[#4A5D4E] hover:bg-[#F5F2EC] rounded-full transition-all cursor-pointer flex items-center justify-center shadow-sm active:scale-95 shrink-0"
+              title="Sync logs"
+            >
+              <svg className={`w-3.5 h-3.5 ${isHistoryLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+              </svg>
+            </button>
+          </div>
+
+          {isHistoryLoading && myReports.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 gap-3 text-stone-400 select-none">
+              <div className="w-6 h-6 rounded-full border-2 border-stone-200 border-t-[#4A5D4E] animate-spin" />
+              <p className="text-[10px] font-bold">Retrieving tracking records...</p>
+            </div>
+          ) : myReports.length > 0 ? (
+            <div className="flex flex-col gap-4">
+              {myReports.map((report) => {
+                let severityColor = 'bg-stone-50 border-stone-200 text-stone-600';
+                if (report.severity === 'critical') severityColor = 'bg-rose-50 border-rose-100 text-rose-700';
+                if (report.severity === 'urgent') severityColor = 'bg-amber-50 border-amber-100/80 text-amber-700';
+                if (report.severity === 'stable') severityColor = 'bg-emerald-50 border-emerald-100/80 text-emerald-700';
+
+                let statusBadgeColor = 'bg-stone-100 border-stone-200 text-stone-500';
+                let statusLabel = 'Saved';
+                let statusDot = 'bg-stone-400';
+                
+                if (report.status === 'active') {
+                  statusBadgeColor = 'bg-rose-50 border-rose-100 text-rose-700';
+                  statusLabel = 'Broadcasting Alert';
+                  statusDot = 'bg-rose-600 animate-ping';
+                } else if (report.status === 'dispatched') {
+                  statusBadgeColor = 'bg-amber-50 border-amber-100 text-amber-700';
+                  statusLabel = 'Wardens Dispatched';
+                  statusDot = 'bg-amber-500';
+                } else if (report.status === 'resolved') {
+                  statusBadgeColor = 'bg-emerald-50 border-emerald-100 text-emerald-700';
+                  statusLabel = 'Rescue Resolved';
+                  statusDot = 'bg-emerald-600';
+                }
+
+                return (
+                  <div
+                    key={report._id}
+                    className="bg-white border border-[#EBE3D5]/80 rounded-2xl p-5 flex flex-col gap-3.5 shadow-sm hover:shadow-md hover:border-[#DCD2C1] transition-all duration-300 relative overflow-hidden"
+                  >
+                    {/* Dynamic side indicator border */}
+                    <div className={`absolute left-0 top-0 bottom-0 w-[4px] ${
+                      report.status === 'active' ? 'bg-rose-500' : report.status === 'dispatched' ? 'bg-amber-400' : 'bg-emerald-500'
+                    }`} />
+
+                    <div className="flex items-center justify-between w-full">
+                      <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider">
+                        {report.createdAt ? new Date(report.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Just Now'}
+                      </span>
+
+                      <div className="flex items-center gap-1.5">
+                        <span className={`text-[9px] font-bold px-2.5 py-0.5 rounded-full border ${severityColor}`}>
+                          {report.severity.toUpperCase()}
+                        </span>
+                        <span className={`text-[9px] font-bold px-2.5 py-0.5 rounded-full border ${statusBadgeColor}`}>
+                          {statusLabel}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2 pl-1">
+                      <h4 className="font-serif text-base text-charcoal font-medium leading-none">
+                        {report.category} Emergency
+                      </h4>
+                      <p className="text-xs text-stone-500 italic bg-[#FCFAF7] border-l-2 border-stone-300 px-3 py-2 rounded-r-lg leading-relaxed">
+                        &ldquo;{report.reason}&rdquo;
+                      </p>
+                    </div>
+
+                    <div className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-xl p-3 text-[10px] text-stone-600 flex items-start gap-2.5 mt-1 leading-normal">
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-[#9B1C1C] shrink-0 mt-0.5">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
+                      <span className="break-words font-medium">{report.location}</span>
+                    </div>
+
+                    {/* Amazon-style Progress Tracker Stepper */}
+                    {(() => {
+                      let currentStep = 0; // 'active'
+                      if (report.status === 'dispatched') currentStep = 1;
+                      if (report.status === 'resolved') currentStep = 2;
+
+                      const steps = [
+                        { label: 'Alert Sent', desc: 'Signal Broadcasted' },
+                        { label: 'Dispatched', desc: 'Wardens En Route' },
+                        { label: 'Resolved', desc: 'Rescue Completed' }
+                      ];
+
+                      return (
+                        <div className="mt-4 pt-4 border-t border-[#F0EBE1] flex flex-col gap-3 select-none">
+                          <span className="text-[9px] font-bold text-stone-400 uppercase tracking-wide">Rescue Progress Tracker</span>
+                          
+                          <div className="flex items-center justify-between relative mt-2 px-1 pb-2">
+                            {/* Connecting Line background */}
+                            <div className="absolute top-[10px] left-[16.6%] right-[16.6%] h-[2px] bg-stone-100 -z-0" />
+                            {/* Connecting Line active fill */}
+                            <div 
+                              className="absolute top-[10px] left-[16.6%] h-[2px] bg-[#4A5D4E] transition-all duration-500 -z-0" 
+                              style={{
+                                width: currentStep === 0 ? '0%' : currentStep === 1 ? '33.3%' : '66.6%'
+                              }}
+                            />
+
+                            {steps.map((step, idx) => {
+                              const isCompleted = currentStep >= idx;
+                              const isActive = currentStep === idx;
+                              
+                              let nodeBg = 'bg-stone-200';
+                              if (isCompleted) {
+                                nodeBg = isActive ? 'bg-[#9B1C1C]' : 'bg-[#4A5D4E]';
+                              }
+
+                              return (
+                                <div key={idx} className="flex flex-col items-center gap-1.5 relative z-10 flex-1">
+                                  {/* Circle indicator */}
+                                  <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-extrabold text-white transition-all duration-300 ${nodeBg} ${isActive ? 'ring-4 ring-rose-100 scale-110' : ''}`}>
+                                    {isCompleted && !isActive ? '✓' : idx + 1}
+                                  </div>
+                                  
+                                  {/* Label text */}
+                                  <div className="text-center min-w-0">
+                                    <p className={`text-[9.5px] font-bold ${isCompleted ? 'text-charcoal' : 'text-stone-400'} truncate`}>
+                                      {step.label}
+                                    </p>
+                                    <p className="text-[8px] text-stone-400 mt-0.5 leading-tight">
+                                      {isActive ? step.desc : ''}
+                                      {!isActive && isCompleted ? 'Completed' : ''}
+                                      {!isCompleted ? 'Pending' : ''}
+                                    </p>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-12 border border-dashed border-[#EBE3D5] rounded-[20px] select-none bg-[#FCFAF7]">
+              <p className="text-xs text-stone-400 font-semibold">You have not submitted any emergency reports yet.</p>
+            </div>
+          )}
+        </section>
+      )}
     </main>
   );
 }

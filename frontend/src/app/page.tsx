@@ -16,10 +16,12 @@ import { BackendInfo, CommunityPost } from '../types';
 import { useAuth } from '../context/AuthContext';
 import AuthScreen from '../components/AuthScreen';
 import OnboardingScreen from '../components/OnboardingScreen';
+import AdminDashboard from '../components/AdminDashboard';
+
 
 
 export default function Home() {
-  const { firebaseUser, user, loading, isNewUser } = useAuth();
+  const { firebaseUser, user, loading, isNewUser, token } = useAuth();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -27,7 +29,7 @@ export default function Home() {
   }, []);
 
   // Navigation active tab
-  const [activeTab, setActiveTab] = useState<'home' | 'marketplace' | 'petcare' | 'report' | 'community' | 'profile'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'marketplace' | 'petcare' | 'report' | 'community' | 'profile' | 'admin'>('home');
 
 
   // General App / Connection States
@@ -136,9 +138,41 @@ export default function Home() {
   };
 
   // SOS submission handler
-  const triggerSOS = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSosSent(true);
+  const triggerSOS = async (
+    category: string,
+    severity: 'critical' | 'urgent' | 'stable',
+    reason: string,
+    location: string,
+    photo?: string,
+    audio?: string
+  ) => {
+    try {
+      const response = await fetch('http://localhost:5001/api/sos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          category,
+          severity,
+          reason,
+          location: location || 'Santi Nagar, Rourkela',
+          photo,
+          audio
+        })
+      });
+
+      if (response.ok) {
+        setSosSent(true);
+      } else {
+        const err = await response.json();
+        alert(err.message || 'Failed to submit SOS alert.');
+      }
+    } catch (err) {
+      console.error('Error submitting SOS:', err);
+      alert('Network error submitting SOS report.');
+    }
   };
 
   // Community post submit
@@ -203,7 +237,7 @@ export default function Home() {
             {activeTab === 'petcare' && <PetCareFeature />}
 
             {/* MARKETPLACE TAB SCREEN */}
-            {activeTab === 'marketplace' && <Marketplace />}
+            {activeTab === 'marketplace' && <Marketplace onOpenAdmin={() => setActiveTab('admin')} />}
 
             {/* REPORT / SOS TAB SCREEN */}
             {activeTab === 'report' && (
@@ -234,7 +268,15 @@ export default function Home() {
             )}
 
             {/* PROFILE TAB SCREEN */}
-            {activeTab === 'profile' && <Profile />}
+            {activeTab === 'profile' && (
+              <Profile onOpenAdmin={() => setActiveTab('admin')} />
+            )}
+
+            {/* ADMIN DASHBOARD SCREEN */}
+            {activeTab === 'admin' && (
+              <AdminDashboard onClose={() => setActiveTab('profile')} />
+            )}
+
           </>
         )}
         
