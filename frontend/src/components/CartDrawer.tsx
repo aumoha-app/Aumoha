@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 
 interface CartItem {
-  id: number;
+  id: string | number;
   title: string;
   price: number;
   originalPrice: number | null;
@@ -15,10 +15,11 @@ interface CartDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   items: CartItem[];
-  onUpdateQuantity: (id: number, delta: number) => void;
-  onRemoveItem: (id: number) => void;
+  onUpdateQuantity: (id: string | number, delta: number) => void;
+  onRemoveItem: (id: string | number) => void;
   onClearCart: () => void;
 }
+
 
 export type { CartItem };
 

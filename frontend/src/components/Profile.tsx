@@ -4,8 +4,13 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { UserProfile } from '../types';
 
-export default function Profile() {
+interface ProfileProps {
+  onOpenAdmin?: () => void;
+}
+
+export default function Profile({ onOpenAdmin }: ProfileProps) {
   const { user, token, signOut, syncProfile } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState<UserProfile>({
     fullName: '',
@@ -17,6 +22,26 @@ export default function Profile() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Check if current user is admin whitelisted
+  useEffect(() => {
+    if (token) {
+      fetch('http://localhost:5001/api/auth/admin-config', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          setIsAdmin(data.isAdmin);
+        }
+      })
+      .catch(err => console.error('Failed to retrieve admin configuration in Profile:', err));
+    } else {
+      setIsAdmin(false);
+    }
+  }, [token]);
 
   // Initialize editedProfile when user is fetched
   useEffect(() => {
@@ -200,6 +225,14 @@ export default function Profile() {
         </div>
 
         <div className="flex gap-2.5 sm:self-auto self-start shrink-0">
+          {isAdmin && onOpenAdmin && (
+            <button
+              onClick={onOpenAdmin}
+              className="px-4 py-2 text-xs font-bold rounded-xl border border-transparent bg-terracotta hover:bg-terracotta/90 text-[#FDFBF7] transition-all duration-200 cursor-pointer whitespace-nowrap shadow-sm"
+            >
+              Admin Panel
+            </button>
+          )}
           <button
             onClick={handleEditToggle}
             disabled={isSaving}

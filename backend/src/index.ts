@@ -4,7 +4,13 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import { initializeApp, cert } from 'firebase-admin/app';
 import { authMiddleware } from './middleware/authMiddleware';
+import { adminMiddleware } from './middleware/adminMiddleware';
 import User from './models/userModel';
+import Product from './models/productModel';
+import SosReport from './models/sosModel';
+import { v2 as cloudinary } from 'cloudinary';
+import fs from 'fs';
+import path from 'path';
 
 // Load environment variables
 dotenv.config();
@@ -37,6 +43,19 @@ try {
   console.error('❌ Failed to initialize Firebase Admin SDK:', error);
 }
 
+// Initialize Cloudinary if variables are provided
+const cloudinaryConfigured = !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
+if (cloudinaryConfigured) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+  console.log('☁️ Cloudinary SDK configured successfully');
+} else {
+  console.warn('⚠️ Cloudinary configuration missing. Running in local image fallback mode.');
+}
+
 // Initialize MongoDB Connection
 const MONGODB_URI = process.env.MONGODB_URI;
 if (!MONGODB_URI) {
@@ -46,10 +65,120 @@ if (!MONGODB_URI) {
 
 mongoose
   .connect(MONGODB_URI)
-  .then(() => console.log('🍃 MongoDB connected successfully'))
+  .then(async () => {
+    console.log('🍃 MongoDB connected successfully');
+    await seedProducts();
+  })
   .catch((err) => {
     console.error('❌ MongoDB connection error:', err);
   });
+
+// Seed default products if database is empty
+async function seedProducts() {
+  try {
+    const count = await Product.countDocuments();
+    if (count > 0) {
+      console.log('🍃 Database already has products. Skipping seed.');
+      return;
+    }
+
+    console.log('🍃 Database has no products. Seeding default marketplace items...');
+
+    const defaultProducts = [
+      {
+        category: 'food' as const,
+        title: 'Plant-Based Dog Treats',
+        description: 'Wholesome daily treats',
+        price: 499,
+        originalPrice: null,
+        discountBadge: null,
+        localImage: 'product-1.png'
+      },
+      {
+        category: 'medical' as const,
+        title: 'Paw Wash',
+        description: 'Gentle & calming',
+        price: 449,
+        originalPrice: 499,
+        discountBadge: '10% OFF',
+        localImage: 'product-2.png'
+      },
+      {
+        category: 'toys' as const,
+        title: 'Eco Rope Ball',
+        description: 'Durable & safe play',
+        price: 349,
+        originalPrice: null,
+        discountBadge: null,
+        localImage: 'product-3.png'
+      },
+      {
+        category: 'toys' as const,
+        title: 'Plush Buddy',
+        description: 'Soft & comforting',
+        price: 399,
+        originalPrice: null,
+        discountBadge: null,
+        localImage: 'product-4.png'
+      },
+      {
+        category: 'medical' as const,
+        title: 'Skin & Coat Support',
+        description: 'Nourishment from within',
+        price: 899,
+        originalPrice: 999,
+        discountBadge: '10% OFF',
+        localImage: 'product-5.png'
+      },
+      {
+        category: 'toys' as const,
+        title: 'Comfort Collar',
+        description: 'Soft. Secure. Everyday.',
+        price: 499,
+        originalPrice: null,
+        discountBadge: null,
+        localImage: 'product-6.png'
+      }
+    ];
+
+    for (const p of defaultProducts) {
+      let imageUrl = `/${p.localImage}`; // Fallback local public URL
+
+      if (cloudinaryConfigured) {
+        // Read local image and upload to Cloudinary
+        const localImagePath = path.join(__dirname, '../../frontend/public', p.localImage);
+        if (fs.existsSync(localImagePath)) {
+          try {
+            console.log(`📤 Uploading seed image to Cloudinary: ${p.localImage}`);
+            const result = await cloudinary.uploader.upload(localImagePath, {
+              folder: 'aumoha_marketplace',
+              public_id: path.parse(p.localImage).name,
+            });
+            imageUrl = result.secure_url;
+          } catch (err) {
+            console.error(`❌ Failed to upload seed image ${p.localImage} to Cloudinary:`, err);
+          }
+        } else {
+          console.warn(`⚠️ Seed image not found at ${localImagePath}. Using fallback relative path.`);
+        }
+      }
+
+      await Product.create({
+        category: p.category,
+        title: p.title,
+        description: p.description,
+        price: p.price,
+        originalPrice: p.originalPrice,
+        discountBadge: p.discountBadge,
+        imageUrl: imageUrl
+      });
+    }
+
+    console.log('🍃 Successfully seeded 6 default products in MongoDB!');
+  } catch (error) {
+    console.error('❌ Failed to seed default products:', error);
+  }
+}
 
 // Middleware
 app.use(cors({
@@ -160,6 +289,22 @@ app.post('/api/auth/profile', authMiddleware, async (req: Request, res: Response
       });
     }
 
+    let profilePicUrl = profilePic || '';
+
+    // If Cloudinary is configured and the profile picture is a base64 string
+    if (profilePic && cloudinaryConfigured && (profilePic.startsWith('data:') || !profilePic.startsWith('http'))) {
+      try {
+        console.log('📤 Uploading profile picture to Cloudinary...');
+        const uploadResponse = await cloudinary.uploader.upload(profilePic, {
+          folder: 'aumoha_profiles',
+        });
+        profilePicUrl = uploadResponse.secure_url;
+      } catch (uploadError) {
+        console.error('❌ Failed to upload profile picture to Cloudinary:', uploadError);
+        // Fallback to storing raw base64 or empty string if it fails
+      }
+    }
+
     // Upsert user profile details in MongoDB based on firebaseUid
     const updatedUser = await User.findOneAndUpdate(
       { firebaseUid: userUid },
@@ -169,7 +314,7 @@ app.post('/api/auth/profile', authMiddleware, async (req: Request, res: Response
         fullName,
         phone,
         address,
-        profilePic: profilePic || ''
+        profilePic: profilePicUrl
       },
       { new: true, upsert: true, runValidators: true }
     );
@@ -188,8 +333,403 @@ app.post('/api/auth/profile', authMiddleware, async (req: Request, res: Response
   }
 });
 
+/**
+ * GET /api/auth/admin-config
+ * Checks if the current authenticated user's email is in the admin whitelist
+ */
+app.get('/api/auth/admin-config', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userEmail = req.user?.email?.toLowerCase();
+    const adminEmailsEnv = process.env.ADMIN_EMAILS || '';
+    const adminEmails = adminEmailsEnv
+      .split(',')
+      .map(email => email.trim().toLowerCase())
+      .filter(Boolean);
+
+    const isAdmin = !!(userEmail && adminEmails.includes(userEmail));
+    return res.json({
+      status: 'success',
+      isAdmin
+    });
+  } catch (error) {
+    console.error('Error in /api/auth/admin-config:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * POST /api/auth/verify-admin
+ * Verifies if the admin password is valid for double-lock protection
+ */
+app.post('/api/auth/verify-admin', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { password } = req.body;
+    const userEmail = req.user?.email?.toLowerCase();
+    const adminEmailsEnv = process.env.ADMIN_EMAILS || '';
+    const adminEmails = adminEmailsEnv
+      .split(',')
+      .map(email => email.trim().toLowerCase())
+      .filter(Boolean);
+
+    if (!userEmail || !adminEmails.includes(userEmail)) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Forbidden: You do not have admin access'
+      });
+    }
+
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (!adminPassword) {
+      return res.json({
+        status: 'success',
+        message: 'Admin access verified (No password set on server)'
+      });
+    }
+
+    if (password === adminPassword) {
+      return res.json({
+        status: 'success',
+        message: 'Admin access verified successfully'
+      });
+    } else {
+      return res.status(401).json({
+        status: 'error',
+        message: 'Invalid admin password'
+      });
+    }
+  } catch (error) {
+    console.error('Error in /api/auth/verify-admin:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * GET /api/products
+ * Public endpoint to fetch all products from MongoDB
+ */
+app.get('/api/products', async (req: Request, res: Response) => {
+  try {
+    const products = await Product.find().sort({ createdAt: -1 });
+    return res.json({
+      status: 'success',
+      products
+    });
+  } catch (error) {
+    console.error('Error in GET /api/products:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * POST /api/products
+ * Admin endpoint to create a new product
+ */
+app.post('/api/products', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { category, title, description, price, originalPrice, discountBadge, image } = req.body;
+
+    if (!category || !title || !description || !price || !image) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Missing required product fields (category, title, description, price, image)'
+      });
+    }
+
+    let imageUrl = '';
+
+    // If Cloudinary is configured and the image is a base64 string
+    if (cloudinaryConfigured && (image.startsWith('data:') || !image.startsWith('http'))) {
+      console.log('📤 Uploading new product image to Cloudinary...');
+      const uploadResponse = await cloudinary.uploader.upload(image, {
+        folder: 'aumoha_marketplace',
+      });
+      imageUrl = uploadResponse.secure_url;
+    } else {
+      imageUrl = image; // Use raw URL or base64 fallback
+    }
+
+    const newProduct = await Product.create({
+      category,
+      title,
+      description,
+      price: Number(price),
+      originalPrice: originalPrice ? Number(originalPrice) : null,
+      discountBadge: discountBadge || '',
+      imageUrl
+    });
+
+    return res.json({
+      status: 'success',
+      message: 'Product created successfully',
+      product: newProduct
+    });
+  } catch (error) {
+    console.error('Error in POST /api/products:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * PUT /api/products/:id
+ * Admin endpoint to update an existing product
+ */
+app.put('/api/products/:id', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { category, title, description, price, originalPrice, discountBadge, image } = req.body;
+
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Product not found'
+      });
+    }
+
+    let imageUrl = product.imageUrl;
+
+    if (image && image !== product.imageUrl) {
+      if (cloudinaryConfigured && (image.startsWith('data:') || !image.startsWith('http'))) {
+        console.log('📤 Uploading updated product image to Cloudinary...');
+        const uploadResponse = await cloudinary.uploader.upload(image, {
+          folder: 'aumoha_marketplace',
+        });
+        imageUrl = uploadResponse.secure_url;
+      } else {
+        imageUrl = image;
+      }
+    }
+
+    product.category = category || product.category;
+    product.title = title || product.title;
+    product.description = description || product.description;
+    product.price = price !== undefined ? Number(price) : product.price;
+    product.originalPrice = originalPrice !== undefined ? (originalPrice ? Number(originalPrice) : null) : product.originalPrice;
+    product.discountBadge = discountBadge !== undefined ? discountBadge : product.discountBadge;
+    product.imageUrl = imageUrl;
+
+    await product.save();
+
+    return res.json({
+      status: 'success',
+      message: 'Product updated successfully',
+      product
+    });
+  } catch (error) {
+    console.error('Error in PUT /api/products/:id:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * DELETE /api/products/:id
+ * Admin endpoint to delete a product
+ */
+app.delete('/api/products/:id', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const deletedProduct = await Product.findByIdAndDelete(id);
+
+    if (!deletedProduct) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Product not found'
+      });
+    }
+
+    return res.json({
+      status: 'success',
+      message: 'Product deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error in DELETE /api/products/:id:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * POST /api/sos
+ * Public/authenticated endpoint to submit a new emergency SOS report
+ */
+app.post('/api/sos', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { category, severity, location, reason, photo, audio } = req.body;
+    const userEmail = req.user?.email || 'anonymous@aumoha.com';
+    const userUid = req.user?.uid;
+
+    if (!category || !severity || !reason) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Missing required SOS report fields (category, severity, reason)'
+      });
+    }
+
+    let userPhone = '';
+    if (userUid) {
+      // Lookup profile phone details dynamically to populate call metrics
+      const dbUser = await User.findOne({ firebaseUid: userUid });
+      if (dbUser) {
+        userPhone = dbUser.phone || '';
+      }
+    }
+
+    // 1. Upload photo to Cloudinary if provided
+    let photoUrl = '';
+    if (photo && cloudinaryConfigured && (photo.startsWith('data:') || !photo.startsWith('http'))) {
+      try {
+        console.log('📤 Uploading SOS photo to Cloudinary...');
+        const uploadResponse = await cloudinary.uploader.upload(photo, {
+          folder: 'aumoha_sos',
+        });
+        photoUrl = uploadResponse.secure_url;
+      } catch (uploadError) {
+        console.error('❌ Failed to upload SOS photo to Cloudinary:', uploadError);
+      }
+    }
+
+    // 2. Upload audio/voice note to Cloudinary if provided
+    let audioUrl = '';
+    if (audio && cloudinaryConfigured && (audio.startsWith('data:') || !audio.startsWith('http'))) {
+      try {
+        console.log('📤 Uploading SOS voice note to Cloudinary...');
+        const uploadResponse = await cloudinary.uploader.upload(audio, {
+          folder: 'aumoha_sos_audio',
+          resource_type: 'video' // Required for audio files in Cloudinary
+        });
+        audioUrl = uploadResponse.secure_url;
+      } catch (uploadError) {
+        console.error('❌ Failed to upload SOS voice note to Cloudinary:', uploadError);
+      }
+    }
+
+    const newReport = await SosReport.create({
+      userEmail,
+      userPhone,
+      category,
+      severity,
+      location: location || 'Current Location',
+      reason,
+      photo: photoUrl || photo || '',
+      audio: audioUrl || audio || '',
+      status: 'active'
+    });
+
+    console.log(`🚨 New SOS Emergency Alert received: [${severity.toUpperCase()}] ${category} by ${userEmail}`);
+
+    return res.json({
+      status: 'success',
+      message: 'Emergency SOS alert broadcast successfully',
+      report: newReport
+    });
+  } catch (error) {
+    console.error('Error in POST /api/sos:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * GET /api/sos/my
+ * User endpoint to retrieve their own SOS reports from MongoDB
+ */
+app.get('/api/sos/my', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userEmail = req.user?.email;
+    if (!userEmail) {
+      return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+    }
+    const reports = await SosReport.find({ userEmail }).sort({ createdAt: -1 });
+    return res.json({ status: 'success', reports });
+  } catch (error) {
+    console.error('Error in GET /api/sos/my:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * GET /api/sos
+ * Admin endpoint to retrieve all SOS reports from MongoDB
+ */
+app.get('/api/sos', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const reports = await SosReport.find().sort({ createdAt: -1 });
+    return res.json({
+      status: 'success',
+      reports
+    });
+  } catch (error) {
+    console.error('Error in GET /api/sos:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * PUT /api/sos/:id
+ * Admin endpoint to update the status of an SOS report
+ */
+app.put('/api/sos/:id', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!status || !['active', 'dispatched', 'resolved'].includes(status)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid status update. Must be active, dispatched, or resolved'
+      });
+    }
+
+    const report = await SosReport.findById(id);
+    if (!report) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'SOS Report not found'
+      });
+    }
+
+    report.status = status;
+    await report.save();
+
+    return res.json({
+      status: 'success',
+      message: 'SOS Report status updated successfully',
+      report
+    });
+  } catch (error) {
+    console.error('Error in PUT /api/sos/:id:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * DELETE /api/sos/:id
+ * Admin endpoint to delete an SOS report
+ */
+app.delete('/api/sos/:id', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const deletedReport = await SosReport.findByIdAndDelete(id);
+
+    if (!deletedReport) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'SOS Report not found'
+      });
+    }
+
+    return res.json({
+      status: 'success',
+      message: 'SOS Report deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error in DELETE /api/sos/:id:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Aumoha Backend Server running on http://localhost:${PORT}`);
   console.log(`📡 Health-check API endpoint active at http://localhost:${PORT}/health`);
 });
+
+
