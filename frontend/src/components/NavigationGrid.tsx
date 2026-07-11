@@ -6,46 +6,72 @@ interface NavigationGridProps {
 
 export default function NavigationGrid({ onGroomingClick }: NavigationGridProps) {
   return (
-    <div className="w-full select-none">
+    <div className="w-full select-none flex flex-col gap-3">
+      {/* Header Row: Title */}
+      <div className="flex items-center justify-between w-full border-b border-warmBeige/40 pb-2 select-none">
+        <span className="text-[10px] md:text-xs uppercase tracking-widest text-[#B68A35] font-bold">Consult and Care</span>
+      </div>
+
       {/* 3-Column Responsive Grid Container (Locked columns, fits within screen width on mobile) */}
       <div className="grid grid-cols-3 gap-2 md:gap-4 w-full">
         
         {/* Card 1: Vet Consultation */}
-        <div className="bg-[#FCFAF7] border border-warmBeige rounded-[16px] md:rounded-[20px] p-3 md:p-5 flex flex-col items-center md:items-start gap-2.5 md:gap-4 hover:border-clay/40 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md group">
-          <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-[#F3EDE4] flex items-center justify-center text-clay transition-colors group-hover:bg-[#EAE1D5]">
-            <svg viewBox="0 0 24 24" width="18" height="18" className="md:w-5 md:h-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-            </svg>
+        <div className="bg-[#FCFAF7] border border-[#EBE3D5]/65 rounded-[18px] md:rounded-[22px] px-2 py-4 md:p-4.5 flex flex-col items-center justify-center hover:border-blue-500/20 hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md group">
+          {/* Circle container for icon */}
+          <div className="w-11 h-11 md:w-14 md:h-14 rounded-full bg-white border border-[#EBE3D5] flex items-center justify-center transition-colors group-hover:bg-[#FCFAF7] shadow-sm overflow-hidden">
+            <img 
+              src="/vetConsultation.png" 
+              alt="Vet Consultation" 
+              className="w-7 h-7 md:w-9 md:h-9 object-contain"
+            />
           </div>
-          <div className="flex flex-col items-center md:items-start gap-0.5 text-center md:text-left">
-            <h3 className="text-[10px] md:text-sm font-bold text-charcoal leading-tight">Vet Consultation</h3>
-            <p className="hidden md:block text-xs text-stone-500 leading-relaxed mt-1">Book appointments with verified vets.</p>
+          
+          {/* Title and Badge */}
+          <div className="flex flex-row items-center gap-1.5 justify-center mt-3.5 md:mt-4 w-full">
+            <div className="hidden md:flex w-4 h-4 md:w-4.5 md:h-4.5 rounded-full bg-blue-600 text-white items-center justify-center text-[9px] md:text-[10px] font-bold shadow-sm select-none shrink-0">
+              1
+            </div>
+            <h3 className="text-[10px] md:text-xs font-bold text-charcoal leading-tight text-center md:text-left whitespace-normal md:whitespace-nowrap">Vet Consultation</h3>
           </div>
         </div>
 
         {/* Card 2: Expert Support */}
-        <div className="bg-[#FCFAF7] border border-warmBeige rounded-[16px] md:rounded-[20px] p-3 md:p-5 flex flex-col items-center md:items-start gap-2.5 md:gap-4 hover:border-clay/40 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md group">
-          <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-[#F3EDE4] flex items-center justify-center text-clay transition-colors group-hover:bg-[#EAE1D5]">
-            <svg viewBox="0 0 24 24" width="18" height="18" className="md:w-5 md:h-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
+        <div className="bg-[#FCFAF7] border border-[#EBE3D5]/65 rounded-[18px] md:rounded-[22px] px-2 py-4 md:p-4.5 flex flex-col items-center justify-center hover:border-[#7059E2]/30 hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md group">
+          {/* Circle container for icon */}
+          <div className="w-11 h-11 md:w-14 md:h-14 rounded-full bg-white border border-[#EBE3D5] flex items-center justify-center transition-colors group-hover:bg-[#FCFAF7] shadow-sm overflow-hidden">
+            <img 
+              src="/experSupport.png" 
+              alt="Expert Support" 
+              className="w-7 h-7 md:w-9 md:h-9 object-contain"
+            />
           </div>
-          <div className="flex flex-col items-center md:items-start gap-0.5 text-center md:text-left">
-            <h3 className="text-[10px] md:text-sm font-bold text-charcoal leading-tight">Expert Support</h3>
-            <p className="hidden md:block text-xs text-stone-500 leading-relaxed mt-1">Get advice from specialists.</p>
+          
+          {/* Title and Badge */}
+          <div className="flex flex-row items-center gap-1.5 justify-center mt-3.5 md:mt-4 w-full">
+            <div className="hidden md:flex w-4 h-4 md:w-4.5 md:h-4.5 rounded-full bg-[#7059E2] text-white items-center justify-center text-[9px] md:text-[10px] font-bold shadow-sm select-none shrink-0">
+              2
+            </div>
+            <h3 className="text-[10px] md:text-xs font-bold text-charcoal leading-tight text-center md:text-left whitespace-normal md:whitespace-nowrap">Expert Support</h3>
           </div>
         </div>
 
         {/* Card 3: Grooming & Care */}
-        <div onClick={onGroomingClick} className="bg-[#FCFAF7] border border-warmBeige rounded-[16px] md:rounded-[20px] p-3 md:p-5 flex flex-col items-center md:items-start gap-2.5 md:gap-4 hover:border-clay/40 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md group">
-          <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-[#F3EDE4] flex items-center justify-center text-clay transition-colors group-hover:bg-[#EAE1D5]">
-            <svg viewBox="0 0 24 24" width="18" height="18" className="md:w-5 md:h-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
-            </svg>
+        <div onClick={onGroomingClick} className="bg-[#FCFAF7] border border-[#EBE3D5]/65 rounded-[18px] md:rounded-[22px] px-2 py-4 md:p-4.5 flex flex-col items-center justify-center hover:border-[#4A9D6F]/30 hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md group">
+          {/* Circle container for icon */}
+          <div className="w-11 h-11 md:w-14 md:h-14 rounded-full bg-white border border-[#EBE3D5] flex items-center justify-center transition-colors group-hover:bg-[#FCFAF7] shadow-sm overflow-hidden">
+            <img 
+              src="/groominAndCare.png" 
+              alt="Grooming & Care" 
+              className="w-7 h-7 md:w-9 md:h-9 object-contain"
+            />
           </div>
-          <div className="flex flex-col items-center md:items-start gap-0.5 text-center md:text-left">
-            <h3 className="text-[10px] md:text-sm font-bold text-charcoal leading-tight">Grooming & Care</h3>
-            <p className="hidden md:block text-xs text-stone-500 leading-relaxed mt-1">Grooming, walking, boarding & more.</p>
+          
+          {/* Title and Badge */}
+          <div className="flex flex-row items-center gap-1.5 justify-center mt-3.5 md:mt-4 w-full">
+            <div className="hidden md:flex w-4 h-4 md:w-4.5 md:h-4.5 rounded-full bg-[#4A9D6F] text-white items-center justify-center text-[9px] md:text-[10px] font-bold shadow-sm select-none shrink-0">
+              3
+            </div>
+            <h3 className="text-[10px] md:text-xs font-bold text-charcoal leading-tight text-center md:text-left whitespace-normal md:whitespace-nowrap">Grooming & Care</h3>
           </div>
         </div>
 

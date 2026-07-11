@@ -1,21 +1,91 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { UserProfile } from '../types';
 
 interface EmergencySubmittedProps {
   category: string;
   severity: 'critical' | 'urgent' | 'stable';
   sosReason: string;
   onBack: () => void;
+  location: string;
 }
 
 export default function EmergencySubmitted({
   category,
   severity,
   sosReason,
-  onBack
+  onBack,
+  location
 }: EmergencySubmittedProps) {
   const [copied, setCopied] = useState(false);
+  const { token } = useAuth();
+  const [rescuers, setRescuers] = useState<UserProfile[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 4;
+
+  const getKeywordMatches = (addr1: string, addr2: string): number => {
+    if (!addr1 || !addr2) return 0;
+    
+    const stopWords = new Set([
+      'near', 'opp', 'opposite', 'road', 'street', 'lane', 'flat', 'house', 
+      'apartment', 'building', 'floor', 'block', 'sector', 'area', 'beside', 
+      'behind', 'at', 'in', 'of', 'and', 'the', 'to', 'for', 'with', 'by'
+    ]);
+
+    const cleanWords = (text: string) => {
+      return text
+        .toLowerCase()
+        .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ' ')
+        .split(/\s+/)
+        .filter(word => word.length > 2 && !stopWords.has(word));
+    };
+
+    const words1 = cleanWords(addr1);
+    const words2 = new Set(cleanWords(addr2));
+
+    let matchCount = 0;
+    for (const word of words1) {
+      if (words2.has(word)) {
+        matchCount++;
+      }
+    }
+    return matchCount;
+  };
+
+  useEffect(() => {
+    if (!token) return;
+
+    setLoading(true);
+    fetch('http://localhost:5001/api/users/rescuers', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch rescuers');
+        return res.json();
+      })
+      .then(data => {
+        if (data.status === 'success' && data.rescuers) {
+          // Sort rescuers based on location keyword match
+          const sorted = [...data.rescuers].sort((a, b) => {
+            const matchA = getKeywordMatches(location, a.address || '');
+            const matchB = getKeywordMatches(location, b.address || '');
+            return matchB - matchA; // descending order of matches
+          });
+          setRescuers(sorted);
+        }
+      })
+      .catch(err => console.error('Error fetching rescuers:', err))
+      .finally(() => setLoading(false));
+  }, [token, location]);
+
+  const totalPages = Math.ceil(rescuers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedRescuers = rescuers.slice(startIndex, startIndex + itemsPerPage);
 
   // Generate a mock cryptographic grid case ID
   const caseId = 'AUM-' + Math.floor(1000 + Math.random() * 9000);
@@ -211,6 +281,92 @@ export default function EmergencySubmitted({
       >
         Cancel Rescue Request
       </span>
+
+      {/* 4.5. Rescuers Contact Directory */}
+      <div className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl p-4.5 flex flex-col gap-3 select-none">
+        <span className="text-[10px] uppercase tracking-widest text-[#4A5D4E] font-extrabold border-b border-[#F0EBE1] pb-2 flex items-center justify-between">
+          <span className="flex items-center gap-1.5">
+            <span>🛡️</span> Contact Rescuers
+          </span>
+          {loading && <span className="text-[9px] text-[#4A5D4E] lowercase animate-pulse font-normal">Loading rescuers...</span>}
+        </span>
+
+        {rescuers.length === 0 ? (
+          <p className="text-[11px] text-stone-400 font-medium py-2 text-center">
+            {loading ? 'Searching for active rescuers...' : 'No active rescuers found.'}
+          </p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2">
+              {paginatedRescuers.map((rescuer, idx) => {
+                const isNearby = getKeywordMatches(location, rescuer.address || '') > 0;
+                return (
+                  <div key={idx} className="bg-white border border-[#F0EBE1] rounded-xl p-3 flex items-center justify-between gap-3 shadow-sm hover:border-stone-300 transition-colors">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      {/* Avatar */}
+                      <div className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br from-terracotta to-clay flex items-center justify-center text-[#FDFBF7] text-xs font-serif shadow-sm shrink-0">
+                        {rescuer.profilePic ? (
+                          <img src={rescuer.profilePic} alt={rescuer.fullName} className="w-full h-full object-cover" />
+                        ) : (
+                          <span>{rescuer.fullName.split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase()}</span>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex flex-col">
+                        <span className="text-xs font-bold text-charcoal flex items-center gap-1.5 truncate">
+                          {rescuer.fullName}
+                          {isNearby && (
+                            <span className="px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase select-none shrink-0 bg-[#E8F5E9] text-[#2E7D32] border border-[#C8E6C9]">
+                              Nearby
+                            </span>
+                          )}
+                        </span>
+                        <span className="text-[10px] text-stone-500 truncate mt-0.5" title={rescuer.address}>
+                          📍 {rescuer.address}
+                        </span>
+                      </div>
+                    </div>
+                    {/* Call Button */}
+                    <a
+                      href={`tel:${rescuer.phone}`}
+                      className="px-3 py-1.5 bg-[#4A5D4E] hover:bg-[#3A4D3E] active:scale-95 text-[#FDFBF7] text-[10.5px] font-extrabold rounded-xl flex items-center gap-1.5 transition-all shadow-sm shrink-0"
+                    >
+                      <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mt-[-1px]">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                      </svg>
+                      Call
+                    </a>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between border-t border-[#F0EBE1] pt-2.5 mt-1">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="px-2.5 py-1 text-[10px] font-extrabold text-[#4A5D4E] bg-white border border-[#EBE3D5] hover:bg-stone-50 active:scale-95 disabled:opacity-50 disabled:pointer-events-none rounded-lg transition-all cursor-pointer"
+                >
+                  Previous
+                </button>
+                <span className="text-[10px] text-stone-500 font-semibold">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-2.5 py-1 text-[10px] font-extrabold text-[#4A5D4E] bg-white border border-[#EBE3D5] hover:bg-stone-50 active:scale-95 disabled:opacity-50 disabled:pointer-events-none rounded-lg transition-all cursor-pointer"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
     </div>
   );

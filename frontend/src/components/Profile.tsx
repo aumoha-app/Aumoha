@@ -17,7 +17,8 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
     email: '',
     phone: '',
     address: '',
-    profilePic: ''
+    profilePic: '',
+    role: 'normal'
   });
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +52,8 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
         email: user.email || '',
         phone: user.phone || '',
         address: user.address || '',
-        profilePic: user.profilePic || ''
+        profilePic: user.profilePic || '',
+        role: user.role || 'normal'
       });
     }
   }, [user]);
@@ -64,7 +66,8 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
         email: user.email || '',
         phone: user.phone || '',
         address: user.address || '',
-        profilePic: user.profilePic || ''
+        profilePic: user.profilePic || '',
+        role: user.role || 'normal'
       });
     }
     setError(null);
@@ -97,6 +100,7 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
           address: editedProfile.address,
           profilePic: editedProfile.profilePic,
           email: editedProfile.email,
+          role: editedProfile.role,
         }),
       });
 
@@ -183,6 +187,7 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
           address: user.address,
           profilePic: base64Pic,
           email: user.email,
+          role: user.role,
         }),
       });
       await syncProfile();
@@ -352,6 +357,22 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
                   </div>
                 </div>
 
+                {/* Role selection dropdown in edit mode */}
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="role" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Role</label>
+                  <select
+                    id="role"
+                    name="role"
+                    value={editedProfile.role}
+                    onChange={(e) => setEditedProfile(prev => ({ ...prev, role: e.target.value as 'rescuer' | 'normal' }))}
+                    required
+                    className="w-full bg-[#F5F3EF] rounded-xl py-2 px-3 text-xs text-[#1C1A17] border border-transparent focus:border-[#4A5D4E] focus:bg-white outline-none transition-all cursor-pointer font-medium"
+                  >
+                    <option value="normal">Normal</option>
+                    <option value="rescuer">Rescuer</option>
+                  </select>
+                </div>
+
                 {/* Home Address */}
                 <div className="flex flex-col gap-1">
                   <label htmlFor="address" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Home Address</label>
@@ -387,10 +408,15 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
             ) : (
               // READ-ONLY VIEW MODE
               <div className="flex flex-col gap-3.5 w-full">
-                <div>
+                <div className="flex items-center gap-3">
                   <h2 className="font-serif text-xl md:text-2xl font-normal text-[#1C1A17] leading-tight">
                     {user.fullName}
                   </h2>
+                  {user.role === 'rescuer' && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold tracking-wide uppercase bg-[#E8F5E9] text-[#2E7D32] border border-[#C8E6C9] shadow-sm select-none">
+                      Rescuer
+                    </span>
+                  )}
                 </div>
 
                 <div className="h-px bg-[#EBE3D5] my-1" />

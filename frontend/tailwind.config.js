@@ -18,7 +18,7 @@ module.exports = {
         emergency: "#C23B22",   // Warm crimson SOS color
       },
       fontFamily: {
-        sans: ["var(--font-geist-sans)", "system-ui", "-apple-system", "sans-serif"],
+        sans: ["var(--font-outfit)", "system-ui", "-apple-system", "sans-serif"],
       },
       animation: {
         'float': 'float 4s ease-in-out infinite',

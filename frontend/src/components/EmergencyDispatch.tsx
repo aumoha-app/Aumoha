@@ -363,14 +363,6 @@ export default function EmergencyDispatch({
   if (sosSent) {
     return (
       <main className="w-full max-w-2xl mx-auto bg-white border border-warmBeige/40 rounded-3xl p-6 md:p-8 shadow-sm flex flex-col gap-6 relative overflow-hidden transition-all duration-300">
-        {/* Atmospheric Accent: Leaf photo overlay */}
-        <div className="absolute top-0 right-0 pointer-events-none select-none w-44 h-44 z-0 opacity-40 translate-x-4 -translate-y-4">
-          <img
-            src="/leaf-accent.png"
-            alt="Leaf Accent"
-            className="w-full h-full object-contain object-right-top mix-blend-multiply"
-          />
-        </div>
         
         {/* Header Row: Title & Call 1962 Pill Button */}
         <div className="flex items-start justify-between gap-4 w-full relative z-10 select-none">
@@ -392,6 +384,7 @@ export default function EmergencyDispatch({
           severity={severity}
           sosReason={sosReason}
           onBack={onResetSos}
+          location={locationText}
         />
       </main>
     );
@@ -399,15 +392,6 @@ export default function EmergencyDispatch({
 
   return (
     <main className="w-full max-w-2xl mx-auto bg-white border border-warmBeige/40 rounded-3xl p-6 md:p-8 shadow-sm flex flex-col gap-6 relative overflow-hidden transition-all duration-300">
-      
-      {/* Atmospheric Accent: Leaf photo overlay */}
-      <div className="absolute top-0 right-0 pointer-events-none select-none w-44 h-44 z-0 opacity-40 translate-x-4 -translate-y-4">
-        <img
-          src="/leaf-accent.png"
-          alt="Leaf Accent"
-          className="w-full h-full object-contain object-right-top mix-blend-multiply"
-        />
-      </div>
 
       {/* Header Row: Back Button, Title & Call 1962 Pill Button */}
       <div className="flex items-start justify-between gap-4 w-full relative z-10 select-none">

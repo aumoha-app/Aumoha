@@ -9,8 +9,6 @@ import User from './models/userModel';
 import Product from './models/productModel';
 import SosReport from './models/sosModel';
 import { v2 as cloudinary } from 'cloudinary';
-import fs from 'fs';
-import path from 'path';
 
 // Load environment variables
 dotenv.config();
@@ -65,120 +63,14 @@ if (!MONGODB_URI) {
 
 mongoose
   .connect(MONGODB_URI)
-  .then(async () => {
+  .then(() => {
     console.log('🍃 MongoDB connected successfully');
-    await seedProducts();
   })
   .catch((err) => {
     console.error('❌ MongoDB connection error:', err);
   });
 
-// Seed default products if database is empty
-async function seedProducts() {
-  try {
-    const count = await Product.countDocuments();
-    if (count > 0) {
-      console.log('🍃 Database already has products. Skipping seed.');
-      return;
-    }
 
-    console.log('🍃 Database has no products. Seeding default marketplace items...');
-
-    const defaultProducts = [
-      {
-        category: 'food' as const,
-        title: 'Plant-Based Dog Treats',
-        description: 'Wholesome daily treats',
-        price: 499,
-        originalPrice: null,
-        discountBadge: null,
-        localImage: 'product-1.png'
-      },
-      {
-        category: 'medical' as const,
-        title: 'Paw Wash',
-        description: 'Gentle & calming',
-        price: 449,
-        originalPrice: 499,
-        discountBadge: '10% OFF',
-        localImage: 'product-2.png'
-      },
-      {
-        category: 'toys' as const,
-        title: 'Eco Rope Ball',
-        description: 'Durable & safe play',
-        price: 349,
-        originalPrice: null,
-        discountBadge: null,
-        localImage: 'product-3.png'
-      },
-      {
-        category: 'toys' as const,
-        title: 'Plush Buddy',
-        description: 'Soft & comforting',
-        price: 399,
-        originalPrice: null,
-        discountBadge: null,
-        localImage: 'product-4.png'
-      },
-      {
-        category: 'medical' as const,
-        title: 'Skin & Coat Support',
-        description: 'Nourishment from within',
-        price: 899,
-        originalPrice: 999,
-        discountBadge: '10% OFF',
-        localImage: 'product-5.png'
-      },
-      {
-        category: 'toys' as const,
-        title: 'Comfort Collar',
-        description: 'Soft. Secure. Everyday.',
-        price: 499,
-        originalPrice: null,
-        discountBadge: null,
-        localImage: 'product-6.png'
-      }
-    ];
-
-    for (const p of defaultProducts) {
-      let imageUrl = `/${p.localImage}`; // Fallback local public URL
-
-      if (cloudinaryConfigured) {
-        // Read local image and upload to Cloudinary
-        const localImagePath = path.join(__dirname, '../../frontend/public', p.localImage);
-        if (fs.existsSync(localImagePath)) {
-          try {
-            console.log(`📤 Uploading seed image to Cloudinary: ${p.localImage}`);
-            const result = await cloudinary.uploader.upload(localImagePath, {
-              folder: 'aumoha_marketplace',
-              public_id: path.parse(p.localImage).name,
-            });
-            imageUrl = result.secure_url;
-          } catch (err) {
-            console.error(`❌ Failed to upload seed image ${p.localImage} to Cloudinary:`, err);
-          }
-        } else {
-          console.warn(`⚠️ Seed image not found at ${localImagePath}. Using fallback relative path.`);
-        }
-      }
-
-      await Product.create({
-        category: p.category,
-        title: p.title,
-        description: p.description,
-        price: p.price,
-        originalPrice: p.originalPrice,
-        discountBadge: p.discountBadge,
-        imageUrl: imageUrl
-      });
-    }
-
-    console.log('🍃 Successfully seeded 6 default products in MongoDB!');
-  } catch (error) {
-    console.error('❌ Failed to seed default products:', error);
-  }
-}
 
 // Middleware
 app.use(cors({
@@ -254,6 +146,11 @@ app.get('/api/auth/me', authMiddleware, async (req: Request, res: Response) => {
       });
     }
 
+    // Silently default role if missing (for existing users)
+    if (!dbUser.role) {
+      dbUser.role = 'normal';
+    }
+
     // 3. Cache it in memory for subsequent requests
     userCache.set(userUid, dbUser);
 
@@ -280,7 +177,7 @@ app.post('/api/auth/profile', authMiddleware, async (req: Request, res: Response
       return res.status(401).json({ status: 'error', message: 'Unauthorized' });
     }
 
-    const { fullName, phone, address, profilePic } = req.body;
+    const { fullName, phone, address, profilePic, role } = req.body;
 
     if (!fullName || !phone || !address) {
       return res.status(400).json({ 
@@ -314,7 +211,8 @@ app.post('/api/auth/profile', authMiddleware, async (req: Request, res: Response
         fullName,
         phone,
         address,
-        profilePic: profilePicUrl
+        profilePic: profilePicUrl,
+        role: role || 'normal'
       },
       { new: true, upsert: true, runValidators: true }
     );
@@ -329,6 +227,23 @@ app.post('/api/auth/profile', authMiddleware, async (req: Request, res: Response
     });
   } catch (error) {
     console.error('Error in /api/auth/profile:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * GET /api/users/rescuers
+ * Retrieves all registered users with the 'rescuer' role
+ */
+app.get('/api/users/rescuers', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const rescuers = await User.find({ role: 'rescuer' }).select('fullName phone profilePic address');
+    return res.json({
+      status: 'success',
+      rescuers
+    });
+  } catch (error) {
+    console.error('Error in GET /api/users/rescuers:', error);
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
   }
 });

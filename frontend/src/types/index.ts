@@ -20,6 +20,7 @@ export interface UserProfile {
   phone: string;
   address: string;
   profilePic?: string;
+  role?: 'rescuer' | 'normal';
   createdAt?: string;
   updatedAt?: string;
 }

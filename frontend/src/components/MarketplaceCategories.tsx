@@ -23,51 +23,94 @@ export default function MarketplaceCategories({ onExploreMoreClick }: Marketplac
         {/* Category 1: Food */}
         <div 
           onClick={onExploreMoreClick}
-          className="bg-[#FCFAF7] border border-warmBeige rounded-[16px] md:rounded-[20px] p-3 md:p-5 flex flex-col items-center md:items-start gap-2.5 md:gap-4 hover:border-clay/40 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md group"
+          className="bg-[#FCFAF7] border border-[#EBE3D5]/65 rounded-[18px] md:rounded-[22px] px-2 py-4 md:p-4.5 flex flex-col items-center justify-center hover:border-blue-500/20 hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md group"
         >
-          <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-[#F3EDE4] flex items-center justify-center text-clay transition-colors group-hover:bg-[#EAE1D5] shrink-0">
-            <svg viewBox="0 0 24 24" width="18" height="18" className="md:w-5 md:h-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 12h18M3 12a9 9 0 0 0 18 0M6 12v3a6 6 0 0 0 12 0v-3" />
-            </svg>
+          {/* Circle container for icon */}
+          <div className="w-11 h-11 md:w-14 md:h-14 rounded-full bg-white border border-[#EBE3D5] flex items-center justify-center transition-colors group-hover:bg-[#FCFAF7] shadow-sm overflow-hidden">
+            <img 
+              src="/marketplace-food.png" 
+              alt="Food" 
+              className="w-7 h-7 md:w-9 md:h-9 object-contain"
+            />
           </div>
-          <div className="flex flex-col items-center md:items-start gap-0.5 text-center md:text-left">
-            <h3 className="text-xs md:text-sm font-bold text-charcoal leading-tight">Food</h3>
-            <p className="text-[9px] md:text-xs text-stone-500 leading-tight mt-0.5 md:mt-1 font-medium">Healthy & natural</p>
+          
+          {/* Title and Badge */}
+          <div className="flex flex-row items-center gap-1.5 justify-center mt-3.5 md:mt-4 w-full">
+            <div className="hidden md:flex w-4 h-4 md:w-4.5 md:h-4.5 rounded-full bg-[#D95D39] text-white items-center justify-center text-[9px] md:text-[10px] font-bold shadow-sm select-none shrink-0">
+              1
+            </div>
+            <h3 className="text-[10px] md:text-xs font-bold text-charcoal leading-tight text-center md:text-left whitespace-normal md:whitespace-nowrap">Marketplace - Food</h3>
           </div>
+          
+          {/* Decorative Divider Line */}
+          <div className="hidden md:block w-6 h-[1.5px] bg-gradient-to-r from-orange-400 to-[#D95D39] rounded-full mt-1.5" />
+          
+          {/* Description */}
+          <p className="hidden md:block text-center text-[9px] md:text-[10.5px] text-[#4A453E] font-medium mt-2 md:mt-2.5 leading-relaxed max-w-[130px]">
+            Nutritious food,<br />trusted brands.
+          </p>
         </div>
 
         {/* Category 2: Toys */}
         <div 
           onClick={onExploreMoreClick}
-          className="bg-[#FCFAF7] border border-warmBeige rounded-[16px] md:rounded-[20px] p-3 md:p-5 flex flex-col items-center md:items-start gap-2.5 md:gap-4 hover:border-clay/40 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md group"
+          className="bg-[#FCFAF7] border border-[#EBE3D5]/65 rounded-[18px] md:rounded-[22px] px-2 py-4 md:p-4.5 flex flex-col items-center justify-center hover:border-yellow-500/20 hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md group"
         >
-          <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-[#F3EDE4] flex items-center justify-center text-clay transition-colors group-hover:bg-[#EAE1D5] shrink-0">
-            <svg viewBox="0 0 24 24" width="18" height="18" className="md:w-5 md:h-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <path d="M6.2 6.2c2.4 2.4 2.4 6.4 0 8.8M17.8 6.2c-2.4 2.4-2.4 6.4 0 8.8" />
-            </svg>
+          {/* Circle container for icon */}
+          <div className="w-11 h-11 md:w-14 md:h-14 rounded-full bg-white border border-[#EBE3D5] flex items-center justify-center transition-colors group-hover:bg-[#FCFAF7] shadow-sm overflow-hidden">
+            <img 
+              src="/marketplace-toys.png" 
+              alt="Toys" 
+              className="w-7 h-7 md:w-9 md:h-9 object-contain"
+            />
           </div>
-          <div className="flex flex-col items-center md:items-start gap-0.5 text-center md:text-left">
-            <h3 className="text-xs md:text-sm font-bold text-charcoal leading-tight">Toys</h3>
-            <p className="text-[9px] md:text-xs text-stone-500 leading-tight mt-0.5 md:mt-1 font-medium">Enrichment & fun</p>
+          
+          {/* Title and Badge */}
+          <div className="flex flex-row items-center gap-1.5 justify-center mt-3.5 md:mt-4 w-full">
+            <div className="hidden md:flex w-4 h-4 md:w-4.5 md:h-4.5 rounded-full bg-[#D99B26] text-white items-center justify-center text-[9px] md:text-[10px] font-bold shadow-sm select-none shrink-0">
+              2
+            </div>
+            <h3 className="text-[10px] md:text-xs font-bold text-charcoal leading-tight text-center md:text-left whitespace-normal md:whitespace-nowrap">Marketplace - Toys</h3>
           </div>
+          
+          {/* Decorative Divider Line */}
+          <div className="hidden md:block w-6 h-[1.5px] bg-gradient-to-r from-yellow-400 to-[#D99B26] rounded-full mt-1.5" />
+          
+          {/* Description */}
+          <p className="hidden md:block text-center text-[9px] md:text-[10.5px] text-[#4A453E] font-medium mt-2 md:mt-2.5 leading-relaxed max-w-[130px]">
+            Fun, safe and<br />enriching essentials.
+          </p>
         </div>
 
         {/* Category 3: Medical */}
         <div 
           onClick={onExploreMoreClick}
-          className="bg-[#FCFAF7] border border-warmBeige rounded-[16px] md:rounded-[20px] p-3 md:p-5 flex flex-col items-center md:items-start gap-2.5 md:gap-4 hover:border-clay/40 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md group"
+          className="bg-[#FCFAF7] border border-[#EBE3D5]/65 rounded-[18px] md:rounded-[22px] px-2 py-4 md:p-4.5 flex flex-col items-center justify-center hover:border-teal-500/20 hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md group"
         >
-          <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-[#F3EDE4] flex items-center justify-center text-clay transition-colors group-hover:bg-[#EAE1D5] shrink-0">
-            <svg viewBox="0 0 24 24" width="18" height="18" className="md:w-5 md:h-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <path d="M12 8v8M8 12h8" />
-            </svg>
+          {/* Circle container for icon */}
+          <div className="w-11 h-11 md:w-14 md:h-14 rounded-full bg-white border border-[#EBE3D5] flex items-center justify-center transition-colors group-hover:bg-[#FCFAF7] shadow-sm overflow-hidden">
+            <img 
+              src="/marketplace-med.png" 
+              alt="Medical" 
+              className="w-7 h-7 md:w-9 md:h-9 object-contain"
+            />
           </div>
-          <div className="flex flex-col items-center md:items-start gap-0.5 text-center md:text-left">
-            <h3 className="text-xs md:text-sm font-bold text-charcoal leading-tight">Medical</h3>
-            <p className="text-[9px] md:text-xs text-stone-500 leading-tight mt-0.5 md:mt-1 font-medium">Health & essentials</p>
+          
+          {/* Title and Badge */}
+          <div className="flex flex-row items-center gap-1.5 justify-center mt-3.5 md:mt-4 w-full">
+            <div className="hidden md:flex w-4 h-4 md:w-4.5 md:h-4.5 rounded-full bg-[#138A8A] text-white items-center justify-center text-[9px] md:text-[10px] font-bold shadow-sm select-none shrink-0">
+              3
+            </div>
+            <h3 className="text-[10px] md:text-xs font-bold text-charcoal leading-tight text-center md:text-left whitespace-normal md:whitespace-nowrap">Marketplace - Medical</h3>
           </div>
+          
+          {/* Decorative Divider Line */}
+          <div className="hidden md:block w-6 h-[1.5px] bg-gradient-to-r from-teal-400 to-[#138A8A] rounded-full mt-1.5" />
+          
+          {/* Description */}
+          <p className="hidden md:block text-center text-[7.8px] md:text-[9.2px] text-[#4A453E] font-medium mt-2 md:mt-2.5 leading-snug max-w-[130px]">
+            Medicines, supplements<br />& vet-prescribed essentials.
+          </p>
         </div>
       </div>
     </div>
