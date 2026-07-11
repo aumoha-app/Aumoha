@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 export default function OnboardingScreen() {
@@ -11,7 +11,69 @@ export default function OnboardingScreen() {
   const [profilePic, setProfilePic] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [role, setRole] = useState<'rescuer' | 'normal' | ''>('');
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+
+    setIsDetectingLocation(true);
+    setAddress('Detecting location...');
+
+    // Set a 5-second timeout for the reverse geocoding request and location detection
+    const timeoutId = setTimeout(() => {
+      setIsDetectingLocation(curr => {
+        if (curr) {
+          console.warn('Geolocation or reverse geocoding timed out.');
+          setAddress('');
+          return false;
+        }
+        return curr;
+      });
+    }, 5000);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`, {
+            headers: {
+              'Accept-Language': 'en'
+            }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            clearTimeout(timeoutId);
+            setIsDetectingLocation(false);
+            if (data.display_name) {
+              setAddress(data.display_name);
+            } else {
+              setAddress('');
+            }
+          } else {
+            clearTimeout(timeoutId);
+            setIsDetectingLocation(false);
+            setAddress('');
+          }
+        } catch (err) {
+          clearTimeout(timeoutId);
+          setIsDetectingLocation(false);
+          setAddress('');
+        }
+      },
+      (error) => {
+        clearTimeout(timeoutId);
+        setIsDetectingLocation(false);
+        setAddress('');
+        console.warn('Geolocation permission denied or failed:', error);
+      },
+      { timeout: 4500 }
+    );
+
+    return () => clearTimeout(timeoutId);
+  }, []);
 
   const compressImage = (file: File, callback: (base64: string) => void) => {
     const reader = new FileReader();
@@ -70,8 +132,14 @@ export default function OnboardingScreen() {
     setError(null);
     setIsSaving(true);
 
-    if (!fullName.trim() || !phone.trim() || !address.trim()) {
-      setError('Please fill in all required fields.');
+    if (!fullName.trim() || !phone.trim() || !address.trim() || !role) {
+      setError('Please fill in all required fields, including your role.');
+      setIsSaving(false);
+      return;
+    }
+
+    if (address === 'Detecting location...') {
+      setError('Please wait for location detection or fill in your address manually.');
       setIsSaving(false);
       return;
     }
@@ -88,6 +156,7 @@ export default function OnboardingScreen() {
           phone,
           address,
           profilePic,
+          role,
           email: firebaseUser?.email || '',
         }),
       });
@@ -228,6 +297,27 @@ export default function OnboardingScreen() {
             />
           </div>
 
+          {/* Role Selection Dropdown */}
+          <div className="flex flex-col gap-1">
+            <label htmlFor="role" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Select Your Role</label>
+            <select
+              id="role"
+              value={role}
+              onChange={(e) => setRole(e.target.value as 'rescuer' | 'normal')}
+              required
+              className="w-full bg-[#F5F3EF] rounded-xl py-2.5 px-3 text-xs text-[#1C1A17] border border-transparent focus:border-[#4A5D4E] focus:bg-white outline-none transition-all font-medium cursor-pointer"
+            >
+              <option value="" disabled>Select your role</option>
+              <option value="normal">Normal</option>
+              <option value="rescuer">Rescuer</option>
+            </select>
+            {role === 'rescuer' && (
+              <p className="text-[10.5px] text-[#A25F2A] font-semibold bg-[#FDF6F0] border border-[#F5E1D2] rounded-xl p-3 mt-1.5 leading-relaxed animate-fadeIn">
+                ✨ It is a good work, you will save stray animals and for that your phone number will get public.
+              </p>
+            )}
+          </div>
+
           {/* Phone Number */}
           <div className="flex flex-col gap-1">
             <label htmlFor="phone" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Phone Number</label>
@@ -244,7 +334,9 @@ export default function OnboardingScreen() {
 
           {/* Home Address */}
           <div className="flex flex-col gap-1">
-            <label htmlFor="address" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Home Address</label>
+            <label htmlFor="address" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">
+              Home Address {isDetectingLocation && <span className="text-[9px] text-[#4A5D4E] normal-case font-bold animate-pulse ml-1">(detecting...)</span>}
+            </label>
             <textarea
               id="address"
               placeholder="e.g. Flat 101, Indiranagar, Bengaluru, KA"
@@ -252,7 +344,8 @@ export default function OnboardingScreen() {
               onChange={(e) => setAddress(e.target.value)}
               required
               rows={3}
-              className="w-full bg-[#F5F3EF] rounded-xl py-2.5 px-3 text-xs text-[#1C1A17] border border-transparent focus:border-[#4A5D4E] focus:bg-white outline-none transition-all resize-none leading-relaxed placeholder-stone-400 font-medium"
+              disabled={isDetectingLocation}
+              className="w-full bg-[#F5F3EF] rounded-xl py-2.5 px-3 text-xs text-[#1C1A17] border border-transparent focus:border-[#4A5D4E] focus:bg-white outline-none transition-all resize-none leading-relaxed placeholder-stone-400 font-medium disabled:opacity-60"
             />
           </div>
         </div>
