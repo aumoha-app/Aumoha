@@ -10,6 +10,110 @@ import {
   MemberRole 
 } from '../types';
 import { getDistance, DistanceInfo } from '../lib/proximity';
+import { useAuth } from '../context/AuthContext';
+
+const getCoordinatesForLocation = (location: string): [number, number] => {
+  const clean = (location || '').toLowerCase();
+  if (clean.includes('saheed nagar')) return [28.4595, 77.0266];
+  if (clean.includes('sector 4,')) return [28.4575, 77.0246];
+  if (clean.includes('downtown')) return [28.4625, 77.0306];
+  if (clean.includes('market')) return [28.4715, 77.0356];
+
+  // Deterministic offset based on string hash
+  let hash = 0;
+  for (let i = 0; i < clean.length; i++) {
+    hash = clean.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const latOffset = ((hash % 100) / 5000); // max +/- 0.02
+  const lngOffset = (((hash >> 4) % 100) / 5000); // max +/- 0.02
+  return [28.4595 + latOffset, 77.0266 + lngOffset];
+};
+
+const formatTime = (dateStr: string) => {
+  const date = new Date(dateStr);
+  const diff = Date.now() - date.getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins} mins ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} hrs ago`;
+  return `${Math.floor(hrs / 24)} days ago`;
+};
+
+const renderRoleIcon = (role: MemberRole, size = 'w-6 h-6') => {
+  switch (role) {
+    case 'feeder':
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-[#E65100]`}>
+          <path d="M12 2v4M12 18h.01M3 20h18M5 10a7 7 0 0 0 14 0H5z" />
+        </svg>
+      );
+    case 'rescuer':
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-[#2E7D32]`}>
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </svg>
+      );
+    case 'volunteer':
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-[#0D47A1]`}>
+          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+        </svg>
+      );
+    case 'paravet':
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-[#7B1FA2]`}>
+          <path d="M4.82 17.22a3 3 0 1 1-3-3m0 0v-4a7 7 0 0 1 14 0v4m0-4V6a2 2 0 0 1 2-2h2m-6 13.22a3 3 0 1 1 3-3" />
+        </svg>
+      );
+    case 'adopter':
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-[#004D40]`}>
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" />
+        </svg>
+      );
+    default:
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-stone-500`}>
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      );
+  }
+};
+
+const renderPartnerIcon = (type: string, size = 'w-7 h-7') => {
+  switch (type.toLowerCase()) {
+    case 'veterinary':
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-[#C85341]`}>
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2z" />
+          <line x1="12" y1="8" x2="12" y2="16" />
+          <line x1="8" y1="12" x2="16" y2="12" />
+        </svg>
+      );
+    case 'ngo':
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className={`${size} text-[#2E7D32]`}>
+          <path d="M12 14c-1.66 0-3 1.34-3 3 0 2 2 3.5 3 4.5 1-1 3-2.5 3-4.5 0-1.66-1.34-3-3-3zm-4.5-2.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm9 0c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm-11-4C4.67 7.5 4 8.17 4 9s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5S6.33 7.5 5.5 7.5zm13 0c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zM12 2c-.83 0-1.5.67-1.5 1.5S11.17 5 12 5s1.5-.67 1.5-1.5S12.83 2 12 2z" fill="currentColor"/>
+        </svg>
+      );
+    case 'shelter':
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-[#004D40]`}>
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" />
+        </svg>
+      );
+    default:
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-[#0D47A1]`}>
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+        </svg>
+      );
+  }
+};
 
 interface MohallaCircleProps {
   onNavigate?: (tab: string) => void;
@@ -59,14 +163,142 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
     donations: 8450
   };
 
-  const members: CircleMember[] = [
-    { id: '1', name: 'Neha J.', avatar: '👩‍🦰', role: 'feeder', distance: '800 m', badge: 'trusted', location: 'Sector 4 Park', lat: 28.4595, lng: 77.0266, joinedTime: '3' },
-    { id: '2', name: 'Ankit', avatar: '👨‍🦲', role: 'rescuer', distance: '1.2 km', badge: 'level4', location: 'Downtown Area', lat: 28.4625, lng: 77.0306, joinedTime: '12' },
-    { id: '3', name: 'Rita', avatar: '👩‍🦱', role: 'feeder', distance: '500 m', badge: 'level3', location: 'Market Area', lat: 28.4575, lng: 77.0246, joinedTime: '5' },
-    { id: '4', name: 'Dr. Meera', avatar: '👩‍⚕️', role: 'paravet', distance: '2.5 km', badge: 'available', location: 'Clinic Zone', lat: 28.4715, lng: 77.0356, joinedTime: '22' },
-    { id: '5', name: 'Pooja S.', avatar: '👩‍🤝‍👩', role: 'volunteer', distance: '3.0 km', location: 'North Zone', lat: 28.4805, lng: 77.0206, joinedTime: '8' },
-    { id: '6', name: 'Vikas P.', avatar: '👨‍💼', role: 'rescuer', distance: '2.8 km', location: 'East Zone', lat: 28.4505, lng: 77.0456, joinedTime: '15' },
+  const { token } = useAuth();
+  const [dbRescuers, setDbRescuers] = useState<any[]>([]);
+  const [dbSosReports, setDbSosReports] = useState<any[]>([]);
+  const [isDataLoading, setIsDataLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!token) return;
+      try {
+        const rescuerRes = await fetch('http://localhost:5001/api/users/rescuers', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (rescuerRes.ok) {
+          const rescuerData = await rescuerRes.json();
+          setDbRescuers(rescuerData.rescuers || []);
+        }
+
+        const sosRes = await fetch('http://localhost:5001/api/sos/active', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (sosRes.ok) {
+          const sosData = await sosRes.json();
+          setDbSosReports(sosData.reports || []);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch Mohalla Circle database data:', err);
+      } finally {
+        setIsDataLoading(false);
+      }
+    };
+    fetchData();
+  }, [token]);
+
+  const defaultMockMembers = [
+    { id: 'm1', name: 'Neha J.', avatar: '', role: 'feeder' as const, location: 'Sector 4 Park', badge: 'trusted' as const, joinedTime: '3' },
+    { id: 'm2', name: 'Rita', avatar: '', role: 'feeder' as const, location: 'Market Area', badge: 'level3' as const, joinedTime: '5' },
+    { id: 'm3', name: 'Dr. Meera', avatar: '', role: 'paravet' as const, location: 'Clinic Zone', badge: 'available' as const, joinedTime: '22' },
+    { id: 'm4', name: 'Pooja S.', avatar: '', role: 'volunteer' as const, location: 'North Zone', badge: undefined, joinedTime: '8' },
   ];
+
+  const dbMappedRescuers = dbRescuers.map(r => ({
+    id: r._id,
+    name: r.fullName,
+    avatar: r.profilePic || '',
+    role: 'rescuer' as const,
+    location: r.address || 'Saheed Nagar',
+    badge: 'trusted' as const,
+    joinedTime: '1'
+  }));
+
+  const allMembers = [...dbMappedRescuers, ...defaultMockMembers];
+
+  const computedMembers: CircleMember[] = allMembers.map(m => {
+    const distInfo = getDistance(selectedLocation, m.location || '');
+    const coords = getCoordinatesForLocation(m.location || '');
+    return {
+      id: m.id,
+      name: m.name,
+      avatar: m.avatar,
+      role: m.role,
+      location: m.location,
+      badge: m.badge || undefined,
+      joinedTime: m.joinedTime,
+      distance: distInfo.display,
+      distanceVal: distInfo.distanceVal,
+      lat: coords[0],
+      lng: coords[1]
+    };
+  });
+
+  const defaultMockUpdates = [
+    {
+      id: 'u1',
+      author: 'Neha J.',
+      authorRole: 'feeder' as const,
+      avatar: '',
+      time: '10 mins ago',
+      category: 'feeding' as const,
+      title: 'Evening feeding completed',
+      description: 'Fed 12 dogs near Sector 4 Park.',
+      image: '/marketplace-food.png',
+      location: 'Sector 4 Park',
+      likes: 15
+    },
+    {
+      id: 'u2',
+      author: 'Mohalla Foster Network',
+      authorRole: 'adopter' as const,
+      avatar: '',
+      time: '2 hrs ago',
+      category: 'feeding' as const,
+      title: '2 new foster homes available',
+      description: 'Safe temporary homes ready for dogs in need.',
+      image: '/product-1.png',
+      location: 'Within 3 km',
+      likes: 4
+    },
+  ];
+
+  const dbMappedReports = dbSosReports.map(r => ({
+    id: r._id,
+    author: r.userPhone || 'Anonymous Reporter',
+    authorRole: 'volunteer' as const,
+    avatar: '🚨',
+    time: formatTime(r.createdAt),
+    category: 'help' as const,
+    title: r.reason || 'Animal emergency reported',
+    description: r.description || r.reason || `SOS Alert: ${r.category} severity issue.`,
+    image: r.photo || '',
+    location: r.location || 'Saheed Nagar',
+    likes: 0
+  }));
+
+  const allUpdates = [...dbMappedReports, ...defaultMockUpdates];
+
+  const computedUpdates: CommunityUpdate[] = allUpdates.map(u => {
+    const distInfo = getDistance(selectedLocation, u.location || '');
+    const coords = getCoordinatesForLocation(u.location || '');
+    return {
+      id: u.id,
+      author: u.author,
+      authorRole: u.authorRole,
+      avatar: u.avatar,
+      time: u.time,
+      category: u.category,
+      title: u.title,
+      description: u.description,
+      image: u.image,
+      location: u.location,
+      likes: u.likes,
+      distance: distInfo.display,
+      distanceVal: distInfo.distanceVal,
+      lat: coords[0],
+      lng: coords[1]
+    };
+  });
 
   const circleLeaders: CircleLeader[] = [
     { id: '1', name: 'Sunita R.', avatar: '👩‍🦳', role: 'Community Warden', location: 'Sector 4 & 5', badge: 'level5' },
@@ -81,89 +313,11 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
     { id: '4', name: 'City Animal Helpline', logo: '☎️', distance: '24x7 Support', type: 'Support' },
   ];
 
-  const updates: CommunityUpdate[] = [
-    {
-      id: '1',
-      author: 'Neha J.',
-      authorRole: 'feeder',
-      avatar: '👩‍🦰',
-      time: '10 mins ago',
-      category: 'help',
-      title: 'Injured dog near Park Street',
-      description: 'A limping brown dog was seen near the park entrance. Needs medical help.',
-      image: '/hero-dog.png',
-      location: 'Sector 4 Park',
-      distance: '800 m',
-      likes: 12
-    },
-    {
-      id: '2',
-      author: 'Ankit',
-      authorRole: 'rescuer',
-      avatar: '👨‍🦲',
-      time: '35 mins ago',
-      category: 'help',
-      title: 'Rescue completed successfully',
-      description: 'The injured dog has been moved to a vet clinic for treatment.',
-      image: '/hero-golden-retriever.png',
-      location: 'Veterinary Care Center',
-      distance: '1.5 km',
-      likes: 8
-    },
-    {
-      id: '3',
-      author: 'Rita',
-      authorRole: 'feeder',
-      avatar: '👩‍🦱',
-      time: '1 hr ago',
-      category: 'feeding',
-      title: 'Evening feeding completed',
-      description: 'Fed 12 dogs near Sector 4 Park.',
-      image: '/marketplace-food.png',
-      location: 'Sector 4 Park',
-      distance: '500 m',
-      likes: 15
-    },
-    {
-      id: '4',
-      author: 'Mohalla Foster Network',
-      authorRole: 'adopter',
-      avatar: '🏠',
-      time: '2 hrs ago',
-      category: 'feeding',
-      title: '2 new foster homes available',
-      description: 'Safe temporary homes ready for dogs in need.',
-      image: '/product-1.png',
-      location: 'Within 3 km',
-      distance: '3.0 km',
-      likes: 4
-    },
-  ];
-
   const events = [
     { id: 'e1', date: '18 May', title: 'Free Vaccination Camp', time: '8:00 AM - 12:00 PM', location: 'Sector 4 Community Park', image: '/vetConsultation.png' },
     { id: 'e2', date: '25 May', title: 'Clean Streets, Safe Paws', time: '7:30 AM - 10:30 AM', location: 'Park Street Area', image: '/groominAndCare.png' },
     { id: 'e3', date: '01 Jun', title: 'Adoption Meet', time: '11:00 AM - 3:00 PM', location: 'AU Moha Center', image: '/experSupport.png' }
   ];
-
-  // Dynamically calculate distance using getDistance from proximity.ts
-  const computedMembers = members.map(m => {
-    const distInfo = getDistance(selectedLocation, m.location || '');
-    return {
-      ...m,
-      distance: distInfo.display,
-      distanceVal: distInfo.distanceVal
-    };
-  });
-
-  const computedUpdates = updates.map(u => {
-    const distInfo = getDistance(selectedLocation, u.location || '');
-    return {
-      ...u,
-      distance: distInfo.display,
-      distanceVal: distInfo.distanceVal
-    };
-  });
 
   // Role style mappings (color palette: elegant, HSL tailored matching screenshots)
   const getRoleColors = (role: MemberRole) => {
@@ -192,6 +346,27 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
       case 'level4': return '⭐ Level 4';
       case 'level3': return '⭐ Level 3';
       default: return badge;
+    }
+  };
+
+  const getSvgIconString = (roleOrType: string) => {
+    const clean = (roleOrType || '').toLowerCase();
+    switch (clean) {
+      case 'feeder':
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="#E65100" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M12 2v4M12 18h.01M3 20h18M5 10a7 7 0 0 0 14 0H5z" /></svg>`;
+      case 'rescuer':
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>`;
+      case 'volunteer':
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="#0D47A1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /></svg>`;
+      case 'paravet':
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="#7B1FA2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M4.82 17.22a3 3 0 1 1-3-3m0 0v-4a7 7 0 0 1 14 0v4m0-4V6a2 2 0 0 1 2-2h2m-6 13.22a3 3 0 1 1 3-3" /></svg>`;
+      case 'adopter':
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="#004D40" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>`;
+      case 'help_needed':
+      case 'incident':
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="#C85341" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-5.5 h-5.5 animate-pulse"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>`;
+      default:
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="#37474F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>`;
     }
   };
 
@@ -246,10 +421,10 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
         
         let markerHtml = '';
         if (pin.role === 'help_needed') {
-          // Urgent Red pin
+          // Urgent Red pin SVG
           markerHtml = `<div class="flex flex-col items-center">
-            <div class="w-9 h-9 rounded-full bg-[#C85341] border border-white flex items-center justify-center text-white text-sm shadow-md animate-bounce">
-              🚨
+            <div class="w-9 h-9 rounded-full bg-[#FCECE9] border-2 border-[#C85341] flex items-center justify-center text-white text-sm shadow-md animate-bounce">
+              ${getSvgIconString('help_needed')}
             </div>
             <div class="bg-white/95 px-2 py-0.5 rounded-full border border-stone-200 text-[9px] font-bold text-charcoal mt-1 whitespace-nowrap shadow-sm">
               Help Needed: ${pin.distance || '800m'}
@@ -257,9 +432,13 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
           </div>`;
         } else {
           // Custom Role pin with avatar inside and label
+          const avatarContent = (pin.avatar && pin.avatar.startsWith('http'))
+            ? `<img src="${pin.avatar}" class="w-full h-full rounded-full object-cover" />`
+            : getSvgIconString(pin.role);
+
           markerHtml = `<div class="flex flex-col items-center">
-            <div class="w-8 h-8 rounded-full ${roleInfo.bg} border-2 ${roleInfo.border} flex items-center justify-center text-base shadow-md relative">
-              ${pin.avatar || roleInfo.icon}
+            <div class="w-8 h-8 rounded-full ${roleInfo.bg} border-2 ${roleInfo.border} flex items-center justify-center shadow-md relative">
+              ${avatarContent}
               ${pin.badge ? `<span class="absolute -top-1.5 -right-1.5 text-[8px] bg-yellow-400 rounded-full w-3.5 h-3.5 flex items-center justify-center">⭐</span>` : ''}
             </div>
             <div class="bg-white/95 px-2 py-0.5 rounded-full border border-stone-200 text-[9px] font-bold text-charcoal mt-1 whitespace-nowrap shadow-sm">
@@ -313,27 +492,59 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
 
   // Load maps based on active sub-screen
   useEffect(() => {
+    const centerCoords = getCoordinatesForLocation(selectedLocation);
+
     if (selectedRequest) {
       // Load Detail Screen Map (Screen 6)
+      const detailRequestCoords = getCoordinatesForLocation(selectedRequest.location || selectedLocation);
       const detailPins = [
-        { name: 'Neha J.', avatar: '👩‍🦰', role: 'feeder', lat: 28.4595, lng: 77.0266, distance: '800 m' },
-        { name: 'Ankit', avatar: '👨‍', role: 'rescuer', lat: 28.4625, lng: 77.0306, distance: '1.2 km' },
-        { name: 'Rita', avatar: '👩‍🦱', role: 'feeder', lat: 28.4575, lng: 77.0246, distance: '500 m' }
+        { 
+          name: selectedRequest.title, 
+          avatar: '🚨', 
+          role: 'help_needed', 
+          lat: detailRequestCoords[0], 
+          lng: detailRequestCoords[1], 
+          distance: selectedRequest.distance 
+        },
+        ...computedMembers.slice(0, 3).map(m => ({
+          name: m.name,
+          avatar: m.avatar,
+          role: m.role,
+          lat: m.lat || centerCoords[0],
+          lng: m.lng || centerCoords[1],
+          distance: m.distance,
+          badge: m.badge
+        }))
       ];
       setTimeout(() => {
-        loadLeafletMap('detail-map', [28.4605, 77.0286], detailPins, detailMapRef);
+        loadLeafletMap('detail-map', detailRequestCoords, detailPins, detailMapRef);
       }, 100);
     } else if (activeView === 'home') {
       // Load Home Map (Screen 1)
-      const homePins = [
-        { name: 'Rita', avatar: '👩‍🦱', role: 'feeder', lat: 28.4575, lng: 77.0246, distance: '500 m' },
-        { name: 'Ankit', avatar: '👨‍', role: 'rescuer', lat: 28.4625, lng: 77.0306, distance: '1.2 km' },
-        { name: 'Paravet', avatar: '🩺', role: 'paravet', lat: 28.4715, lng: 77.0356, distance: '2.5 km' },
-        { name: 'Foster Home', avatar: '🏠', role: 'adopter', lat: 28.4805, lng: 77.0206, distance: '2 within 3 km' },
-        { name: 'Help Needed', avatar: '🚨', role: 'help_needed', lat: 28.4595, lng: 77.0266, distance: '800 m' }
-      ];
+      const activeReportsPins = computedUpdates
+        .filter(u => u.category === 'help')
+        .map(u => ({
+          name: u.title,
+          avatar: '🚨',
+          role: 'help_needed',
+          lat: u.lat || centerCoords[0],
+          lng: u.lng || centerCoords[1],
+          distance: u.distance
+        }));
+
+      const activeMemberPins = computedMembers.map(m => ({
+        name: m.name,
+        avatar: m.avatar,
+        role: m.role,
+        lat: m.lat || centerCoords[0],
+        lng: m.lng || centerCoords[1],
+        distance: m.distance,
+        badge: m.badge
+      }));
+
+      const homePins = [...activeReportsPins, ...activeMemberPins];
       setTimeout(() => {
-        loadLeafletMap('home-map', [28.4605, 77.0286], homePins, homeMapRef);
+        loadLeafletMap('home-map', centerCoords, homePins, homeMapRef);
       }, 100);
     } else if (activeView === 'members') {
       // Load Member Network Map (Screen 2)
@@ -341,13 +552,13 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
         name: m.name,
         avatar: m.avatar,
         role: m.role,
-        lat: m.lat || 28.4605,
-        lng: m.lng || 77.0286,
+        lat: m.lat || centerCoords[0],
+        lng: m.lng || centerCoords[1],
         distance: m.distance,
         badge: m.badge
       }));
       setTimeout(() => {
-        loadLeafletMap('members-map', [28.4605, 77.0286], memberPins, membersMapRef);
+        loadLeafletMap('members-map', centerCoords, memberPins, membersMapRef);
       }, 100);
     }
 
@@ -357,7 +568,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
       if (membersMapRef.current) { membersMapRef.current.remove(); membersMapRef.current = null; }
       if (detailMapRef.current) { detailMapRef.current.remove(); detailMapRef.current = null; }
     };
-  }, [activeView, selectedRequest]);
+  }, [activeView, selectedRequest, computedMembers, computedUpdates]);
 
   const handleHelpToggle = (option: string) => {
     setSelectedHelpOptions(prev => 
@@ -387,8 +598,12 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
         }}
       >
         <div className="flex flex-col items-center w-full text-center">
-          <div className="w-16 h-16 rounded-full overflow-hidden bg-gradient-to-br from-terracotta/10 to-clay/10 border border-[#EBE3D5] flex items-center justify-center shadow-inner relative mb-2">
-            <span className="text-3xl">{member.avatar}</span>
+          <div className="w-16 h-16 rounded-full overflow-hidden bg-gradient-to-br from-[#3D5A45]/5 to-[#B68A35]/5 border border-[#EBE3D5] flex items-center justify-center shadow-inner relative mb-2">
+            {member.avatar && member.avatar.startsWith('http') ? (
+              <img src={member.avatar} alt={member.name} className="w-full h-full object-cover" />
+            ) : (
+              renderRoleIcon(member.role, 'w-8 h-8')
+            )}
             <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
           </div>
           <span className="text-xs font-bold text-charcoal truncate w-full">{member.name}</span>
@@ -420,8 +635,18 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-cream border border-[#F0EBE1] flex items-center justify-center text-xl shadow-inner shrink-0">
-              {post.avatar}
+            <div className="w-10 h-10 rounded-full bg-cream border border-[#F0EBE1] flex items-center justify-center shadow-inner shrink-0">
+              {post.avatar && post.avatar.startsWith('http') ? (
+                <img src={post.avatar} alt={post.author} className="w-full h-full rounded-full object-cover" />
+              ) : post.avatar === '🚨' ? (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-[#C85341] animate-pulse">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+              ) : (
+                renderRoleIcon(post.authorRole, 'w-5 h-5')
+              )}
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -1258,7 +1483,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
                   className="bg-white border border-[#F0EBE1] rounded-2xl p-4 flex gap-3.5 items-center hover:shadow-md transition-all duration-300 shrink-0 w-[200px] select-none"
                 >
                   <div className="w-12 h-12 rounded-full overflow-hidden bg-[#FAF6F0] border border-[#EBE3D5] flex items-center justify-center shadow-inner relative shrink-0">
-                    <span className="text-2xl">{leader.avatar}</span>
+                    {renderRoleIcon(leader.id === '1' ? 'volunteer' : leader.id === '2' ? 'rescuer' : 'feeder', 'w-6 h-6')}
                     <span className="absolute bottom-0 right-0 text-[10px] bg-yellow-400 rounded-full w-4.5 h-4.5 flex items-center justify-center border border-white">⭐</span>
                   </div>
                   <div className="min-w-0 flex flex-col">
@@ -1297,7 +1522,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
                   key={partner.id} 
                   className="bg-white border border-[#F0EBE1] hover:border-[#3D5A45]/40 hover:bg-[#FCFAF7] transition-all rounded-2xl p-3.5 flex flex-col items-center text-center w-[125px] shrink-0 shadow-sm cursor-pointer select-none"
                 >
-                  <span className="text-3xl">{partner.logo}</span>
+                  {renderPartnerIcon(partner.type, 'w-8 h-8')}
                   <span className="text-xs font-bold text-charcoal mt-2 truncate w-full">{partner.name}</span>
                   <span className="text-[9px] text-stone-400 font-bold block mt-0.5">{partner.type}</span>
                   <span className="text-[9px] text-[#3D5A45] font-extrabold block mt-2">📍 {partner.distance}</span>

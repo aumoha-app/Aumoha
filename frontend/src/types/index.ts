@@ -102,6 +102,8 @@ export interface CommunityUpdate {
   location?: string;
   distance?: string;
   likes?: number;
+  lat?: number;
+  lng?: number;
 }
 
 export interface CircleLeader {

@@ -726,6 +726,23 @@ app.delete('/api/sos/my/:id', authMiddleware, async (req: Request, res: Response
 });
 
 /**
+ * GET /api/sos/active
+ * Retrieves all active/dispatched SOS reports for community view
+ */
+app.get('/api/sos/active', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const reports = await SosReport.find({ status: { $in: ['active', 'dispatched'] } }).sort({ createdAt: -1 });
+    return res.json({
+      status: 'success',
+      reports
+    });
+  } catch (error) {
+    console.error('Error in GET /api/sos/active:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
  * GET /api/sos
  * Admin endpoint to retrieve all SOS reports from MongoDB
  */
