@@ -992,7 +992,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
           {/* QUICK ACTIONS GRID */}
           <div className="flex flex-col gap-3">
             <h3 className="text-sm font-bold text-charcoal px-1">Quick Actions</h3>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
               <button 
                 onClick={() => setActiveTab?.('report')}
                 className="bg-[#FCECE9] border border-[#FCE2DF] hover:scale-[1.02] transition-all rounded-[24px] p-4 flex flex-col items-center justify-between text-center min-h-[110px] shadow-sm group active:scale-98"
@@ -1032,6 +1032,26 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
                 <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-[#7B1FA2] text-lg shadow-sm border border-[#E1BEE7]">📅</div>
                 <span className="text-[11px] font-extrabold text-[#7B1FA2] mt-2 block">Join Event</span>
                 <span className="text-[8px] text-[#7B1FA2]/60 font-semibold block mt-0.5 leading-tight">Community events</span>
+              </button>
+              <button 
+                onClick={() => {
+                  setActiveView('impact');
+                }}
+                className="bg-[#E0F2F1] border border-[#B2DFDB] hover:scale-[1.02] transition-all rounded-[24px] p-4 flex flex-col items-center justify-between text-center min-h-[110px] shadow-sm group active:scale-98"
+              >
+                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-[#004D40] text-lg shadow-sm border border-[#B2DFDB]">💝</div>
+                <span className="text-[11px] font-extrabold text-[#004D40] mt-2 block">Donate Now</span>
+                <span className="text-[8px] text-[#004D40]/60 font-semibold block mt-0.5 leading-tight">Support the circle</span>
+              </button>
+              <button 
+                onClick={() => {
+                  alert('Opening neighbor invite link share...');
+                }}
+                className="bg-[#FFF8E1] border border-[#FFE082] hover:scale-[1.02] transition-all rounded-[24px] p-4 flex flex-col items-center justify-between text-center min-h-[110px] shadow-sm group active:scale-98"
+              >
+                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-[#FF8F00] text-lg shadow-sm border border-[#FFE082]">👥</div>
+                <span className="text-[11px] font-extrabold text-[#FF8F00] mt-2 block">Invite Neighbor</span>
+                <span className="text-[8px] text-[#FF8F00]/60 font-semibold block mt-0.5 leading-tight">Grow our community</span>
               </button>
             </div>
           </div>
@@ -1209,6 +1229,57 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
                 className="text-[10px] font-extrabold text-[#3D5A45] hover:text-[#2A3E31] flex items-center gap-0.5 bg-white border border-[#EBE3D5] px-2.5 py-1.5 rounded-lg active:scale-95 transition-all shadow-sm"
               >
                 <span>📤</span> Share
+              </button>
+            </div>
+          </div>
+
+          {/* DONATE CARD PANEL */}
+          <div className="bg-[#FAF6F0] border border-[#EBE3D5] rounded-[28px] p-6 shadow-sm flex flex-col gap-4">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-white border border-[#EBE3D5] flex items-center justify-center text-2xl text-amber-600 shrink-0 shadow-inner">
+                💝
+              </div>
+              <div className="flex-grow min-w-0">
+                <h4 className="text-sm font-bold text-charcoal leading-snug">Donate to Amoha Circle</h4>
+                <p className="text-[10px] md:text-xs text-stone-500 font-semibold leading-relaxed mt-1">
+                  Your contributions help volunteers and NGOs fund vaccines, medical supplies, feeding drives, and rescue transports in Saheed Nagar.
+                </p>
+              </div>
+            </div>
+            
+            {/* Donation Options Row */}
+            <div className="grid grid-cols-3 gap-2.5 mt-1">
+              {[
+                { amount: '₹500', desc: 'Vaccine & Meds' },
+                { amount: '₹1,500', desc: 'Rescue Transport' },
+                { amount: '₹5,000', desc: 'Monthly Feeding' }
+              ].map((opt, i) => (
+                <button 
+                  key={i}
+                  onClick={() => alert(`Thank you! Directing to donation for ${opt.amount} (${opt.desc})...`)}
+                  className="bg-white hover:bg-[#3D5A45]/5 hover:border-[#3D5A45] border border-[#EBE3D5] rounded-2xl py-3 px-2 flex flex-col items-center justify-center text-center transition-all cursor-pointer group active:scale-95 shadow-sm"
+                >
+                  <span className="text-xs font-extrabold text-[#3D5A45] group-hover:scale-105 transition-transform">{opt.amount}</span>
+                  <span className="text-[8px] text-stone-400 font-semibold block mt-0.5 leading-none">{opt.desc}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Custom Amount Input and Button */}
+            <div className="flex gap-2 items-center mt-1">
+              <div className="relative flex-grow">
+                <span className="absolute inset-y-0 left-3 flex items-center text-xs font-bold text-stone-400 select-none">₹</span>
+                <input 
+                  type="number"
+                  placeholder="Other amount"
+                  className="w-full bg-white border border-[#EBE3D5] rounded-xl py-2 pl-6 pr-3 text-xs text-charcoal outline-none focus:border-[#3D5A45] transition-all font-semibold"
+                />
+              </div>
+              <button 
+                onClick={() => alert('Processing donation payment... (Ready for integration)')}
+                className="bg-[#3D5A45] hover:bg-[#2A3E31] text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all shadow-sm active:scale-95 whitespace-nowrap"
+              >
+                Contribute
               </button>
             </div>
           </div>
