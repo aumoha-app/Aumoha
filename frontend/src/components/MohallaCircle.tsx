@@ -12,23 +12,6 @@ import {
 import { getDistance, DistanceInfo } from '../lib/proximity';
 import { useAuth } from '../context/AuthContext';
 
-const getCoordinatesForLocation = (location: string): [number, number] => {
-  const clean = (location || '').toLowerCase();
-  if (clean.includes('saheed nagar')) return [28.4595, 77.0266];
-  if (clean.includes('sector 4,')) return [28.4575, 77.0246];
-  if (clean.includes('downtown')) return [28.4625, 77.0306];
-  if (clean.includes('market')) return [28.4715, 77.0356];
-
-  // Deterministic offset based on string hash
-  let hash = 0;
-  for (let i = 0; i < clean.length; i++) {
-    hash = clean.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const latOffset = ((hash % 100) / 5000); // max +/- 0.02
-  const lngOffset = (((hash >> 4) % 100) / 5000); // max +/- 0.02
-  return [28.4595 + latOffset, 77.0266 + lngOffset];
-};
-
 const formatTime = (dateStr: string) => {
   const date = new Date(dateStr);
   const diff = Date.now() - date.getTime();
@@ -133,12 +116,67 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
   const [memberFilter, setMemberFilter] = useState<MemberRole>('all');
   const [updateFilter, setUpdateFilter] = useState<string>('all');
   const [selectedLocation, setSelectedLocation] = useState(userAddress || 'Saheed Nagar, Sector 45');
+  const [deviceCoords, setDeviceCoords] = useState<[number, number] | null>(null);
+  const [deviceAddress, setDeviceAddress] = useState<string>('');
 
   useEffect(() => {
-    if (userAddress) {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        setDeviceCoords([lat, lng]);
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`, {
+            headers: { 'Accept-Language': 'en' }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.display_name) {
+              const shortAddr = data.address.neighbourhood || data.address.suburb || data.address.road || data.display_name.split(',')[0];
+              const cityStr = data.address.city || data.address.town || data.address.state_district || 'Gurugram';
+              const fullAddr = `${shortAddr}, ${cityStr}`;
+              setDeviceAddress(fullAddr);
+              setSelectedLocation(fullAddr);
+            }
+          }
+        } catch (err) {
+          console.warn('Failed to reverse geocode device location:', err);
+        }
+      },
+      (error) => {
+        console.warn('Browser geolocation access failed:', error);
+      }
+    );
+  }, []);
+
+  const getCoordinatesForLocation = (location: string): [number, number] => {
+    const clean = (location || '').toLowerCase();
+    if (clean.includes('saheed nagar')) return [28.4595, 77.0266];
+    if (clean.includes('sector 4,')) return [28.4575, 77.0246];
+    if (clean.includes('downtown')) return [28.4625, 77.0306];
+    if (clean.includes('market')) return [28.4715, 77.0356];
+
+    if (deviceAddress && clean.includes(deviceAddress.split(',')[0].toLowerCase())) {
+      if (deviceCoords) return deviceCoords;
+    }
+
+    const baseCoords = deviceCoords || [28.4595, 77.0266];
+
+    let hash = 0;
+    for (let i = 0; i < clean.length; i++) {
+      hash = clean.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const latOffset = ((hash % 100) / 5000);
+    const lngOffset = (((hash >> 4) % 100) / 5000);
+    return [baseCoords[0] + latOffset, baseCoords[1] + lngOffset];
+  };
+
+  useEffect(() => {
+    if (userAddress && !deviceAddress) {
       setSelectedLocation(userAddress);
     }
-  }, [userAddress]);
+  }, [userAddress, deviceAddress]);
   
   // Navigation states for sub-screens
   const [selectedRequest, setSelectedRequest] = useState<CommunityUpdate | null>(null);
