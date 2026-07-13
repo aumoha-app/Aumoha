@@ -235,7 +235,7 @@ export default function Home() {
 
             {/* CIRCLE TAB SCREEN */}
             {activeTab === 'circle' && (
-              <MohallaCircle setActiveTab={setActiveTab} />
+              <MohallaCircle setActiveTab={setActiveTab} userAddress={user?.address} />
             )}
 
             {/* PET CARE FEATURE SCREEN */}
