@@ -17,6 +17,27 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
   const [authError, setAuthError] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
 
+  // Custom Confirmation Dialog States
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [confirmConfig, setConfirmConfig] = useState<{
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    confirmText?: string;
+    cancelText?: string;
+    isDestructive?: boolean;
+  } | null>(null);
+
+  const openConfirmation = (config: any) => {
+    setConfirmConfig(config);
+    setIsConfirmOpen(true);
+  };
+
+  const closeConfirmation = () => {
+    setIsConfirmOpen(false);
+    setConfirmConfig(null);
+  };
+
   // Products state
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -37,9 +58,17 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // TAB NAVIGATION & SOS STATES
-  const [currentTab, setCurrentTab] = useState<'products' | 'sos'>('products');
+  const [currentTab, setCurrentTab] = useState<'products' | 'sos' | 'settings'>('sos');
   const [sosReports, setSosReports] = useState<SosReport[]>([]);
   const [isSosLoading, setIsSosLoading] = useState(false);
+
+  // Settings States
+  const [checkoutCountryCode, setCheckoutCountryCode] = useState('+91');
+  const [checkoutPhone, setCheckoutPhone] = useState('');
+  const [isSettingsLoading, setIsSettingsLoading] = useState(false);
+  const [isSettingsSaving, setIsSettingsSaving] = useState(false);
+  const [settingsError, setSettingsError] = useState<string | null>(null);
+  const [settingsSuccess, setSettingsSuccess] = useState<boolean>(false);
 
   // Load from sessionStorage if already validated in this tab session
   useEffect(() => {
@@ -145,24 +174,111 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
     }
   };
 
-  const handleDeleteSos = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this SOS report?')) return;
-    try {
-      const res = await fetch(`http://localhost:5001/api/sos/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'X-Admin-Password': adminPassword
+  const handleDeleteSos = (id: string) => {
+    openConfirmation({
+      title: 'Delete SOS Report?',
+      message: 'Are you sure you want to delete this SOS report from the system? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      isDestructive: true,
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`http://localhost:5001/api/sos/${id}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'X-Admin-Password': adminPassword
+            }
+          });
+          if (res.ok) {
+            fetchSosReports(false);
+          } else {
+            const data = await res.json();
+            openConfirmation({
+              title: 'Error',
+              message: data.message || 'Failed to delete SOS report.',
+              confirmText: 'OK',
+              onConfirm: () => {}
+            });
+          }
+        } catch (err) {
+          console.error('Error deleting SOS report:', err);
+          openConfirmation({
+            title: 'Error',
+            message: 'Network error. Unable to delete SOS report.',
+            confirmText: 'OK',
+            onConfirm: () => {}
+          });
         }
-      });
+      }
+    });
+  };
+
+  const fetchCheckoutSettings = async () => {
+    setIsSettingsLoading(true);
+    setSettingsError(null);
+    try {
+      const res = await fetch('http://localhost:5001/api/settings/checkout-phone');
       if (res.ok) {
-        fetchSosReports(false);
-      } else {
         const data = await res.json();
-        alert(data.message || 'Failed to delete SOS report.');
+        setCheckoutCountryCode(data.countryCode || '+91');
+        setCheckoutPhone(data.phoneNumber || '');
+      } else {
+        setSettingsError('Failed to load settings.');
       }
     } catch (err) {
-      console.error('Error deleting SOS report:', err);
+      setSettingsError('Network error loading settings.');
+    } finally {
+      setIsSettingsLoading(false);
+    }
+  };
+
+  const handleSaveSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSettingsError(null);
+    setSettingsSuccess(false);
+
+    // Enforce validations
+    if (!checkoutCountryCode.trim() || !checkoutPhone.trim()) {
+      setSettingsError('Please fill out both country code and phone number fields.');
+      return;
+    }
+
+    if (!/^\+\d+$/.test(checkoutCountryCode)) {
+      setSettingsError('Country code must start with "+" followed by digits (e.g. +91).');
+      return;
+    }
+
+    if (!/^\d+$/.test(checkoutPhone)) {
+      setSettingsError('Phone number must contain only digits.');
+      return;
+    }
+
+    setIsSettingsSaving(true);
+    try {
+      const res = await fetch('http://localhost:5001/api/settings/checkout-phone', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'X-Admin-Password': adminPassword
+        },
+        body: JSON.stringify({
+          countryCode: checkoutCountryCode,
+          phoneNumber: checkoutPhone
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSettingsSuccess(true);
+        setTimeout(() => setSettingsSuccess(false), 3000);
+      } else {
+        setSettingsError(data.message || 'Failed to save settings.');
+      }
+    } catch (err) {
+      setSettingsError('Network error saving settings.');
+    } finally {
+      setIsSettingsSaving(false);
     }
   };
 
@@ -170,6 +286,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
   useEffect(() => {
     if (isAuthenticated) {
       fetchSosReports(true);
+      fetchCheckoutSettings();
       const interval = setInterval(() => {
         fetchSosReports(false);
       }, 10000); // Poll every 10 seconds
@@ -302,27 +419,34 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDeleteClick = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
-
-    setErrorMessage(null);
-    try {
-      const res = await fetch(`http://localhost:5001/api/products/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'X-Admin-Password': adminPassword
+  const handleDeleteClick = (id: string) => {
+    openConfirmation({
+      title: 'Delete Product?',
+      message: 'Are you sure you want to delete this product from the marketplace? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      isDestructive: true,
+      onConfirm: async () => {
+        setErrorMessage(null);
+        try {
+          const res = await fetch(`http://localhost:5001/api/products/${id}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'X-Admin-Password': adminPassword
+            }
+          });
+          const data = await res.json();
+          if (res.ok) {
+            fetchProducts(adminPassword);
+          } else {
+            setErrorMessage(data.message || 'Failed to delete product.');
+          }
+        } catch (err) {
+          setErrorMessage('Network error deleting product.');
         }
-      });
-      const data = await res.json();
-      if (res.ok) {
-        fetchProducts(adminPassword);
-      } else {
-        setErrorMessage(data.message || 'Failed to delete product.');
       }
-    } catch (err) {
-      setErrorMessage('Network error deleting product.');
-    }
+    });
   };
 
   // Auth lock screen
@@ -410,16 +534,6 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
       {/* TAB NAVIGATION */}
       <div className="flex border-b border-[#EBE3D5] mb-2 select-none">
         <button
-          onClick={() => setCurrentTab('products')}
-          className={`px-5 py-2.5 text-xs font-bold transition-all border-b-2 cursor-pointer ${
-            currentTab === 'products'
-              ? 'border-[#4A5D4E] text-[#4A5D4E]'
-              : 'border-transparent text-stone-400 hover:text-[#4A5D4E]'
-          }`}
-        >
-          Manage Products
-        </button>
-        <button
           onClick={() => setCurrentTab('sos')}
           className={`px-5 py-2.5 text-xs font-bold transition-all border-b-2 cursor-pointer flex items-center gap-1.5 ${
             currentTab === 'sos'
@@ -433,6 +547,26 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
               {sosReports.filter(r => r.status === 'active').length}
             </span>
           )}
+        </button>
+        <button
+          onClick={() => setCurrentTab('products')}
+          className={`px-5 py-2.5 text-xs font-bold transition-all border-b-2 cursor-pointer ${
+            currentTab === 'products'
+              ? 'border-[#4A5D4E] text-[#4A5D4E]'
+              : 'border-transparent text-stone-400 hover:text-[#4A5D4E]'
+          }`}
+        >
+          Manage Products
+        </button>
+        <button
+          onClick={() => setCurrentTab('settings')}
+          className={`px-5 py-2.5 text-xs font-bold transition-all border-b-2 cursor-pointer ${
+            currentTab === 'settings'
+              ? 'border-[#4A5D4E] text-[#4A5D4E]'
+              : 'border-transparent text-stone-400 hover:text-[#4A5D4E]'
+          }`}
+        >
+          Marketplace Settings
         </button>
       </div>
 
@@ -901,6 +1035,120 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
         </section>
       )}
 
+      {currentTab === 'settings' && (
+        <section className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-[24px] p-5 md:p-6 flex flex-col gap-4 shadow-sm hover:shadow-md transition-all duration-300">
+          <div className="border-b border-[#EBE3D5]/80 pb-2.5">
+            <h2 className="font-serif text-lg text-[#1C1A17] font-normal">Marketplace Settings</h2>
+            <p className="text-[11px] text-stone-400 font-medium leading-normal mt-0.5">Configure the destination contact for WhatsApp checkout orders.</p>
+          </div>
+
+          {isSettingsLoading ? (
+            <div className="flex flex-col items-center justify-center py-10 gap-3 text-stone-400 select-none">
+              <div className="w-7 h-7 rounded-full border-2 border-stone-200 border-t-[#4A5D4E] animate-spin" />
+              <p className="text-[10px] font-semibold">Loading current settings...</p>
+            </div>
+          ) : (
+            <form onSubmit={handleSaveSettings} className="flex flex-col gap-4 max-w-md">
+              <div className="grid grid-cols-3 gap-3">
+                {/* Country Code */}
+                <div className="flex flex-col gap-1 col-span-1">
+                  <label htmlFor="countryCode" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Country Code *</label>
+                  <input
+                    type="text"
+                    id="countryCode"
+                    value={checkoutCountryCode}
+                    onChange={(e) => setCheckoutCountryCode(e.target.value)}
+                    placeholder="+91"
+                    className="w-full bg-white rounded-xl py-2.5 px-3.5 text-xs text-[#1C1A17] border border-[#EBE3D5] focus:border-[#4A5D4E] focus:ring-1 focus:ring-[#4A5D4E] outline-none transition-all shadow-sm"
+                    required
+                  />
+                </div>
+
+                {/* Phone Number */}
+                <div className="flex flex-col gap-1 col-span-2">
+                  <label htmlFor="checkoutPhone" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">WhatsApp Phone Number *</label>
+                  <input
+                    type="text"
+                    id="checkoutPhone"
+                    value={checkoutPhone}
+                    onChange={(e) => setCheckoutPhone(e.target.value)}
+                    placeholder="9876543210"
+                    className="w-full bg-white rounded-xl py-2.5 px-3.5 text-xs text-[#1C1A17] border border-[#EBE3D5] focus:border-[#4A5D4E] focus:ring-1 focus:ring-[#4A5D4E] outline-none transition-all shadow-sm"
+                    required
+                  />
+                </div>
+              </div>
+
+              {settingsError && (
+                <div className="bg-[#FDEDEC] border border-[#F5C2C2] text-[#C0392B] rounded-xl px-4 py-2.5 text-xs font-semibold">
+                  {settingsError}
+                </div>
+              )}
+
+              {settingsSuccess && (
+                <div className="bg-[#E8F5E9] border border-[#C8E6C9] text-[#2E7D32] rounded-xl px-4 py-2.5 text-xs font-semibold">
+                  WhatsApp settings saved successfully!
+                </div>
+              )}
+
+              <div className="flex justify-end mt-2">
+                <button
+                  type="submit"
+                  disabled={isSettingsSaving}
+                  className="px-6 py-2.5 bg-[#4A5D4E] hover:bg-[#3A4D3E] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-75 text-white font-bold text-xs rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer"
+                >
+                  {isSettingsSaving ? (
+                    <>
+                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Settings'
+                  )}
+                </button>
+              </div>
+            </form>
+          )}
+        </section>
+      )}
+
+      {/* Custom Confirmation Dialog Modal */}
+      {isConfirmOpen && confirmConfig && (
+        <div className="fixed inset-0 z-50 bg-[#1C1A17]/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-sm w-full border border-[#F0EBE1] shadow-2xl p-6 flex flex-col gap-4 animate-in fade-in zoom-in duration-200">
+            <div className="flex flex-col gap-1 text-center select-none">
+              <h4 className="font-serif text-lg text-[#1C1A17] font-semibold">{confirmConfig.title}</h4>
+              <p className="text-xs text-stone-400 font-medium leading-relaxed mt-1">{confirmConfig.message}</p>
+            </div>
+            
+            <div className={`grid ${confirmConfig.cancelText ? 'grid-cols-2' : 'grid-cols-1'} gap-3 mt-2`}>
+              {confirmConfig.cancelText && (
+                <button
+                  type="button"
+                  onClick={closeConfirmation}
+                  className="py-2.5 px-4 text-xs font-bold rounded-xl border border-stone-200 bg-white text-stone-500 hover:bg-stone-50 transition-colors cursor-pointer text-center"
+                >
+                  {confirmConfig.cancelText}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  confirmConfig.onConfirm();
+                  closeConfirmation();
+                }}
+                className={`py-2.5 px-4 text-xs font-bold rounded-xl text-white shadow-sm transition-all active:scale-[0.98] cursor-pointer text-center ${
+                  confirmConfig.isDestructive 
+                    ? 'bg-red-600 hover:bg-red-750 shadow-sm' 
+                    : 'bg-[#4A5D4E] hover:bg-[#3A4D3E] shadow-sm'
+                }`}
+              >
+                {confirmConfig.confirmText || 'Confirm'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

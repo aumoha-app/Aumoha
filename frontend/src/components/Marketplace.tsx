@@ -22,6 +22,22 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [addedProductId, setAddedProductId] = useState<string | number | null>(null);
 
+  const [checkoutCountryCode, setCheckoutCountryCode] = useState('');
+  const [checkoutPhone, setCheckoutPhone] = useState('');
+
+  // Fetch configured checkout phone settings from database
+  useEffect(() => {
+    fetch('http://localhost:5001/api/settings/checkout-phone')
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          setCheckoutCountryCode(data.countryCode || '');
+          setCheckoutPhone(data.phoneNumber || '');
+        }
+      })
+      .catch(err => console.error('Failed to load checkout settings:', err));
+  }, [isCartOpen]); // Fetch or refresh settings when cart is opened
+
   // Fetch products from MongoDB
   const fetchProducts = useCallback(async () => {
     setIsLoading(true);
@@ -377,6 +393,8 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
         onUpdateQuantity={handleUpdateQuantity}
         onRemoveItem={handleRemoveItem}
         onClearCart={handleClearCart}
+        checkoutCountryCode={checkoutCountryCode}
+        checkoutPhone={checkoutPhone}
       />
     </>
   );

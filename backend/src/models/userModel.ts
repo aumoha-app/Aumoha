@@ -1,5 +1,16 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
+export interface IPet {
+  _id?: any;
+  name: string;
+  photo?: string;
+  type: string;
+  breed?: string;
+  age?: number;
+  gender?: 'male' | 'female' | 'unknown';
+  notes?: string;
+}
+
 export interface IUser extends Document {
   firebaseUid: string;
   fullName: string;
@@ -8,9 +19,25 @@ export interface IUser extends Document {
   address: string;
   profilePic?: string;
   role: 'rescuer' | 'normal';
+  pets: IPet[];
   createdAt: Date;
   updatedAt: Date;
 }
+
+const PetSchema: Schema = new Schema(
+  {
+    name: { type: String, required: true },
+    photo: { type: String, default: '' },
+    type: { type: String, required: true },
+    breed: { type: String, default: '' },
+    age: { type: Number },
+    gender: { type: String, enum: ['male', 'female', 'unknown'], default: 'unknown' },
+    notes: { type: String, default: '' },
+  },
+  {
+    timestamps: true,
+  }
+);
 
 const UserSchema: Schema = new Schema(
   {
@@ -21,6 +48,7 @@ const UserSchema: Schema = new Schema(
     address: { type: String, required: true },
     profilePic: { type: String, default: '' },
     role: { type: String, enum: ['rescuer', 'normal'], default: 'normal' },
+    pets: { type: [PetSchema], default: [] },
   },
   {
     timestamps: true,
@@ -28,3 +56,4 @@ const UserSchema: Schema = new Schema(
 );
 
 export default mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+

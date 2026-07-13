@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 interface CartItem {
   id: string | number;
@@ -18,13 +19,25 @@ interface CartDrawerProps {
   onUpdateQuantity: (id: string | number, delta: number) => void;
   onRemoveItem: (id: string | number) => void;
   onClearCart: () => void;
+  checkoutCountryCode?: string;
+  checkoutPhone?: string;
 }
 
 
 export type { CartItem };
 
-export default function CartDrawer({ isOpen, onClose, items, onUpdateQuantity, onRemoveItem, onClearCart }: CartDrawerProps) {
+export default function CartDrawer({
+  isOpen,
+  onClose,
+  items,
+  onUpdateQuantity,
+  onRemoveItem,
+  onClearCart,
+  checkoutCountryCode = '+91',
+  checkoutPhone = ''
+}: CartDrawerProps) {
   const drawerRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
 
   // Close on Escape key
   useEffect(() => {
@@ -49,6 +62,48 @@ export default function CartDrawer({ isOpen, onClose, items, onUpdateQuantity, o
     }
     return sum;
   }, 0);
+
+  const handleCheckout = () => {
+    if (!checkoutPhone) return;
+
+    // Build checkout text
+    let orderItemsText = '';
+    items.forEach((item) => {
+      orderItemsText += `- ${item.title} x ${item.quantity} (₹${item.price * item.quantity})\n`;
+    });
+
+    const customerDetailsText = user ? `👤 CUSTOMER DETAILS:
+- Name: ${user.fullName}
+- Phone: ${user.phone || 'N/A'}
+- Delivery Address: ${user.address || 'N/A'}` : `👤 CUSTOMER DETAILS:
+- Guest Customer`;
+
+    const message = `Hello Aumoha! I would like to place an order:
+
+🛒 ORDER DETAILS:
+${orderItemsText}
+💵 Total Amount: ₹${subtotal}
+
+${customerDetailsText}
+
+Please confirm my order. Thank you!`;
+
+    // Clean up the target phone number for WhatsApp link
+    const cleanCountry = checkoutCountryCode.replace(/\+/g, '').trim();
+    const cleanPhone = checkoutPhone.replace(/\D/g, '').trim();
+    const fullNumber = `${cleanCountry}${cleanPhone}`;
+
+    const whatsappUrl = `https://wa.me/${fullNumber}?text=${encodeURIComponent(message)}`;
+
+    // Open WhatsApp in a new tab
+    window.open(whatsappUrl, '_blank');
+
+    // Clear cart immediately
+    onClearCart();
+    
+    // Close CartDrawer
+    onClose();
+  };
 
   return (
     <>
@@ -239,10 +294,6 @@ export default function CartDrawer({ isOpen, onClose, items, onUpdateQuantity, o
                 <span>Subtotal ({totalItems} item{totalItems !== 1 ? 's' : ''})</span>
                 <span className="font-semibold text-[#1C1A17]">₹{subtotal}</span>
               </div>
-              <div className="flex justify-between text-xs text-stone-500">
-                <span>Delivery</span>
-                <span className="font-semibold text-[#4A5D4E]">Free</span>
-              </div>
               <div className="h-px bg-[#EBE3D5] my-1" />
               <div className="flex justify-between">
                 <span className="text-sm font-bold text-[#1C1A17]">Total</span>
@@ -250,14 +301,22 @@ export default function CartDrawer({ isOpen, onClose, items, onUpdateQuantity, o
               </div>
             </div>
 
-            {/* Checkout button */}
-            <button className="w-full py-3.5 bg-[#2A3E31] hover:bg-[#1E2E24] active:scale-[0.98] text-white font-bold text-sm rounded-2xl transition-all duration-200 cursor-pointer shadow-md shadow-[#2A3E31]/20 flex items-center justify-center gap-2">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
-                <line x1="1" y1="10" x2="23" y2="10" />
-              </svg>
-              Proceed to Checkout
-            </button>
+            {/* Checkout button or Maintenance state */}
+            {!checkoutPhone ? (
+              <div className="w-full py-3.5 px-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl text-xs font-semibold text-center select-none leading-relaxed">
+                ⚠️ Currently this service is under maintenance
+              </div>
+            ) : (
+              <button 
+                onClick={handleCheckout}
+                className="w-full py-3.5 bg-[#2A3E31] hover:bg-[#1E2E24] active:scale-[0.98] text-white font-bold text-sm rounded-2xl transition-all duration-200 cursor-pointer shadow-md shadow-[#2A3E31]/20 flex items-center justify-center gap-2"
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                Checkout via WhatsApp
+              </button>
+            )}
 
             {/* Continue shopping link */}
             <button
