@@ -9,7 +9,7 @@ import MarketplaceCategories from '../components/MarketplaceCategories';
 import Marketplace from '../components/Marketplace';
 import PetCareFeature from '../components/PetCareFeature';
 import EmergencyDispatch from '../components/EmergencyDispatch';
-import CommunityBoard from '../components/CommunityBoard';
+import MohallaCircle from '../components/MohallaCircle';
 import Profile from '../components/Profile';
 import BottomNav from '../components/BottomNav';
 import { BackendInfo, CommunityPost } from '../types';
@@ -29,7 +29,7 @@ export default function Home() {
   }, []);
 
   // Navigation active tab
-  const [activeTab, setActiveTab] = useState<'home' | 'marketplace' | 'petcare' | 'report' | 'community' | 'profile' | 'admin'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'marketplace' | 'report' | 'circle' | 'profile' | 'petcare' | 'admin'>('home');
 
 
   // General App / Connection States
@@ -233,6 +233,11 @@ export default function Home() {
               </main>
             )}
 
+            {/* CIRCLE TAB SCREEN */}
+            {activeTab === 'circle' && (
+              <MohallaCircle setActiveTab={setActiveTab} />
+            )}
+
             {/* PET CARE FEATURE SCREEN */}
             {activeTab === 'petcare' && <PetCareFeature />}
 
@@ -253,17 +258,6 @@ export default function Home() {
                   setSosReason('');
                   setActiveTab('home');
                 }}
-              />
-            )}
-
-            {/* COMMUNITY TAB SCREEN */}
-            {activeTab === 'community' && (
-              <CommunityBoard 
-                posts={posts}
-                newPostText={newPostText}
-                setNewPostText={setNewPostText}
-                onSubmitPost={submitPost}
-                onLikePost={handleLike}
               />
             )}
 

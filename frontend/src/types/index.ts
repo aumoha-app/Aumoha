@@ -66,4 +66,59 @@ export interface SosReport {
   updatedAt?: string;
 }
 
+export type MemberRole = 'all' | 'feeder' | 'rescuer' | 'volunteer' | 'paravet' | 'adopter';
+
+export interface CircleMember {
+  id: string;
+  name: string;
+  avatar: string;
+  role: MemberRole;
+  distance: string;
+  badge?: 'trusted' | 'level4' | 'level3' | 'available' | 'level5';
+  joinedTime?: string;
+  location?: string;
+  lat?: number;
+  lng?: number;
+}
+
+export interface ImpactMetrics {
+  animalsHelped: number;
+  rescues: number;
+  animalsFed: number;
+  adoptions: number;
+  donations: number;
+}
+
+export interface CommunityUpdate {
+  id: string;
+  author: string;
+  authorRole: MemberRole;
+  avatar: string;
+  time: string;
+  category: 'help' | 'feeding' | 'event' | 'awareness' | 'lost' | 'all';
+  title: string;
+  description: string;
+  image?: string;
+  location?: string;
+  distance?: string;
+  likes?: number;
+}
+
+export interface CircleLeader {
+  id: string;
+  name: string;
+  avatar: string;
+  role: string;
+  location: string;
+  badge?: 'level5' | 'level4' | 'level3';
+}
+
+export interface Partner {
+  id: string;
+  name: string;
+  logo: string;
+  distance: string;
+  type: string;
+}
+
 

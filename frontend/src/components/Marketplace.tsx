@@ -27,15 +27,21 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
 
   // Fetch configured checkout phone settings from database
   useEffect(() => {
-    fetch('http://localhost:5001/api/settings/checkout-phone')
-      .then(res => res.json())
-      .then(data => {
-        if (data.status === 'success') {
-          setCheckoutCountryCode(data.countryCode || '');
-          setCheckoutPhone(data.phoneNumber || '');
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch('http://localhost:5001/api/settings/checkout-phone');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.status === 'success') {
+            setCheckoutCountryCode(data.countryCode || '');
+            setCheckoutPhone(data.phoneNumber || '');
+          }
         }
-      })
-      .catch(err => console.error('Failed to load checkout settings:', err));
+      } catch (err) {
+        console.warn('Failed to load checkout settings:', err);
+      }
+    };
+    fetchSettings();
   }, [isCartOpen]); // Fetch or refresh settings when cart is opened
 
   // Fetch products from MongoDB
@@ -48,7 +54,7 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
         setProducts(data.products || []);
       }
     } catch (err) {
-      console.error('Failed to fetch products from MongoDB:', err);
+      console.warn('Failed to fetch products from MongoDB:', err);
     } finally {
       setIsLoading(false);
     }
@@ -60,22 +66,28 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
 
   // Check if current user is admin whitelisted
   useEffect(() => {
-    if (token) {
-      fetch('http://localhost:5001/api/auth/admin-config', {
-        headers: {
-          'Authorization': `Bearer ${token}`
+    const checkAdmin = async () => {
+      if (!token) {
+        setIsAdmin(false);
+        return;
+      }
+      try {
+        const res = await fetch('http://localhost:5001/api/auth/admin-config', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.status === 'success') {
+            setIsAdmin(data.isAdmin);
+          }
         }
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.status === 'success') {
-          setIsAdmin(data.isAdmin);
-        }
-      })
-      .catch(err => console.error('Failed to retrieve admin configuration:', err));
-    } else {
-      setIsAdmin(false);
-    }
+      } catch (err) {
+        console.warn('Failed to retrieve admin configuration:', err);
+      }
+    };
+    checkAdmin();
   }, [token]);
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);

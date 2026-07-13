@@ -1,6 +1,6 @@
 'use client';
 
-type TabType = 'home' | 'marketplace' | 'report' | 'community' | 'profile' | 'petcare' | 'admin';
+type TabType = 'home' | 'marketplace' | 'report' | 'circle' | 'profile' | 'petcare' | 'admin';
 
 interface BottomNavProps {
   activeTab: TabType;
@@ -9,7 +9,7 @@ interface BottomNavProps {
 
 export default function BottomNav({ activeTab, setActiveTab }: BottomNavProps) {
   return (
-    <nav className="fixed bottom-5 left-1/2 -translate-x-1/2 w-[calc(100%-32px)] max-w-[500px] h-[72px] bg-warmCard/90 backdrop-blur-md border border-warmBeige rounded-2xl shadow-lg shadow-stone-200/50 grid grid-cols-5 items-center px-2 z-[1000]">
+    <nav className="fixed bottom-5 left-1/2 -translate-x-1/2 w-[calc(100%-32px)] max-w-[500px] h-[72px] bg-warmCard/90 backdrop-blur-md border border-warmBeige rounded-2xl shadow-lg shadow-stone-200/50 grid grid-cols-5 items-center px-2 z-[1000] select-none">
       
       {/* Tab 1: Home */}
       <button 
@@ -42,8 +42,8 @@ export default function BottomNav({ activeTab, setActiveTab }: BottomNavProps) {
       <div className="h-full flex flex-col items-center justify-center -mt-6">
         <button 
           onClick={() => setActiveTab('report')} 
-          className={`w-[54px] h-[54px] rounded-full bg-emergency text-white flex items-center justify-center font-extrabold text-sm tracking-wide shadow-md shadow-rose-200 border-4 border-cream hover:scale-105 active:scale-95 transition-all cursor-pointer ${
-            activeTab === 'report' ? 'bg-red-700 ring-2 ring-emergency' : ''
+          className={`w-[54px] h-[54px] rounded-full bg-[#C85341] text-white flex items-center justify-center font-extrabold text-sm tracking-wide shadow-md shadow-rose-200 border-4 border-[#FDFBF7] hover:scale-105 active:scale-95 transition-all cursor-pointer ${
+            activeTab === 'report' ? 'bg-[#B04535] ring-2 ring-[#C85341]' : ''
           }`}
         >
           SOS
@@ -51,20 +51,20 @@ export default function BottomNav({ activeTab, setActiveTab }: BottomNavProps) {
         <span className="text-[10px] font-bold text-emergency mt-1">Report</span>
       </div>
 
-      {/* Tab 4: Community */}
+      {/* Tab 4: Circle */}
       <button 
-        onClick={() => setActiveTab('community')} 
+        onClick={() => setActiveTab('circle')} 
         className={`flex flex-col items-center justify-center gap-1 w-full h-full text-stone-400 hover:text-clay transition-all cursor-pointer ${
-          activeTab === 'community' ? 'text-terracotta hover:text-terracotta' : ''
+          activeTab === 'circle' ? 'text-terracotta hover:text-terracotta' : ''
         }`}
       >
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={activeTab === 'community' ? 'scale-110 drop-shadow-sm' : 'transition-transform'}>
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={activeTab === 'circle' ? 'scale-110 drop-shadow-sm' : 'transition-transform'}>
           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
           <circle cx="9" cy="7" r="4"/>
           <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
           <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
         </svg>
-        <span className="text-[10px] font-bold">Community</span>
+        <span className="text-[10px] font-bold">Circle</span>
       </button>
 
       {/* Tab 5: Profile */}
