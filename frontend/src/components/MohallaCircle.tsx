@@ -116,7 +116,82 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
   const [memberFilter, setMemberFilter] = useState<MemberRole>('all');
   const [updateFilter, setUpdateFilter] = useState<string>('all');
   const [selectedLocation, setSelectedLocation] = useState(userAddress || 'Saheed Nagar, Sector 45');
-  const [deviceCoords, setDeviceCoords] = useState<[number, number] | null>(null);
+  const [showActivityModal, setShowActivityModal] = useState<boolean>(false);
+  const [activityTitle, setActivityTitle] = useState<string>('');
+  const [activityCategory, setActivityCategory] = useState<'feeding' | 'help' | 'event' | 'awareness'>('feeding');
+  const [activityLocation, setActivityLocation] = useState<string>('');
+  const [activityDesc, setActivityDesc] = useState<string>('');
+
+  const [joinedEvents, setJoinedEvents] = useState<string[]>([]);
+  const [joinedActivities, setJoinedActivities] = useState<string[]>([]);
+  const [customActivities, setCustomActivities] = useState<any[]>([]);
+
+  useEffect(() => {
+    try {
+      const savedEvents = localStorage.getItem('joinedEvents');
+      if (savedEvents) setJoinedEvents(JSON.parse(savedEvents));
+
+      const savedActivities = localStorage.getItem('joinedActivities');
+      if (savedActivities) setJoinedActivities(JSON.parse(savedActivities));
+
+      const savedCustom = localStorage.getItem('customActivities');
+      if (savedCustom) setCustomActivities(JSON.parse(savedCustom));
+    } catch (e) {
+      console.warn('Failed to load local storage state:', e);
+    }
+  }, []);
+
+  const handleCreateActivity = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activityTitle || !activityLocation || !activityDesc) {
+      alert('Please fill out all fields.');
+      return;
+    }
+
+    const newActivity = {
+      id: `custom_${Date.now()}`,
+      author: 'You',
+      authorRole: 'volunteer' as const,
+      avatar: '',
+      time: 'Just now',
+      category: activityCategory,
+      title: activityTitle,
+      description: activityDesc,
+      location: activityLocation,
+      likes: 0,
+      createdAt: new Date().toISOString()
+    };
+
+    const updated = [newActivity, ...customActivities];
+    setCustomActivities(updated);
+    localStorage.setItem('customActivities', JSON.stringify(updated));
+
+    setActivityTitle('');
+    setActivityLocation('');
+    setActivityDesc('');
+    setShowActivityModal(false);
+    alert('Community activity started successfully!');
+  };
+
+  const toggleJoinEvent = (eventId: string, eventTitle: string) => {
+    setJoinedEvents(prev => {
+      const isJoined = prev.includes(eventId);
+      const updated = isJoined ? prev.filter(id => id !== eventId) : [...prev, eventId];
+      localStorage.setItem('joinedEvents', JSON.stringify(updated));
+      alert(isJoined ? `Unregistered from ${eventTitle}` : `Successfully registered for ${eventTitle}!`);
+      return updated;
+    });
+  };
+
+  const toggleJoinActivity = (activityId: string, title: string) => {
+    setJoinedActivities(prev => {
+      const isJoined = prev.includes(activityId);
+      const updated = isJoined ? prev.filter(id => id !== activityId) : [...prev, activityId];
+      localStorage.setItem('joinedActivities', JSON.stringify(updated));
+      alert(isJoined ? `Left activity: ${title}` : `Joined activity: ${title}!`);
+      return updated;
+    });
+  };  const [deviceCoords, setDeviceCoords] = useState<[number, number] | null>(null);
   const [deviceAddress, setDeviceAddress] = useState<string>('');
 
   useEffect(() => {
@@ -314,7 +389,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
     likes: 0
   }));
 
-  const allUpdates = [...dbMappedReports, ...defaultMockUpdates];
+  const allUpdates = [...dbMappedReports, ...customActivities, ...defaultMockUpdates];
 
   const computedUpdates: CommunityUpdate[] = allUpdates.map(u => {
     const distInfo = getDistance(selectedLocation, u.location || '');
@@ -726,6 +801,21 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1 bg-[#FCFAF7] px-2 py-1 rounded-lg">📍 {post.location}</span>
             <span className="text-[#3D5A45]">{post.distance}</span>
+            {['feeding', 'help', 'event'].includes(post.category) && (
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleJoinActivity(post.id, post.title);
+                }}
+                className={`px-2.5 py-0.5 rounded-lg text-[9px] font-extrabold transition-all ${
+                  joinedActivities.includes(post.id) 
+                    ? 'bg-[#E8F5E9] text-[#2E7D32] border border-[#C8E6C9]' 
+                    : 'bg-[#3D5A45] hover:bg-[#2A3E31] text-white'
+                }`}
+              >
+                {joinedActivities.includes(post.id) ? '✓ Joined' : 'Join Activity'}
+              </button>
+            )}
           </div>
           <div className="flex items-center gap-3">
             <button className="flex items-center gap-1 hover:text-red-500 transition-colors">
@@ -738,6 +828,45 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
         </div>
       </div>
     );
+  };
+
+  const renderEventGraphic = (id: string) => {
+    switch (id) {
+      case 'e1': // Vaccination Camp
+        return (
+          <div className="w-full h-full bg-gradient-to-br from-[#E3F2FD] to-[#BBDEFB] flex items-center justify-center relative">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10 text-[#0D47A1]">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+            </svg>
+            <span className="absolute bottom-2 right-2 bg-white/90 text-[#0D47A1] text-[8px] font-extrabold px-1.5 py-0.5 rounded border border-[#BBDEFB]">🏥 VACCINE</span>
+          </div>
+        );
+      case 'e2': // Clean Streets, Safe Paws
+        return (
+          <div className="w-full h-full bg-gradient-to-br from-[#E8F5E9] to-[#C8E6C9] flex items-center justify-center relative">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10 text-[#2E7D32]">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+            <span className="absolute bottom-2 right-2 bg-white/90 text-[#2E7D32] text-[8px] font-extrabold px-1.5 py-0.5 rounded border border-[#C8E6C9]">🌱 CLEANUP</span>
+          </div>
+        );
+      case 'e3': // Adoption Meet
+        return (
+          <div className="w-full h-full bg-gradient-to-br from-[#FFF3E0] to-[#FFE0B2] flex items-center justify-center relative">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10 text-[#E65100]">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+            <span className="absolute bottom-2 right-2 bg-white/90 text-[#E65100] text-[8px] font-extrabold px-1.5 py-0.5 rounded border border-[#FFE0B2]">🏠 ADOPTION</span>
+          </div>
+        );
+      default:
+        return (
+          <div className="w-full h-full bg-gradient-to-br from-[#ECEFF1] to-[#CFD8DC] flex items-center justify-center">
+            <span className="text-2xl">📅</span>
+          </div>
+        );
+    }
   };
 
   // --- RENDER SUPPORT REQUEST DETAIL SUB-PAGE (Screen 6) ---
@@ -1287,8 +1416,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
               </button>
               <button 
                 onClick={() => {
-                  setActiveView('updates');
-                  alert('Opening create activity form...');
+                  setShowActivityModal(true);
                 }}
                 className="bg-[#E8F5E9] border border-[#C8E6C9] hover:scale-[1.02] transition-all rounded-[24px] p-4 flex flex-col items-center justify-between text-center min-h-[110px] shadow-sm group active:scale-98"
               >
@@ -1678,6 +1806,65 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
             ))}
           </div>
 
+          {/* ONGOING EVENTS SECTION (Horizontal Scroll) - MOVED TO TOP */}
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between px-1">
+              <h3 className="text-xs font-extrabold text-stone-400 uppercase tracking-wider">Ongoing & Upcoming Events</h3>
+              <button 
+                onClick={() => alert('Viewing all events...')}
+                className="text-xs font-bold text-[#B68A35] hover:underline"
+              >
+                View all <span>›</span>
+              </button>
+            </div>
+
+            <div className="flex gap-4 overflow-x-auto pb-2.5 scrollbar-hide">
+              {events.map(event => {
+                const isJoined = joinedEvents.includes(event.id);
+                return (
+                  <div 
+                    key={event.id}
+                    onClick={() => toggleJoinEvent(event.id, event.title)}
+                    className={`bg-white border hover:shadow-md transition-all duration-300 rounded-[24px] p-3 w-[220px] shrink-0 flex flex-col gap-2.5 cursor-pointer select-none ${
+                      isJoined ? 'border-[#3D5A45] bg-[#FCFAF7]' : 'border-[#F0EBE1] hover:border-[#3D5A45]/40'
+                    }`}
+                  >
+                    <div className="aspect-video w-full rounded-xl overflow-hidden bg-stone-100 border border-[#F0EBE1]/60 relative shrink-0">
+                      {renderEventGraphic(event.id)}
+                      <div className="absolute top-2 left-2 bg-[#C85341] text-white px-2 py-1 rounded-lg text-center shadow-md">
+                        <span className="text-[9px] font-bold block leading-none">MAY</span>
+                        <span className="text-xs font-extrabold block leading-none mt-0.5">{event.date.split(' ')[0]}</span>
+                      </div>
+                    </div>
+                    <div className="px-1 flex flex-col min-h-[70px] justify-between">
+                      <div>
+                        <span className="text-xs font-bold text-charcoal leading-snug truncate block">{event.title}</span>
+                        <span className="text-[9.5px] text-stone-500 font-bold mt-1.5 block">⏱️ {event.time}</span>
+                        <span className="text-[9.5px] text-[#3D5A45] font-extrabold mt-1 block">📍 {event.location}</span>
+                      </div>
+                      <div className="flex justify-between items-center mt-2.5 pt-2 border-t border-stone-100">
+                        <span className="text-[8px] text-stone-400 font-bold uppercase">Event</span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleJoinEvent(event.id, event.title);
+                          }}
+                          className={`px-2.5 py-1 rounded-lg text-[8px] font-extrabold transition-all ${
+                            isJoined 
+                              ? 'bg-[#E8F5E9] text-[#2E7D32] border border-[#C8E6C9]' 
+                              : 'bg-[#3D5A45] hover:bg-[#2A3E31] text-white'
+                          }`}
+                        >
+                          {isJoined ? '✓ Going' : 'Join Event'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           {/* UPDATES FEED LIST */}
           <div className="flex flex-col gap-4">
             {computedUpdates
@@ -1712,42 +1899,6 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
             </div>
           </div>
 
-          {/* ONGOING EVENTS SECTION (Horizontal Scroll) */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between px-1">
-              <h3 className="text-sm font-bold text-charcoal">Ongoing Events</h3>
-              <button 
-                onClick={() => alert('Viewing all events...')}
-                className="text-xs font-bold text-[#B68A35] hover:underline"
-              >
-                View all <span>›</span>
-              </button>
-            </div>
-
-            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-              {events.map(event => (
-                <div 
-                  key={event.id}
-                  onClick={() => alert(`RSVP for ${event.title}...`)}
-                  className="bg-white border border-[#F0EBE1] hover:border-[#3D5A45]/40 hover:shadow-md transition-all duration-300 rounded-[24px] p-3 w-[220px] shrink-0 flex flex-col gap-2.5 cursor-pointer select-none"
-                >
-                  <div className="aspect-video w-full rounded-xl overflow-hidden bg-stone-100 border border-[#F0EBE1]/60 relative shrink-0">
-                    <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
-                    <div className="absolute top-2 left-2 bg-[#C85341] text-white px-2 py-1 rounded-lg text-center shadow-md">
-                      <span className="text-[9px] font-bold block leading-none">MAY</span>
-                      <span className="text-xs font-extrabold block leading-none mt-0.5">{event.date.split(' ')[0]}</span>
-                    </div>
-                  </div>
-                  <div className="px-1 flex flex-col">
-                    <span className="text-xs font-bold text-charcoal leading-snug truncate">{event.title}</span>
-                    <span className="text-[9.5px] text-stone-500 font-bold mt-1.5">⏱️ {event.time}</span>
-                    <span className="text-[9.5px] text-[#3D5A45] font-extrabold mt-1">📍 {event.location}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
         </div>
       )}
 
@@ -1760,6 +1911,113 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
           >
             <span>👥</span> Invite Neighbors
           </button>
+        </div>
+      )}
+
+      {/* --- START COMMUNITY ACTIVITY MODAL --- */}
+      {showActivityModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-end md:items-center justify-center px-4 transition-all">
+          <form 
+            onSubmit={handleCreateActivity}
+            className="bg-white w-full max-w-lg rounded-t-[32px] md:rounded-[32px] p-6 shadow-2xl flex flex-col gap-5 max-h-[90vh] overflow-y-auto animate-scaleIn select-none"
+          >
+            {/* Header */}
+            <div className="flex justify-between items-center border-b border-[#F0EBE1] pb-3.5">
+              <button 
+                type="button"
+                onClick={() => setShowActivityModal(false)}
+                className="w-8 h-8 rounded-full border border-stone-200 flex items-center justify-center hover:bg-stone-50 active:scale-90"
+              >
+                ←
+              </button>
+              <h3 className="font-serif text-lg text-charcoal font-semibold">Start Community Activity</h3>
+              <button 
+                type="button"
+                onClick={() => setShowActivityModal(false)}
+                className="w-8 h-8 rounded-full border border-stone-200 flex items-center justify-center hover:bg-rose-50 hover:text-red-500 active:scale-90 text-sm font-semibold"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Inputs */}
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Activity Category</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {[
+                    { id: 'feeding', label: '🥣 Feeding' },
+                    { id: 'help', label: '🆘 Rescue' },
+                    { id: 'event', label: '📅 Event' },
+                    { id: 'awareness', label: '🎓 Info' }
+                  ].map(cat => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setActivityCategory(cat.id as any)}
+                      className={`py-2 rounded-xl text-xs font-bold border transition-all ${
+                        activityCategory === cat.id 
+                          ? 'bg-[#3D5A45] border-[#3D5A45] text-white' 
+                          : 'bg-white border-[#F0EBE1] text-stone-600 hover:border-stone-300'
+                      }`}
+                    >
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Activity Title</label>
+                <input 
+                  type="text"
+                  placeholder="e.g. Stray Vaccination Drive Sector 4"
+                  value={activityTitle}
+                  onChange={(e) => setActivityTitle(e.target.value)}
+                  className="w-full bg-stone-50 border border-[#F0EBE1] rounded-xl py-2.5 px-3.5 text-xs text-charcoal outline-none focus:border-[#3D5A45] transition-all font-semibold"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Location / Venue</label>
+                <input 
+                  type="text"
+                  placeholder="e.g. Sector 4 Community Park"
+                  value={activityLocation}
+                  onChange={(e) => setActivityLocation(e.target.value)}
+                  className="w-full bg-stone-50 border border-[#F0EBE1] rounded-xl py-2.5 px-3.5 text-xs text-charcoal outline-none focus:border-[#3D5A45] transition-all font-semibold"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Description</label>
+                <textarea 
+                  rows={3}
+                  placeholder="Tell neighbors what this activity is, how they can join, or what supplies are needed..."
+                  value={activityDesc}
+                  onChange={(e) => setActivityDesc(e.target.value)}
+                  className="w-full bg-stone-50 border border-[#F0EBE1] rounded-xl py-2.5 px-3.5 text-xs text-charcoal outline-none focus:border-[#3D5A45] transition-all font-semibold resize-none"
+                />
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3 mt-2">
+              <button 
+                type="button"
+                onClick={() => setShowActivityModal(false)}
+                className="flex-1 py-3 bg-[#FCFAF7] border border-[#F0EBE1] hover:border-stone-300 text-stone-600 font-bold rounded-2xl text-xs active:scale-95 transition-all"
+              >
+                Cancel
+              </button>
+              <button 
+                type="submit"
+                className="flex-1 py-3 bg-[#3D5A45] hover:bg-[#2A3E31] text-white font-bold rounded-2xl text-xs active:scale-95 transition-all shadow-md shadow-[#3D5A45]/15"
+              >
+                Launch Activity
+              </button>
+            </div>
+          </form>
         </div>
       )}
 
