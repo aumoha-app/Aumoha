@@ -13,6 +13,17 @@ export interface CommunityPost {
   likes: number;
 }
 
+export interface Pet {
+  _id?: string;
+  name: string;
+  photo?: string;
+  type: string;
+  breed?: string;
+  age?: number;
+  gender?: 'male' | 'female' | 'unknown';
+  notes?: string;
+}
+
 export interface UserProfile {
   firebaseUid?: string;
   fullName: string;
@@ -21,6 +32,7 @@ export interface UserProfile {
   address: string;
   profilePic?: string;
   role?: 'rescuer' | 'normal';
+  pets?: Pet[];
   createdAt?: string;
   updatedAt?: string;
 }

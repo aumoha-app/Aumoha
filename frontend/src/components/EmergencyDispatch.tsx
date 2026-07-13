@@ -50,6 +50,27 @@ export default function EmergencyDispatch({
   const [audioPlayUrl, setAudioPlayUrl] = useState<string>('');
   const [micError, setMicError] = useState<string | null>(null);
 
+  // Custom Confirmation Dialog States
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [confirmConfig, setConfirmConfig] = useState<{
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    confirmText?: string;
+    cancelText?: string;
+    isDestructive?: boolean;
+  } | null>(null);
+
+  const openConfirmation = (config: any) => {
+    setConfirmConfig(config);
+    setIsConfirmOpen(true);
+  };
+
+  const closeConfirmation = () => {
+    setIsConfirmOpen(false);
+    setConfirmConfig(null);
+  };
+
   // Hook to fetch initial browser geolocation and reverse-geocode it on component mount
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -277,6 +298,46 @@ export default function EmergencyDispatch({
     }
   };
 
+  const handleDeleteReport = (reportId: string) => {
+    openConfirmation({
+      title: 'Cancel Rescue Alert?',
+      message: 'Are you sure you want to cancel and delete this emergency report? This action cannot be undone.',
+      confirmText: 'Cancel Alert',
+      cancelText: 'Keep Alert',
+      isDestructive: true,
+      onConfirm: async () => {
+        try {
+          const response = await fetch(`http://localhost:5001/api/sos/my/${reportId}`, {
+            method: 'DELETE',
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
+
+          if (response.ok) {
+            fetchMyReports();
+          } else {
+            const errData = await response.json();
+            openConfirmation({
+              title: 'Error',
+              message: errData.message || 'Failed to delete emergency report.',
+              confirmText: 'OK',
+              onConfirm: () => {}
+            });
+          }
+        } catch (err) {
+          console.error(err);
+          openConfirmation({
+            title: 'Error',
+            message: 'Network error. Unable to delete report.',
+            confirmText: 'OK',
+            onConfirm: () => {}
+          });
+        }
+      }
+    });
+  };
+
   // Poll user's reports for real-time dispatch state tracking
   useEffect(() => {
     if (subTab === 'my-reports') {
@@ -457,12 +518,11 @@ export default function EmergencyDispatch({
                   : 'bg-white border-stone-200 hover:border-[#F8B4B4]/60'
               }`}
             >
-              <svg viewBox="0 0 24 24" width="24" height="24" className="md:w-7 md:h-7 shrink-0 text-red-600" fill="none" stroke="#D95D39" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <svg viewBox="0 0 24 24" width="24" height="24" className="md:w-7 md:h-7 shrink-0" fill="none" stroke="#D95D39" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3C13 6.8 11.5 6 9.8 6H3c-1.1 0-2 .9-2 2v8c0 .6.4 1 1 1h2" />
                 <circle cx="7" cy="17" r="2" />
                 <circle cx="17" cy="17" r="2" />
-                <path d="M5 17h10M9 6v4M13 6v4" />
-                <path d="m18 5 2 2M21 4l-1 3" strokeWidth="2.2" />
+                <path d="M12 9v4M12 17h.01" />
               </svg>
               <div>
                 <h4 className="text-[10px] md:text-xs font-bold text-charcoal leading-tight">Accident</h4>
@@ -479,9 +539,9 @@ export default function EmergencyDispatch({
                   : 'bg-white border-stone-200 hover:border-[#BBF7D0]/60'
               }`}
             >
-              <svg viewBox="0 0 24 24" width="24" height="24" className="md:w-7 md:h-7 shrink-0 text-emerald-600" fill="none" stroke="#059669" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="2" y="9" width="20" height="6" rx="2" transform="rotate(-45 12 12)" />
-                <path d="m11 11 1 1M12 10l1 1" />
+              <svg viewBox="0 0 24 24" width="24" height="24" className="md:w-7 md:h-7 shrink-0" fill="none" stroke="#059669" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 3c-.5 0-1 .2-1.4.6L3.6 12.6c-.8.8-.8 2 0 2.8l4 4c.8.8 2 .8 2.8 0l9-9c.8-.8.8-2 0-2.8l-4-4c-.4-.4-.9-.6-1.4-.6Z" />
+                <path d="m8.5 11.5 4 4M11.5 8.5l4 4" />
               </svg>
               <div>
                 <h4 className="text-[10px] md:text-xs font-bold text-charcoal leading-tight">Injury</h4>
@@ -498,9 +558,10 @@ export default function EmergencyDispatch({
                   : 'bg-white border-stone-200 hover:border-[#F8B4B4]/60'
               }`}
             >
-              <svg viewBox="0 0 24 24" width="24" height="24" className="md:w-7 md:h-7 shrink-0 text-red-700" fill="none" stroke="#DC2626" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 10a2 2 0 0 0-2-2v0a2 2 0 0 0-2-2v0a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0a2 2 0 0 0-2 2v8a5 5 0 0 0 5 5h3a5 5 0 0 0 5-5V10Z" />
-                <path d="M8 14H6a2 2 0 0 1-2-2V8a2 2 0 0 1 4 0" />
+              <svg viewBox="0 0 24 24" width="24" height="24" className="md:w-7 md:h-7 shrink-0" fill="none" stroke="#DC2626" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M7.86 2h8.28L22 7.86v8.28L16.14 22H7.86L2 16.14V7.86L7.86 2z" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
               <div>
                 <h4 className="text-[10px] md:text-xs font-bold text-charcoal leading-tight">Abuse</h4>
@@ -517,9 +578,8 @@ export default function EmergencyDispatch({
                   : 'bg-white border-stone-200 hover:border-[#C4B5FD]/60'
               }`}
             >
-              <svg viewBox="0 0 24 24" width="24" height="24" className="md:w-7 md:h-7 shrink-0 text-purple-600" fill="none" stroke="#8B5CF6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="6" />
-                <path d="M12 2v4M12 18v4M4 12h4M16 12h4M6.3 6.3l2.9 2.9M14.8 14.8l2.9 2.9M6.3 17.7l2.9-2.9M14.8 9.2l2.9-2.9" />
+              <svg viewBox="0 0 24 24" width="24" height="24" className="md:w-7 md:h-7 shrink-0" fill="none" stroke="#8B5CF6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
               </svg>
               <div>
                 <h4 className="text-[10px] md:text-xs font-bold text-charcoal leading-tight">Sick Animal</h4>
@@ -536,9 +596,10 @@ export default function EmergencyDispatch({
                   : 'bg-white border-stone-200 hover:border-[#FCD34D]/60'
               }`}
             >
-              <svg viewBox="0 0 24 24" width="24" height="24" className="md:w-7 md:h-7 shrink-0 text-amber-800" fill="none" stroke="#B45309" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                <polyline points="9 22 9 12 15 12 15 22" />
+              <svg viewBox="0 0 24 24" width="24" height="24" className="md:w-7 md:h-7 shrink-0" fill="none" stroke="#B45309" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                <line x1="12" y1="22.08" x2="12" y2="12" />
               </svg>
               <div>
                 <h4 className="text-[10px] md:text-xs font-bold text-charcoal leading-tight">Abandoned</h4>
@@ -555,9 +616,9 @@ export default function EmergencyDispatch({
                   : 'bg-white border-stone-200 hover:border-[#F97316]/60'
               }`}
             >
-              <svg viewBox="0 0 24 24" width="24" height="24" className="md:w-7 md:h-7 shrink-0 text-orange-600" fill="none" stroke="#EA580C" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3.5-.5 1.5-1 2.12-1 3.5a2.5 2.5 0 0 0 2.5 2.5ZM15.5 14.5a2.5 2.5 0 0 0 2.5-2.5c0-1.38-.5-2-1-3.5-.5 1.5-1 2.12-1 3.5a2.5 2.5 0 0 0 2.5 2.5Z" />
-                <path d="M12 21a4 4 0 0 0 4-4c0-2-1.5-3-2-5.5-.5 2.5-2 3.5-2 5.5a4 4 0 0 0 4 4Z" />
+              <svg viewBox="0 0 24 24" width="24" height="24" className="md:w-7 md:h-7 shrink-0" fill="none" stroke="#EA580C" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
               </svg>
               <div>
                 <h4 className="text-[10px] md:text-xs font-bold text-charcoal leading-tight">Stray</h4>
@@ -574,12 +635,9 @@ export default function EmergencyDispatch({
                   : 'bg-white border-stone-200 hover:border-stone-400/60'
               }`}
             >
-              <svg viewBox="0 0 24 24" width="24" height="24" className="md:w-7 md:h-7 shrink-0 text-gray-500" fill="none" stroke="#6B7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="13" r="3" />
-                <circle cx="6" cy="9" r="2" />
-                <circle cx="18" cy="9" r="2" />
-                <circle cx="9" cy="5" r="2" />
-                <circle cx="15" cy="5" r="2" />
+              <svg viewBox="0 0 24 24" width="24" height="24" className="md:w-7 md:h-7 shrink-0" fill="none" stroke="#6B7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
               <div>
                 <h4 className="text-[10px] md:text-xs font-bold text-charcoal leading-tight">Lost Animal</h4>
@@ -596,10 +654,10 @@ export default function EmergencyDispatch({
                   : 'bg-white border-stone-200 hover:border-stone-400/60'
               }`}
             >
-              <svg viewBox="0 0 24 24" width="24" height="24" className="md:w-7 md:h-7 shrink-0 text-gray-600" fill="none" stroke="#4B5563" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="1.5" />
-                <circle cx="6" cy="12" r="1.5" />
-                <circle cx="18" cy="12" r="1.5" />
+              <svg viewBox="0 0 24 24" width="24" height="24" className="md:w-7 md:h-7 shrink-0" fill="none" stroke="#4B5563" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
               </svg>
               <div>
                 <h4 className="text-[10px] md:text-xs font-bold text-charcoal leading-tight">Other</h4>
@@ -1015,6 +1073,18 @@ export default function EmergencyDispatch({
                         <span className={`text-[9px] font-bold px-2.5 py-0.5 rounded-full border ${statusBadgeColor}`}>
                           {statusLabel}
                         </span>
+                        {/* Delete Report Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteReport(report._id)}
+                          className="p-1 rounded-lg bg-stone-50 border border-stone-200 text-stone-400 hover:text-red-500 hover:bg-red-50 hover:border-red-200 transition-all cursor-pointer shadow-sm active:scale-95 flex items-center justify-center"
+                          title="Delete Report"
+                        >
+                          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          </svg>
+                        </button>
                       </div>
                     </div>
 
@@ -1106,6 +1176,44 @@ export default function EmergencyDispatch({
             </div>
           )}
         </section>
+      )}
+
+      {/* Custom Confirmation Dialog Modal */}
+      {isConfirmOpen && confirmConfig && (
+        <div className="fixed inset-0 z-50 bg-[#1C1A17]/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-sm w-full border border-[#F0EBE1] shadow-2xl p-6 flex flex-col gap-4 animate-in fade-in zoom-in duration-200">
+            <div className="flex flex-col gap-1 text-center select-none">
+              <h4 className="font-serif text-lg text-[#1C1A17] font-semibold">{confirmConfig.title}</h4>
+              <p className="text-xs text-stone-400 font-medium leading-relaxed mt-1">{confirmConfig.message}</p>
+            </div>
+            
+            <div className={`grid ${confirmConfig.cancelText ? 'grid-cols-2' : 'grid-cols-1'} gap-3 mt-2`}>
+              {confirmConfig.cancelText && (
+                <button
+                  type="button"
+                  onClick={closeConfirmation}
+                  className="py-2.5 px-4 text-xs font-bold rounded-xl border border-stone-200 bg-white text-stone-500 hover:bg-stone-50 transition-colors cursor-pointer text-center"
+                >
+                  {confirmConfig.cancelText}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  confirmConfig.onConfirm();
+                  closeConfirmation();
+                }}
+                className={`py-2.5 px-4 text-xs font-bold rounded-xl text-white shadow-sm transition-all active:scale-[0.98] cursor-pointer text-center ${
+                  confirmConfig.isDestructive 
+                    ? 'bg-red-600 hover:bg-red-750 shadow-sm' 
+                    : 'bg-[#4A5D4E] hover:bg-[#3A4D3E] shadow-sm'
+                }`}
+              >
+                {confirmConfig.confirmText || 'Confirm'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </main>
   );

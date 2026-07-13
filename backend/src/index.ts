@@ -8,6 +8,7 @@ import { adminMiddleware } from './middleware/adminMiddleware';
 import User from './models/userModel';
 import Product from './models/productModel';
 import SosReport from './models/sosModel';
+import Settings from './models/settingsModel';
 import { v2 as cloudinary } from 'cloudinary';
 
 // Load environment variables
@@ -227,6 +228,129 @@ app.post('/api/auth/profile', authMiddleware, async (req: Request, res: Response
     });
   } catch (error) {
     console.error('Error in /api/auth/profile:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * POST /api/auth/profile/pets
+ * Adds a new pet to the user's profile, or updates an existing pet if _id is provided
+ */
+app.post('/api/auth/profile/pets', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userUid = req.user?.uid;
+    if (!userUid) {
+      return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+    }
+
+    const { _id, name, type, photo, breed, age, gender, notes } = req.body;
+
+    if (!name || !type) {
+      return res.status(400).json({ 
+        status: 'error', 
+        message: 'Missing required pet fields (name, type)' 
+      });
+    }
+
+    let photoUrl = photo || '';
+
+    // If Cloudinary is configured and the pet photo is a base64 string
+    if (photo && cloudinaryConfigured && (photo.startsWith('data:') || !photo.startsWith('http'))) {
+      try {
+        console.log('📤 Uploading pet photo to Cloudinary...');
+        const uploadResponse = await cloudinary.uploader.upload(photo, {
+          folder: 'aumoha_pets',
+        });
+        photoUrl = uploadResponse.secure_url;
+      } catch (uploadError) {
+        console.error('❌ Failed to upload pet photo to Cloudinary:', uploadError);
+        // Fallback to storing raw base64 or empty string
+      }
+    }
+
+    const dbUser = await User.findOne({ firebaseUid: userUid });
+    if (!dbUser) {
+      return res.status(404).json({ status: 'error', message: 'User not found' });
+    }
+
+    if (_id) {
+      // Find pet and update
+      const pet = dbUser.pets.find((p: any) => p._id.toString() === _id.toString());
+      if (!pet) {
+        return res.status(404).json({ status: 'error', message: 'Pet not found' });
+      }
+      pet.name = name;
+      pet.type = type;
+      pet.photo = photoUrl;
+      pet.breed = breed || '';
+      pet.age = age !== undefined && age !== null && age !== '' ? Number(age) : undefined;
+      pet.gender = gender || 'unknown';
+      pet.notes = notes || '';
+    } else {
+      // Push new pet
+      dbUser.pets.push({
+        name,
+        type,
+        photo: photoUrl,
+        breed: breed || '',
+        age: age !== undefined && age !== null && age !== '' ? Number(age) : undefined,
+        gender: gender || 'unknown',
+        notes: notes || '',
+      } as any);
+    }
+
+    await dbUser.save();
+
+    // Update in-memory user cache
+    userCache.set(userUid, dbUser);
+
+    return res.json({
+      status: 'success',
+      message: _id ? 'Pet updated successfully' : 'Pet added successfully',
+      user: dbUser
+    });
+  } catch (error) {
+    console.error('Error in POST /api/auth/profile/pets:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * DELETE /api/auth/profile/pets/:petId
+ * Deletes a pet from the user's profile by petId
+ */
+app.delete('/api/auth/profile/pets/:petId', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userUid = req.user?.uid;
+    if (!userUid) {
+      return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+    }
+
+    const { petId } = req.params;
+
+    const dbUser = await User.findOne({ firebaseUid: userUid });
+    if (!dbUser) {
+      return res.status(404).json({ status: 'error', message: 'User not found' });
+    }
+
+    const petExists = dbUser.pets.some((p: any) => p._id.toString() === petId);
+    if (!petExists) {
+      return res.status(404).json({ status: 'error', message: 'Pet not found' });
+    }
+
+    (dbUser.pets as any).pull(petId);
+    await dbUser.save();
+
+    // Update in-memory user cache
+    userCache.set(userUid, dbUser);
+
+    return res.json({
+      status: 'success',
+      message: 'Pet deleted successfully',
+      user: dbUser
+    });
+  } catch (error) {
+    console.error('Error in DELETE /api/auth/profile/pets/:petId:', error);
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
   }
 });
@@ -561,6 +685,47 @@ app.get('/api/sos/my', authMiddleware, async (req: Request, res: Response) => {
 });
 
 /**
+ * DELETE /api/sos/my/:id
+ * User endpoint to delete their own SOS report from MongoDB
+ */
+app.delete('/api/sos/my/:id', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userEmail = req.user?.email;
+
+    if (!userEmail) {
+      return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+    }
+
+    const report = await SosReport.findById(id);
+    if (!report) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Emergency report not found'
+      });
+    }
+
+    // Verify ownership
+    if (report.userEmail !== userEmail) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Forbidden: You do not have permission to delete this report'
+      });
+    }
+
+    await SosReport.findByIdAndDelete(id);
+
+    return res.json({
+      status: 'success',
+      message: 'Emergency report deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error in DELETE /api/sos/my/:id:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
  * GET /api/sos
  * Admin endpoint to retrieve all SOS reports from MongoDB
  */
@@ -637,6 +802,78 @@ app.delete('/api/sos/:id', authMiddleware, adminMiddleware, async (req: Request,
     });
   } catch (error) {
     console.error('Error in DELETE /api/sos/:id:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * GET /api/settings/checkout-phone
+ * Public endpoint to fetch configured country code and phone number for checkout
+ */
+app.get('/api/settings/checkout-phone', async (req: Request, res: Response) => {
+  try {
+    const setting = await Settings.findOne({ key: 'marketplace_checkout_phone' });
+    if (!setting) {
+      return res.json({
+        status: 'success',
+        countryCode: '',
+        phoneNumber: ''
+      });
+    }
+    return res.json({
+      status: 'success',
+      countryCode: setting.value.countryCode || '',
+      phoneNumber: setting.value.phoneNumber || ''
+    });
+  } catch (error) {
+    console.error('Error in GET /api/settings/checkout-phone:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * POST /api/settings/checkout-phone
+ * Admin-locked endpoint to update configured country code and phone number for checkout
+ */
+app.post('/api/settings/checkout-phone', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { countryCode, phoneNumber } = req.body;
+
+    // Validate inputs
+    if (!countryCode || !phoneNumber) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Country code and phone number are required.'
+      });
+    }
+
+    if (!/^\+\d+$/.test(countryCode)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Country code must start with "+" followed by digits (e.g. +91).'
+      });
+    }
+
+    if (!/^\d+$/.test(phoneNumber)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Phone number must contain only digits.'
+      });
+    }
+
+    const updatedSetting = await Settings.findOneAndUpdate(
+      { key: 'marketplace_checkout_phone' },
+      { value: { countryCode, phoneNumber } },
+      { upsert: true, new: true }
+    );
+
+    return res.json({
+      status: 'success',
+      message: 'WhatsApp checkout settings updated successfully.',
+      setting: updatedSetting.value
+    });
+  } catch (error) {
+    console.error('Error in POST /api/settings/checkout-phone:', error);
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
   }
 });
