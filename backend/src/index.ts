@@ -334,6 +334,7 @@ export const fallbackVets: any[] = [
 ];
 
 export const fallbackAppointments: any[] = [];
+export const fallbackUsers: any[] = [];
 
 async function seedVets() {
   try {
@@ -437,6 +438,23 @@ app.get('/api/auth/me', authMiddleware, async (req: Request, res: Response) => {
       });
     }
 
+    if (mongoose.connection.readyState !== 1) {
+      const cachedUser = fallbackUsers.find(u => u.firebaseUid === userUid);
+      if (!cachedUser) {
+        return res.status(200).json({
+          status: 'success',
+          isNewUser: true,
+          message: 'Auth token verified, profile details required'
+        });
+      }
+      userCache.set(userUid, cachedUser);
+      return res.json({
+        status: 'success',
+        isNewUser: false,
+        user: cachedUser
+      });
+    }
+
     // 2. Fetch from MongoDB Atlas on cache miss
     const dbUser = await User.findOne({ firebaseUid: userUid });
     if (!dbUser) {
@@ -504,6 +522,41 @@ app.post('/api/auth/profile', authMiddleware, async (req: Request, res: Response
     }
 
     // Upsert user profile details in MongoDB based on firebaseUid
+    // Upsert user profile details in MongoDB based on firebaseUid
+    if (mongoose.connection.readyState !== 1) {
+      let cachedUser = fallbackUsers.find(u => u.firebaseUid === userUid);
+      if (cachedUser) {
+        cachedUser.email = userEmail;
+        cachedUser.fullName = fullName;
+        cachedUser.phone = phone;
+        cachedUser.address = address;
+        cachedUser.profilePic = profilePicUrl;
+        cachedUser.role = role || 'normal';
+        cachedUser.updatedAt = new Date().toISOString();
+      } else {
+        cachedUser = {
+          _id: `user_${Date.now()}`,
+          firebaseUid: userUid,
+          email: userEmail,
+          fullName,
+          phone,
+          address,
+          profilePic: profilePicUrl,
+          role: role || 'normal',
+          pets: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        fallbackUsers.push(cachedUser);
+      }
+      userCache.set(userUid, cachedUser);
+      return res.json({
+        status: 'success',
+        message: 'Profile saved successfully (fallback)',
+        user: cachedUser
+      });
+    }
+
     const updatedUser = await User.findOneAndUpdate(
       { firebaseUid: userUid },
       {
@@ -568,6 +621,45 @@ app.post('/api/auth/profile/pets', authMiddleware, async (req: Request, res: Res
       }
     }
 
+    if (mongoose.connection.readyState !== 1) {
+      const cachedUser = fallbackUsers.find(u => u.firebaseUid === userUid);
+      if (!cachedUser) {
+        return res.status(404).json({ status: 'error', message: 'User not found' });
+      }
+
+      if (_id) {
+        const pet = cachedUser.pets.find((p: any) => p._id.toString() === _id.toString());
+        if (!pet) {
+          return res.status(404).json({ status: 'error', message: 'Pet not found' });
+        }
+        pet.name = name;
+        pet.type = type;
+        pet.photo = photoUrl;
+        pet.breed = breed || '';
+        pet.age = age !== undefined && age !== null && age !== '' ? Number(age) : undefined;
+        pet.gender = gender || 'unknown';
+        pet.notes = notes || '';
+      } else {
+        const newPet = {
+          _id: `pet_${Date.now()}`,
+          name,
+          type,
+          photo: photoUrl,
+          breed: breed || '',
+          age: age !== undefined && age !== null && age !== '' ? Number(age) : undefined,
+          gender: gender || 'unknown',
+          notes: notes || '',
+        };
+        cachedUser.pets.push(newPet);
+      }
+      userCache.set(userUid, cachedUser);
+      return res.json({
+        status: 'success',
+        message: _id ? 'Pet updated successfully' : 'Pet added successfully',
+        user: cachedUser
+      });
+    }
+
     const dbUser = await User.findOne({ firebaseUid: userUid });
     if (!dbUser) {
       return res.status(404).json({ status: 'error', message: 'User not found' });
@@ -627,6 +719,27 @@ app.delete('/api/auth/profile/pets/:petId', authMiddleware, async (req: Request,
     }
 
     const { petId } = req.params;
+
+    if (mongoose.connection.readyState !== 1) {
+      const cachedUser = fallbackUsers.find(u => u.firebaseUid === userUid);
+      if (!cachedUser) {
+        return res.status(404).json({ status: 'error', message: 'User not found' });
+      }
+
+      const originalLength = cachedUser.pets.length;
+      cachedUser.pets = cachedUser.pets.filter((p: any) => p._id.toString() !== petId.toString());
+
+      if (cachedUser.pets.length === originalLength) {
+        return res.status(404).json({ status: 'error', message: 'Pet not found' });
+      }
+
+      userCache.set(userUid, cachedUser);
+      return res.json({
+        status: 'success',
+        message: 'Pet deleted successfully',
+        user: cachedUser
+      });
+    }
 
     const dbUser = await User.findOne({ firebaseUid: userUid });
     if (!dbUser) {
