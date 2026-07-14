@@ -12,6 +12,7 @@ import EmergencyDispatch from '../components/EmergencyDispatch';
 import MohallaCircle from '../components/MohallaCircle';
 import Profile from '../components/Profile';
 import BottomNav from '../components/BottomNav';
+import VetConsultation from '../components/VetConsultation';
 import { BackendInfo, CommunityPost } from '../types';
 import { useAuth } from '../context/AuthContext';
 import AuthScreen from '../components/AuthScreen';
@@ -29,7 +30,7 @@ export default function Home() {
   }, []);
 
   // Navigation active tab
-  const [activeTab, setActiveTab] = useState<'home' | 'marketplace' | 'report' | 'circle' | 'profile' | 'petcare' | 'admin'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'marketplace' | 'report' | 'circle' | 'profile' | 'petcare' | 'admin' | 'vetconsult'>('home');
 
 
   // General App / Connection States
@@ -227,7 +228,10 @@ export default function Home() {
             {activeTab === 'home' && (
               <main className="w-full max-w-2xl mx-auto bg-white rounded-3xl p-4 md:p-8 flex flex-col gap-6 shadow-sm transition-all duration-300">
                 <HeroSection />
-                <NavigationGrid onGroomingClick={() => setActiveTab('petcare')} />
+                <NavigationGrid 
+                  onGroomingClick={() => setActiveTab('petcare')} 
+                  onVetConsultationClick={() => setActiveTab('vetconsult')}
+                />
                 <NeighborhoodRadar />
                 <MarketplaceCategories onExploreMoreClick={() => setActiveTab('marketplace')} />
               </main>
@@ -240,6 +244,11 @@ export default function Home() {
 
             {/* PET CARE FEATURE SCREEN */}
             {activeTab === 'petcare' && <PetCareFeature />}
+
+            {/* VET CONSULTATION TABS */}
+            {activeTab === 'vetconsult' && (
+              <VetConsultation setActiveTab={setActiveTab} />
+            )}
 
             {/* MARKETPLACE TAB SCREEN */}
             {activeTab === 'marketplace' && <Marketplace onOpenAdmin={() => setActiveTab('admin')} />}

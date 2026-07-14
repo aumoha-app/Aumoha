@@ -2,9 +2,10 @@
 
 interface NavigationGridProps {
   onGroomingClick?: () => void;
+  onVetConsultationClick?: () => void;
 }
 
-export default function NavigationGrid({ onGroomingClick }: NavigationGridProps) {
+export default function NavigationGrid({ onGroomingClick, onVetConsultationClick }: NavigationGridProps) {
   return (
     <div className="w-full select-none flex flex-col gap-3">
       {/* Header Row: Title */}
@@ -16,7 +17,10 @@ export default function NavigationGrid({ onGroomingClick }: NavigationGridProps)
       <div className="grid grid-cols-3 gap-2 md:gap-4 w-full">
         
         {/* Card 1: Vet Consultation */}
-        <div className="bg-[#FCFAF7] border border-[#EBE3D5]/65 rounded-[18px] md:rounded-[22px] px-2 py-4 md:p-4.5 flex flex-col items-center justify-center hover:border-blue-500/20 hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md group">
+        <div 
+          onClick={onVetConsultationClick}
+          className="bg-[#FCFAF7] border border-[#EBE3D5]/65 rounded-[18px] md:rounded-[22px] px-2 py-4 md:p-4.5 flex flex-col items-center justify-center hover:border-blue-500/20 hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md group"
+        >
           {/* Circle container for icon */}
           <div className="w-11 h-11 md:w-14 md:h-14 rounded-full bg-white border border-[#EBE3D5] flex items-center justify-center transition-colors group-hover:bg-[#FCFAF7] shadow-sm overflow-hidden">
             <img 

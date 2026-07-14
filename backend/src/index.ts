@@ -9,6 +9,9 @@ import User from './models/userModel';
 import Product from './models/productModel';
 import SosReport from './models/sosModel';
 import Settings from './models/settingsModel';
+import Vet from './models/vetModel';
+import Appointment from './models/appointmentModel';
+import { sendEmail, generateBookingEmailHtml } from './lib/emailService';
 import { v2 as cloudinary } from 'cloudinary';
 
 // Load environment variables
@@ -62,10 +65,117 @@ if (!MONGODB_URI) {
   process.exit(1);
 }
 
+// Fallback data structure for offline MongoDB resilience
+export const fallbackVets: any[] = [
+  {
+    _id: 'vet1',
+    name: 'Dr. Ananya Patra',
+    photo: '/sairaj_avatar.png',
+    specialisation: 'Small Animal & Surgery',
+    experience: 8,
+    fee: 400,
+    bio: 'Specialist in feline medicine, soft tissue surgery, and companion animal practice.',
+    rating: 4.9,
+    reviewCount: 128,
+    isOnline: true,
+    availableSlots: [
+      { _id: 'slot1', date: 'Today', time: '9:00 AM', isBooked: false },
+      { _id: 'slot2', date: 'Today', time: '11:00 AM', isBooked: false },
+      { _id: 'slot3', date: 'Today', time: '2:00 PM', isBooked: false },
+      { _id: 'slot4', date: 'Today', time: '4:30 PM', isBooked: false },
+      { _id: 'slot5', date: 'Tomorrow', time: '9:00 AM', isBooked: false },
+      { _id: 'slot6', date: 'Tomorrow', time: '11:00 AM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'vet2',
+    name: 'Dr. Rohit Nanda',
+    photo: '/sairaj_avatar.png',
+    specialisation: 'Dermatology & Oncology',
+    experience: 12,
+    fee: 600,
+    bio: 'Focused on chronic skin conditions, allergies, and oncological diagnostic support.',
+    rating: 4.6,
+    reviewCount: 96,
+    isOnline: true,
+    availableSlots: [
+      { _id: 'slot7', date: 'Today', time: '10:30 AM', isBooked: false },
+      { _id: 'slot8', date: 'Today', time: '1:00 PM', isBooked: false },
+      { _id: 'slot9', date: 'Today', time: '3:30 PM', isBooked: false },
+      { _id: 'slot10', date: 'Tomorrow', time: '10:30 AM', isBooked: false },
+      { _id: 'slot11', date: 'Tomorrow', time: '1:00 PM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'vet3',
+    name: 'Dr. Meera Iyer',
+    photo: '/sairaj_avatar.png',
+    specialisation: 'Internal Medicine',
+    experience: 10,
+    fee: 500,
+    bio: 'Internal pathology expert. Comprehensive healthcare management for senior pets.',
+    rating: 4.6,
+    reviewCount: 110,
+    isOnline: false,
+    availableSlots: [
+      { _id: 'slot12', date: 'Tomorrow', time: '9:30 AM', isBooked: false },
+      { _id: 'slot13', date: 'Tomorrow', time: '12:00 PM', isBooked: false },
+      { _id: 'slot14', date: 'Tomorrow', time: '3:00 PM', isBooked: false },
+      { _id: 'slot15', date: 'Tomorrow', time: '5:30 PM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'vet4',
+    name: 'Dr. Sima Rath',
+    photo: '/sairaj_avatar.png',
+    specialisation: 'Exotic & Wildlife',
+    experience: 7,
+    fee: 500,
+    bio: 'Passionate about reptiles, birds, pocket pets, and native wildlife rehabilitation.',
+    rating: 4.7,
+    reviewCount: 74,
+    isOnline: true,
+    availableSlots: [
+      { _id: 'slot16', date: 'Today', time: '12:00 PM', isBooked: false },
+      { _id: 'slot17', date: 'Today', time: '4:00 PM', isBooked: false },
+      { _id: 'slot18', date: 'Tomorrow', time: '10:00 AM', isBooked: false },
+      { _id: 'slot19', date: 'Tomorrow', time: '2:00 PM', isBooked: false }
+    ]
+  }
+];
+
+export const fallbackAppointments: any[] = [];
+
+async function seedVets() {
+  try {
+    const Vet = mongoose.models.Vet || mongoose.model('Vet');
+    const count = await Vet.countDocuments();
+    if (count > 0) return;
+
+    console.log('🌱 Seeding initial vet data...');
+    // Make sure we strip client-only mock IDs when inserting to MDB
+    const dbVets = fallbackVets.map((v: any) => {
+      const { _id, availableSlots, ...rest } = v;
+      return {
+        ...rest,
+        availableSlots: availableSlots.map((s: any) => {
+          const { _id, ...slotRest } = s;
+          return slotRest;
+        })
+      };
+    });
+    await Vet.insertMany(dbVets);
+    console.log('✅ Seeding completed!');
+  } catch (error) {
+    console.error('❌ Failed to seed vet data:', error);
+  }
+}
+
 mongoose
   .connect(MONGODB_URI)
   .then(() => {
     console.log('🍃 MongoDB connected successfully');
+    seedVets();
   })
   .catch((err) => {
     console.error('❌ MongoDB connection error:', err);
@@ -998,6 +1108,511 @@ app.post('/api/settings/checkout-phone', authMiddleware, adminMiddleware, async 
     });
   } catch (error) {
     console.error('Error in POST /api/settings/checkout-phone:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * GET /api/vets
+ * Retrieve the directory of all active veterinarians
+ */
+app.get('/api/vets', async (req: Request, res: Response) => {
+  try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.json({ status: 'success', vets: fallbackVets });
+    }
+    const vets = await Vet.find({});
+    return res.json({ status: 'success', vets });
+  } catch (error) {
+    console.error('Error in GET /api/vets:', error);
+    return res.json({ status: 'success', vets: fallbackVets });
+  }
+});
+
+/**
+ * POST /api/appointments
+ * Register a new vet appointment slot reservation
+ */
+app.post('/api/appointments', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { vetId, slotId, mode, petName, petId } = req.body;
+    const userEmail = req.user?.email;
+
+    if (!userEmail) {
+      return res.status(401).json({ status: 'error', message: 'Authentication required' });
+    }
+    if (!vetId || !slotId || !petName) {
+      return res.status(400).json({ status: 'error', message: 'Missing required booking parameters' });
+    }
+
+    const bookingId = `AMC-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
+    let appointmentData: any = null;
+
+    if (mongoose.connection.readyState !== 1) {
+      const vet = fallbackVets.find((v: any) => v._id === vetId);
+      if (!vet) {
+        return res.status(404).json({ status: 'error', message: 'Vet not found' });
+      }
+      const slot = vet.availableSlots.find((s: any) => s._id === slotId);
+      if (!slot) {
+        return res.status(404).json({ status: 'error', message: 'Time slot not found' });
+      }
+      if (slot.isBooked) {
+        return res.status(400).json({ status: 'error', message: 'Time slot is already booked' });
+      }
+      slot.isBooked = true;
+      slot.bookedBy = bookingId;
+
+      appointmentData = {
+        _id: `appt_${Date.now()}`,
+        userEmail,
+        vetId,
+        vetName: vet.name,
+        vetSpecialisation: vet.specialisation,
+        vetPhoto: vet.photo,
+        date: slot.date,
+        time: slot.time,
+        fee: vet.fee,
+        mode: mode || 'in-clinic',
+        petName,
+        petId,
+        status: 'confirmed',
+        bookingId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      fallbackAppointments.push(appointmentData);
+    } else {
+      const vet = await Vet.findById(vetId);
+      if (!vet) {
+        return res.status(404).json({ status: 'error', message: 'Vet not found' });
+      }
+      const slot = vet.availableSlots.id(slotId);
+      if (!slot) {
+        return res.status(404).json({ status: 'error', message: 'Time slot not found' });
+      }
+      if (slot.isBooked) {
+        return res.status(400).json({ status: 'error', message: 'Time slot is already booked' });
+      }
+      slot.isBooked = true;
+      slot.bookedBy = bookingId;
+      await vet.save();
+
+      appointmentData = await Appointment.create({
+        userEmail,
+        vetId,
+        vetName: vet.name,
+        vetSpecialisation: vet.specialisation,
+        vetPhoto: vet.photo,
+        date: slot.date,
+        time: slot.time,
+        fee: vet.fee,
+        mode: mode || 'in-clinic',
+        petName,
+        petId,
+        status: 'confirmed',
+        bookingId
+      });
+    }
+
+    // Trigger transactional email
+    const emailHtml = generateBookingEmailHtml(appointmentData, 'confirm');
+    await sendEmail({
+      to: userEmail,
+      subject: `Aumoha Booking Confirmed: ${appointmentData.vetName} on ${appointmentData.date}`,
+      html: emailHtml
+    });
+
+    return res.json({ status: 'success', appointment: appointmentData });
+  } catch (error) {
+    console.error('Error in POST /api/appointments:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * GET /api/appointments
+ * Fetch list of current user's appointments
+ */
+app.get('/api/appointments', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userEmail = req.user?.email;
+    if (!userEmail) {
+      return res.status(401).json({ status: 'error', message: 'Authentication required' });
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      const userAppts = fallbackAppointments.filter(a => a.userEmail === userEmail);
+      return res.json({ status: 'success', appointments: userAppts });
+    }
+
+    const appointments = await Appointment.find({ userEmail }).sort({ createdAt: -1 });
+    return res.json({ status: 'success', appointments });
+  } catch (error) {
+    console.error('Error in GET /api/appointments:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * PUT /api/appointments/:id/reschedule
+ * Change date/time slot of an existing appointment
+ */
+app.put('/api/appointments/:id/reschedule', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { newSlotId } = req.body;
+    const userEmail = req.user?.email;
+
+    if (!userEmail) {
+      return res.status(401).json({ status: 'error', message: 'Authentication required' });
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      const appt = fallbackAppointments.find((a: any) => a._id === id && a.userEmail === userEmail);
+      if (!appt) {
+        return res.status(404).json({ status: 'error', message: 'Appointment not found' });
+      }
+
+      // Free old slot
+      const oldVet = fallbackVets.find((v: any) => v._id === appt.vetId);
+      if (oldVet) {
+        const oldSlot = oldVet.availableSlots.find((s: any) => s.date === appt.date && s.time === appt.time);
+        if (oldSlot) {
+          oldSlot.isBooked = false;
+          oldSlot.bookedBy = undefined;
+        }
+      }
+
+      // Reserve new slot
+      const newVet = fallbackVets.find((v: any) => v._id === appt.vetId);
+      if (!newVet) {
+        return res.status(404).json({ status: 'error', message: 'Vet not found' });
+      }
+      const newSlot = newVet.availableSlots.find((s: any) => s._id === newSlotId);
+      if (!newSlot) {
+        return res.status(404).json({ status: 'error', message: 'New slot not found' });
+      }
+      if (newSlot.isBooked) {
+        return res.status(400).json({ status: 'error', message: 'New slot is already booked' });
+      }
+      newSlot.isBooked = true;
+      newSlot.bookedBy = appt.bookingId;
+
+      appt.date = newSlot.date;
+      appt.time = newSlot.time;
+      appt.updatedAt = new Date().toISOString();
+
+      const emailHtml = generateBookingEmailHtml(appt, 'reschedule');
+      await sendEmail({
+        to: userEmail,
+        subject: `Aumoha Booking Rescheduled: ${appt.vetName} on ${appt.date}`,
+        html: emailHtml
+      });
+
+      return res.json({ status: 'success', appointment: appt });
+    }
+
+    const appt = await Appointment.findById(id);
+    if (!appt || appt.userEmail !== userEmail) {
+      return res.status(404).json({ status: 'error', message: 'Appointment not found' });
+    }
+
+    // Free old slot
+    const oldVet = await Vet.findById(appt.vetId);
+    if (oldVet) {
+      const oldSlot = oldVet.availableSlots.find((s: any) => s.date === appt.date && s.time === appt.time);
+      if (oldSlot) {
+        oldSlot.isBooked = false;
+        oldSlot.bookedBy = null;
+        await oldVet.save();
+      }
+    }
+
+    // Reserve new slot
+    const newVet = await Vet.findById(appt.vetId);
+    if (!newVet) {
+      return res.status(404).json({ status: 'error', message: 'Vet not found' });
+    }
+    const newSlot = newVet.availableSlots.id(newSlotId);
+    if (!newSlot) {
+      return res.status(404).json({ status: 'error', message: 'New slot not found' });
+    }
+    if (newSlot.isBooked) {
+      return res.status(400).json({ status: 'error', message: 'New slot is already booked' });
+    }
+    newSlot.isBooked = true;
+    newSlot.bookedBy = appt.bookingId;
+    await newVet.save();
+
+    appt.date = newSlot.date;
+    appt.time = newSlot.time;
+    await appt.save();
+
+    const emailHtml = generateBookingEmailHtml(appt, 'reschedule');
+    await sendEmail({
+      to: userEmail,
+      subject: `Aumoha Booking Rescheduled: ${appt.vetName} on ${appt.date}`,
+      html: emailHtml
+    });
+
+    return res.json({ status: 'success', appointment: appt });
+  } catch (error) {
+    console.error('Error in PUT /api/appointments/:id/reschedule:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * PUT /api/appointments/:id/cancel
+ * Cancel an appointment slot booking
+ */
+app.put('/api/appointments/:id/cancel', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userEmail = req.user?.email;
+
+    if (!userEmail) {
+      return res.status(401).json({ status: 'error', message: 'Authentication required' });
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      const appt = fallbackAppointments.find((a: any) => a._id === id && a.userEmail === userEmail);
+      if (!appt) {
+        return res.status(404).json({ status: 'error', message: 'Appointment not found' });
+      }
+
+      const vet = fallbackVets.find((v: any) => v._id === appt.vetId);
+      if (vet) {
+        const slot = vet.availableSlots.find((s: any) => s.date === appt.date && s.time === appt.time);
+        if (slot) {
+          slot.isBooked = false;
+          slot.bookedBy = undefined;
+        }
+      }
+
+      appt.status = 'cancelled';
+      appt.updatedAt = new Date().toISOString();
+
+      const emailHtml = generateBookingEmailHtml(appt, 'cancel');
+      await sendEmail({
+        to: userEmail,
+        subject: `Aumoha Booking Cancelled: ${appt.vetName}`,
+        html: emailHtml
+      });
+
+      return res.json({ status: 'success', appointment: appt });
+    }
+
+    const appt = await Appointment.findById(id);
+    if (!appt || appt.userEmail !== userEmail) {
+      return res.status(404).json({ status: 'error', message: 'Appointment not found' });
+    }
+
+    const vet = await Vet.findById(appt.vetId);
+    if (vet) {
+      const slot = vet.availableSlots.find((s: any) => s.date === appt.date && s.time === appt.time);
+      if (slot) {
+        slot.isBooked = false;
+        slot.bookedBy = null;
+        await vet.save();
+      }
+    }
+
+    appt.status = 'cancelled';
+    await appt.save();
+
+    const emailHtml = generateBookingEmailHtml(appt, 'cancel');
+    await sendEmail({
+      to: userEmail,
+      subject: `Aumoha Booking Cancelled: ${appt.vetName}`,
+      html: emailHtml
+    });
+
+    return res.json({ status: 'success', appointment: appt });
+  } catch (error) {
+    console.error('Error in PUT /api/appointments/:id/cancel:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * PUT /api/appointments/:id/notes
+ * Add/update pet parent notes on a booking
+ */
+app.put('/api/appointments/:id/notes', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { notes } = req.body;
+    const userEmail = req.user?.email;
+
+    if (!userEmail) {
+      return res.status(401).json({ status: 'error', message: 'Authentication required' });
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      const appt = fallbackAppointments.find((a: any) => a._id === id && a.userEmail === userEmail);
+      if (!appt) {
+        return res.status(404).json({ status: 'error', message: 'Appointment not found' });
+      }
+      appt.notes = notes || '';
+      appt.updatedAt = new Date().toISOString();
+      return res.json({ status: 'success', appointment: appt });
+    }
+
+    const appt = await Appointment.findOneAndUpdate(
+      { _id: id, userEmail },
+      { notes: notes || '' },
+      { new: true }
+    );
+    if (!appt) {
+      return res.status(404).json({ status: 'error', message: 'Appointment not found' });
+    }
+
+    return res.json({ status: 'success', appointment: appt });
+  } catch (error) {
+    console.error('Error in PUT /api/appointments/:id/notes:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * POST /api/vets
+ * Admin-gated: Register a new vet profile
+ */
+app.post('/api/vets', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { name, photo, specialisation, experience, fee, bio, isOnline, availableSlots } = req.body;
+    if (!name || !specialisation || !experience || !fee) {
+      return res.status(400).json({ status: 'error', message: 'Missing required parameters' });
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      const newVet = {
+        _id: `vet_${Date.now()}`,
+        name,
+        photo: photo || '/sairaj_avatar.png',
+        specialisation,
+        experience: Number(experience),
+        fee: Number(fee),
+        bio: bio || '',
+        rating: 5.0,
+        reviewCount: 0,
+        isOnline: !!isOnline,
+        availableSlots: (availableSlots || []).map((s: any, idx: number) => ({
+          _id: `slot_${Date.now()}_${idx}`,
+          date: s.date || 'Today',
+          time: s.time || '10:00 AM',
+          isBooked: false
+        }))
+      };
+      fallbackVets.push(newVet);
+      return res.json({ status: 'success', vet: newVet });
+    }
+
+    const newVet = await Vet.create({
+      name,
+      photo: photo || '/sairaj_avatar.png',
+      specialisation,
+      experience: Number(experience),
+      fee: Number(fee),
+      bio: bio || '',
+      isOnline: !!isOnline,
+      availableSlots: (availableSlots || []).map((s: any) => ({
+        date: s.date || 'Today',
+        time: s.time || '10:00 AM',
+        isBooked: false
+      }))
+    });
+
+    return res.json({ status: 'success', vet: newVet });
+  } catch (error) {
+    console.error('Error in POST /api/vets:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * PUT /api/vets/:id
+ * Admin-gated: Update vet details / available slots
+ */
+app.put('/api/vets/:id', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { name, photo, specialisation, experience, fee, bio, isOnline, availableSlots } = req.body;
+
+    if (mongoose.connection.readyState !== 1) {
+      const vet = fallbackVets.find(v => v._id === id);
+      if (!vet) {
+        return res.status(404).json({ status: 'error', message: 'Vet not found' });
+      }
+      if (name) vet.name = name;
+      if (photo) vet.photo = photo;
+      if (specialisation) vet.specialisation = specialisation;
+      if (experience) vet.experience = Number(experience);
+      if (fee) vet.fee = Number(fee);
+      if (bio) vet.bio = bio;
+      if (isOnline !== undefined) vet.isOnline = !!isOnline;
+      if (availableSlots) {
+        vet.availableSlots = availableSlots.map((s: any, idx: number) => ({
+          _id: s._id || `slot_${Date.now()}_${idx}`,
+          date: s.date,
+          time: s.time,
+          isBooked: !!s.isBooked,
+          bookedBy: s.bookedBy
+        }));
+      }
+      return res.json({ status: 'success', vet });
+    }
+
+    const vet = await Vet.findById(id);
+    if (!vet) {
+      return res.status(404).json({ status: 'error', message: 'Vet not found' });
+    }
+    if (name) vet.name = name;
+    if (photo) vet.photo = photo;
+    if (specialisation) vet.specialisation = specialisation;
+    if (experience) vet.experience = Number(experience);
+    if (fee) vet.fee = Number(fee);
+    if (bio) vet.bio = bio;
+    if (isOnline !== undefined) vet.isOnline = !!isOnline;
+    if (availableSlots) {
+      vet.availableSlots = availableSlots;
+    }
+    await vet.save();
+
+    return res.json({ status: 'success', vet });
+  } catch (error) {
+    console.error('Error in PUT /api/vets/:id:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * DELETE /api/vets/:id
+ * Admin-gated: Delete a vet profile
+ */
+app.delete('/api/vets/:id', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    if (mongoose.connection.readyState !== 1) {
+      const idx = fallbackVets.findIndex(v => v._id === id);
+      if (idx === -1) {
+        return res.status(404).json({ status: 'error', message: 'Vet not found' });
+      }
+      fallbackVets.splice(idx, 1);
+      return res.json({ status: 'success', message: 'Vet deleted successfully' });
+    }
+
+    const vet = await Vet.findByIdAndDelete(id);
+    if (!vet) {
+      return res.status(404).json({ status: 'error', message: 'Vet not found' });
+    }
+
+    return res.json({ status: 'success', message: 'Vet deleted successfully' });
+  } catch (error) {
+    console.error('Error in DELETE /api/vets/:id:', error);
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
   }
 });
