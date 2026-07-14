@@ -410,7 +410,7 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
           <p className="text-xs text-stone-400 font-medium mt-1 leading-normal max-w-md">Manage your pet rescuer identification credentials</p>
         </div>
 
-        <div className="flex gap-2.5 sm:self-auto self-start shrink-0">
+        <div className="flex flex-wrap gap-2.5 sm:self-auto self-start shrink-0">
           {isAdmin && onOpenAdmin && (
             <button
               onClick={onOpenAdmin}
