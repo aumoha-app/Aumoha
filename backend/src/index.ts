@@ -12,7 +12,7 @@ import Settings from './models/settingsModel';
 import Vet from './models/vetModel';
 import Appointment from './models/appointmentModel';
 import ActivityPost from './models/activityModel';
-import { sendEmail, generateBookingEmailHtml } from './lib/emailService';
+import { sendEmail, generateBookingEmailHtml, generateDonationEmailHtml } from './lib/emailService';
 import { v2 as cloudinary } from 'cloudinary';
 
 // Load environment variables
@@ -2275,6 +2275,41 @@ app.delete('/api/vets/:id', authMiddleware, adminMiddleware, async (req: Request
     return res.json({ status: 'success', message: 'Vet deleted successfully' });
   } catch (error) {
     console.error('Error in DELETE /api/vets/:id:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * POST /api/donations
+ * Process donation mock payment and send receipt email
+ */
+app.post('/api/donations', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userEmail = (req as any).user?.email;
+    const { amount, description } = req.body;
+
+    if (!userEmail) {
+      return res.status(401).json({ status: 'error', message: 'Unauthorized client' });
+    }
+
+    if (!amount || !description) {
+      return res.status(400).json({ status: 'error', message: 'Missing required donation fields' });
+    }
+
+    const emailHtml = generateDonationEmailHtml({ amount, description });
+    
+    // Send transactional donation receipt email
+    await sendEmail({
+      to: userEmail,
+      subject: `Aumoha Donation Receipt: Contribution of ₹${amount}`,
+      html: emailHtml
+    });
+
+    console.log(`💖 Donation alert: User ${userEmail} donated ₹${amount} for "${description}"`);
+
+    return res.json({ status: 'success', message: 'Donation receipt processed and sent' });
+  } catch (error) {
+    console.error('Error in POST /api/donations:', error);
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
   }
 });

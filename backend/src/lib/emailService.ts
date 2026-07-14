@@ -197,3 +197,44 @@ export function generateBookingEmailHtml(appointment: any, mode: 'confirm' | 're
     </div>
   `;
 }
+
+export function generateDonationEmailHtml(donation: { amount: number; description: string }): string {
+  const receiptNo = `REC-${Math.floor(100000 + Math.random() * 900000)}`;
+  return `
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #f0ebe1; border-radius: 12px; background-color: #faf6f0;">
+      <h2 style="color: #b68a35; font-family: serif; text-align: center;">Aumoha Moha Circle Donation Receipt</h2>
+      <hr style="border: 0; border-top: 1px solid #ebe3d5; margin: 20px 0;" />
+      <p style="font-size: 14px; color: #4a4a4a;">Dear Supporter,</p>
+      <p style="font-size: 14px; color: #4a4a4a;">Thank you for your generous contribution to support the animals in our community. Your contribution has been processed successfully.</p>
+      
+      <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #ebe3d5; margin: 20px 0;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+          <tr>
+            <td style="padding: 6px 0; color: #888888; font-weight: bold;">Receipt Number:</td>
+            <td style="padding: 6px 0; text-align: right; color: #b68a35; font-weight: bold;">${receiptNo}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #888888; font-weight: bold;">Purpose:</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: bold;">${donation.description}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #888888; font-weight: bold;">Date:</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: bold;">${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #888888; font-weight: bold;">Amount Contributed:</td>
+            <td style="padding: 6px 0; text-align: right; font-weight: bold; color: #2e7d32; font-size: 16px;">₹${donation.amount}</td>
+          </tr>
+        </table>
+      </div>
+      
+      <p style="font-size: 13px; color: #666666; font-style: italic; text-align: center; margin: 20px 0;">
+        "Every little contribution counts. Together, we make our neighborhood safe and happy for both humans and animals."
+      </p>
+      
+      <p style="font-size: 12px; color: #888888; text-align: center; margin-top: 30px; border-top: 1px solid #ebe3d5; padding-top: 15px;">
+        Aumoha - Mohalla of Humans & Animals. Thank you for your support!
+      </p>
+    </div>
+  `;
+}

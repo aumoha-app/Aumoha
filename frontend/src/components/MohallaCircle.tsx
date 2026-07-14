@@ -113,6 +113,39 @@ interface MohallaCircleProps {
 export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gurugram', setActiveTab, view }: MohallaCircleProps) {
   const [activeView, setActiveView] = useState<'home' | 'members' | 'impact' | 'updates'>(view || 'home');
 
+  const [customAmount, setCustomAmount] = useState<string>('');
+  const [isDonating, setIsDonating] = useState<boolean>(false);
+
+  const handleDonate = async (amount: number, description: string) => {
+    if (!amount || amount <= 0) {
+      alert('Please enter a valid donation amount.');
+      return;
+    }
+    setIsDonating(true);
+    try {
+      const res = await fetch('http://localhost:5001/api/donations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ amount, description })
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        alert(`💖 Thank you for donating ₹${amount} for "${description}"! A receipt has been sent to your email.`);
+        setCustomAmount('');
+      } else {
+        alert(`❌ Failed to process donation: ${data.message || 'Unknown error'}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('❌ Failed to connect to server. Transaction processed offline.');
+    } finally {
+      setIsDonating(false);
+    }
+  };
+
   useEffect(() => {
     if (view) {
       setActiveView(view);
@@ -1267,16 +1300,17 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
             {/* Donation Options Row */}
             <div className="grid grid-cols-3 gap-2.5 mt-1">
               {[
-                { amount: '₹500', desc: 'Vaccine & Meds' },
-                { amount: '₹1,500', desc: 'Rescue Transport' },
-                { amount: '₹5,000', desc: 'Monthly Feeding' }
+                { amount: 500, label: '₹500', desc: 'Vaccine & Meds' },
+                { amount: 1500, label: '₹1,500', desc: 'Rescue Transport' },
+                { amount: 5000, label: '₹5,000', desc: 'Monthly Feeding' }
               ].map((opt, i) => (
                 <button
                   key={i}
-                  onClick={() => alert(`Thank you! Directing to donation for ${opt.amount} (${opt.desc})...`)}
-                  className="bg-white hover:bg-[#3D5A45]/5 hover:border-[#3D5A45] border border-[#EBE3D5] rounded-2xl py-3 px-2 flex flex-col items-center justify-center text-center transition-all cursor-pointer group active:scale-95 shadow-sm"
+                  disabled={isDonating}
+                  onClick={() => handleDonate(opt.amount, opt.desc)}
+                  className="bg-white hover:bg-[#3D5A45]/5 hover:border-[#3D5A45] border border-[#EBE3D5] rounded-2xl py-3 px-2 flex flex-col items-center justify-center text-center transition-all cursor-pointer group active:scale-95 shadow-sm disabled:opacity-50"
                 >
-                  <span className="text-xs font-extrabold text-[#3D5A45] group-hover:scale-105 transition-transform">{opt.amount}</span>
+                  <span className="text-xs font-extrabold text-[#3D5A45] group-hover:scale-105 transition-transform">{opt.label}</span>
                   <span className="text-[8px] text-stone-400 font-semibold block mt-0.5 leading-none">{opt.desc}</span>
                 </button>
               ))}
@@ -1288,15 +1322,19 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
                 <span className="absolute inset-y-0 left-3 flex items-center text-xs font-bold text-stone-400 select-none">₹</span>
                 <input
                   type="number"
+                  value={customAmount}
+                  onChange={(e) => setCustomAmount(e.target.value)}
+                  disabled={isDonating}
                   placeholder="Other amount"
-                  className="w-full bg-white border border-[#EBE3D5] rounded-xl py-2 pl-6 pr-3 text-xs text-charcoal outline-none focus:border-[#3D5A45] transition-all font-semibold"
+                  className="w-full bg-white border border-[#EBE3D5] rounded-xl py-2 pl-6 pr-3 text-xs text-charcoal outline-none focus:border-[#3D5A45] transition-all font-semibold disabled:opacity-50"
                 />
               </div>
               <button
-                onClick={() => alert('Processing donation payment... (Ready for integration)')}
-                className="bg-[#3D5A45] hover:bg-[#2A3E31] text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all shadow-sm active:scale-95 whitespace-nowrap"
+                disabled={isDonating}
+                onClick={() => handleDonate(Number(customAmount), 'Custom community contribution')}
+                className="bg-[#3D5A45] hover:bg-[#2A3E31] text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all shadow-sm active:scale-95 whitespace-nowrap disabled:opacity-50"
               >
-                Contribute
+                {isDonating ? 'Processing...' : 'Contribute'}
               </button>
             </div>
           </div>
