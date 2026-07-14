@@ -221,7 +221,7 @@ const CATEGORY_CONFIGS: Record<string, {
   },
   'Communicator/Psychotherapist/Reiki Healing': {
     title: 'Communicators & Reiki Healers',
-    displayTitle: 'Communicator / Psychotherapist / Reiki Healing',
+    displayTitle: 'Reiki Healing',
     subtitle: 'Telepathic consultations & spiritual distance healing',
     subFilters: ['Reiki Healing', 'Grief Counseling', 'Energy Balance', 'Available Today'],
     color: 'text-fuchsia-700 bg-fuchsia-50 border-fuchsia-100',
@@ -739,9 +739,9 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                   </div>
 
                   {/* Right side mockup graphic decoration alignment */}
-                  <div className="absolute right-0 bottom-0 top-0 w-[35%] flex items-center justify-center overflow-hidden pointer-events-none select-none z-0">
-                    <div className={`w-24 h-24 rounded-full opacity-15 filter blur-xl ${conf.bgGradient || 'bg-emerald-500/10'}`} />
-                    <span className="text-4xl absolute transform translate-x-2 translate-y-2 group-hover:scale-110 transition-transform duration-300">
+                  <div className="absolute right-2 bottom-2 top-2 w-[30%] flex items-center justify-center overflow-hidden pointer-events-none select-none z-0">
+                    <div className={`w-14 h-14 rounded-full absolute opacity-25 filter blur-md ${conf.bgGradient || 'bg-emerald-500/10'}`} />
+                    <span className="text-3xl z-10 group-hover:scale-110 transition-transform duration-300">
                       {conf.emoji === 'poodle' ? '🐩' : conf.emoji || '🐾'}
                     </span>
                   </div>
