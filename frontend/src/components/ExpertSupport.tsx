@@ -410,7 +410,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
   };
 
   return (
-    <div className="w-full flex flex-col gap-6 animate-scaleIn font-sans text-charcoal bg-[#FAF8F5] rounded-3xl p-4 md:p-6 shadow-sm min-h-[80vh]">
+    <div className="w-full flex flex-col gap-6 animate-scaleIn font-sans text-charcoal bg-white rounded-3xl p-4 md:p-6 shadow-sm min-h-[80vh]">
       
       {/* HEADER BAR WITH NAVIGATION BACK ACTION */}
       <div className="flex items-center gap-3 pb-3 border-b border-warmBeige/40 select-none">
@@ -445,14 +445,6 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
       {/* ==================== SCREEN 1: EXPERT SUPPORT HOME ==================== */}
       {currentView === 'home' && (
         <div className="flex flex-col gap-6 w-full animate-fadeIn relative">
-          
-          {/* Leaf shadow ambient header backdrop */}
-          <div className="absolute right-0 top-0 w-64 h-64 opacity-25 pointer-events-none z-0">
-            <svg viewBox="0 0 100 100" className="w-full h-full text-emerald-800/10 fill-current">
-              <path d="M70,10 C50,25 35,45 30,70 C45,75 60,65 75,45 C80,30 75,15 70,10 Z" />
-              <path d="M50,30 C35,40 25,55 20,75 C35,80 48,70 60,55 C65,42 60,30 50,30 Z" />
-            </svg>
-          </div>
 
           {/* Hero Header block */}
           <div className="z-10 flex flex-col gap-1.5 max-w-xl">
@@ -582,7 +574,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                     setListingSubFilter(null);
                     setCurrentView('listing');
                   }}
-                  className="bg-white border border-[#EBE6DD] rounded-[24px] p-5 cursor-pointer hover:shadow-md transition-all group relative overflow-hidden flex flex-row justify-between min-h-[145px] hover:scale-[1.01]"
+                  className="bg-[#FCFAF9] border border-[#EBE6DD]/60 rounded-[22px] p-4.5 cursor-pointer hover:bg-white hover:border-purple-600/10 hover:shadow-md transition-all group relative overflow-hidden flex flex-row justify-between min-h-[145px] hover:scale-[1.01]"
                 >
                   {/* Left side text and icon */}
                   <div className="flex flex-col justify-between z-10 w-[55%] select-none">
@@ -627,7 +619,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
           </div>
 
           {/* FIND MY EXPERT QUIZ BANNER */}
-          <div className="bg-white border border-[#EBE6DD] rounded-[28px] p-5 flex flex-col sm:flex-row items-center justify-between gap-5 mt-3 shadow-sm relative overflow-hidden">
+          <div className="bg-[#FCFAF9] border border-[#EBE6DD]/60 rounded-[24px] p-5 flex flex-col sm:flex-row items-center justify-between gap-5 mt-3 shadow-sm relative overflow-hidden">
             <div className="flex items-center gap-4 z-10 w-full sm:w-auto">
               {/* Circular portrait image of woman petting golden retriever */}
               <div className="w-14 h-14 rounded-full overflow-hidden border border-stone-200 shrink-0">
