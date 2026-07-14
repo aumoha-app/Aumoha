@@ -11,6 +11,8 @@ import {
 } from '../types';
 import { getDistance, DistanceInfo } from '../lib/proximity';
 import { useAuth } from '../context/AuthContext';
+import SupportRequestDetail from './SupportRequestDetail';
+
 
 const formatTime = (dateStr: string) => {
   const date = new Date(dateStr);
@@ -255,29 +257,15 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
   
   // Navigation states for sub-screens
   const [selectedRequest, setSelectedRequest] = useState<CommunityUpdate | null>(null);
-  const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
-  const [helpMessage, setHelpMessage] = useState<string>('');
-  const [selectedHelpOptions, setSelectedHelpOptions] = useState<string[]>(['vet']);
-  
-  // Help Form State
-  const [helpSubmitted, setHelpSubmitted] = useState<boolean>(false);
   
   // Maps instances
   const homeMapRef = useRef<any>(null);
   const membersMapRef = useRef<any>(null);
-  const detailMapRef = useRef<any>(null);
 
-  // Mock data matching screens
-  const impactMetrics: ImpactMetrics = {
-    animalsHelped: 28,
-    rescues: 16,
-    animalsFed: 312,
-    adoptions: 6,
-    donations: 8450
-  };
+
 
   const { token } = useAuth();
-  const [dbRescuers, setDbRescuers] = useState<any[]>([]);
+  const [dbUsers, setDbUsers] = useState<any[]>([]);
   const [dbSosReports, setDbSosReports] = useState<any[]>([]);
   const [isDataLoading, setIsDataLoading] = useState<boolean>(true);
 
@@ -285,12 +273,12 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
     const fetchData = async () => {
       if (!token) return;
       try {
-        const rescuerRes = await fetch('http://localhost:5001/api/users/rescuers', {
+        const userRes = await fetch('http://localhost:5001/api/users', {
           headers: { Authorization: `Bearer ${token}` }
         });
-        if (rescuerRes.ok) {
-          const rescuerData = await rescuerRes.json();
-          setDbRescuers(rescuerData.rescuers || []);
+        if (userRes.ok) {
+          const userData = await userRes.json();
+          setDbUsers(userData.users || []);
         }
 
         const sosRes = await fetch('http://localhost:5001/api/sos/active', {
@@ -309,24 +297,19 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
     fetchData();
   }, [token]);
 
-  const defaultMockMembers = [
-    { id: 'm1', name: 'Neha J.', avatar: '', role: 'feeder' as const, location: 'Sector 4 Park', badge: 'trusted' as const, joinedTime: '3' },
-    { id: 'm2', name: 'Rita', avatar: '', role: 'feeder' as const, location: 'Market Area', badge: 'level3' as const, joinedTime: '5' },
-    { id: 'm3', name: 'Dr. Meera', avatar: '', role: 'paravet' as const, location: 'Clinic Zone', badge: 'available' as const, joinedTime: '22' },
-    { id: 'm4', name: 'Pooja S.', avatar: '', role: 'volunteer' as const, location: 'North Zone', badge: undefined, joinedTime: '8' },
-  ];
-
-  const dbMappedRescuers = dbRescuers.map(r => ({
-    id: r._id,
-    name: r.fullName,
-    avatar: r.profilePic || '',
-    role: 'rescuer' as const,
-    location: r.address || 'Saheed Nagar',
-    badge: 'trusted' as const,
-    joinedTime: '1'
+  const dbMappedUsers = dbUsers.map(u => ({
+    id: u._id,
+    name: u.fullName,
+    avatar: u.profilePic || '',
+    role: (u.role || 'normal') as MemberRole,
+    location: u.address || 'Saheed Nagar',
+    badge: u.role === 'rescuer' ? ('trusted' as const) : undefined,
+    joinedTime: u.createdAt 
+      ? Math.max(1, Math.round((Date.now() - new Date(u.createdAt).getTime()) / (1000 * 60 * 60 * 24))).toString()
+      : '1'
   }));
 
-  const allMembers = [...dbMappedRescuers, ...defaultMockMembers];
+  const allMembers = dbMappedUsers;
 
   const computedMembers: CircleMember[] = allMembers.map(m => {
     const distInfo = getDistance(selectedLocation, m.location || '');
@@ -346,50 +329,28 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
     };
   });
 
-  const defaultMockUpdates = [
-    {
-      id: 'u1',
-      author: 'Neha J.',
-      authorRole: 'feeder' as const,
-      avatar: '',
-      time: '10 mins ago',
-      category: 'feeding' as const,
-      title: 'Evening feeding completed',
-      description: 'Fed 12 dogs near Sector 4 Park.',
-      image: '/marketplace-food.png',
-      location: 'Sector 4 Park',
-      likes: 15
-    },
-    {
-      id: 'u2',
-      author: 'Mohalla Foster Network',
-      authorRole: 'adopter' as const,
-      avatar: '',
-      time: '2 hrs ago',
-      category: 'feeding' as const,
-      title: '2 new foster homes available',
-      description: 'Safe temporary homes ready for dogs in need.',
-      image: '/product-1.png',
-      location: 'Within 3 km',
-      likes: 4
-    },
-  ];
+  const dbMappedReports = dbSosReports.map(r => {
+    const user = dbUsers.find(u => u.phone === r.userPhone || u.email === r.userEmail);
+    const authorName = user ? user.fullName : (r.userPhone || 'Anonymous Reporter');
+    return {
+      id: r._id,
+      author: authorName,
+      authorRole: (user?.role || 'volunteer') as MemberRole,
+      avatar: user?.profilePic || '🚨',
+      time: formatTime(r.createdAt),
+      category: 'help' as const,
+      title: r.reason || 'Animal emergency reported',
+      description: r.description || r.reason || `SOS Alert: ${r.category} severity issue.`,
+      image: r.photo || '',
+      location: r.location || 'Saheed Nagar',
+      likes: 0,
+      animalCategory: r.category,
+      severity: r.severity,
+      contactPhone: r.userPhone || user?.phone || '9876 543 210'
+    };
+  });
 
-  const dbMappedReports = dbSosReports.map(r => ({
-    id: r._id,
-    author: r.userPhone || 'Anonymous Reporter',
-    authorRole: 'volunteer' as const,
-    avatar: '🚨',
-    time: formatTime(r.createdAt),
-    category: 'help' as const,
-    title: r.reason || 'Animal emergency reported',
-    description: r.description || r.reason || `SOS Alert: ${r.category} severity issue.`,
-    image: r.photo || '',
-    location: r.location || 'Saheed Nagar',
-    likes: 0
-  }));
-
-  const allUpdates = [...dbMappedReports, ...customActivities, ...defaultMockUpdates];
+  const allUpdates = [...dbMappedReports, ...customActivities];
 
   const computedUpdates: CommunityUpdate[] = allUpdates.map(u => {
     const distInfo = getDistance(selectedLocation, u.location || '');
@@ -409,28 +370,14 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
       distance: distInfo.display,
       distanceVal: distInfo.distanceVal,
       lat: coords[0],
-      lng: coords[1]
+      lng: coords[1],
+      animalCategory: (u as any).animalCategory,
+      severity: (u as any).severity,
+      contactPhone: (u as any).contactPhone
     };
   });
 
-  const circleLeaders: CircleLeader[] = [
-    { id: '1', name: 'Sunita R.', avatar: '👩‍🦳', role: 'Community Warden', location: 'Sector 4 & 5', badge: 'level5' },
-    { id: '2', name: 'Vikas P.', avatar: '👨‍💼', role: 'Rescue Lead', location: 'Sector 4', badge: 'level4' },
-    { id: '3', name: 'Pooja S.', avatar: '👩‍🤝‍👩', role: 'Feeding Coordinator', location: 'Sector 4', badge: 'level4' },
-  ];
 
-  const partners: Partner[] = [
-    { id: '1', name: 'AU Moha Vet Clinic', logo: '🏥', distance: '2.1 km', type: 'Veterinary' },
-    { id: '2', name: 'Paws & Claws NGO', logo: '🐾', distance: '3.2 km', type: 'NGO' },
-    { id: '3', name: 'Happy Paws Shelter', logo: '🏠', distance: '2.8 km', type: 'Shelter' },
-    { id: '4', name: 'City Animal Helpline', logo: '☎️', distance: '24x7 Support', type: 'Support' },
-  ];
-
-  const events = [
-    { id: 'e1', date: '18 May', title: 'Free Vaccination Camp', time: '8:00 AM - 12:00 PM', location: 'Sector 4 Community Park', image: '/vetConsultation.png' },
-    { id: 'e2', date: '25 May', title: 'Clean Streets, Safe Paws', time: '7:30 AM - 10:30 AM', location: 'Park Street Area', image: '/groominAndCare.png' },
-    { id: 'e3', date: '01 Jun', title: 'Adoption Meet', time: '11:00 AM - 3:00 PM', location: 'AU Moha Center', image: '/experSupport.png' }
-  ];
 
   // Role style mappings (color palette: elegant, HSL tailored matching screenshots)
   const getRoleColors = (role: MemberRole) => {
@@ -503,71 +450,120 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
       const map = L.map(mapId, { zoomControl: false }).setView(center, 14);
       setInstanceRef.current = map;
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap'
+      // CartoDB Positron clean light cream style map layer
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap &copy; CARTO'
       }).addTo(map);
 
-      // User node center dot (Green dot)
+      // User node center dot (White circle with dark green center dot)
       const greenDotIcon = L.divIcon({
-        className: 'custom-div-icon',
-        html: `<div class="w-5 h-5 bg-[#3D5A45] rounded-full border-4 border-white shadow-md flex items-center justify-center">
-                 <div class="w-2 h-2 bg-white rounded-full animate-ping"></div>
+        className: 'custom-center-icon',
+        html: `<div class="w-6 h-6 bg-white rounded-full border-2 border-[#3D5A45] shadow-md flex items-center justify-center">
+                 <div class="w-3 h-3 bg-[#3D5A45] rounded-full"></div>
                </div>`,
-        iconSize: [20, 20],
-        iconAnchor: [10, 10]
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
       });
       L.marker(center, { icon: greenDotIcon }).addTo(map);
 
-      // Draw search radius ring (e.g. 1.5 km)
+      // Draw search radius ring (e.g. 1.2 km soft green outline/fill)
       L.circle(center, {
-        color: '#3D5A45',
-        fillColor: '#E8EFE9',
-        fillOpacity: 0.15,
-        radius: 1500,
-        weight: 1.5,
-        dashArray: '4, 4'
+        color: '#81C784',
+        fillColor: '#C8E6C9',
+        fillOpacity: 0.2,
+        radius: 1200,
+        weight: 1.5
       }).addTo(map);
 
-      // Add pins
-      pins.forEach(pin => {
-        const roleInfo = getRoleColors(pin.role);
-        
-        let markerHtml = '';
-        if (pin.role === 'help_needed') {
-          // Urgent Red pin SVG
-          markerHtml = `<div class="flex flex-col items-center">
-            <div class="w-9 h-9 rounded-full bg-[#FCECE9] border-2 border-[#C85341] flex items-center justify-center text-white text-sm shadow-md animate-bounce">
-              ${getSvgIconString('help_needed')}
-            </div>
-            <div class="bg-white/95 px-2 py-0.5 rounded-full border border-stone-200 text-[9px] font-bold text-charcoal mt-1 whitespace-nowrap shadow-sm">
-              Help Needed: ${pin.distance || '800m'}
-            </div>
-          </div>`;
-        } else {
-          // Custom Role pin with avatar inside and label
-          const avatarContent = (pin.avatar && pin.avatar.startsWith('http'))
-            ? `<img src="${pin.avatar}" class="w-full h-full rounded-full object-cover" />`
-            : getSvgIconString(pin.role);
-
-          markerHtml = `<div class="flex flex-col items-center">
-            <div class="w-8 h-8 rounded-full ${roleInfo.bg} border-2 ${roleInfo.border} flex items-center justify-center shadow-md relative">
-              ${avatarContent}
-              ${pin.badge ? `<span class="absolute -top-1.5 -right-1.5 text-[8px] bg-yellow-400 rounded-full w-3.5 h-3.5 flex items-center justify-center">⭐</span>` : ''}
-            </div>
-            <div class="bg-white/95 px-2 py-0.5 rounded-full border border-stone-200 text-[9px] font-bold text-charcoal mt-1 whitespace-nowrap shadow-sm">
-              ${pin.name}: ${pin.distance}
-            </div>
-          </div>`;
+      const getPinColor = (role: string) => {
+        switch (role) {
+          case 'feeder': return '#D32F2F';
+          case 'rescuer': return '#E65100';
+          case 'volunteer': return '#E91E63';
+          case 'paravet': return '#7B1FA2';
+          case 'adopter': return '#2E7D32';
+          case 'help_needed': return '#C85341';
+          default: return '#546E7A';
         }
+      };
+
+      const getPinIcon = (role: string) => {
+        switch (role) {
+          case 'feeder':
+            return `<svg class="w-3.5 h-3.5 text-[#D32F2F]" fill="currentColor" viewBox="0 0 24 24"><path d="M2 20h20v2H2v-2zm2-2h16c0-4.42-3.58-8-8-8s-8 3.58-8 8zm8-10c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>`;
+          case 'adopter':
+            return `<svg class="w-3.5 h-3.5 text-[#2E7D32]" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>`;
+          case 'paravet':
+            return `<svg class="w-3.5 h-3.5 text-[#7B1FA2]" fill="currentColor" viewBox="0 0 24 24"><path d="M19 10.5h-5.5V5h-3v5.5H5v3h5.5V19h3v-5.5H19v-3z"/></svg>`;
+          case 'volunteer':
+            return `<svg class="w-3.5 h-3.5 text-[#E91E63]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+          case 'rescuer':
+            return `<svg class="w-3.5 h-3.5 text-[#E65100]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
+          case 'help_needed':
+            return `<svg class="w-3.5 h-3.5 text-[#C85341]" fill="currentColor" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5zm8 7c0-2.21-1.29-4.13-3-5.06v10.12c1.71-.93 3-2.85 3-5.06z"/></svg>`;
+          default:
+            return `<svg class="w-3.5 h-3.5 text-[#546E7A]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
+        }
+      };
+
+      // Add pins
+      const coordinatesRegistry: { [key: string]: number } = {};
+
+      pins.forEach(pin => {
+        let lat = pin.lat;
+        let lng = pin.lng;
+        const key = `${lat.toFixed(6)},${lng.toFixed(6)}`;
+        if (coordinatesRegistry[key] !== undefined) {
+          coordinatesRegistry[key] += 1;
+          const count = coordinatesRegistry[key];
+          const angle = count * (Math.PI / 4);
+          const radius = 0.00015 * Math.ceil(count / 8);
+          lat += Math.sin(angle) * radius;
+          lng += Math.cos(angle) * radius;
+        } else {
+          coordinatesRegistry[key] = 0;
+        }
+
+        const color = getPinColor(pin.role);
+        const iconHtml = (pin.avatar && pin.avatar.startsWith('http'))
+          ? `<img src="${pin.avatar}" class="w-full h-full rounded-full object-cover" />`
+          : getPinIcon(pin.role);
+
+        // Gold badge star
+        const goldBadgeHtml = pin.badge
+          ? `<div class="absolute -top-1 -right-1 w-4 h-4 bg-[#B68A35] rounded-full border border-white flex items-center justify-center text-[8px] text-white shadow-xs">★</div>`
+          : '';
+
+        const markerHtml = `
+          <div class="flex flex-col items-center">
+            <div class="relative w-9 h-11 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)] active:scale-95 transition-all">
+              <!-- Pin SVG -->
+              <svg class="w-9 h-11" viewBox="0 0 36 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 0C8.06 0 0 8.06 0 18C0 28.5 18 44 18 44C18 44 36 28.5 36 18C36 8.06 27.94 0 18 0Z" fill="${color}"/>
+              </svg>
+              <!-- White inner circle -->
+              <div class="absolute top-[3px] left-[3px] w-[30px] h-[30px] rounded-full bg-white flex items-center justify-center overflow-hidden">
+                ${iconHtml}
+              </div>
+              <!-- Star Badge -->
+              ${goldBadgeHtml}
+            </div>
+            <!-- Label -->
+            <div class="mt-1 text-center bg-white/95 backdrop-blur-xs px-2 py-0.5 rounded-md border border-[#F0EBE1] shadow-xs leading-tight whitespace-nowrap">
+              <div class="text-[9px] font-extrabold text-charcoal leading-none">${pin.name}</div>
+              <div class="text-[8px] font-bold text-stone-500 mt-0.5 leading-none">${pin.distance || 'Nearby'}</div>
+            </div>
+          </div>
+        `;
 
         const customIcon = L.divIcon({
           className: 'custom-member-pin',
           html: markerHtml,
-          iconSize: [60, 60],
-          iconAnchor: [30, 45]
+          iconSize: [80, 80],
+          iconAnchor: [40, 44]
         });
 
-        const marker = L.marker([pin.lat, pin.lng], { icon: customIcon }).addTo(map);
+        const marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
         
         marker.on('click', () => {
           if (pin.role === 'help_needed') {
@@ -607,37 +603,12 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
   useEffect(() => {
     const centerCoords = getCoordinatesForLocation(selectedLocation);
 
-    if (selectedRequest) {
-      // Load Detail Screen Map (Screen 6)
-      const detailRequestCoords = getCoordinatesForLocation(selectedRequest.location || selectedLocation);
-      const detailPins = [
-        { 
-          name: selectedRequest.title, 
-          avatar: '🚨', 
-          role: 'help_needed', 
-          lat: detailRequestCoords[0], 
-          lng: detailRequestCoords[1], 
-          distance: selectedRequest.distance 
-        },
-        ...computedMembers.slice(0, 3).map(m => ({
-          name: m.name,
-          avatar: m.avatar,
-          role: m.role,
-          lat: m.lat || centerCoords[0],
-          lng: m.lng || centerCoords[1],
-          distance: m.distance,
-          badge: m.badge
-        }))
-      ];
-      setTimeout(() => {
-        loadLeafletMap('detail-map', detailRequestCoords, detailPins, detailMapRef);
-      }, 100);
-    } else if (activeView === 'home') {
+    if (activeView === 'home') {
       // Load Home Map (Screen 1)
       const activeReportsPins = computedUpdates
         .filter(u => u.category === 'help')
         .map(u => ({
-          name: u.title,
+          name: ((u as any).animalCategory || u.title || 'Emergency').replace(/^\w/, (c: string) => c.toUpperCase()),
           avatar: '🚨',
           role: 'help_needed',
           lat: u.lat || centerCoords[0],
@@ -679,24 +650,8 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
       // Clean up maps
       if (homeMapRef.current) { homeMapRef.current.remove(); homeMapRef.current = null; }
       if (membersMapRef.current) { membersMapRef.current.remove(); membersMapRef.current = null; }
-      if (detailMapRef.current) { detailMapRef.current.remove(); detailMapRef.current = null; }
     };
   }, [activeView, selectedRequest, computedMembers, computedUpdates]);
-
-  const handleHelpToggle = (option: string) => {
-    setSelectedHelpOptions(prev => 
-      prev.includes(option) ? prev.filter(o => o !== option) : [...prev, option]
-    );
-  };
-
-  const handleSendHelp = () => {
-    setHelpSubmitted(true);
-    setTimeout(() => {
-      setHelpSubmitted(false);
-      setShowHelpModal(false);
-      alert('Help request accepted! The reporter has been notified and will coordinate with you.');
-    }, 1200);
-  };
 
   // Shared component: Member Scroll/List Card
   const renderMemberCard = (member: any) => {
@@ -723,8 +678,12 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
           <span className={`px-2 py-0.5 rounded text-[8px] font-extrabold uppercase mt-1 leading-none ${roleInfo.bg} ${roleInfo.text} border ${roleInfo.border}`}>
             {roleInfo.label}
           </span>
-          <span className="text-[10px] text-stone-500 font-bold mt-1.5 flex items-center gap-0.5">
-            📍 {member.distance}
+          <span className="text-[10px] text-stone-500 font-bold mt-1.5 flex items-center gap-1">
+            <svg className="w-3 h-3 text-[#C85341] shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="10" r="3"/>
+              <path d="M12 21.7C12 21.7 4 14 4 10a8 8 0 0 1 16 0c0 4-8 11.7-8 11.7z"/>
+            </svg>
+            {member.distance}
           </span>
           {member.badge && (
             <span className="text-[9px] font-bold text-[#B68A35] mt-1 italic">
@@ -789,8 +748,13 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
           {post.image && (
             <div className="w-20 h-20 rounded-xl overflow-hidden bg-stone-100 border border-[#F0EBE1] shrink-0 relative">
               <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
-              <div className="absolute bottom-1 right-1 bg-black/60 px-1 py-0.5 rounded text-[8px] font-extrabold text-white flex items-center gap-0.5">
-                🖼️ 2
+              <div className="absolute bottom-1 right-1 bg-black/60 px-1.5 py-0.5 rounded text-[8px] font-extrabold text-white flex items-center gap-1">
+                <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+                2
               </div>
             </div>
           )}
@@ -799,7 +763,13 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
         {/* Meta / Actions Footer */}
         <div className="flex items-center justify-between border-t border-[#F5F2EC] pt-3 text-[11px] text-stone-500 font-bold select-none">
           <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1 bg-[#FCFAF7] px-2 py-1 rounded-lg">📍 {post.location}</span>
+            <span className="flex items-center gap-1 bg-[#FCFAF7] px-2 py-1 rounded-lg">
+              <svg className="w-3 h-3 text-[#C85341] shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="10" r="3"/>
+                <path d="M12 21.7C12 21.7 4 14 4 10a8 8 0 0 1 16 0c0 4-8 11.7-8 11.7z"/>
+              </svg>
+              {post.location}
+            </span>
             <span className="text-[#3D5A45]">{post.distance}</span>
             {['feeding', 'help', 'event'].includes(post.category) && (
               <button 
@@ -819,10 +789,16 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
           </div>
           <div className="flex items-center gap-3">
             <button className="flex items-center gap-1 hover:text-red-500 transition-colors">
-              <span>❤️</span> {post.likes}
+              <svg className="w-3.5 h-3.5 text-current shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+              </svg>
+              {post.likes}
             </button>
             <button className="flex items-center gap-1 hover:text-[#3D5A45] transition-colors">
-              <span>💬</span> Comment
+              <svg className="w-3.5 h-3.5 text-current shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              Comment
             </button>
           </div>
         </div>
@@ -871,450 +847,301 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
 
   // --- RENDER SUPPORT REQUEST DETAIL SUB-PAGE (Screen 6) ---
   if (selectedRequest) {
-    const roleInfo = getRoleColors(selectedRequest.authorRole);
     return (
-      <div className="min-h-screen bg-warmBg flex flex-col animate-scaleIn relative">
-        {/* Navigation/Header bar */}
-        <div className="sticky top-0 bg-white/95 backdrop-blur-sm border-b border-[#F0EBE1] px-4 py-4 z-20 flex items-center justify-between shadow-sm">
-          <button 
-            onClick={() => setSelectedRequest(null)}
-            className="w-10 h-10 rounded-full border border-stone-200 flex items-center justify-center hover:bg-stone-50 active:scale-95 transition-all"
-          >
-            ←
-          </button>
-          <div className="flex items-center gap-2">
-            <span className="font-serif text-sm font-bold text-charcoal">Support Request</span>
-            <span className="px-2 py-0.5 rounded bg-rose-50 text-red-600 border border-rose-100 text-[9px] font-extrabold uppercase animate-pulse">
-              Active
-            </span>
-          </div>
-          <div className="flex gap-2">
-            <button className="w-10 h-10 rounded-full border border-stone-200 flex items-center justify-center hover:bg-stone-50 active:scale-95 transition-all">
-              📤
-            </button>
-            <button className="w-10 h-10 rounded-full border border-stone-200 flex items-center justify-center hover:bg-stone-50 active:scale-95 transition-all">
-              ⋮
-            </button>
-          </div>
-        </div>
-
-        {/* Content body */}
-        <div className="flex-grow px-4 py-5 pb-24 w-full max-w-2xl mx-auto flex flex-col gap-6">
-          
-          {/* Card Hero */}
-          <div className="bg-white border border-[#F0EBE1] rounded-[28px] p-6 shadow-sm flex flex-col md:flex-row gap-5">
-            <div className="flex-grow flex flex-col gap-2 min-w-0">
-              <h2 className="font-serif text-2xl text-charcoal font-normal">{selectedRequest.title}</h2>
-              <span className="text-xs text-stone-500 font-bold flex items-center gap-1 mt-1">
-                📍 {selectedRequest.location}, Saheed Nagar
-              </span>
-              <p className="text-xs text-stone-600 font-medium leading-relaxed mt-2">
-                {selectedRequest.description}
-              </p>
-            </div>
-            {selectedRequest.image && (
-              <div className="w-full md:w-36 h-36 rounded-2xl overflow-hidden bg-stone-100 border border-[#F0EBE1] relative shadow-inner shrink-0 select-none">
-                <img src={selectedRequest.image} alt={selectedRequest.title} className="w-full h-full object-cover" />
-                <div className="absolute bottom-2 right-2 bg-black/60 px-1.5 py-0.5 rounded text-[10px] font-extrabold text-white flex items-center gap-0.5">
-                  📷 2
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Quick Stats Grid */}
-          <div className="grid grid-cols-4 gap-2.5">
-            <div className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl p-3 flex flex-col items-center justify-center text-center">
-              <span className="text-[9px] uppercase tracking-wider font-extrabold text-stone-400">Reported</span>
-              <span className="text-[10px] font-bold text-charcoal mt-1">10 mins ago</span>
-            </div>
-            <div className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl p-3 flex flex-col items-center justify-center text-center">
-              <span className="text-[9px] uppercase tracking-wider font-extrabold text-stone-400">Reporter</span>
-              <span className="text-[10px] font-bold text-charcoal mt-1">{selectedRequest.author}</span>
-            </div>
-            <div className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl p-3 flex flex-col items-center justify-center text-center">
-              <span className="text-[9px] uppercase tracking-wider font-extrabold text-stone-400">Proximity</span>
-              <span className="text-[10px] font-bold text-[#3D5A45] mt-1">{selectedRequest.distance}</span>
-            </div>
-            <div className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl p-3 flex flex-col items-center justify-center text-center">
-              <span className="text-[9px] uppercase tracking-wider font-extrabold text-stone-400">Notified</span>
-              <span className="text-[10px] font-bold text-[#B68A35] mt-1">3 Neighbors</span>
-            </div>
-          </div>
-
-          {/* Proximity Map Card */}
-          <div className="bg-white border border-[#F0EBE1] rounded-[28px] p-4 shadow-sm flex flex-col gap-3">
-            <div className="flex justify-between items-center px-1">
-              <span className="text-xs font-bold text-charcoal flex items-center gap-1.5">
-                🌍 Proximity Map
-              </span>
-              <span className="text-[10px] font-extrabold text-[#3D5A45] uppercase tracking-widest bg-[#E8EFE9] px-2 py-0.5 rounded-full border border-[#C8E6C9]">
-                Within 3 km radius
-              </span>
-            </div>
-            <div id="detail-map" className="h-56 w-full rounded-2xl bg-stone-100 border border-[#F0EBE1] overflow-hidden z-10" />
-          </div>
-
-          {/* Tabs Details Section */}
-          <div className="bg-white border border-[#F0EBE1] rounded-[28px] p-5 shadow-sm">
-            <div className="flex gap-4 border-b border-[#F0EBE1] pb-3 mb-4 select-none text-xs font-bold text-stone-400">
-              <span className="text-[#3D5A45] border-b-2 border-[#3D5A45] pb-3 -mb-3.5 cursor-pointer">Details</span>
-              <span className="hover:text-charcoal cursor-pointer">Help Needed</span>
-              <span className="hover:text-charcoal cursor-pointer flex items-center gap-1">Updates <span className="bg-rose-100 text-rose-700 px-1 rounded-full text-[9px]">2</span></span>
-              <span className="hover:text-charcoal cursor-pointer">Nearby Support</span>
-            </div>
-
-            {/* Tab: Details Table */}
-            <div className="flex flex-col gap-3.5 mt-2 text-xs">
-              <div className="flex py-1.5 border-b border-[#F9F7F2]">
-                <span className="w-28 font-bold text-stone-400 uppercase tracking-wider shrink-0">Location</span>
-                <span className="text-charcoal font-medium">Near Sector 4 Park entrance, Park Street <a href="#map" className="text-[#B68A35] underline ml-1.5">View on map</a></span>
-              </div>
-              <div className="flex py-1.5 border-b border-[#F9F7F2]">
-                <span className="w-28 font-bold text-stone-400 uppercase tracking-wider shrink-0">Animal Info</span>
-                <span className="text-charcoal font-medium">Brown Indie Dog • Adult • Medium <span className="text-stone-400 font-semibold block mt-0.5">Limping on front leg</span></span>
-              </div>
-              <div className="flex py-1.5 border-b border-[#F9F7F2]">
-                <span className="w-28 font-bold text-stone-400 uppercase tracking-wider shrink-0">Urgency</span>
-                <span className="text-red-600 font-bold flex items-center gap-1.5">
-                  ⚠️ Moderate <span className="text-stone-400 font-normal italic">Needs vet check and care</span>
-                </span>
-              </div>
-              <div className="flex py-1.5 border-b border-[#F9F7F2]">
-                <span className="w-28 font-bold text-stone-400 uppercase tracking-wider shrink-0">What Happened</span>
-                <span className="text-charcoal font-medium">Seen limping and having difficulty walking.</span>
-              </div>
-              <div className="flex py-1.5">
-                <span className="w-28 font-bold text-stone-400 uppercase tracking-wider shrink-0">Contact</span>
-                <span className="text-charcoal font-bold">{selectedRequest.author} • 9876 543 210 <span className="text-stone-400 font-medium block mt-0.5">Call or message for more details</span></span>
-              </div>
-            </div>
-          </div>
-
-          {/* Ways you can help Grid */}
-          <div className="flex flex-col gap-3">
-            <h3 className="text-sm font-bold text-charcoal px-1">Ways you can help</h3>
-            <div className="grid grid-cols-4 gap-2.5">
-              {[
-                { id: 'vet', title: 'Take to Vet', icon: '🩺', desc: 'Provide medical assistance' },
-                { id: 'transport', title: 'Transport', icon: '🚗', desc: 'Help in safe transport' },
-                { id: 'foster', title: 'Foster Care', icon: '🏠', desc: 'Provide temporary care' },
-                { id: 'support', title: 'Support', icon: '🤝', desc: 'Contribute or share leads' }
-              ].map(opt => (
-                <div 
-                  key={opt.id}
-                  onClick={() => {
-                    setSelectedHelpOptions([opt.id]);
-                    setShowHelpModal(true);
-                  }}
-                  className="bg-white border border-[#F0EBE1] hover:border-[#3D5A45]/40 hover:bg-[#FCFAF7] transition-all rounded-2xl p-4 flex flex-col items-center justify-between text-center cursor-pointer shadow-sm"
-                >
-                  <span className="text-3xl">{opt.icon}</span>
-                  <span className="text-xs font-bold text-charcoal mt-2 leading-tight">{opt.title}</span>
-                  <span className="text-[9px] text-stone-400 font-semibold mt-1 leading-normal">{opt.desc}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Action CTAs */}
-          <div className="flex flex-col gap-3 mt-4">
-            <button 
-              onClick={() => setShowHelpModal(true)}
-              className="w-full py-3.5 bg-[#3D5A45] hover:bg-[#2A3E31] active:scale-98 text-white font-bold rounded-2xl text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md shadow-[#3D5A45]/15"
-            >
-              <span>🤝</span> I can help
-            </button>
-            <button 
-              onClick={() => alert(`Broadcasting support request to neighbors within 3 km...`)}
-              className="w-full py-3 bg-[#FCFAF7] border border-[#F0EBE1] hover:border-stone-300 active:scale-98 text-stone-600 font-bold rounded-2xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
-            >
-              <span>💬</span> Ask neighbors for support
-            </button>
-          </div>
-        </div>
-
-        {/* --- OFFER YOUR HELP MODAL (Screen 5) --- */}
-        {showHelpModal && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-end md:items-center justify-center px-4 transition-all">
-            <div className="bg-white w-full max-w-lg rounded-t-[32px] md:rounded-[32px] p-6 shadow-2xl flex flex-col gap-5 max-h-[90vh] overflow-y-auto animate-scaleIn select-none">
-              
-              {/* Context Header */}
-              <div className="flex justify-between items-center border-b border-[#F0EBE1] pb-3.5">
-                <button 
-                  onClick={() => setShowHelpModal(false)}
-                  className="w-8 h-8 rounded-full border border-stone-200 flex items-center justify-center hover:bg-stone-50 active:scale-90"
-                >
-                  ←
-                </button>
-                <div className="text-center">
-                  <h3 className="font-serif text-lg text-charcoal font-semibold">Offer Your Help</h3>
-                  <span className="text-[10px] text-stone-400 font-bold block mt-0.5 truncate max-w-[200px]">
-                    {selectedRequest.title}
-                  </span>
-                </div>
-                <button 
-                  onClick={() => setShowHelpModal(false)}
-                  className="w-8 h-8 rounded-full border border-stone-200 flex items-center justify-center hover:bg-rose-50 hover:text-red-500 active:scale-90 text-sm font-semibold"
-                >
-                  ✕
-                </button>
-              </div>
-
-              {/* Informative Security Banner */}
-              <div className="bg-[#FDF6F0] border border-[#FBE9E7] rounded-xl p-3.5 flex items-start gap-2.5">
-                <span className="text-lg">🛡️</span>
-                <p className="text-[11px] text-stone-600 font-medium leading-relaxed">
-                  Your help will be shared with the reporter and nearby helpers. You can choose one or more ways to help.
-                </p>
-              </div>
-
-              {/* Multi-select Help Cards */}
-              <div className="flex flex-col gap-3">
-                <h4 className="text-xs font-bold text-charcoal">How would you like to help?</h4>
-                {[
-                  { id: 'vet', title: 'Take to Vet', icon: '🩺', desc: 'Provide medical assistance', time: '2.3 km away • 12 min' },
-                  { id: 'transport', title: 'Transport', icon: '🚗', desc: 'Help in safe transport', time: '1.1 km away • 6 min' },
-                  { id: 'foster', title: 'Foster Care', icon: '🏠', desc: 'Provide temporary care', time: 'Within 5 km' },
-                  { id: 'support', title: 'Support', icon: '🤝', desc: 'Contribute or share leads', time: 'Share info, supplies, or funds' }
-                ].map(item => {
-                  const isChecked = selectedHelpOptions.includes(item.id);
-                  return (
-                    <div 
-                      key={item.id}
-                      onClick={() => handleHelpToggle(item.id)}
-                      className={`border rounded-2xl p-3.5 flex items-center justify-between gap-4 cursor-pointer hover:border-[#3D5A45]/30 transition-all ${
-                        isChecked ? 'bg-[#FCFAF7] border-[#3D5A45] shadow-sm' : 'border-[#F0EBE1] bg-white'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3.5">
-                        <div className="w-10 h-10 rounded-xl bg-stone-50 border border-stone-200/60 flex items-center justify-center text-xl shrink-0">
-                          {item.icon}
-                        </div>
-                        <div>
-                          <span className="text-xs font-bold text-charcoal block">{item.title}</span>
-                          <span className="text-[10px] text-stone-400 font-semibold block mt-0.5 leading-tight">{item.desc}</span>
-                          <span className="text-[9px] text-[#3D5A45] font-extrabold block mt-1">📍 {item.time}</span>
-                        </div>
-                      </div>
-                      <div className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 transition-colors ${
-                        isChecked ? 'bg-[#3D5A45] border-[#3D5A45] text-white' : 'border-stone-300 bg-white'
-                      }`}>
-                        {isChecked && '✓'}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Message Textarea */}
-              <div className="flex flex-col gap-1.5">
-                <div className="flex justify-between items-center">
-                  <h4 className="text-xs font-bold text-charcoal">Add a message (optional)</h4>
-                  <span className="text-[10px] text-stone-400 font-semibold">{helpMessage.length}/200</span>
-                </div>
-                <textarea 
-                  value={helpMessage}
-                  onChange={(e) => setHelpMessage(e.target.value.slice(0, 200))}
-                  placeholder="Tell the reporter how you can help..."
-                  className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl p-3.5 text-xs text-charcoal outline-none focus:border-[#3D5A45]/40 min-h-[70px] resize-none"
-                />
-              </div>
-
-              {/* Coordinator Avatar Row */}
-              <div className="flex flex-col gap-2.5">
-                <h4 className="text-xs font-bold text-charcoal">Coordinate with nearby helpers</h4>
-                <p className="text-[10px] text-stone-400 font-medium">These neighbors are also helping:</p>
-                <div className="grid grid-cols-4 gap-2">
-                  {[
-                    { name: 'Neha J.', role: 'Reporter', dist: '800 m away', avatar: '👩‍🦰' },
-                    { name: 'Ankit', role: 'Rescuer', dist: '1.2 km away', avatar: '👨‍' },
-                    { name: 'Rita', role: 'Feeder', dist: '500 m away', avatar: '👩‍🦱' }
-                  ].map((h, i) => (
-                    <div key={i} className="bg-white border border-[#F0EBE1] rounded-xl p-2 flex flex-col items-center text-center">
-                      <div className="w-10 h-10 rounded-full bg-cream border border-stone-200 flex items-center justify-center text-lg relative mb-1 shrink-0">
-                        {h.avatar}
-                        <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border border-white"></div>
-                      </div>
-                      <span className="text-[10px] font-bold text-charcoal truncate w-full">{h.name}</span>
-                      <span className="text-[8px] font-semibold text-stone-400 leading-none mt-0.5">{h.role}</span>
-                      <span className="text-[8px] font-extrabold text-[#3D5A45] mt-1 leading-none">{h.dist}</span>
-                    </div>
-                  ))}
-                  <div className="bg-white border border-dashed border-stone-300 rounded-xl p-2 flex flex-col items-center justify-center text-center">
-                    <div className="w-10 h-10 rounded-full bg-stone-50 border border-stone-200 flex items-center justify-center text-xs font-bold text-stone-500 shrink-0">
-                      +2
-                    </div>
-                    <span className="text-[8px] font-bold text-stone-500 mt-2 block">Helpers nearby</span>
-                    <button className="text-[8px] text-[#B68A35] font-extrabold underline block leading-none mt-1">View all</button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Urgent Clock Banner */}
-              <div className="bg-[#FFF3E0] border border-[#FFE0B2] rounded-xl p-3 flex items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-2">
-                  <span>⏱️</span>
-                  <div>
-                    <span className="font-bold text-[#E65100] block text-[10px] leading-tight">Response time matters.</span>
-                    <span className="text-stone-600 text-[10px] leading-normal font-semibold">Please act as soon as possible. Thank you!</span>
-                  </div>
-                </div>
-                <span className="text-rose-500 text-lg">❤️</span>
-              </div>
-
-              {/* Action bar */}
-              <div className="flex flex-col gap-2.5 mt-2">
-                <button 
-                  onClick={handleSendHelp}
-                  disabled={helpSubmitted}
-                  className="w-full py-3.5 bg-[#3D5A45] hover:bg-[#2A3E31] disabled:opacity-50 active:scale-98 text-white font-extrabold rounded-2xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
-                >
-                  {helpSubmitted ? (
-                    <span className="animate-pulse">Sending Help Offer...</span>
-                  ) : (
-                    <>
-                      <span>✈️</span> Send My Help
-                    </>
-                  )}
-                </button>
-                <a 
-                  href="tel:+919876543210"
-                  className="w-full py-3 border border-stone-200 hover:border-charcoal hover:bg-stone-50 active:scale-98 text-charcoal font-bold rounded-2xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer text-center"
-                >
-                  <span>📞</span> Call Reporter
-                </a>
-              </div>
-
-            </div>
-          </div>
-        )}
-      </div>
+      <SupportRequestDetail
+        selectedRequest={selectedRequest}
+        onBack={() => setSelectedRequest(null)}
+        selectedLocation={selectedLocation}
+        getCoordinatesForLocation={getCoordinatesForLocation}
+        computedMembers={computedMembers}
+      />
     );
   }
+
+  const renderChipIcon = (id: string) => {
+    switch (id) {
+      case 'all':
+        return (
+          <svg className="w-4 h-4 text-current" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+            <rect x="3" y="3" width="7" height="7" rx="1.5" />
+            <rect x="14" y="3" width="7" height="7" rx="1.5" />
+            <rect x="3" y="14" width="7" height="7" rx="1.5" />
+            <rect x="14" y="14" width="7" height="7" rx="1.5" />
+          </svg>
+        );
+      case 'feeder':
+        return (
+          <svg className="w-4 h-4 text-[#C85341]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+            <path d="M3 18c0-3 3-5 9-5s9 2 9 5H3z"/>
+            <path d="M12 6v3M9 7v2M15 7v2"/>
+          </svg>
+        );
+      case 'rescuer':
+        return (
+          <svg className="w-4 h-4 text-[#6A5ACD]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M12 14.5l-2.4-2.4A1.7 1.7 0 0 1 12 9.7a1.7 1.7 0 0 1 2.4 2.4z"/>
+          </svg>
+        );
+      case 'volunteer':
+        return (
+          <svg className="w-4 h-4 text-[#5E7A68]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+        );
+      case 'adopter':
+        return (
+          <svg className="w-4 h-4 text-[#B68A35]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <path d="M12 17v0c-1.5-1.5-2.5-2.5-2.5-3.5 0-1.1.9-2 2-2s2 .9 2 2c0 1-1 2-2 3.5z"/>
+          </svg>
+        );
+      case 'paravet':
+        return (
+          <svg className="w-4 h-4 text-[#7B1FA2]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+            <rect x="3" y="3" width="18" height="18" rx="5" />
+            <path d="M12 8v8M8 12h8"/>
+          </svg>
+        );
+      case 'lost':
+        return (
+          <svg className="w-4 h-4 text-stone-600" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+        );
+      case 'event':
+        return (
+          <svg className="w-4 h-4 text-[#C85341]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+            <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/>
+          </svg>
+        );
+      case 'help':
+        return (
+          <svg className="w-4 h-4 text-[#C85341]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+            <path d="M11 5L6 9H2v6h4l5 4V5zm8 7c0-2.21-1.29-4.13-3-5.06v10.12c1.71-.93 3-2.85 3-5.06z"/>
+          </svg>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const renderSimpleActivityCard = (post: any) => {
+    const isSos = post.category === 'help';
+    const isRescuer = post.authorRole === 'rescuer';
+    const isAdopter = post.authorRole === 'adopter';
+    const isParavet = post.authorRole === 'paravet';
+    const isEvent = post.category === 'event';
+
+    let avatarIcon = null;
+
+    if (post.avatar && post.avatar.startsWith('http')) {
+      avatarIcon = <img src={post.avatar} alt={post.author} className="w-full h-full object-cover" />;
+    } else if (isSos) {
+      avatarIcon = (
+        <div className="w-full h-full bg-[#FCECE9] flex items-center justify-center text-[#C85341] shrink-0">
+          <svg className="w-5 h-5 text-current" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+            <path d="M11 5L6 9H2v6h4l5 4V5zm8 7c0-2.21-1.29-4.13-3-5.06v10.12c1.71-.93 3-2.85 3-5.06z"/>
+          </svg>
+        </div>
+      );
+    } else if (isRescuer) {
+      avatarIcon = (
+        <div className="w-full h-full bg-[#E8F5E9] flex items-center justify-center text-xl overflow-hidden relative">
+          🧑
+        </div>
+      );
+    } else if (isAdopter) {
+      avatarIcon = (
+        <div className="w-full h-full bg-[#FFF8E1] flex items-center justify-center text-[#B68A35] shrink-0">
+          <svg className="w-5 h-5 text-current" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <path d="M12 17v0c-1.5-1.5-2.5-2.5-2.5-3.5 0-1.1.9-2 2-2s2 .9 2 2c0 1-1 2-2 3.5z"/>
+          </svg>
+        </div>
+      );
+    } else if (isParavet) {
+      avatarIcon = (
+        <div className="w-full h-full bg-[#F3E5F5] flex items-center justify-center text-[#7B1FA2] shrink-0">
+          <svg className="w-5 h-5 text-current" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+            <rect x="3" y="3" width="18" height="18" rx="5" />
+            <path d="M12 8v8M8 12h8"/>
+          </svg>
+        </div>
+      );
+    } else {
+      avatarIcon = (
+        <div className="w-full h-full bg-[#F5F2EC] flex items-center justify-center text-xl overflow-hidden relative">
+          👥
+        </div>
+      );
+    }
+
+    let badgeHtml = null;
+    if (isSos) {
+      badgeHtml = (
+        <div className="absolute bottom-0 right-0 w-4.5 h-4.5 bg-[#C85341] rounded-full border border-white flex items-center justify-center text-[10px] font-extrabold text-white shadow-xs">
+          !
+        </div>
+      );
+    } else if (isRescuer) {
+      badgeHtml = (
+        <div className="absolute bottom-0 right-0 w-4.5 h-4.5 bg-[#B68A35] rounded-full border border-white flex items-center justify-center text-[8px] text-white shadow-xs">
+          ★
+        </div>
+      );
+    }
+
+    let infoColor = 'text-stone-500';
+    if (isSos) infoColor = 'text-[#C85341]';
+    else if (isRescuer) infoColor = 'text-[#3D5A45]';
+    else if (isAdopter) infoColor = 'text-[#B68A35]';
+    else if (isParavet) infoColor = 'text-[#7B1FA2]';
+    else if (isEvent) infoColor = 'text-[#B68A35]';
+
+    return (
+      <div 
+        key={post.id}
+        onClick={() => setSelectedRequest(post)}
+        className="bg-white border border-[#F0EBE1] hover:border-stone-300 rounded-[20px] p-3 flex items-center justify-between gap-3 hover:shadow-xs transition-all duration-300 cursor-pointer select-none"
+      >
+        <div className="flex items-center gap-3">
+          <div className="relative w-12 h-12 rounded-full overflow-hidden shrink-0 border border-stone-100 flex items-center justify-center bg-stone-50">
+            {avatarIcon}
+            {badgeHtml}
+          </div>
+
+          <div className="flex flex-col">
+            <span className="text-sm font-bold text-charcoal tracking-tight leading-snug line-clamp-1">
+              {post.title}
+            </span>
+            <span className="text-[11px] text-stone-400 font-semibold mt-0.5 leading-none">
+              {isSos ? 'Needs attention' : isRescuer ? 'Active rescuer' : isAdopter ? 'Within 3 km' : isParavet ? 'Emergency support' : 'Join your neighbors'}
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-col items-end text-right">
+            <span className={`text-[11px] font-bold ${infoColor} leading-none`}>
+              {isEvent ? 'Sun, 7:00 AM' : post.distance}
+            </span>
+            <span className="text-[10px] text-stone-400 font-semibold mt-1 leading-none">
+              {isEvent ? 'Event' : post.time}
+            </span>
+          </div>
+          <svg className="w-4 h-4 text-stone-400 stroke-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </div>
+      </div>
+    );
+  };
 
   // --- RENDER MAIN TAB VIEWS ---
   return (
     <div className="w-full flex flex-col gap-6 select-none animate-fadeIn">
 
-      {/* TOP HEADER TITLE BLOCK (Screen 1 Custom) */}
-      {activeView === 'home' && (
-        <div className="w-full flex flex-col gap-4 border-b border-[#F0EBE1] pb-5 select-none">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 bg-rose-50 border border-rose-100 rounded-2xl flex items-center justify-center text-xl shadow-sm text-rose-500">
-                🏘️
-              </div>
-              <div>
-                <h1 className="text-xl md:text-2xl font-serif text-charcoal font-normal">Mohalla Circle</h1>
-                <p className="text-[10px] md:text-xs text-stone-500 font-semibold mt-0.5">Your local animal support network</p>
-              </div>
-            </div>
-            
-            {/* Top-right Profile Shortcut Link */}
-            <button 
-              onClick={() => setActiveTab?.('profile')}
-              className="w-10 h-10 rounded-full border border-[#F0EBE1] bg-[#FCFAF7] flex items-center justify-center hover:shadow-sm active:scale-95 transition-all text-lg shrink-0"
-              title="View Profile"
-            >
-              👤
-            </button>
-          </div>
-
-          <div className="flex items-center justify-between gap-4 mt-2">
-            {/* Location Selector Dropdown */}
-            <div className="flex items-center gap-1.5 text-charcoal">
-              <span className="text-lg">📍</span>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1">
-                  <select 
-                    value={selectedLocation} 
-                    onChange={(e) => setSelectedLocation(e.target.value)}
-                    className="text-sm font-bold bg-transparent border-none outline-none cursor-pointer text-charcoal select-none pr-1 max-w-[170px] truncate"
-                  >
-                    {userAddress && !['Saheed Nagar, Sector 45', 'Sector 4, Gurugram', 'Downtown Area, Gurugram', 'Market Area, Gurugram'].includes(userAddress) && (
-                      <option value={userAddress}>{userAddress.split(',')[0]}</option>
-                    )}
-                    <option value="Saheed Nagar, Sector 45">Saheed Nagar</option>
-                    <option value="Sector 4, Gurugram">Sector 4</option>
-                    <option value="Downtown Area, Gurugram">Downtown Area</option>
-                    <option value="Market Area, Gurugram">Market Area</option>
-                  </select>
-                  <span className="text-[10px] text-stone-400">▼</span>
-                </div>
-                <span className="text-[10px] text-stone-400 font-bold leading-none -mt-0.5">
-                  {selectedLocation.includes(',') ? selectedLocation.substring(selectedLocation.indexOf(',') + 1).trim() : 'Sector 45, Gurugram'}
-                </span>
-              </div>
-            </div>
-
-            {/* Total Members count pill */}
-            <button 
-              onClick={() => {
-                setActiveView('members');
-                setMemberFilter('all');
-              }}
-              className="px-3.5 py-1.5 bg-rose-50/50 border border-rose-100 hover:bg-rose-50 text-red-600 font-bold rounded-full text-xs flex items-center gap-1.5 shadow-sm transition-all"
-            >
-              <span>👥</span> 138 Members
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* TOP HEADER FOR SUB-TABS (Screen 2, 3, 4 Back button headers) */}
-      {activeView !== 'home' && (
-        <div className="w-full flex items-center justify-between border-b border-[#F0EBE1] pb-5">
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={() => setActiveView('home')}
-              className="w-9 h-9 rounded-full border border-stone-200 flex items-center justify-center hover:bg-stone-50 active:scale-95 transition-all text-sm font-bold"
-            >
-              ←
-            </button>
-            <div>
-              <h1 className="text-lg md:text-xl font-serif text-charcoal font-semibold capitalize">
-                {activeView === 'members' ? 'Members & Network' : activeView === 'impact' ? 'Mohalla Impact' : 'Community Updates'}
-              </h1>
-              <p className="text-[9px] md:text-[10px] text-stone-500 font-bold leading-tight mt-0.5">
-                {activeView === 'members' ? 'Warden, Feeders, and Rescuers around you' : activeView === 'impact' ? 'Our community, our impact' : "What's happening in your Mohalla"}
-              </p>
-            </div>
-          </div>
-          {activeView === 'updates' ? (
-            <button className="w-9 h-9 rounded-full border border-[#F0EBE1] flex items-center justify-center relative shrink-0">
-              🔔
-              <span className="absolute top-1 right-1 w-2 h-2 bg-rose-500 rounded-full border border-white"></span>
-            </button>
-          ) : (
-            <button className="w-9 h-9 rounded-full border border-[#F0EBE1] flex items-center justify-center text-sm">
-              👥
-            </button>
-          )}
-        </div>
-      )}
-
       {/* TABS SELECTOR (Matches Header Style) */}
-      <div className="w-full border-b border-[#F5F2EC] flex select-none text-xs font-bold text-stone-400 -mt-2">
+      <div className="w-full border-b border-[#F5F2EC] flex select-none text-xs font-bold text-stone-400">
         {[
-          { id: 'home', label: 'Home', icon: '🏠' },
-          { id: 'members', label: 'Network', icon: '👥' },
-          { id: 'updates', label: 'Updates', icon: '📰' },
-          { id: 'impact', label: 'Impact', icon: '❤️' }
+          { 
+            id: 'home', 
+            label: 'Home', 
+            icon: (
+              <svg className="w-4 h-4 text-current" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+            ) 
+          },
+          { 
+            id: 'members', 
+            label: 'Network', 
+            icon: (
+              <svg className="w-4 h-4 text-current" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+            ) 
+          },
+          { 
+            id: 'updates', 
+            label: 'Updates', 
+            icon: (
+              <svg className="w-4 h-4 text-current" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="16" rx="2" />
+                <line x1="7" y1="8" x2="17" y2="8" />
+                <line x1="7" y1="12" x2="17" y2="12" />
+                <line x1="7" y1="16" x2="13" y2="16" />
+              </svg>
+            ) 
+          },
+          { 
+            id: 'impact', 
+            label: 'Impact', 
+            icon: (
+              <svg className="w-4 h-4 text-current" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+              </svg>
+            ) 
+          }
         ].map(t => (
           <button
             key={t.id}
             onClick={() => setActiveView(t.id as any)}
-            className={`flex-1 pb-3 text-center transition-all ${
+            className={`flex-1 pb-3 text-center transition-all flex items-center justify-center gap-1.5 ${
               activeView === t.id 
                 ? 'text-[#3D5A45] border-b-2 border-[#3D5A45]' 
                 : 'hover:text-charcoal border-b border-transparent'
             }`}
           >
-            <span className="mr-1">{t.icon}</span> {t.label}
+            {t.icon}
+            <span>{t.label}</span>
           </button>
         ))}
       </div>
+
+      {/* TOP HEADER TITLE BLOCK (Screen 1 Custom) */}
+      {activeView === 'home' && (
+        <div className="w-full flex items-center justify-between border-b border-[#F0EBE1] pb-5 select-none">
+          {/* Location Selector (Styled exactly like mockup) */}
+          <div className="flex items-center gap-2 select-none">
+            <div className="w-8 h-8 flex items-center justify-center shrink-0">
+              <svg className="w-7 h-7 text-[#2D4536]" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="10" r="3" />
+                <path d="M12 21.7C12 21.7 4 14 4 10a8 8 0 0 1 16 0c0 4-8 11.7-8 11.7z" />
+              </svg>
+            </div>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1.5 leading-none">
+                <span className="text-[17px] font-bold text-[#2D4536] tracking-tight">
+                  {selectedLocation.includes(',') ? selectedLocation.split(',')[0] : selectedLocation}
+                </span>
+                <svg className="w-3.5 h-3.5 text-[#2D4536] stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </div>
+              <span className="text-xs text-stone-500 font-semibold mt-1 leading-none">
+                {selectedLocation.includes(',') ? selectedLocation.substring(selectedLocation.indexOf(',') + 1).trim() : 'Sector 45, Gurugram'}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+
 
       {/* ==================== 1. HOME VIEW (Screen 1) ==================== */}
       {activeView === 'home' && (
@@ -1322,40 +1149,22 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
           
           {/* RADIUS MAP CARD */}
           <div className="bg-white border border-[#F0EBE1] rounded-[28px] p-4.5 shadow-sm flex flex-col gap-3">
-            <div className="flex justify-between items-center px-1">
-              <span className="text-xs font-extrabold text-charcoal flex items-center gap-1.5">
-                🌐 Proximity Map
-              </span>
-              <span className="text-[10px] font-extrabold text-[#3D5A45] uppercase tracking-widest bg-[#E8EFE9] px-2.5 py-0.5 rounded-full border border-[#C8E6C9]">
-                Saheed Nagar
-              </span>
-            </div>
             {/* Map Element */}
             <div id="home-map" className="h-64 w-full rounded-2xl bg-stone-50 border border-[#F0EBE1] overflow-hidden z-10" />
-            
-            {/* Color Coded Map Legend */}
-            <div className="flex flex-wrap gap-x-4 gap-y-2.5 text-[9px] font-bold text-stone-500 border-t border-[#F5F2EC] pt-3 px-1 mt-1 justify-center">
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#E65100]"></span> Feeders</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#2E7D32]"></span> Rescuers</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#0D47A1]"></span> Volunteers</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#7B1FA2]"></span> Paravets</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#004D40]"></span> Foster/Adopter</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#C85341] animate-pulse"></span> Help Needed</span>
-            </div>
           </div>
 
           {/* CHIPS FILTER SLIDER */}
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide select-none">
+          <div className="flex gap-2 overflow-x-auto pb-1.5 pt-0.5 scrollbar-hide select-none">
             {[
-              { id: 'all', label: 'All', icon: '🎛️' },
-              { id: 'feeder', label: 'Feeders', icon: '🥣' },
-              { id: 'rescuer', label: 'Rescuers', icon: '🛡️' },
-              { id: 'volunteer', label: 'Volunteers', icon: '❤️' },
-              { id: 'adopter', label: 'Adopters', icon: '🏠' },
-              { id: 'paravet', label: 'Paravets', icon: '🩺' },
-              { id: 'lost', label: 'Lost & Found', icon: '🔍' },
-              { id: 'event', label: 'Events', icon: '📅' },
-              { id: 'help', label: 'Support Requests', icon: '🚨' }
+              { id: 'all', label: 'All' },
+              { id: 'feeder', label: 'Feeders' },
+              { id: 'rescuer', label: 'Rescuers' },
+              { id: 'volunteer', label: 'Volunteers' },
+              { id: 'adopter', label: 'Adopters' },
+              { id: 'paravet', label: 'Paravets' },
+              { id: 'lost', label: 'Lost & Found' },
+              { id: 'event', label: 'Events' },
+              { id: 'help', label: 'Support Requests' }
             ].map(chip => (
               <button
                 key={chip.id}
@@ -1368,9 +1177,14 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
                     setMemberFilter(chip.id as any);
                   }
                 }}
-                className="px-4 py-2 border border-[#F0EBE1] hover:border-stone-300 bg-white text-stone-600 font-bold rounded-full text-xs flex items-center gap-1.5 transition-all shadow-sm shrink-0 active:scale-95"
+                className={`px-4 py-2 border rounded-full text-xs font-bold flex items-center gap-2 transition-all shadow-xs shrink-0 active:scale-95 ${
+                  chip.id === 'all'
+                    ? 'border-[#3D5A45] bg-[#E8EFE9]/40 text-[#2D4536]'
+                    : 'border-[#F5ECE8] bg-[#FDFBF8] text-stone-700 hover:border-stone-300'
+                }`}
               >
-                <span>{chip.icon}</span> {chip.label}
+                {renderChipIcon(chip.id)}
+                <span>{chip.label}</span>
               </button>
             ))}
           </div>
@@ -1388,52 +1202,90 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
             </div>
             
             <div className="flex flex-col gap-3">
-              {computedUpdates.slice(0, 5).map(renderPostCard)}
+              {computedUpdates.slice(0, 5).map(renderSimpleActivityCard)}
             </div>
           </div>
 
           {/* QUICK ACTIONS GRID */}
           <div className="flex flex-col gap-3">
             <h3 className="text-sm font-bold text-charcoal px-1">Quick Actions</h3>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-4 gap-3 select-none">
               <button 
                 onClick={() => setActiveTab?.('report')}
-                className="bg-[#FCECE9] border border-[#FCE2DF] hover:scale-[1.02] transition-all rounded-[24px] p-4 flex flex-col items-center justify-between text-center min-h-[110px] shadow-sm group active:scale-98"
+                className="bg-[#FFF5F5] border border-[#FFE8E8] hover:scale-[1.02] transition-all rounded-[24px] p-3.5 flex flex-col items-center justify-between text-center min-h-[135px] shadow-xs group active:scale-98"
               >
-                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-red-600 text-lg shadow-sm border border-[#FCE2DF]">⚠️</div>
-                <span className="text-[11px] font-extrabold text-[#C85341] mt-2 block">Report Issue</span>
-                <span className="text-[8px] text-[#C85341]/60 font-semibold block mt-0.5 leading-tight">Cruelty or emergency</span>
+                <div className="w-10 h-10 flex items-center justify-center shrink-0">
+                  <svg className="w-8 h-8 text-[#C85341]" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                </div>
+                <div className="flex flex-col gap-1 mt-auto">
+                  <span className="text-[11px] font-bold text-charcoal leading-tight">Report Issue</span>
+                  <span className="text-[8px] text-stone-400 font-semibold leading-tight">Cruelty or emergency</span>
+                </div>
               </button>
+
               <button 
                 onClick={() => {
                   alert('Opening Ask Neighbor Support helper...');
                 }}
-                className="bg-[#FFF3E0] border border-[#FFE0B2] hover:scale-[1.02] transition-all rounded-[24px] p-4 flex flex-col items-center justify-between text-center min-h-[110px] shadow-sm group active:scale-98"
+                className="bg-[#FFFBF2] border border-[#FDF0D5] hover:scale-[1.02] transition-all rounded-[24px] p-3.5 flex flex-col items-center justify-between text-center min-h-[135px] shadow-xs group active:scale-98"
               >
-                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-[#E65100] text-lg shadow-sm border border-[#FFE0B2]">👤</div>
-                <span className="text-[11px] font-extrabold text-[#E65100] mt-2 block">Ask Support</span>
-                <span className="text-[8px] text-[#E65100]/60 font-semibold block mt-0.5 leading-tight">Get help nearby</span>
+                <div className="w-10 h-10 flex items-center justify-center shrink-0">
+                  <svg className="w-8 h-8 text-[#B68A35]" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                </div>
+                <div className="flex flex-col gap-1 mt-auto">
+                  <span className="text-[11px] font-bold text-charcoal leading-tight">Ask Neighbor Support</span>
+                  <span className="text-[8px] text-stone-400 font-semibold leading-tight">Get help nearby</span>
+                </div>
               </button>
+
               <button 
                 onClick={() => {
                   setShowActivityModal(true);
                 }}
-                className="bg-[#E8F5E9] border border-[#C8E6C9] hover:scale-[1.02] transition-all rounded-[24px] p-4 flex flex-col items-center justify-between text-center min-h-[110px] shadow-sm group active:scale-98"
+                className="bg-[#F4F9F5] border border-[#E5F2E8] hover:scale-[1.02] transition-all rounded-[24px] p-3.5 flex flex-col items-center justify-between text-center min-h-[135px] shadow-xs group active:scale-98"
               >
-                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-[#2E7D32] text-lg shadow-sm border border-[#C8E6C9]">＋</div>
-                <span className="text-[11px] font-extrabold text-[#2E7D32] mt-2 block">Start Activity</span>
-                <span className="text-[8px] text-[#2E7D32]/60 font-semibold block mt-0.5 leading-tight">Feeding, rescue</span>
+                <div className="w-10 h-10 flex items-center justify-center shrink-0">
+                  <svg className="w-8 h-8 text-[#3D5A45]" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="16" />
+                    <line x1="8" y1="12" x2="16" y2="12" />
+                  </svg>
+                </div>
+                <div className="flex flex-col gap-1 mt-auto">
+                  <span className="text-[11px] font-bold text-charcoal leading-tight">Start Activity</span>
+                  <span className="text-[8px] text-stone-400 font-semibold leading-tight">Feeding, rescue or awareness</span>
+                </div>
               </button>
+
               <button 
                 onClick={() => {
                   setActiveView('updates');
                   setUpdateFilter('event');
                 }}
-                className="bg-[#F3E5F5] border border-[#E1BEE7] hover:scale-[1.02] transition-all rounded-[24px] p-4 flex flex-col items-center justify-between text-center min-h-[110px] shadow-sm group active:scale-98"
+                className="bg-[#FAF7FD] border border-[#F1EBFA] hover:scale-[1.02] transition-all rounded-[24px] p-3.5 flex flex-col items-center justify-between text-center min-h-[135px] shadow-xs group active:scale-98"
               >
-                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-[#7B1FA2] text-lg shadow-sm border border-[#E1BEE7]">📅</div>
-                <span className="text-[11px] font-extrabold text-[#7B1FA2] mt-2 block">Join Event</span>
-                <span className="text-[8px] text-[#7B1FA2]/60 font-semibold block mt-0.5 leading-tight">Community events</span>
+                <div className="w-10 h-10 flex items-center justify-center shrink-0">
+                  <svg className="w-8 h-8 text-[#7B1FA2]" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                    <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/>
+                  </svg>
+                </div>
+                <div className="flex flex-col gap-1 mt-auto">
+                  <span className="text-[11px] font-bold text-charcoal leading-tight">Join Event</span>
+                  <span className="text-[8px] text-stone-400 font-semibold leading-tight">Community events</span>
+                </div>
               </button>
             </div>
           </div>
@@ -1450,15 +1302,15 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
           <div className="bg-white border border-[#F0EBE1] rounded-[24px] p-4 shadow-sm flex items-center justify-between text-center divide-x divide-stone-100 select-none">
             <div className="flex-1 flex flex-col items-center">
               <span className="text-[11px] uppercase tracking-wider font-extrabold text-stone-400">Total Members</span>
-              <span className="text-xl font-bold text-charcoal mt-1">138</span>
+              <span className="text-xl font-bold text-charcoal mt-1">{computedMembers.length}</span>
             </div>
             <div className="flex-1 flex flex-col items-center">
-              <span className="text-[11px] uppercase tracking-wider font-extrabold text-stone-400">New This Month</span>
-              <span className="text-xl font-bold text-[#3D5A45] mt-1">+18</span>
+              <span className="text-[11px] uppercase tracking-wider font-extrabold text-stone-400">Rescuers</span>
+              <span className="text-xl font-bold text-[#3D5A45] mt-1">{computedMembers.filter(m => m.role === 'rescuer').length}</span>
             </div>
             <div className="flex-1 flex flex-col items-center">
-              <span className="text-[11px] uppercase tracking-wider font-extrabold text-stone-400">Active Today</span>
-              <span className="text-xl font-bold text-[#B68A35] mt-1">16</span>
+              <span className="text-[11px] uppercase tracking-wider font-extrabold text-stone-400">Active SOS</span>
+              <span className="text-xl font-bold text-[#B68A35] mt-1">{dbSosReports.filter(r => r.status === 'active').length}</span>
             </div>
           </div>
 
@@ -1517,8 +1369,12 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
                     key={m.id}
                     className="bg-white border border-[#F0EBE1] rounded-2xl p-4 flex flex-col items-center text-center w-[130px] shrink-0 hover:shadow-md transition-all duration-300 select-none cursor-pointer"
                   >
-                    <div className="w-12 h-12 rounded-full bg-stone-50 border border-stone-200 flex items-center justify-center text-2xl relative shadow-inner mb-1.5">
-                      {m.avatar}
+                    <div className="w-12 h-12 rounded-full overflow-hidden bg-stone-50 border border-stone-200 flex items-center justify-center relative shadow-inner mb-1.5 shrink-0">
+                      {m.avatar && (m.avatar.startsWith('http') || m.avatar.startsWith('/')) ? (
+                        <img src={m.avatar} alt={m.name} className="w-full h-full object-cover" />
+                      ) : (
+                        renderRoleIcon(m.role, 'w-6 h-6')
+                      )}
                       <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border border-white"></span>
                     </div>
                     <span className="text-xs font-bold text-charcoal truncate w-full">{m.name}</span>
@@ -1533,14 +1389,6 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
 
           {/* NETWORK MAP CARD */}
           <div className="bg-white border border-[#F0EBE1] rounded-[28px] p-4.5 shadow-sm flex flex-col gap-3">
-            <div className="flex justify-between items-center px-1">
-              <span className="text-xs font-bold text-charcoal flex items-center gap-1.5">
-                🌍 Member Network Map
-              </span>
-              <span className="text-[10px] font-extrabold text-stone-400 uppercase tracking-widest bg-stone-50 px-2.5 py-0.5 rounded-full border border-stone-200/60">
-                Live Proximity
-              </span>
-            </div>
             <div id="members-map" className="h-56 w-full rounded-2xl bg-stone-50 border border-[#F0EBE1] overflow-hidden z-10" />
           </div>
 
@@ -1564,43 +1412,50 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
               </button>
             </div>
 
-            <div className="grid grid-cols-5 gap-2 text-center mt-1 select-none">
+            <div className="grid grid-cols-3 gap-4 text-center mt-1 select-none">
               <div className="flex flex-col items-center">
-                <span className="text-2xl mb-1 flex items-center justify-center w-8 h-8 rounded-full bg-rose-50 border border-rose-100">🐾</span>
-                <span className="text-sm font-bold text-charcoal mt-1.5">{impactMetrics.animalsHelped}</span>
-                <span className="text-[9px] text-stone-500 font-bold block mt-1">Helped</span>
-                <span className="text-[7.5px] text-stone-400 font-semibold block leading-tight mt-0.5">rescued & fed</span>
+                <span className="mb-1 flex items-center justify-center w-8 h-8 rounded-full bg-rose-50 border border-rose-100 text-stone-600">
+                  <svg className="w-4 h-4 text-current" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                </span>
+                <span className="text-sm font-bold text-charcoal mt-1.5">{computedMembers.length}</span>
+                <span className="text-[9px] text-stone-500 font-bold block mt-1">Members</span>
+                <span className="text-[7.5px] text-stone-400 font-semibold block leading-tight mt-0.5">registered</span>
               </div>
               <div className="flex flex-col items-center">
-                <span className="text-2xl mb-1 flex items-center justify-center w-8 h-8 rounded-full bg-[#E8F5E9] border border-[#C8E6C9]">❤️</span>
-                <span className="text-sm font-bold text-[#2E7D32] mt-1.5">{impactMetrics.rescues}</span>
-                <span className="text-[9px] text-stone-500 font-bold block mt-1">Rescues</span>
-                <span className="text-[7.5px] text-stone-400 font-semibold block leading-tight mt-0.5">successful</span>
+                <span className="mb-1 flex items-center justify-center w-8 h-8 rounded-full bg-[#FCECE9] border border-[#FCE2DF] text-[#C85341]">
+                  <svg className="w-4 h-4 text-current" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                </span>
+                <span className="text-sm font-bold text-[#C85341] mt-1.5">{dbSosReports.filter(r => r.status === 'active').length}</span>
+                <span className="text-[9px] text-stone-500 font-bold block mt-1">Emergencies</span>
+                <span className="text-[7.5px] text-stone-400 font-semibold block leading-tight mt-0.5">active SOS</span>
               </div>
               <div className="flex flex-col items-center">
-                <span className="text-2xl mb-1 flex items-center justify-center w-8 h-8 rounded-full bg-[#FFF3E0] border border-[#FFE0B2]">🥣</span>
-                <span className="text-sm font-bold text-charcoal mt-1.5">{impactMetrics.animalsFed}</span>
-                <span className="text-[9px] text-stone-500 font-bold block mt-1">Fed</span>
-                <span className="text-[7.5px] text-stone-400 font-semibold block leading-tight mt-0.5">daily count</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <span className="text-2xl mb-1 flex items-center justify-center w-8 h-8 rounded-full bg-[#E0F2F1] border border-[#B2DFDB]">🏠</span>
-                <span className="text-sm font-bold text-[#004D40] mt-1.5">{impactMetrics.adoptions}</span>
-                <span className="text-[9px] text-stone-500 font-bold block mt-1">Adoptions</span>
-                <span className="text-[7.5px] text-stone-400 font-semibold block leading-tight mt-0.5">new homes</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <span className="text-2xl mb-1 flex items-center justify-center w-8 h-8 rounded-full bg-[#F3E5F5] border border-[#E1BEE7]">🤝</span>
-                <span className="text-sm font-bold text-charcoal mt-1.5">₹{impactMetrics.donations.toLocaleString()}</span>
-                <span className="text-[9px] text-stone-500 font-bold block mt-1">Donations</span>
-                <span className="text-[7.5px] text-stone-400 font-semibold block leading-tight mt-0.5">raised</span>
+                <span className="mb-1 flex items-center justify-center w-8 h-8 rounded-full bg-[#FFF3E0] border border-[#FFE0B2] text-[#E65100]">
+                  <svg className="w-4 h-4 text-current" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="4"/><path d="M16 8v0a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2M12 5v14M5 12h14"/>
+                  </svg>
+                </span>
+                <span className="text-sm font-bold text-[#E65100] mt-1.5">{dbSosReports.filter(r => r.status === 'dispatched').length}</span>
+                <span className="text-[9px] text-stone-500 font-bold block mt-1">Ongoing Care</span>
+                <span className="text-[7.5px] text-stone-400 font-semibold block leading-tight mt-0.5">dispatched alerts</span>
               </div>
             </div>
 
             {/* Motivational message banner */}
             <div className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-xl p-3 flex justify-between items-center text-xs mt-2">
               <div className="flex items-center gap-2">
-                <span>🏆</span>
+                <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                  <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34M12 2a5 5 0 0 0-5 5v3c0 2.76 2.24 5 5 5s5-2.24 5-5V7a5 5 0 0 0-5-5z" />
+                </svg>
                 <div>
                   <span className="font-bold text-charcoal block text-[10px] leading-tight">You're making a difference!</span>
                   <span className="text-stone-500 text-[10px] font-semibold leading-normal">Keep going, you're helping build a kinder Mohalla.</span>
@@ -1608,9 +1463,12 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
               </div>
               <button 
                 onClick={() => alert('Sharing impact dashboard to social media...')}
-                className="text-[10px] font-extrabold text-[#3D5A45] hover:text-[#2A3E31] flex items-center gap-0.5 bg-white border border-[#EBE3D5] px-2.5 py-1.5 rounded-lg active:scale-95 transition-all shadow-sm"
+                className="text-[10px] font-extrabold text-[#3D5A45] hover:text-[#2A3E31] flex items-center gap-1 bg-white border border-[#EBE3D5] px-2.5 py-1.5 rounded-lg active:scale-95 transition-all shadow-sm"
               >
-                <span>📤</span> Share
+                <svg className="w-3.5 h-3.5 text-current" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13" />
+                </svg>
+                Share
               </button>
             </div>
           </div>
@@ -1631,79 +1489,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
             </div>
           </div>
 
-          {/* CIRCLE LEADERS SECTION */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between px-1">
-              <h3 className="text-sm font-bold text-charcoal">Our Circle Leaders</h3>
-              <button 
-                onClick={() => alert('Viewing all leaders...')}
-                className="text-xs font-bold text-[#B68A35] hover:underline"
-              >
-                View all leaders <span>›</span>
-              </button>
-            </div>
-            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-              {circleLeaders.map(leader => (
-                <div 
-                  key={leader.id} 
-                  className="bg-white border border-[#F0EBE1] rounded-2xl p-4 flex gap-3.5 items-center hover:shadow-md transition-all duration-300 shrink-0 w-[200px] select-none"
-                >
-                  <div className="w-12 h-12 rounded-full overflow-hidden bg-[#FAF6F0] border border-[#EBE3D5] flex items-center justify-center shadow-inner relative shrink-0">
-                    {renderRoleIcon(leader.id === '1' ? 'volunteer' : leader.id === '2' ? 'rescuer' : 'feeder', 'w-6 h-6')}
-                    <span className="absolute bottom-0 right-0 text-[10px] bg-yellow-400 rounded-full w-4.5 h-4.5 flex items-center justify-center border border-white">⭐</span>
-                  </div>
-                  <div className="min-w-0 flex flex-col">
-                    <span className="text-xs font-bold text-charcoal truncate">{leader.name}</span>
-                    <span className="text-[9px] text-[#B68A35] font-extrabold uppercase mt-0.5 leading-none">{leader.role}</span>
-                    <span className="text-[9px] text-stone-400 font-semibold truncate mt-1">📍 {leader.location}</span>
-                    <span className="text-[8px] font-extrabold text-[#3D5A45] uppercase tracking-wider mt-1 block bg-[#E8EFE9] w-fit px-1.5 py-0.5 rounded">
-                      {getBadgeText(leader.badge)}
-                    </span>
-                  </div>
-                </div>
-              ))}
-              <div className="bg-white border border-dashed border-[#F0EBE1] rounded-2xl p-4 flex flex-col items-center justify-center text-center w-[130px] shrink-0 hover:shadow-md transition-all select-none">
-                <span className="text-2xl">👥</span>
-                <span className="text-[10px] font-bold text-stone-400 mt-2 block">+5 Leaders</span>
-                <button className="text-[9px] text-[#B68A35] font-extrabold underline block leading-none mt-1">View all</button>
-              </div>
-            </div>
-          </div>
 
-          {/* TRUSTED PARTNERS SECTION */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between px-1">
-              <h3 className="text-sm font-bold text-charcoal">Trusted Partners</h3>
-              <button 
-                onClick={() => alert('Viewing all partners...')}
-                className="text-xs font-bold text-[#B68A35] hover:underline"
-              >
-                View all partners <span>›</span>
-              </button>
-            </div>
-            
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-              {partners.map(partner => (
-                <div 
-                  key={partner.id} 
-                  className="bg-white border border-[#F0EBE1] hover:border-[#3D5A45]/40 hover:bg-[#FCFAF7] transition-all rounded-2xl p-3.5 flex flex-col items-center text-center w-[125px] shrink-0 shadow-sm cursor-pointer select-none"
-                >
-                  {renderPartnerIcon(partner.type, 'w-8 h-8')}
-                  <span className="text-xs font-bold text-charcoal mt-2 truncate w-full">{partner.name}</span>
-                  <span className="text-[9px] text-stone-400 font-bold block mt-0.5">{partner.type}</span>
-                  <span className="text-[9px] text-[#3D5A45] font-extrabold block mt-2">📍 {partner.distance}</span>
-                </div>
-              ))}
-              <div 
-                onClick={() => alert('Become a Partner form...')}
-                className="bg-white border border-dashed border-[#F0EBE1] hover:bg-[#FCFAF7] transition-all rounded-2xl p-3.5 flex flex-col items-center justify-center text-center w-[125px] shrink-0 shadow-sm cursor-pointer select-none"
-              >
-                <span className="text-3xl text-rose-500">❤️</span>
-                <span className="text-xs font-bold text-stone-500 mt-2 block">Become a</span>
-                <span className="text-xs font-extrabold text-[#3D5A45] block leading-none mt-0.5 underline">Partner</span>
-              </div>
-            </div>
-          </div>
 
           {/* DONATE CARD PANEL */}
           <div className="bg-[#FAF6F0] border border-[#EBE3D5] rounded-[28px] p-6 shadow-sm flex flex-col gap-4">
@@ -1806,64 +1592,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
             ))}
           </div>
 
-          {/* ONGOING EVENTS SECTION (Horizontal Scroll) - MOVED TO TOP */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between px-1">
-              <h3 className="text-xs font-extrabold text-stone-400 uppercase tracking-wider">Ongoing & Upcoming Events</h3>
-              <button 
-                onClick={() => alert('Viewing all events...')}
-                className="text-xs font-bold text-[#B68A35] hover:underline"
-              >
-                View all <span>›</span>
-              </button>
-            </div>
 
-            <div className="flex gap-4 overflow-x-auto pb-2.5 scrollbar-hide">
-              {events.map(event => {
-                const isJoined = joinedEvents.includes(event.id);
-                return (
-                  <div 
-                    key={event.id}
-                    onClick={() => toggleJoinEvent(event.id, event.title)}
-                    className={`bg-white border hover:shadow-md transition-all duration-300 rounded-[24px] p-3 w-[220px] shrink-0 flex flex-col gap-2.5 cursor-pointer select-none ${
-                      isJoined ? 'border-[#3D5A45] bg-[#FCFAF7]' : 'border-[#F0EBE1] hover:border-[#3D5A45]/40'
-                    }`}
-                  >
-                    <div className="aspect-video w-full rounded-xl overflow-hidden bg-stone-100 border border-[#F0EBE1]/60 relative shrink-0">
-                      {renderEventGraphic(event.id)}
-                      <div className="absolute top-2 left-2 bg-[#C85341] text-white px-2 py-1 rounded-lg text-center shadow-md">
-                        <span className="text-[9px] font-bold block leading-none">MAY</span>
-                        <span className="text-xs font-extrabold block leading-none mt-0.5">{event.date.split(' ')[0]}</span>
-                      </div>
-                    </div>
-                    <div className="px-1 flex flex-col min-h-[70px] justify-between">
-                      <div>
-                        <span className="text-xs font-bold text-charcoal leading-snug truncate block">{event.title}</span>
-                        <span className="text-[9.5px] text-stone-500 font-bold mt-1.5 block">⏱️ {event.time}</span>
-                        <span className="text-[9.5px] text-[#3D5A45] font-extrabold mt-1 block">📍 {event.location}</span>
-                      </div>
-                      <div className="flex justify-between items-center mt-2.5 pt-2 border-t border-stone-100">
-                        <span className="text-[8px] text-stone-400 font-bold uppercase">Event</span>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleJoinEvent(event.id, event.title);
-                          }}
-                          className={`px-2.5 py-1 rounded-lg text-[8px] font-extrabold transition-all ${
-                            isJoined 
-                              ? 'bg-[#E8F5E9] text-[#2E7D32] border border-[#C8E6C9]' 
-                              : 'bg-[#3D5A45] hover:bg-[#2A3E31] text-white'
-                          }`}
-                        >
-                          {isJoined ? '✓ Going' : 'Join Event'}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
 
           {/* UPDATES FEED LIST */}
           <div className="flex flex-col gap-4">
