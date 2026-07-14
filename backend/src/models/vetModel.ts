@@ -21,6 +21,8 @@ export interface IVet extends Document {
   reviewCount: number;
   isOnline: boolean;
   availableSlots: ISlot[];
+  email?: string;
+  phone?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -45,7 +47,9 @@ const VetSchema = new Schema(
     rating: { type: Number, default: 4.5 },
     reviewCount: { type: Number, default: 10 },
     isOnline: { type: Boolean, default: false },
-    availableSlots: { type: [SlotSchema], default: [] }
+    availableSlots: { type: [SlotSchema], default: [] },
+    email: { type: String, default: '' },
+    phone: { type: String, default: '' }
   },
   {
     timestamps: true

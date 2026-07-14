@@ -1414,6 +1414,24 @@ app.post('/api/appointments', authMiddleware, async (req: Request, res: Response
       html: emailHtml
     });
 
+    // Also send copy notification to doctor/expert if they have email configured
+    let docEmail = '';
+    if (mongoose.connection.readyState !== 1) {
+      const vet = fallbackVets.find((v: any) => v._id === vetId);
+      docEmail = vet?.email || '';
+    } else {
+      const vet = await Vet.findById(vetId);
+      docEmail = vet?.email || '';
+    }
+
+    if (docEmail) {
+      await sendEmail({
+        to: docEmail,
+        subject: `New Booking Notification: Client appointment for ${appointmentData.petName} on ${appointmentData.date}`,
+        html: emailHtml
+      });
+    }
+
     return res.json({ status: 'success', appointment: appointmentData });
   } catch (error) {
     console.error('Error in POST /api/appointments:', error);
@@ -1501,6 +1519,14 @@ app.put('/api/appointments/:id/reschedule', authMiddleware, async (req: Request,
         html: emailHtml
       });
 
+      if (newVet && newVet.email) {
+        await sendEmail({
+          to: newVet.email,
+          subject: `Booking Rescheduled Notification: ${appt.petName} on ${appt.date}`,
+          html: emailHtml
+        });
+      }
+
       return res.json({ status: 'success', appointment: appt });
     }
 
@@ -1547,6 +1573,14 @@ app.put('/api/appointments/:id/reschedule', authMiddleware, async (req: Request,
       html: emailHtml
     });
 
+    if (newVet && newVet.email) {
+      await sendEmail({
+        to: newVet.email,
+        subject: `Booking Rescheduled Notification: ${appt.petName} on ${appt.date}`,
+        html: emailHtml
+      });
+    }
+
     return res.json({ status: 'success', appointment: appt });
   } catch (error) {
     console.error('Error in PUT /api/appointments/:id/reschedule:', error);
@@ -1592,6 +1626,14 @@ app.put('/api/appointments/:id/cancel', authMiddleware, async (req: Request, res
         html: emailHtml
       });
 
+      if (vet && vet.email) {
+        await sendEmail({
+          to: vet.email,
+          subject: `Booking Cancelled Notification: Client appointment for ${appt.petName}`,
+          html: emailHtml
+        });
+      }
+
       return res.json({ status: 'success', appointment: appt });
     }
 
@@ -1619,6 +1661,14 @@ app.put('/api/appointments/:id/cancel', authMiddleware, async (req: Request, res
       subject: `Aumoha Booking Cancelled: ${appt.vetName}`,
       html: emailHtml
     });
+
+    if (vet && vet.email) {
+      await sendEmail({
+        to: vet.email,
+        subject: `Booking Cancelled Notification: Client appointment for ${appt.petName}`,
+        html: emailHtml
+      });
+    }
 
     return res.json({ status: 'success', appointment: appt });
   } catch (error) {
@@ -1673,7 +1723,7 @@ app.put('/api/appointments/:id/notes', authMiddleware, async (req: Request, res:
  */
 app.post('/api/vets', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
-    const { name, photo, specialisation, category, specialtyTags, experience, fee, bio, isOnline, availableSlots } = req.body;
+    const { name, photo, specialisation, category, specialtyTags, experience, fee, bio, isOnline, availableSlots, email, phone } = req.body;
     if (!name || !specialisation || !experience || !fee) {
       return res.status(400).json({ status: 'error', message: 'Missing required parameters' });
     }
@@ -1697,7 +1747,9 @@ app.post('/api/vets', authMiddleware, adminMiddleware, async (req: Request, res:
           date: s.date || 'Today',
           time: s.time || '10:00 AM',
           isBooked: false
-        }))
+        })),
+        email: email || '',
+        phone: phone || ''
       };
       fallbackVets.push(newVet);
       return res.json({ status: 'success', vet: newVet });
@@ -1717,7 +1769,9 @@ app.post('/api/vets', authMiddleware, adminMiddleware, async (req: Request, res:
         date: s.date || 'Today',
         time: s.time || '10:00 AM',
         isBooked: false
-      }))
+      })),
+      email: email || '',
+      phone: phone || ''
     });
 
     return res.json({ status: 'success', vet: newVet });
@@ -1734,7 +1788,7 @@ app.post('/api/vets', authMiddleware, adminMiddleware, async (req: Request, res:
 app.put('/api/vets/:id', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, photo, specialisation, category, specialtyTags, experience, fee, bio, isOnline, availableSlots } = req.body;
+    const { name, photo, specialisation, category, specialtyTags, experience, fee, bio, isOnline, availableSlots, email, phone } = req.body;
 
     if (mongoose.connection.readyState !== 1) {
       const vet = fallbackVets.find(v => v._id === id);
@@ -1750,6 +1804,8 @@ app.put('/api/vets/:id', authMiddleware, adminMiddleware, async (req: Request, r
       if (fee) vet.fee = Number(fee);
       if (bio) vet.bio = bio;
       if (isOnline !== undefined) vet.isOnline = !!isOnline;
+      if (email !== undefined) (vet as any).email = email;
+      if (phone !== undefined) (vet as any).phone = phone;
       if (availableSlots) {
         vet.availableSlots = availableSlots.map((s: any, idx: number) => ({
           _id: s._id || `slot_${Date.now()}_${idx}`,
@@ -1775,6 +1831,8 @@ app.put('/api/vets/:id', authMiddleware, adminMiddleware, async (req: Request, r
     if (fee) vet.fee = Number(fee);
     if (bio) vet.bio = bio;
     if (isOnline !== undefined) vet.isOnline = !!isOnline;
+    if (email !== undefined) vet.email = email;
+    if (phone !== undefined) vet.phone = phone;
     if (availableSlots) {
       vet.availableSlots = availableSlots;
     }

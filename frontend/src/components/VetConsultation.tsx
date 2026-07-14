@@ -25,6 +25,8 @@ interface Vet {
   reviewCount: number;
   isOnline: boolean;
   availableSlots: Slot[];
+  email?: string;
+  phone?: string;
 }
 
 interface Appointment {
@@ -97,6 +99,9 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
   // Admin Vet Form State
   const [vetFormName, setVetFormName] = useState('');
   const [vetFormSpecialty, setVetFormSpecialty] = useState('General Practice');
+  const [vetFormCategory, setVetFormCategory] = useState('vet');
+  const [vetFormEmail, setVetFormEmail] = useState('');
+  const [vetFormPhone, setVetFormPhone] = useState('');
   const [vetFormExp, setVetFormExp] = useState('');
   const [vetFormFee, setVetFormFee] = useState('');
   const [vetFormBio, setVetFormBio] = useState('');
@@ -460,6 +465,9 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
     const body = {
       name: vetFormName,
       specialisation: vetFormSpecialty,
+      category: vetFormCategory,
+      email: vetFormEmail,
+      phone: vetFormPhone,
       experience: Number(vetFormExp),
       fee: Number(vetFormFee),
       bio: vetFormBio,
@@ -518,6 +526,9 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
   const resetVetForm = () => {
     setVetFormName('');
     setVetFormSpecialty('General Practice');
+    setVetFormCategory('vet');
+    setVetFormEmail('');
+    setVetFormPhone('');
     setVetFormExp('');
     setVetFormFee('');
     setVetFormBio('');
@@ -533,6 +544,9 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
     setIsEditingVet(vet);
     setVetFormName(vet.name);
     setVetFormSpecialty(vet.specialisation);
+    setVetFormCategory(vet.category || 'vet');
+    setVetFormEmail(vet.email || '');
+    setVetFormPhone(vet.phone || '');
     setVetFormExp(vet.experience.toString());
     setVetFormFee(vet.fee.toString());
     setVetFormBio(vet.bio || '');
@@ -1559,17 +1573,62 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
 
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="text-[9px] font-extrabold text-stone-400 uppercase tracking-wider block mb-1">Specialisation</label>
+                          <label className="text-[9px] font-extrabold text-stone-400 uppercase tracking-wider block mb-1">Category / Role</label>
                           <select
+                            value={vetFormCategory}
+                            onChange={(e) => setVetFormCategory(e.target.value)}
+                            className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none"
+                          >
+                            <option value="vet">Veterinarian</option>
+                            <option value="Nutritionist">Nutritionist</option>
+                            <option value="Animal Behaviourist">Animal Behaviourist</option>
+                            <option value="Trainer">Trainer</option>
+                            <option value="Behaviourist">Behaviourist</option>
+                            <option value="Physiotherapist">Physiotherapist</option>
+                            <option value="Wellness & Palliative">Wellness & Palliative</option>
+                            <option value="Homeopathy Vet">Homeopathy Vet</option>
+                            <option value="Rehab Specialist">Rehab Specialist</option>
+                            <option value="At-Home Support">At-Home Support</option>
+                            <option value="Communicator/Psychotherapist/Reiki Healing">Reiki Healing / Communicator</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-[9px] font-extrabold text-stone-400 uppercase tracking-wider block mb-1">Specialisation / Title</label>
+                          <input 
+                            type="text"
+                            required
+                            placeholder="e.g. General Practice, Canine Behavior"
                             value={vetFormSpecialty}
                             onChange={(e) => setVetFormSpecialty(e.target.value)}
                             className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none"
-                          >
-                            {specialisations.map(s => (
-                              <option key={s.id} value={s.id}>{s.name}</option>
-                            ))}
-                          </select>
+                          />
                         </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[9px] font-extrabold text-stone-400 uppercase tracking-wider block mb-1">Email Address</label>
+                          <input 
+                            type="email"
+                            placeholder="doctor@aumoha.com"
+                            value={vetFormEmail}
+                            onChange={(e) => setVetFormEmail(e.target.value)}
+                            className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[9px] font-extrabold text-stone-400 uppercase tracking-wider block mb-1">Phone Number</label>
+                          <input 
+                            type="tel"
+                            placeholder="+91 98765 43210"
+                            value={vetFormPhone}
+                            onChange={(e) => setVetFormPhone(e.target.value)}
+                            className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
                         <div>
                           <label className="text-[9px] font-extrabold text-stone-400 uppercase tracking-wider block mb-1">Experience (Years)</label>
                           <input 
@@ -1581,9 +1640,6 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                             className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none"
                           />
                         </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
                         <div>
                           <label className="text-[9px] font-extrabold text-stone-400 uppercase tracking-wider block mb-1">Consultation Fee (₹)</label>
                           <input 
@@ -1595,16 +1651,17 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                             className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none"
                           />
                         </div>
-                        <div className="flex items-center gap-2 mt-4.5">
-                          <input 
-                            type="checkbox"
-                            id="vetFormOnline"
-                            checked={vetFormOnline}
-                            onChange={(e) => setVetFormOnline(e.target.checked)}
-                            className="w-4 h-4 rounded border-stone-300 text-[#3D5A45] focus:ring-[#3D5A45]"
-                          />
-                          <label htmlFor="vetFormOnline" className="text-[10px] font-bold text-stone-600 cursor-pointer">Online / Tele-consult</label>
-                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="checkbox"
+                          id="vetFormOnline"
+                          checked={vetFormOnline}
+                          onChange={(e) => setVetFormOnline(e.target.checked)}
+                          className="w-4 h-4 rounded border-stone-300 text-[#3D5A45] focus:ring-[#3D5A45]"
+                        />
+                        <label htmlFor="vetFormOnline" className="text-[10px] font-bold text-stone-600 cursor-pointer">Online / Tele-consult Availability</label>
                       </div>
 
                       <div>

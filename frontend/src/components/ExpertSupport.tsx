@@ -26,6 +26,8 @@ interface Expert {
   reviewCount: number;
   isOnline: boolean;
   availableSlots: Slot[];
+  email?: string;
+  phone?: string;
 }
 
 interface Appointment {
@@ -289,6 +291,8 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
   const [expertFormName, setExpertFormName] = useState('');
   const [expertFormSpecialty, setExpertFormSpecialty] = useState('');
   const [expertFormCategory, setExpertFormCategory] = useState('Nutritionist');
+  const [expertFormEmail, setExpertFormEmail] = useState('');
+  const [expertFormPhone, setExpertFormPhone] = useState('');
   const [expertFormExp, setExpertFormExp] = useState('');
   const [expertFormFee, setExpertFormFee] = useState('');
   const [expertFormBio, setExpertFormBio] = useState('');
@@ -497,7 +501,9 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
       fee: Number(expertFormFee),
       bio: expertFormBio,
       isOnline: expertFormOnline,
-      availableSlots: expertFormSlots
+      availableSlots: expertFormSlots,
+      email: expertFormEmail,
+      phone: expertFormPhone
     };
 
     try {
@@ -536,6 +542,8 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
     setExpertFormName(exp.name);
     setExpertFormSpecialty(exp.specialisation);
     setExpertFormCategory(exp.category);
+    setExpertFormEmail(exp.email || '');
+    setExpertFormPhone(exp.phone || '');
     setExpertFormExp(String(exp.experience));
     setExpertFormFee(String(exp.fee));
     setExpertFormBio(exp.bio || '');
@@ -570,6 +578,8 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
     setExpertFormName('');
     setExpertFormSpecialty('');
     setExpertFormCategory('Nutritionist');
+    setExpertFormEmail('');
+    setExpertFormPhone('');
     setExpertFormExp('');
     setExpertFormFee('');
     setExpertFormBio('');
@@ -1715,6 +1725,29 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                             placeholder="e.g. Certified Physiotherapist"
                             value={expertFormSpecialty}
                             onChange={(e) => setExpertFormSpecialty(e.target.value)}
+                            className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[9px] font-extrabold text-stone-400 uppercase tracking-wider block mb-1">Email Address</label>
+                          <input 
+                            type="email"
+                            placeholder="expert@aumoha.com"
+                            value={expertFormEmail}
+                            onChange={(e) => setExpertFormEmail(e.target.value)}
+                            className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[9px] font-extrabold text-stone-400 uppercase tracking-wider block mb-1">Phone Number</label>
+                          <input 
+                            type="tel"
+                            placeholder="+91 98765 43210"
+                            value={expertFormPhone}
+                            onChange={(e) => setExpertFormPhone(e.target.value)}
                             className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none"
                           />
                         </div>
