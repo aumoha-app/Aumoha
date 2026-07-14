@@ -1673,7 +1673,7 @@ app.put('/api/appointments/:id/notes', authMiddleware, async (req: Request, res:
  */
 app.post('/api/vets', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
-    const { name, photo, specialisation, experience, fee, bio, isOnline, availableSlots } = req.body;
+    const { name, photo, specialisation, category, specialtyTags, experience, fee, bio, isOnline, availableSlots } = req.body;
     if (!name || !specialisation || !experience || !fee) {
       return res.status(400).json({ status: 'error', message: 'Missing required parameters' });
     }
@@ -1684,6 +1684,8 @@ app.post('/api/vets', authMiddleware, adminMiddleware, async (req: Request, res:
         name,
         photo: photo || '/sairaj_avatar.png',
         specialisation,
+        category: category || 'vet',
+        specialtyTags: specialtyTags || [],
         experience: Number(experience),
         fee: Number(fee),
         bio: bio || '',
@@ -1705,6 +1707,8 @@ app.post('/api/vets', authMiddleware, adminMiddleware, async (req: Request, res:
       name,
       photo: photo || '/sairaj_avatar.png',
       specialisation,
+      category: category || 'vet',
+      specialtyTags: specialtyTags || [],
       experience: Number(experience),
       fee: Number(fee),
       bio: bio || '',
@@ -1730,7 +1734,7 @@ app.post('/api/vets', authMiddleware, adminMiddleware, async (req: Request, res:
 app.put('/api/vets/:id', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, photo, specialisation, experience, fee, bio, isOnline, availableSlots } = req.body;
+    const { name, photo, specialisation, category, specialtyTags, experience, fee, bio, isOnline, availableSlots } = req.body;
 
     if (mongoose.connection.readyState !== 1) {
       const vet = fallbackVets.find(v => v._id === id);
@@ -1740,6 +1744,8 @@ app.put('/api/vets/:id', authMiddleware, adminMiddleware, async (req: Request, r
       if (name) vet.name = name;
       if (photo) vet.photo = photo;
       if (specialisation) vet.specialisation = specialisation;
+      if (category !== undefined) (vet as any).category = category;
+      if (specialtyTags !== undefined) (vet as any).specialtyTags = specialtyTags;
       if (experience) vet.experience = Number(experience);
       if (fee) vet.fee = Number(fee);
       if (bio) vet.bio = bio;
@@ -1763,6 +1769,8 @@ app.put('/api/vets/:id', authMiddleware, adminMiddleware, async (req: Request, r
     if (name) vet.name = name;
     if (photo) vet.photo = photo;
     if (specialisation) vet.specialisation = specialisation;
+    if (category !== undefined) vet.category = category;
+    if (specialtyTags !== undefined) vet.specialtyTags = specialtyTags;
     if (experience) vet.experience = Number(experience);
     if (fee) vet.fee = Number(fee);
     if (bio) vet.bio = bio;

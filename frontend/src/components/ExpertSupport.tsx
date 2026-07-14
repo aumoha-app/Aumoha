@@ -52,27 +52,29 @@ interface ExpertSupportProps {
   setActiveTab: (tab: any) => void;
 }
 
-// Category Configuration
+// Category Configuration with emojis and custom displays matching the mockup visual structure
 const CATEGORY_CONFIGS: Record<string, {
   title: string;
+  displayTitle: string;
   subtitle: string;
   subFilters: string[];
   color: string;
   desc: string;
   filterGroup: 'Wellness' | 'Behaviour' | 'Therapy' | 'Holistic';
   bgGradient: string;
+  emoji: string;
   icon: React.ReactNode;
-  cardPhoto: string;
 }> = {
   'Nutritionist': {
-    title: 'Nutritionist',
+    title: 'Nutritionists',
+    displayTitle: 'Nutritionist',
     subtitle: 'Custom diet formulation & healthy meal planning',
     subFilters: ['Puppy Diet', 'Weight Management', 'Raw Feeding', 'Available Today'],
     color: 'text-emerald-700 bg-emerald-50 border-emerald-100',
-    bgGradient: 'from-emerald-500/10 to-emerald-600/5',
+    bgGradient: 'bg-gradient-to-tr from-emerald-500/20 to-teal-500/10',
     desc: 'Balanced diet plans for better health.',
     filterGroup: 'Wellness',
-    cardPhoto: 'https://res.cloudinary.com/vlcokfmq/image/upload/v1784019787/aumoha_expert_support/ywzf883iewtc7rnnsfyv.jpg',
+    emoji: '🐶',
     icon: (
       <svg className="w-5 h-5 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 2L2 7l10 5 10-5-10-5z" />
@@ -81,14 +83,15 @@ const CATEGORY_CONFIGS: Record<string, {
     )
   },
   'Animal Behaviourist': {
-    title: 'Animal Behaviourist',
+    title: 'Animal Behaviourists',
+    displayTitle: 'Animal Behaviourist',
     subtitle: 'Canine & feline behavior rehabilitation',
     subFilters: ['Aggression', 'Separation Anxiety', 'Phobias', 'Available Today'],
     color: 'text-blue-700 bg-blue-50 border-blue-100',
-    bgGradient: 'from-blue-500/10 to-blue-600/5',
+    bgGradient: 'bg-gradient-to-tr from-blue-500/20 to-cyan-500/10',
     desc: 'Understand behaviour & build better bonds.',
     filterGroup: 'Behaviour',
-    cardPhoto: 'https://res.cloudinary.com/vlcokfmq/image/upload/v1784019788/aumoha_expert_support/rbczdeb61xcztdwmpki2.jpg',
+    emoji: '🐕',
     icon: (
       <svg className="w-5 h-5 text-blue-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -98,14 +101,15 @@ const CATEGORY_CONFIGS: Record<string, {
     )
   },
   'Trainer': {
-    title: 'Trainer',
+    title: 'Professional Trainers',
+    displayTitle: 'Trainer',
     subtitle: 'Obedience foundation & trick training',
     subFilters: ['Puppy Training', 'Basic Obedience', 'Leash Pulling', 'Available Today'],
     color: 'text-amber-700 bg-amber-50 border-amber-100',
-    bgGradient: 'from-amber-500/10 to-amber-600/5',
+    bgGradient: 'bg-gradient-to-tr from-amber-500/20 to-orange-500/10',
     desc: 'Positive training for obedience & skills.',
     filterGroup: 'Behaviour',
-    cardPhoto: 'https://res.cloudinary.com/vlcokfmq/image/upload/v1784019790/aumoha_expert_support/wdocdb3tnafvgaxtte6x.jpg',
+    emoji: '🦮',
     icon: (
       <svg className="w-5 h-5 text-amber-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -114,14 +118,15 @@ const CATEGORY_CONFIGS: Record<string, {
     )
   },
   'Behaviourist': {
-    title: 'Behaviourist',
+    title: 'Behaviour Specialists',
+    displayTitle: 'Behaviourist',
     subtitle: 'Desensitization and confidence building',
     subFilters: ['Fear Desensitization', 'Socialization', 'Hyperactivity', 'Available Today'],
     color: 'text-indigo-700 bg-indigo-50 border-indigo-100',
-    bgGradient: 'from-indigo-500/10 to-indigo-600/5',
+    bgGradient: 'bg-gradient-to-tr from-indigo-500/20 to-purple-500/10',
     desc: 'Address behavioural challenges.',
     filterGroup: 'Behaviour',
-    cardPhoto: 'https://res.cloudinary.com/vlcokfmq/image/upload/v1784019792/aumoha_expert_support/mcs2brh0gm4ykaypvov0.jpg',
+    emoji: 'poodle', // Fallback styled in code
     icon: (
       <svg className="w-5 h-5 text-indigo-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -129,14 +134,15 @@ const CATEGORY_CONFIGS: Record<string, {
     )
   },
   'Physiotherapist': {
-    title: 'Physiotherapist',
+    title: 'Physiotherapists',
+    displayTitle: 'Physiotherapist',
     subtitle: 'Muscle recovery, senior comfort & massage',
     subFilters: ['Mobility', 'Injury Recovery', 'Senior Care', 'Post-Surgery'],
     color: 'text-orange-700 bg-orange-50 border-orange-100',
-    bgGradient: 'from-orange-500/10 to-orange-600/5',
+    bgGradient: 'bg-gradient-to-tr from-orange-500/20 to-yellow-500/10',
     desc: 'Pain relief, mobility & recovery care.',
     filterGroup: 'Therapy',
-    cardPhoto: 'https://res.cloudinary.com/vlcokfmq/image/upload/v1784019793/aumoha_expert_support/ahskzh7rlx4pzlgoqu8m.jpg',
+    emoji: '🐕',
     icon: (
       <svg className="w-5 h-5 text-orange-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -145,14 +151,15 @@ const CATEGORY_CONFIGS: Record<string, {
     )
   },
   'Wellness & Palliative': {
-    title: 'Wellness & Palliative',
+    title: 'Wellness & Palliative Care',
+    displayTitle: 'Wellness & Palliative',
     subtitle: 'Senior care guidance & comfort therapy',
     subFilters: ['Hospice Setup', 'Pain Relief', 'Senior Wellness', 'Available Today'],
     color: 'text-rose-700 bg-rose-50 border-rose-100',
-    bgGradient: 'from-rose-500/10 to-rose-600/5',
+    bgGradient: 'bg-gradient-to-tr from-rose-500/20 to-pink-500/10',
     desc: 'Comfort, quality & holistic support.',
     filterGroup: 'Wellness',
-    cardPhoto: 'https://res.cloudinary.com/vlcokfmq/image/upload/v1784019794/aumoha_expert_support/bv6mi2vtluyg7gwptprh.jpg',
+    emoji: '🐈',
     icon: (
       <svg className="w-5 h-5 text-rose-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10" />
@@ -162,14 +169,15 @@ const CATEGORY_CONFIGS: Record<string, {
     )
   },
   'Homeopathy Vet': {
-    title: 'Homeopathy Vet',
+    title: 'Homeopathic Consultants',
+    displayTitle: 'Homeopathy Vet',
     subtitle: 'Natural remedies and organic treatments',
     subFilters: ['Chronic Issues', 'Herbal Treatment', 'Holistic Wellness'],
     color: 'text-lime-700 bg-lime-50 border-lime-100',
-    bgGradient: 'from-lime-500/10 to-lime-600/5',
+    bgGradient: 'bg-gradient-to-tr from-lime-500/20 to-emerald-500/10',
     desc: 'Natural healing with gentle care.',
     filterGroup: 'Holistic',
-    cardPhoto: 'https://res.cloudinary.com/vlcokfmq/image/upload/v1784019903/aumoha_expert_support/b0ri3ijespu3gksqvwbw.jpg',
+    emoji: '🌱',
     icon: (
       <svg className="w-5 h-5 text-lime-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
@@ -177,14 +185,15 @@ const CATEGORY_CONFIGS: Record<string, {
     )
   },
   'Rehab Specialist': {
-    title: 'Rehab Specialist',
+    title: 'Rehabilitation Specialists',
+    displayTitle: 'Rehab Specialist',
     subtitle: 'Post-injury therapeutic recoveries',
     subFilters: ['Joint Therapy', 'Laser Therapy', 'Post-Surgery Recovery'],
     color: 'text-cyan-700 bg-cyan-50 border-cyan-100',
-    bgGradient: 'from-cyan-500/10 to-cyan-600/5',
+    bgGradient: 'bg-gradient-to-tr from-cyan-500/20 to-blue-500/10',
     desc: 'Rehabilitation for injuries & surgeries.',
     filterGroup: 'Therapy',
-    cardPhoto: 'https://res.cloudinary.com/vlcokfmq/image/upload/v1784019904/aumoha_expert_support/lkoqkkm0xa55bswrlfvw.jpg',
+    emoji: '🐾',
     icon: (
       <svg className="w-5 h-5 text-cyan-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
@@ -194,14 +203,15 @@ const CATEGORY_CONFIGS: Record<string, {
     )
   },
   'At-Home Support': {
-    title: 'At-Home Support',
+    title: 'At-Home Support assistants',
+    displayTitle: 'At-Home Support',
     subtitle: 'Nursing care, medication assistance & grooming support',
     subFilters: ['Medication Assist', 'Basic Nursing', 'Elderly Care', 'Available Today'],
     color: 'text-purple-700 bg-purple-50 border-purple-100',
-    bgGradient: 'from-purple-500/10 to-purple-600/5',
+    bgGradient: 'bg-gradient-to-tr from-purple-500/20 to-indigo-500/10',
     desc: 'Expert care in the comfort of home.',
     filterGroup: 'Wellness',
-    cardPhoto: 'https://res.cloudinary.com/vlcokfmq/image/upload/v1784019905/aumoha_expert_support/vcwda726nraodgj3txop.jpg',
+    emoji: '🐈',
     icon: (
       <svg className="w-5 h-5 text-purple-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
@@ -210,14 +220,15 @@ const CATEGORY_CONFIGS: Record<string, {
     )
   },
   'Communicator/Psychotherapist/Reiki Healing': {
-    title: 'Communicator / Psychotherapist / Reiki Healing',
+    title: 'Communicators & Reiki Healers',
+    displayTitle: 'Communicator / Psychotherapist / Reiki Healing',
     subtitle: 'Telepathic consultations & spiritual distance healing',
     subFilters: ['Reiki Healing', 'Grief Counseling', 'Energy Balance', 'Available Today'],
     color: 'text-fuchsia-700 bg-fuchsia-50 border-fuchsia-100',
-    bgGradient: 'from-fuchsia-500/10 to-fuchsia-600/5',
+    bgGradient: 'bg-gradient-to-tr from-fuchsia-500/20 to-pink-500/10',
     desc: 'Telepathic bonds & spiritual energy healing.',
     filterGroup: 'Holistic',
-    cardPhoto: 'https://res.cloudinary.com/vlcokfmq/image/upload/v1784019907/aumoha_expert_support/jzy0mfkjnyfjd4bkjj0v.jpg',
+    emoji: '🔮',
     icon: (
       <svg className="w-5 h-5 text-fuchsia-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
@@ -231,7 +242,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
   const { token, user } = useAuth();
 
   // Navigation states
-  const [currentView, setCurrentView] = useState<'home' | 'listing' | 'wizard' | 'confirmed'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'listing' | 'wizard' | 'confirmed' | 'admin'>('home');
   const [selectedCategoryKey, setSelectedCategoryKey] = useState<string>('Nutritionist');
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -243,7 +254,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
   const [listingSubFilter, setListingSubFilter] = useState<string | null>(null);
   const [isLoadingExperts, setIsLoadingExperts] = useState(false);
 
-  // Wizard state: 8-step stepper
+  // Wizard state
   const [wizardStep, setWizardStep] = useState<number>(1);
   const [selectedExpert, setSelectedExpert] = useState<Expert | null>(null);
   const [bookingMode, setBookingMode] = useState<'chat' | 'video' | 'audio' | 'in-person'>('chat');
@@ -266,7 +277,50 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
   const [quizStep, setQuizStep] = useState(1);
   const [quizAnswers, setQuizAnswers] = useState({ petType: '', challenge: '' });
 
-  // 1. Fetch experts from server
+  // Admin Dashboard configurations
+  const [isAdminUser, setIsAdminUser] = useState(false);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [adminPassword, setAdminPassword] = useState('');
+  const [adminError, setAdminError] = useState<string | null>(null);
+  const [isAddingExpert, setIsAddingExpert] = useState(false);
+  const [isEditingExpert, setIsEditingExpert] = useState<Expert | null>(null);
+
+  // Admin form state
+  const [expertFormName, setExpertFormName] = useState('');
+  const [expertFormSpecialty, setExpertFormSpecialty] = useState('');
+  const [expertFormCategory, setExpertFormCategory] = useState('Nutritionist');
+  const [expertFormExp, setExpertFormExp] = useState('');
+  const [expertFormFee, setExpertFormFee] = useState('');
+  const [expertFormBio, setExpertFormBio] = useState('');
+  const [expertFormOnline, setExpertFormOnline] = useState(false);
+  const [expertFormTagsInput, setExpertFormTagsInput] = useState('');
+  const [expertFormSlots, setExpertFormSlots] = useState<{ date: string; time: string }[]>([
+    { date: 'Today', time: '10:00 AM' },
+    { date: 'Today', time: '11:30 AM' },
+    { date: 'Tomorrow', time: '02:00 PM' }
+  ]);
+
+  // Check admin role
+  useEffect(() => {
+    if (token) {
+      fetch('http://localhost:5001/api/auth/admin-config', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          setIsAdminUser(data.isAdmin);
+        }
+      })
+      .catch(err => console.error('Failed to retrieve admin configuration in Expert Support:', err));
+    } else {
+      setIsAdminUser(false);
+    }
+  }, [token]);
+
+  // Fetch experts list
   const fetchExperts = async () => {
     setIsLoadingExperts(true);
     try {
@@ -285,6 +339,10 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
 
   useEffect(() => {
     fetchExperts();
+    const cachedPass = sessionStorage.getItem('aumoha_admin_password');
+    if (cachedPass) {
+      verifyAdminPass(cachedPass);
+    }
   }, [token]);
 
   useEffect(() => {
@@ -351,7 +409,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
   const handleSelectExpert = (exp: Expert) => {
     setSelectedExpert(exp);
     setSelectedSlot(null);
-    setWizardStep(2); // Move to Step 2: Mode
+    setWizardStep(2);
     setCurrentView('wizard');
   };
 
@@ -396,7 +454,134 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
     }
   };
 
-  // Add to Calendar simulator (.ics downloader)
+  // Admin Credentials Verification
+  const verifyAdminPass = async (pass: string) => {
+    setAdminError(null);
+    try {
+      const res = await fetch('http://localhost:5001/api/auth/verify-admin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ password: pass })
+      });
+      if (res.ok) {
+        setIsAdminAuthenticated(true);
+        setAdminPassword(pass);
+        sessionStorage.setItem('aumoha_admin_password', pass);
+      } else {
+        setAdminError('Invalid Admin Passcode');
+      }
+    } catch (err) {
+      setAdminError('Could not verify credentials.');
+    }
+  };
+
+  // Admin Specialist Form Action
+  const handleSaveExpert = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token || !expertFormName || !expertFormExp || !expertFormFee) return;
+
+    const specialtyTagsArray = expertFormTagsInput
+      .split(',')
+      .map(t => t.trim())
+      .filter(t => t.length > 0);
+
+    const body = {
+      name: expertFormName,
+      specialisation: expertFormSpecialty || `${expertFormCategory} Specialist`,
+      category: expertFormCategory,
+      specialtyTags: specialtyTagsArray,
+      experience: Number(expertFormExp),
+      fee: Number(expertFormFee),
+      bio: expertFormBio,
+      isOnline: expertFormOnline,
+      availableSlots: expertFormSlots
+    };
+
+    try {
+      const method = isEditingExpert ? 'PUT' : 'POST';
+      const endpoint = isEditingExpert 
+        ? `http://localhost:5001/api/vets/${isEditingExpert._id}` 
+        : 'http://localhost:5001/api/vets';
+
+      const res = await fetch(endpoint, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          'x-admin-password': adminPassword
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (res.ok) {
+        setIsAddingExpert(false);
+        setIsEditingExpert(null);
+        resetExpertForm();
+        fetchExperts();
+      } else {
+        const d = await res.json();
+        alert(d.message || 'Action failed.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error updating expert registry.');
+    }
+  };
+
+  const handleEditExpertClick = (exp: Expert) => {
+    setIsEditingExpert(exp);
+    setExpertFormName(exp.name);
+    setExpertFormSpecialty(exp.specialisation);
+    setExpertFormCategory(exp.category);
+    setExpertFormExp(String(exp.experience));
+    setExpertFormFee(String(exp.fee));
+    setExpertFormBio(exp.bio || '');
+    setExpertFormOnline(exp.isOnline);
+    setExpertFormTagsInput(exp.specialtyTags?.join(', ') || '');
+    setExpertFormSlots(exp.availableSlots.map(s => ({ date: s.date, time: s.time })));
+    setIsAddingExpert(true);
+  };
+
+  const handleDeleteExpert = async (id: string) => {
+    if (!token) return;
+    const confirm = window.confirm('Are you sure you want to remove this specialist profile?');
+    if (!confirm) return;
+
+    try {
+      const res = await fetch(`http://localhost:5001/api/vets/${id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'x-admin-password': adminPassword
+        }
+      });
+      if (res.ok) {
+        fetchExperts();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const resetExpertForm = () => {
+    setExpertFormName('');
+    setExpertFormSpecialty('');
+    setExpertFormCategory('Nutritionist');
+    setExpertFormExp('');
+    setExpertFormFee('');
+    setExpertFormBio('');
+    setExpertFormOnline(false);
+    setExpertFormTagsInput('');
+    setExpertFormSlots([
+      { date: 'Today', time: '10:00 AM' },
+      { date: 'Today', time: '11:30 AM' },
+      { date: 'Tomorrow', time: '02:00 PM' }
+    ]);
+  };
+
   const handleDownloadCalendarInvite = () => {
     if (!confirmedAppt) return;
     const icsContent = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:Aumoha Expert Consult - ${confirmedAppt.vetName}\nDESCRIPTION:Expert consultation for ${confirmedAppt.petName} (${confirmedAppt.vetSpecialisation})\nDTSTART:20260715T100000\nDURATION:PT1H\nEND:VEVENT\nEND:VCALENDAR`;
@@ -410,62 +595,75 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
   };
 
   return (
-    <div className="w-full flex flex-col gap-6 animate-scaleIn font-sans text-charcoal bg-white rounded-3xl p-4 md:p-6 shadow-sm min-h-[80vh]">
+    <div className="w-full flex flex-col gap-6 animate-scaleIn font-sans text-charcoal bg-[#FAF8F5] rounded-3xl p-4 md:p-6 shadow-sm min-h-[80vh]">
       
-      {/* HEADER BAR WITH NAVIGATION BACK ACTION */}
-      <div className="flex items-center gap-3 pb-3 border-b border-warmBeige/40 select-none">
-        <button 
-          onClick={() => {
-            if (currentView === 'listing') {
-              setCurrentView('home');
-            } else if (currentView === 'wizard') {
-              if (wizardStep > 1) {
-                setWizardStep(prev => prev - 1);
+      {/* HEADER BAR WITH NAVIGATION BACK ACTION & ADMIN PORTAL CONTROLS */}
+      <div className="flex items-center justify-between pb-3 border-b border-warmBeige/40 select-none">
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => {
+              if (currentView === 'listing') {
+                setCurrentView('home');
+              } else if (currentView === 'wizard') {
+                if (wizardStep > 1) {
+                  setWizardStep(prev => prev - 1);
+                } else {
+                  setCurrentView('listing');
+                }
+              } else if (currentView === 'confirmed' || currentView === 'admin') {
+                setCurrentView('home');
               } else {
-                setCurrentView('listing');
+                setActiveTab('home');
               }
-            } else if (currentView === 'confirmed') {
-              setCurrentView('home');
-            } else {
-              setActiveTab('home');
-            }
-          }} 
-          className="w-10 h-10 rounded-full border border-warmBeige bg-white flex items-center justify-center hover:bg-warmBg transition-colors"
-        >
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-stone-600">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-        </button>
-        <div>
-          <span className="text-[10px] text-stone-400 font-extrabold uppercase tracking-widest block">Consult & Care</span>
-          <h1 className="text-sm font-serif font-extrabold text-charcoal">Expert Support</h1>
+            }} 
+            className="w-10 h-10 rounded-full border border-warmBeige bg-white flex items-center justify-center hover:bg-warmBg transition-colors"
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-stone-600">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+          <div>
+            <span className="text-[10px] text-stone-400 font-extrabold uppercase tracking-widest block">Consult & Care</span>
+            <h1 className="text-sm font-serif font-extrabold text-charcoal">Expert Support</h1>
+          </div>
         </div>
+
+        {/* Gated Admin panel button */}
+        {isAdminUser && (
+          <button
+            onClick={() => {
+              if (currentView === 'admin') {
+                setCurrentView('home');
+              } else {
+                setCurrentView('admin');
+              }
+            }}
+            className={`px-3 py-1.5 rounded-xl border text-[10px] font-extrabold flex items-center gap-1.5 transition-all ${
+              currentView === 'admin'
+                ? 'bg-[#3D5A45] border-[#3D5A45] text-white shadow-sm'
+                : 'border-warmBeige hover:bg-[#FCFAF7] text-[#3D5A45] bg-white'
+            }`}
+          >
+            🛡️ Admin Panel
+          </button>
+        )}
       </div>
 
       {/* ==================== SCREEN 1: EXPERT SUPPORT HOME ==================== */}
       {currentView === 'home' && (
-        <div className="flex flex-col gap-6 w-full animate-fadeIn relative">
-
-          {/* Hero Header block */}
-          <div className="z-10 flex flex-col gap-1.5 max-w-xl">
-            <span className="text-[10px] uppercase tracking-widest text-[#3D5A45] font-extrabold">CONSULT & CARE</span>
-            <h1 className="text-3xl font-serif font-extrabold text-[#1F2937] tracking-tight">Expert Support</h1>
-            <p className="text-xs text-stone-500 font-semibold leading-relaxed mt-1">
-              Connect with specialised experts who understand your pet's unique needs.
-            </p>
-          </div>
+        <div className="flex flex-col gap-5 w-full animate-fadeIn">
           
-          {/* SEARCH BAR + FILTER BUTTON */}
-          <div className="flex gap-3.5 w-full z-10">
+          {/* SEARCH BAR + FILTER */}
+          <div className="flex gap-2 w-full">
             <div className="relative flex-grow">
               <input 
                 type="text"
                 placeholder="Search experts or services..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white border border-[#EBE6DD] rounded-[22px] pl-11 pr-4 py-3 text-xs font-semibold focus:outline-none focus:border-emerald-600/40 shadow-sm"
+                className="w-full bg-white border border-[#F0EBE1] rounded-2xl pl-10 pr-4 py-2.5 text-xs font-semibold focus:outline-none focus:border-terracotta/40 shadow-sm"
               />
-              <svg className="absolute left-4 top-3.5 w-4.5 h-4.5 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <svg className="absolute left-3.5 top-3.5 w-4 h-4 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
@@ -473,99 +671,38 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
             
             <button 
               onClick={() => handleStartQuiz()}
-              className="px-6 bg-[#FCFAF7] hover:bg-stone-50 border border-[#EBE6DD] text-stone-600 text-xs font-extrabold rounded-[22px] flex items-center gap-2 shadow-sm transition-all shrink-0 active:scale-95"
+              className="px-4 bg-[#EBF5E9] hover:bg-[#C8E6C9] border border-[#E1EDE3] text-[#3D5A45] text-[10px] font-extrabold rounded-2xl flex items-center gap-1.5 shadow-sm transition-all"
             >
-              {/* Slider Filter Icon */}
-              <svg className="w-3.5 h-3.5 text-stone-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="4" y1="21" x2="4" y2="14" />
-                <line x1="4" y1="10" x2="4" y2="3" />
-                <line x1="12" y1="21" x2="12" y2="12" />
-                <line x1="12" y1="8" x2="12" y2="3" />
-                <line x1="20" y1="21" x2="20" y2="16" />
-                <line x1="20" y1="10" x2="20" y2="3" />
-                <line x1="1" y1="14" x2="7" y2="14" />
-                <line x1="9" y1="8" x2="15" y2="8" />
-                <line x1="17" y1="16" x2="23" y2="16" />
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01" />
               </svg>
-              Filter
+              Quiz Match
             </button>
           </div>
 
-          {/* CATEGORY FILTER CHIPS WITH SVG ICONS */}
-          <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-hide select-none z-10">
-            {[
-              {
-                id: 'All',
-                name: 'All',
-                icon: (
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <rect x="3" y="3" width="7" height="7" rx="1.5" />
-                    <rect x="14" y="3" width="7" height="7" rx="1.5" />
-                    <rect x="14" y="14" width="7" height="7" rx="1.5" />
-                    <rect x="3" y="14" width="7" height="7" rx="1.5" />
-                  </svg>
-                )
-              },
-              {
-                id: 'Wellness',
-                name: 'Wellness',
-                icon: (
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 2A10 10 0 0 0 2 12c0 5.52 4.48 10 10 10s10-4.48 10-10S17.52 2 12 2z" />
-                    <path d="M12 6a6 6 0 0 0-6 6c0 3.31 2.69 6 6 6s6-2.69 6-6-2.69-6-6-6z" />
-                  </svg>
-                )
-              },
-              {
-                id: 'Behaviour',
-                name: 'Behaviour',
-                icon: (
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-                    <line x1="9" y1="9" x2="9.01" y2="9" />
-                    <line x1="15" y1="9" x2="15.01" y2="9" />
-                  </svg>
-                )
-              },
-              {
-                id: 'Therapy',
-                name: 'Therapy',
-                icon: (
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5c0-3.08 2.42-5.5 5.5-5.5 1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                  </svg>
-                )
-              },
-              {
-                id: 'Holistic',
-                name: 'Holistic',
-                icon: (
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 3a9 9 0 0 0-9 9h18a9 9 0 0 0-9-9zM3 14c0 3.86 3.14 7 7 7h4c3.86 0 7-3.14 7-7H3z" />
-                  </svg>
-                )
-              }
-            ].map(grp => (
+          {/* CATEGORY FILTER CHIPS */}
+          <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-hide select-none">
+            {(['All', 'Wellness', 'Behaviour', 'Therapy', 'Holistic'] as const).map(grp => (
               <button
-                key={grp.id}
-                onClick={() => setHomeGroup(grp.id as any)}
-                className={`px-4 py-2 border rounded-full text-[10px] font-extrabold shrink-0 transition-all active:scale-95 flex items-center gap-1.5 ${
-                  homeGroup === grp.id 
+                key={grp}
+                onClick={() => setHomeGroup(grp)}
+                className={`px-4 py-1.5 border rounded-full text-[10px] font-extrabold shrink-0 transition-all active:scale-95 flex items-center gap-1.5 ${
+                  homeGroup === grp 
                     ? 'bg-[#3D5A45] border-[#3D5A45] text-white shadow-sm' 
-                    : 'bg-white border-[#EBE6DD] text-stone-600 hover:border-stone-300'
+                    : 'bg-white border-[#F0EBE1] text-stone-600 hover:border-stone-300'
                 }`}
               >
-                {grp.icon}
-                {grp.name}
+                {grp}
               </button>
             ))}
           </div>
 
-          {/* 3-COLUMN CATEGORY GRID */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full z-10">
+          {/* 3-COLUMN CATEGORY GRID (REDESIGNED TO PREVENT SPILLING & MATCH MOCKUP WITH RIGHT-ALIGN DECORATIONS) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
             {filteredCategoryKeys.map(catKey => {
               const conf = CATEGORY_CONFIGS[catKey];
+              const displayTitle = conf.displayTitle || catKey;
               return (
                 <div 
                   key={catKey}
@@ -574,73 +711,61 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                     setListingSubFilter(null);
                     setCurrentView('listing');
                   }}
-                  className="bg-[#FCFAF9] border border-[#EBE6DD]/60 rounded-[22px] p-4.5 cursor-pointer hover:bg-white hover:border-purple-600/10 hover:shadow-md transition-all group relative overflow-hidden flex flex-row justify-between min-h-[145px] hover:scale-[1.01]"
+                  className="bg-white border border-[#F0EBE1] rounded-[24px] p-5 cursor-pointer hover:shadow-md transition-all group flex justify-between items-start hover:scale-[1.01] hover:border-emerald-600/20 relative overflow-hidden"
                 >
-                  {/* Left side text and icon */}
-                  <div className="flex flex-col justify-between z-10 w-[55%] select-none">
-                    <div className="flex flex-col gap-3">
-                      {/* SVG Icon circle wrapper */}
-                      <div className="w-9 h-9 rounded-full flex items-center justify-center bg-[#F3E8FF] border border-[#E9D5FF] shrink-0 shadow-sm text-purple-700">
+                  <div className="flex flex-col justify-between h-full min-h-[130px] z-10 w-[70%]">
+                    <div className="flex flex-col gap-2">
+                      {/* Circle icon wrapper */}
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center shadow-sm ${conf.color}`}>
                         {conf.icon}
                       </div>
                       <div>
-                        {/* Use conf.title to avoid word overflow / slashes */}
-                        <h4 className="text-[11px] font-extrabold text-charcoal leading-tight break-words group-hover:text-purple-700 transition-colors">
-                          {conf.title}
+                        {/* Title wrapping correctly break-words */}
+                        <h4 className="text-xs font-serif font-extrabold text-charcoal group-hover:text-emerald-700 transition-colors leading-tight break-words whitespace-normal max-w-full">
+                          {displayTitle}
                         </h4>
-                        <p className="text-[9px] text-stone-400 font-semibold mt-1 leading-tight line-clamp-3">
+                        <p className="text-[9.5px] text-stone-500 font-semibold mt-1 leading-normal">
                           {conf.desc}
                         </p>
                       </div>
                     </div>
 
-                    {/* Small circular chevron arrow button */}
-                    <div className="w-6 h-6 rounded-full border border-stone-200 bg-white flex items-center justify-center text-stone-400 group-hover:border-purple-600 group-hover:text-purple-700 group-hover:bg-purple-50 transition-all shadow-sm mt-2">
-                      <span className="text-[9px] font-bold">›</span>
+                    {/* Circular Chevron icon */}
+                    <div className="w-7 h-7 rounded-full border border-stone-200 bg-[#FCFAF7] flex items-center justify-center group-hover:bg-[#3D5A45] group-hover:text-white transition-all shadow-sm mt-3">
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
                     </div>
                   </div>
 
-                  {/* Right side cropped image */}
-                  <div className="absolute right-0 bottom-0 top-0 w-[45%] overflow-hidden flex items-end justify-end pointer-events-none">
-                    <img 
-                      src={conf.cardPhoto} 
-                      alt={conf.title} 
-                      className="h-[92%] w-auto object-contain object-bottom select-none translate-y-1 group-hover:scale-105 transition-all duration-500"
-                    />
+                  {/* Right side mockup graphic decoration alignment */}
+                  <div className="absolute right-0 bottom-0 top-0 w-[35%] flex items-center justify-center overflow-hidden pointer-events-none select-none z-0">
+                    <div className={`w-24 h-24 rounded-full opacity-15 filter blur-xl ${conf.bgGradient || 'bg-emerald-500/10'}`} />
+                    <span className="text-4xl absolute transform translate-x-2 translate-y-2 group-hover:scale-110 transition-transform duration-300">
+                      {conf.emoji === 'poodle' ? '🐩' : conf.emoji || '🐾'}
+                    </span>
                   </div>
                 </div>
               );
             })}
             {filteredCategoryKeys.length === 0 && (
               <div className="col-span-full text-center py-10 text-xs text-stone-400 font-semibold bg-white border border-dashed border-[#F0EBE1] rounded-3xl">
-                No matching expert categories found. Try a different filter or search.
+                No matching expert categories found.
               </div>
             )}
           </div>
 
           {/* FIND MY EXPERT QUIZ BANNER */}
-          <div className="bg-[#FCFAF9] border border-[#EBE6DD]/60 rounded-[24px] p-5 flex flex-col sm:flex-row items-center justify-between gap-5 mt-3 shadow-sm relative overflow-hidden">
-            <div className="flex items-center gap-4 z-10 w-full sm:w-auto">
-              {/* Circular portrait image of woman petting golden retriever */}
-              <div className="w-14 h-14 rounded-full overflow-hidden border border-stone-200 shrink-0">
-                <img 
-                  src="https://res.cloudinary.com/vlcokfmq/image/upload/v1784019908/aumoha_expert_support/rckkawqnirpbvqo712jf.jpg" 
-                  alt="Quiz match" 
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="text-left flex flex-col gap-0.5">
-                <h4 className="font-serif font-extrabold text-sm text-charcoal">Not sure who to book?</h4>
-                <p className="text-[9.5px] text-stone-500 font-semibold leading-normal">
-                  Answer a few questions and we'll suggest the right expert for your pet.
-                </p>
-              </div>
+          <div className="bg-[#EBF5E9] border border-[#E1EDE3] rounded-[28px] p-5 flex flex-col sm:flex-row items-center justify-between gap-4 mt-3 shadow-sm">
+            <div className="text-left flex flex-col gap-1 max-w-sm">
+              <h4 className="font-serif font-extrabold text-sm text-[#3D5A45]">Not sure who to book?</h4>
+              <p className="text-[10px] text-stone-600 font-semibold leading-relaxed">Answer a few simple questions about your pet's behavioral or health concerns, and we'll instantly match you with the right specialist.</p>
             </div>
             <button
               onClick={() => handleStartQuiz()}
-              className="px-6 py-2.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-[10px] font-extrabold rounded-full transition-all shadow-sm shrink-0 active:scale-95 flex items-center gap-1.5 z-10"
+              className="px-5 py-2.5 bg-[#3D5A45] hover:bg-[#2A3E31] text-white text-[10px] font-extrabold rounded-xl transition-all shadow-sm shrink-0 active:scale-95 flex items-center gap-1.5"
             >
-              Find My Expert <span>›</span>
+              Find My Expert <span>→</span>
             </button>
           </div>
 
@@ -650,7 +775,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
       {/* INTERACTIVE MATCH QUIZ DIALOG */}
       {isQuizOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-end md:items-center justify-center px-4 transition-all">
-          <div className="bg-white rounded-t-3xl md:rounded-3xl p-6 w-full max-w-sm flex flex-col gap-5 shadow-xl border border-warmBeige">
+          <div className="bg-white rounded-t-3xl md:rounded-3xl p-6 w-full max-w-sm flex flex-col gap-5 shadow-xl border border-warmBeige animate-scaleIn">
             <div className="flex justify-between items-center pb-2 border-b border-stone-100">
               <h3 className="text-xs font-extrabold text-stone-500 uppercase tracking-wider">Find My Expert Quiz</h3>
               <button 
@@ -714,7 +839,9 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
           <div className="bg-white border border-[#F0EBE1] rounded-[24px] p-5 shadow-sm flex items-center justify-between gap-4">
             <div>
               <span className="text-[8px] bg-emerald-50 border border-emerald-100 text-emerald-700 font-extrabold uppercase rounded px-2 py-0.5 tracking-wider">Specialist Directory</span>
-              <h2 className="text-base font-serif font-extrabold text-charcoal mt-1">{activeCategoryConfig.title}</h2>
+              <h2 className="text-base font-serif font-extrabold text-charcoal mt-1 leading-snug break-words max-w-[280px]">
+                {activeCategoryConfig.displayTitle}
+              </h2>
               <p className="text-[10px] text-stone-500 font-semibold mt-1 leading-normal">{activeCategoryConfig.subtitle}</p>
             </div>
             <div className="w-12 h-12 rounded-full bg-stone-50 border border-[#F0EBE1] flex items-center justify-center shrink-0 shadow-sm text-stone-700">
@@ -1307,7 +1434,6 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
       {currentView === 'confirmed' && confirmedAppt && (
         <div className="flex flex-col items-center justify-center text-center gap-6 py-6 w-full animate-fadeIn select-none">
           
-          {/* Confetti Checkmark icon */}
           <div className="relative flex items-center justify-center">
             <div className="w-16 h-16 rounded-full bg-emerald-50 border-4 border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0 z-10">
               <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
@@ -1325,7 +1451,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
             <p className="text-[10px] text-stone-500 font-semibold mt-1">Your specialist consultation has been scheduled.</p>
           </div>
 
-          {/* Real Email confirmation banner */}
+          {/* Real Email confirmation summary */}
           <div className="bg-[#EBF5E9] border border-[#E1EDE3] text-[#3D5A45] rounded-xl px-4 py-2.5 text-[9.5px] font-bold w-full flex items-center justify-center gap-2">
             <span>🌿</span> A confirmation summary has been sent to your email.
           </div>
@@ -1445,6 +1571,226 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
             </button>
           </div>
 
+        </div>
+      )}
+
+      {/* ==================== SCREEN 5: ADMIN MANAGEMENT DASHBOARD ==================== */}
+      {currentView === 'admin' && (
+        <div className="w-full flex flex-col gap-5 animate-fadeIn">
+          {!isAdminAuthenticated ? (
+            /* Passcode gated panel form */
+            <div className="bg-white border border-[#F0EBE1] p-5 rounded-[28px] shadow-sm flex flex-col gap-4 text-center max-w-sm mx-auto my-6">
+              <div className="text-3xl">🔐</div>
+              <div>
+                <h4 className="text-xs font-extrabold text-charcoal">Specialist Registry Admin Settings</h4>
+                <p className="text-[9px] text-stone-400 font-semibold mt-1">Please authenticate with your passcode to configure the Expert directory.</p>
+              </div>
+
+              <input 
+                type="password"
+                placeholder="Enter passcode"
+                value={adminPassword}
+                onChange={(e) => setAdminPassword(e.target.value)}
+                className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl px-4 py-2 text-xs font-bold text-center focus:outline-none"
+              />
+              {adminError && <span className="text-[9px] text-rose-500 font-bold block">{adminError}</span>}
+
+              <button 
+                onClick={() => verifyAdminPass(adminPassword)}
+                className="w-full py-2.5 bg-[#3D5A45] hover:bg-[#2A3E31] text-white text-xs font-bold rounded-2xl shadow-sm"
+              >
+                Authenticate Settings
+              </button>
+            </div>
+          ) : (
+            /* Registry directory panel view */
+            <div className="flex flex-col gap-5 w-full">
+              
+              <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+                <span className="text-[10px] font-extrabold text-stone-400 uppercase tracking-widest">Active Specialist Registry</span>
+                <button
+                  onClick={() => {
+                    setIsEditingExpert(null);
+                    resetExpertForm();
+                    setIsAddingExpert(true);
+                  }}
+                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[9px] font-bold shadow-sm"
+                >
+                  + Add Specialist Profile
+                </button>
+              </div>
+
+              {/* LIST EXPERTS FOR EDIT/DELETE */}
+              <div className="flex flex-col gap-3">
+                {isLoadingExperts ? (
+                  <span className="text-xs text-stone-400 text-center py-4 font-semibold">Loading list...</span>
+                ) : experts.length === 0 ? (
+                  <span className="text-xs text-stone-400 text-center py-4 font-semibold">No experts registered.</span>
+                ) : experts.map(exp => (
+                  <div key={exp._id} className="bg-white border border-[#F0EBE1] rounded-2xl p-3 flex justify-between items-center shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full overflow-hidden bg-stone-100 border border-stone-200 relative shrink-0">
+                        {exp.photo ? (
+                          <img src={exp.photo} alt={exp.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-[#E2E8F0] to-[#CBD5E1] flex items-center justify-center text-stone-600 font-bold text-xs">
+                            {exp.name[0]}
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <h4 className="text-[11px] font-bold text-charcoal">{exp.name}</h4>
+                        <span className="text-[9.5px] text-stone-500 font-semibold block">{exp.category} • {exp.specialisation}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEditExpertClick(exp)}
+                        className="px-2.5 py-1.5 bg-white border border-warmBeige hover:bg-stone-50 text-stone-600 rounded-lg text-[9px] font-bold"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteExpert(exp._id)}
+                        className="px-2.5 py-1.5 bg-rose-50 border border-rose-100 hover:bg-rose-100 text-rose-600 rounded-lg text-[9px] font-bold"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* ADD/EDIT MODAL OVERLAY FORM */}
+              {isAddingExpert && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-end md:items-center justify-center px-4 transition-all">
+                  <form 
+                    onSubmit={handleSaveExpert}
+                    className="bg-white rounded-t-3xl md:rounded-3xl p-5 w-full max-w-md flex flex-col gap-4 shadow-xl border border-warmBeige max-h-[85vh] overflow-y-auto"
+                  >
+                    <div className="flex justify-between items-center pb-2 border-b border-stone-100">
+                      <h3 className="text-xs font-extrabold text-stone-500 uppercase">
+                        {isEditingExpert ? 'Edit Expert Profile' : 'Add Expert Profile'}
+                      </h3>
+                      <button 
+                        type="button"
+                        onClick={() => { setIsAddingExpert(false); setIsEditingExpert(null); resetExpertForm(); }}
+                        className="text-stone-400 hover:text-stone-600 font-extrabold text-xs"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    <div className="flex flex-col gap-3">
+                      <div>
+                        <label className="text-[9px] font-extrabold text-stone-400 uppercase tracking-wider block mb-1">Full Name</label>
+                        <input 
+                          type="text"
+                          required
+                          placeholder="Devika Das"
+                          value={expertFormName}
+                          onChange={(e) => setExpertFormName(e.target.value)}
+                          className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[9px] font-extrabold text-stone-400 uppercase tracking-wider block mb-1">Category Type</label>
+                          <select
+                            value={expertFormCategory}
+                            onChange={(e) => setExpertFormCategory(e.target.value)}
+                            className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none"
+                          >
+                            {Object.keys(CATEGORY_CONFIGS).map(catKey => (
+                              <option key={catKey} value={catKey}>{catKey}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-[9px] font-extrabold text-stone-400 uppercase tracking-wider block mb-1">Specialisation Title</label>
+                          <input 
+                            type="text"
+                            placeholder="e.g. Certified Physiotherapist"
+                            value={expertFormSpecialty}
+                            onChange={(e) => setExpertFormSpecialty(e.target.value)}
+                            className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[9px] font-extrabold text-stone-400 uppercase tracking-wider block mb-1">Experience (Years)</label>
+                          <input 
+                            type="number"
+                            required
+                            placeholder="8"
+                            value={expertFormExp}
+                            onChange={(e) => setExpertFormExp(e.target.value)}
+                            className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[9px] font-extrabold text-stone-400 uppercase tracking-wider block mb-1">Consultation Fee (₹)</label>
+                          <input 
+                            type="number"
+                            required
+                            placeholder="400"
+                            value={expertFormFee}
+                            onChange={(e) => setExpertFormFee(e.target.value)}
+                            className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-[9px] font-extrabold text-stone-400 uppercase tracking-wider block mb-1">Focus Tags (Comma Separated)</label>
+                        <input 
+                          type="text"
+                          placeholder="Mobility, Recovery, Joint Therapy"
+                          value={expertFormTagsInput}
+                          onChange={(e) => setExpertFormTagsInput(e.target.value)}
+                          className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[9px] font-extrabold text-stone-400 uppercase tracking-wider block mb-1">Doctor Bio</label>
+                        <textarea
+                          rows={2}
+                          placeholder="Tell users about this specialist's background..."
+                          value={expertFormBio}
+                          onChange={(e) => setExpertFormBio(e.target.value)}
+                          className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-2 mt-1">
+                        <input 
+                          type="checkbox"
+                          id="expertFormOnline"
+                          checked={expertFormOnline}
+                          onChange={(e) => setExpertFormOnline(e.target.checked)}
+                          className="rounded text-emerald-600 focus:ring-emerald-500"
+                        />
+                        <label htmlFor="expertFormOnline" className="text-[10px] font-bold text-stone-600 select-none">Currently Online</label>
+                      </div>
+                    </div>
+
+                    <button 
+                      type="submit"
+                      className="w-full py-3 bg-[#3D5A45] hover:bg-[#2A3E31] text-white text-xs font-bold rounded-2xl shadow-md mt-2"
+                    >
+                      Save Specialist Profile
+                    </button>
+                  </form>
+                </div>
+              )}
+
+            </div>
+          )}
         </div>
       )}
 
