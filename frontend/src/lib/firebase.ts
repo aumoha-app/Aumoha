@@ -117,17 +117,41 @@ const mockAuthInstance = new MockAuthSystem();
 export const auth = {
   onAuthStateChanged: (callback: (user: AuthUser | null) => void) => {
     if (realAuth) {
-      return realAuth.onAuthStateChanged((user) => {
-        if (user) {
-          callback({
-            uid: user.uid,
-            email: user.email,
-            getIdToken: () => user.getIdToken()
-          });
+      let currentRealUser: AuthUser | null = null;
+      let currentMockUser: AuthUser | null = null;
+
+      const notifyChange = () => {
+        if (currentRealUser) {
+          callback(currentRealUser);
+        } else if (currentMockUser) {
+          callback(currentMockUser);
         } else {
           callback(null);
         }
+      };
+
+      const unsubscribeReal = realAuth.onAuthStateChanged((user) => {
+        if (user) {
+          currentRealUser = {
+            uid: user.uid,
+            email: user.email,
+            getIdToken: () => user.getIdToken()
+          };
+        } else {
+          currentRealUser = null;
+        }
+        notifyChange();
       });
+
+      const unsubscribeMock = mockAuthInstance.onAuthStateChanged((user) => {
+        currentMockUser = user;
+        notifyChange();
+      });
+
+      return () => {
+        unsubscribeReal();
+        unsubscribeMock();
+      };
     } else {
       return mockAuthInstance.onAuthStateChanged(callback);
     }
@@ -185,12 +209,17 @@ export const auth = {
 
   signOut: async (): Promise<void> => {
     if (realAuth) {
-      await fbSignOut(realAuth);
-    } else {
-      await mockAuthInstance.signOut();
+      try {
+        await fbSignOut(realAuth);
+      } catch (error) {
+        console.warn('⚠️ Firebase Sign-Out failed:', error);
+      }
     }
+    await mockAuthInstance.signOut();
   },
 
-  isMock: !hasFirebaseClientConfig
+  get isMock(): boolean {
+    return !hasFirebaseClientConfig || (typeof window !== 'undefined' && !!sessionStorage.getItem('aumoha_mock_user'));
+  }
 };
 export type { FirebaseAuth };

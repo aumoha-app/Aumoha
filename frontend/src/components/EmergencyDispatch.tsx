@@ -97,8 +97,9 @@ export default function EmergencyDispatch({
           if (res.ok) {
             const data = await res.json();
             if (data.display_name) {
-              setLocationText(data.display_name);
-              setCurrentAddress(data.display_name);
+              const formattedLoc = `${data.display_name} [${lat.toFixed(6)}, ${lng.toFixed(6)}]`;
+              setLocationText(formattedLoc);
+              setCurrentAddress(formattedLoc);
             } else {
               const coordStr = `Current Coordinates: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
               setLocationText(coordStr);

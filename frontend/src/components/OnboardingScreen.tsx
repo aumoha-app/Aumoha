@@ -48,7 +48,7 @@ export default function OnboardingScreen() {
             clearTimeout(timeoutId);
             setIsDetectingLocation(false);
             if (data.display_name) {
-              setAddress(data.display_name);
+              setAddress(`${data.display_name} [${lat.toFixed(6)}, ${lng.toFixed(6)}]`);
             } else {
               setAddress('');
             }

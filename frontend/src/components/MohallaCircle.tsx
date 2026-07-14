@@ -223,6 +223,18 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
 
   const getCoordinatesForLocation = (location: string): [number, number] => {
     const clean = (location || '').toLowerCase();
+
+    // Check if the string contains coordinate patterns like "[28.4595, 77.0266]" or "Current Coordinates: 28.4595, 77.0266"
+    const coordRegex = /(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/;
+    const match = coordRegex.exec(location || '');
+    if (match) {
+      const lat = parseFloat(match[1]);
+      const lng = parseFloat(match[2]);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        return [lat, lng];
+      }
+    }
+
     if (clean.includes('saheed nagar')) return [28.4595, 77.0266];
     if (clean.includes('sector 4,')) return [28.4575, 77.0246];
     if (clean.includes('downtown')) return [28.4625, 77.0306];
@@ -1148,7 +1160,12 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
 
       {/* ==================== 2. MEMBERS & NETWORK VIEW (Screen 2) ==================== */}
       {activeView === 'members' && (
-        <MohallaNetwork computedMembers={computedMembers} dbSosReports={dbSosReports} />
+        <MohallaNetwork 
+          computedMembers={computedMembers} 
+          dbSosReports={dbSosReports} 
+          memberFilter={memberFilter}
+          setMemberFilter={setMemberFilter}
+        />
       )}
 
 

@@ -234,7 +234,7 @@ export default function Home() {
                   onVetConsultationClick={() => setActiveTab('vetconsult')}
                   onExpertSupportClick={() => setActiveTab('expertsupport')}
                 />
-                <NeighborhoodRadar />
+                <NeighborhoodRadar onEnterCircle={() => setActiveTab('circle')} />
                 <MarketplaceCategories onExploreMoreClick={() => setActiveTab('marketplace')} />
               </main>
             )}
