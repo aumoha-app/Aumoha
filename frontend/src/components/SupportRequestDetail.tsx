@@ -31,22 +31,16 @@ export default function SupportRequestDetail({
 
   const displayDesc = selectedRequest.description || '';
 
+  const rawPhone = requestAny.contactPhone || '9876543210';
+  const cleanPhone = rawPhone.replace(/\D/g, '');
+  const waPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
+
   const [selectedHelpOptions, setSelectedHelpOptions] = useState<string[]>(['vet']);
-  const [helpSubmitted, setHelpSubmitted] = useState<boolean>(false);
 
   const handleHelpToggle = (option: string) => {
     setSelectedHelpOptions(prev => 
       prev.includes(option) ? prev.filter(o => o !== option) : [...prev, option]
     );
-  };
-
-  const handleSendHelp = () => {
-    setHelpSubmitted(true);
-    setTimeout(() => {
-      setHelpSubmitted(false);
-      setShowHelpModal(false);
-      alert('Help request accepted! The reporter has been notified and will coordinate with you.');
-    }, 1200);
   };
 
   useEffect(() => {
@@ -464,22 +458,14 @@ export default function SupportRequestDetail({
             </svg>
             I can help
           </button>
-          <button 
-            onClick={() => alert(`Broadcasting support request to neighbors within 3 km...`)}
-            className="w-full py-3.5 bg-[#FDFBF9] border border-[#F0EBE1] hover:border-stone-300 active:scale-98 text-charcoal font-bold rounded-full text-xs flex items-center justify-center gap-2 transition-all cursor-pointer select-none"
-          >
-            <svg className="w-4 h-4 text-stone-600" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
-            Ask neighbors for support
-          </button>
+
         </div>
       </div>
 
       {/* --- OFFER YOUR HELP MODAL (Screen 5) --- */}
       {showHelpModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-end md:items-center justify-center px-4 transition-all">
-          <div className="bg-white w-full max-w-lg rounded-t-[32px] md:rounded-[32px] p-6 shadow-2xl flex flex-col gap-5 max-h-[90vh] overflow-y-auto animate-scaleIn select-none">
+          <div className="bg-white w-full max-w-lg rounded-t-[32px] md:rounded-[32px] p-6 shadow-2xl flex flex-col gap-5 max-h-[90vh] overflow-y-auto scrollbar-hide animate-scaleIn select-none">
             
             {/* Context Header */}
             <div className="flex justify-between items-center border-b border-[#F0EBE1] pb-3.5">
@@ -495,12 +481,7 @@ export default function SupportRequestDetail({
                   {selectedRequest.title}
                 </span>
               </div>
-              <button 
-                onClick={() => setShowHelpModal(false)}
-                className="w-8 h-8 rounded-full border border-stone-200 flex items-center justify-center hover:bg-rose-50 hover:text-red-500 active:scale-90 text-sm font-semibold"
-              >
-                ✕
-              </button>
+              <div className="w-8 h-8 pointer-events-none" />
             </div>
 
             {/* Informative Security Banner */}
@@ -515,12 +496,45 @@ export default function SupportRequestDetail({
             <div className="flex flex-col gap-3">
               <h4 className="text-xs font-bold text-charcoal">How would you like to help?</h4>
               {[
-                { id: 'vet', title: 'Take to Vet', icon: '🩺', desc: 'Provide medical assistance', time: '2.3 km away • 12 min' },
-                { id: 'transport', title: 'Transport', icon: '🚗', desc: 'Help in safe transport', time: '1.1 km away • 6 min' },
-                { id: 'foster', title: 'Foster Care', icon: '🏠', desc: 'Provide temporary care', time: 'Within 5 km' },
-                { id: 'support', title: 'Support', icon: '🤝', desc: 'Contribute or share leads', time: 'Share info, supplies, or funds' }
+                { id: 'vet', title: 'Take to Vet', desc: 'Provide medical assistance' },
+                { id: 'transport', title: 'Transport', desc: 'Help in safe transport' },
+                { id: 'foster', title: 'Foster Care', desc: 'Provide temporary care' },
+                { id: 'support', title: 'Support', desc: 'Contribute or share leads' }
               ].map(item => {
                 const isChecked = selectedHelpOptions.includes(item.id);
+                let svgIcon;
+                if (item.id === 'vet') {
+                  svgIcon = (
+                    <svg className="w-5 h-5 text-[#3D5A45]" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4.82 17.22a3 3 0 1 1-3-3m0 0v-4a7 7 0 0 1 14 0v4m0-4V6a2 2 0 0 1 2-2h2m-6 13.22a3 3 0 1 1 3-3" />
+                    </svg>
+                  );
+                } else if (item.id === 'transport') {
+                  svgIcon = (
+                    <svg className="w-5 h-5 text-[#B68A35]" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-1.1 0-2 .9-2 2v7c0 .6.4 1 1 1h2" />
+                      <circle cx="7" cy="17" r="2" />
+                      <path d="M9 17h6" />
+                      <circle cx="17" cy="17" r="2" />
+                    </svg>
+                  );
+                } else if (item.id === 'foster') {
+                  svgIcon = (
+                    <svg className="w-5 h-5 text-[#2E7D32]" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                      <polyline points="9 22 9 12 15 12 15 22" />
+                    </svg>
+                  );
+                } else {
+                  svgIcon = (
+                    <svg className="w-5 h-5 text-[#E65100]" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                      <circle cx="9" cy="7" r="4" />
+                      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                  );
+                }
                 return (
                   <div 
                     key={item.id}
@@ -530,13 +544,12 @@ export default function SupportRequestDetail({
                     }`}
                   >
                     <div className="flex items-center gap-3.5">
-                      <div className="w-10 h-10 rounded-xl bg-stone-50 border border-stone-200/60 flex items-center justify-center text-xl shrink-0">
-                        {item.icon}
+                      <div className="w-10 h-10 rounded-xl bg-stone-50 border border-stone-200/60 flex items-center justify-center shrink-0">
+                        {svgIcon}
                       </div>
                       <div>
                         <span className="text-xs font-bold text-charcoal block">{item.title}</span>
                         <span className="text-[10px] text-stone-400 font-semibold block mt-0.5 leading-tight">{item.desc}</span>
-                        <span className="text-[9px] text-[#3D5A45] font-extrabold block mt-1">📍 {item.time}</span>
                       </div>
                     </div>
                     <div className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 transition-colors ${
@@ -563,69 +576,45 @@ export default function SupportRequestDetail({
               />
             </div>
 
-            {/* Coordinator Avatar Row */}
-            <div className="flex flex-col gap-2.5">
-              <h4 className="text-xs font-bold text-charcoal">Coordinate with nearby helpers</h4>
-              <p className="text-[10px] text-stone-400 font-medium">These neighbors are also helping:</p>
-              <div className="grid grid-cols-4 gap-2">
-                {[
-                  { name: 'Neha J.', role: 'Reporter', dist: '800 m away', avatar: '👩‍🦰' },
-                  { name: 'Ankit', role: 'Rescuer', dist: '1.2 km away', avatar: '👨‍' },
-                  { name: 'Rita', role: 'Feeder', dist: '500 m away', avatar: '👩‍🦱' }
-                ].map((h, i) => (
-                  <div key={i} className="bg-white border border-[#F0EBE1] rounded-xl p-2 flex flex-col items-center text-center">
-                    <div className="w-10 h-10 rounded-full bg-cream border border-stone-200 flex items-center justify-center text-lg relative mb-1 shrink-0">
-                      {h.avatar}
-                      <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border border-white"></div>
-                    </div>
-                    <span className="text-[10px] font-bold text-charcoal truncate w-full">{h.name}</span>
-                    <span className="text-[8px] font-semibold text-stone-400 leading-none mt-0.5">{h.role}</span>
-                    <span className="text-[8px] font-extrabold text-[#3D5A45] mt-1 leading-none">{h.dist}</span>
-                  </div>
-                ))}
-                <div className="bg-white border border-dashed border-stone-300 rounded-xl p-2 flex flex-col items-center justify-center text-center">
-                  <div className="w-10 h-10 rounded-full bg-stone-50 border border-stone-200 flex items-center justify-center text-xs font-bold text-stone-500 shrink-0">
-                    +2
-                  </div>
-                  <span className="text-[8px] font-bold text-stone-500 mt-2 block">Helpers nearby</span>
-                  <button className="text-[8px] text-[#B68A35] font-extrabold underline block leading-none mt-1">View all</button>
-                </div>
-              </div>
-            </div>
-
-            {/* Urgent Clock Banner */}
-            <div className="bg-[#FFF3E0] border border-[#FFE0B2] rounded-xl p-3 flex items-center justify-between gap-3 text-xs">
-              <div className="flex items-center gap-2">
-                <span>⏱️</span>
-                <div>
-                  <span className="font-bold text-[#E65100] block text-[10px] leading-tight">Response time matters.</span>
-                  <span className="text-stone-600 text-[10px] leading-normal font-semibold">Please act as soon as possible. Thank you!</span>
-                </div>
-              </div>
-              <span className="text-rose-500 text-lg">❤️</span>
-            </div>
-
             {/* Action bar */}
             <div className="flex flex-col gap-2.5 mt-2">
-              <button 
-                onClick={handleSendHelp}
-                disabled={helpSubmitted}
-                className="w-full py-3.5 bg-[#3D5A45] hover:bg-[#2A3E31] disabled:opacity-50 active:scale-98 text-white font-extrabold rounded-2xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
-              >
-                {helpSubmitted ? (
-                  <span className="animate-pulse">Sending Help Offer...</span>
-                ) : (
-                  <>
-                    <span>✈️</span> Send My Help
-                  </>
-                )}
-              </button>
-              <a 
-                href="tel:+919876543210"
-                className="w-full py-3 border border-stone-200 hover:border-charcoal hover:bg-stone-50 active:scale-98 text-charcoal font-bold rounded-2xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer text-center"
-              >
-                <span>📞</span> Call Reporter
-              </a>
+              <div className="grid grid-cols-2 gap-2.5">
+                <a 
+                  href={`tel:${rawPhone}`}
+                  className="py-3 border border-stone-200 hover:border-charcoal hover:bg-stone-50 active:scale-98 text-charcoal font-bold rounded-2xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer text-center"
+                >
+                  <svg className="w-4 h-4 text-[#3D5A45] shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                  </svg>
+                  Call Reporter
+                </a>
+
+                {(() => {
+                  const selectedLabels = selectedHelpOptions.map(opt => {
+                    if (opt === 'vet') return 'Take to Vet';
+                    if (opt === 'transport') return 'Transport';
+                    if (opt === 'foster') return 'Foster Care';
+                    if (opt === 'support') return 'Support';
+                    return '';
+                  }).filter(Boolean).join(', ');
+
+                  const waText = `Hi, I saw your animal emergency request "${displayTitle || 'SOS'}" on Aumoha Circle. I want to offer help${selectedLabels ? ` with: ${selectedLabels}` : ''}!${helpMessage ? ` Message: ${helpMessage}` : ''}`;
+
+                  return (
+                    <a 
+                      href={`https://wa.me/${waPhone}?text=${encodeURIComponent(waText)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="py-3 border border-[#E8EFE9] bg-[#E8EFE9]/30 hover:border-[#2E7D32]/40 hover:bg-[#E8EFE9]/60 active:scale-98 text-[#2D4536] font-bold rounded-2xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer text-center"
+                    >
+                      <svg className="w-4 h-4 text-[#2E7D32] shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M21.3 3.7C19.1 1.5 16.2.3 13 .3 6.5.3 1.2 5.6 1.2 12.1c0 2.1.5 4.1 1.6 5.9L1 23.3l5.5-1.4c1.7 1 3.7 1.5 5.7 1.5 6.5 0 11.8-5.3 11.8-11.8 0-3.1-1.2-6.1-3.4-8.2zM13 21.6c-1.8 0-3.6-.5-5.1-1.4l-.4-.2-3.8 1 1-3.7-.2-.4c-1-1.6-1.6-3.5-1.6-5.4 0-5.5 4.5-10 10-10 2.7 0 5.2 1.1 7.1 3 1.9 1.9 2.9 4.4 2.9 7.1-.1 5.5-4.6 10-10.1 10zM18.4 15c-.3-.1-1.7-.9-2-1-.3-.1-.5-.1-.7.2-.2.3-.8 1-1 1.2-.2.2-.4.2-.7.1-.3-.1-1.2-.4-2.3-1.4-.9-.8-1.5-1.7-1.6-2-.2-.3 0-.5.1-.6s.3-.3.4-.5c.2-.2.2-.3.3-.5.1-.2 0-.4-.1-.5-.1-.1-.7-1.7-.9-2.3-.2-.6-.5-.5-.7-.5h-.7c-.2 0-.6.1-.9.4s-1 1-1 2.4c0 1.4 1 2.8 1.2 3 .1.2 2 3.1 4.9 4.3.7.3 1.2.5 1.7.6.7.2 1.3.2 1.8.1.6-.1 1.7-.7 2-1.3.3-.6.3-1.2.2-1.3s-.3-.2-.6-.3z"/>
+                      </svg>
+                      WhatsApp
+                    </a>
+                  );
+                })()}
+              </div>
             </div>
 
           </div>

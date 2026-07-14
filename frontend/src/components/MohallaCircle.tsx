@@ -1,17 +1,20 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { 
-  CircleMember, 
-  CommunityUpdate, 
-  CircleLeader, 
-  Partner, 
-  ImpactMetrics, 
-  MemberRole 
+import {
+  CircleMember,
+  CommunityUpdate,
+  CircleLeader,
+  Partner,
+  ImpactMetrics,
+  MemberRole
 } from '../types';
 import { getDistance, DistanceInfo } from '../lib/proximity';
 import { useAuth } from '../context/AuthContext';
 import SupportRequestDetail from './SupportRequestDetail';
+import MohallaNetwork from './MohallaNetwork';
+import MohallaUpdates from './MohallaUpdates';
+import BlogDetailView from './BlogDetailView';
 
 
 const formatTime = (dateStr: string) => {
@@ -81,7 +84,7 @@ const renderPartnerIcon = (type: string, size = 'w-7 h-7') => {
     case 'ngo':
       return (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className={`${size} text-[#2E7D32]`}>
-          <path d="M12 14c-1.66 0-3 1.34-3 3 0 2 2 3.5 3 4.5 1-1 3-2.5 3-4.5 0-1.66-1.34-3-3-3zm-4.5-2.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm9 0c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm-11-4C4.67 7.5 4 8.17 4 9s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5S6.33 7.5 5.5 7.5zm13 0c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zM12 2c-.83 0-1.5.67-1.5 1.5S11.17 5 12 5s1.5-.67 1.5-1.5S12.83 2 12 2z" fill="currentColor"/>
+          <path d="M12 14c-1.66 0-3 1.34-3 3 0 2 2 3.5 3 4.5 1-1 3-2.5 3-4.5 0-1.66-1.34-3-3-3zm-4.5-2.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm9 0c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm-11-4C4.67 7.5 4 8.17 4 9s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5S6.33 7.5 5.5 7.5zm13 0c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zM12 2c-.83 0-1.5.67-1.5 1.5S11.17 5 12 5s1.5-.67 1.5-1.5S12.83 2 12 2z" fill="currentColor" />
         </svg>
       );
     case 'shelter':
@@ -172,6 +175,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
     setActivityLocation('');
     setActivityDesc('');
     setShowActivityModal(false);
+    setActiveView('updates');
     alert('Community activity started successfully!');
   };
 
@@ -193,7 +197,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
       alert(isJoined ? `Left activity: ${title}` : `Joined activity: ${title}!`);
       return updated;
     });
-  };  const [deviceCoords, setDeviceCoords] = useState<[number, number] | null>(null);
+  }; const [deviceCoords, setDeviceCoords] = useState<[number, number] | null>(null);
   const [deviceAddress, setDeviceAddress] = useState<string>('');
 
   useEffect(() => {
@@ -254,10 +258,19 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
       setSelectedLocation(userAddress);
     }
   }, [userAddress, deviceAddress]);
-  
+
   // Navigation states for sub-screens
   const [selectedRequest, setSelectedRequest] = useState<CommunityUpdate | null>(null);
-  
+  const [selectedBlog, setSelectedBlog] = useState<CommunityUpdate | null>(null);
+
+  const handleSelectRequestOrBlog = (post: CommunityUpdate) => {
+    if (post.category === 'help') {
+      setSelectedRequest(post);
+    } else {
+      setSelectedBlog(post);
+    }
+  };
+
   // Maps instances
   const homeMapRef = useRef<any>(null);
   const membersMapRef = useRef<any>(null);
@@ -304,7 +317,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
     role: (u.role || 'normal') as MemberRole,
     location: u.address || 'Saheed Nagar',
     badge: u.role === 'rescuer' ? ('trusted' as const) : undefined,
-    joinedTime: u.createdAt 
+    joinedTime: u.createdAt
       ? Math.max(1, Math.round((Date.now() - new Date(u.createdAt).getTime()) / (1000 * 60 * 60 * 24))).toString()
       : '1'
   }));
@@ -339,8 +352,8 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
       avatar: user?.profilePic || '🚨',
       time: formatTime(r.createdAt),
       category: 'help' as const,
-      title: r.reason || 'Animal emergency reported',
-      description: r.description || r.reason || `SOS Alert: ${r.category} severity issue.`,
+      title: r.category ? (r.category.charAt(0).toUpperCase() + r.category.slice(1)) : 'Animal Emergency',
+      description: r.reason || r.description || `SOS Alert: ${r.category} severity issue.`,
       image: r.photo || '',
       location: r.location || 'Saheed Nagar',
       likes: 0,
@@ -433,11 +446,11 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
   // CDN Leaflet loading logic (checks if loaded, loads on demand, cleans up)
   const loadLeafletMap = (mapId: string, center: [number, number], pins: any[], setInstanceRef: any) => {
     const win = window as any;
-    
+
     const init = (L: any) => {
       const mapContainer = document.getElementById(mapId);
       if (!mapContainer) return;
-      
+
       // Cleanup previous map on the same element if it exists
       if (setInstanceRef.current) {
         try {
@@ -564,7 +577,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
         });
 
         const marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
-        
+
         marker.on('click', () => {
           if (pin.role === 'help_needed') {
             const req = computedUpdates.find(u => u.id === '1') || computedUpdates[0];
@@ -616,33 +629,9 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
           distance: u.distance
         }));
 
-      const activeMemberPins = computedMembers.map(m => ({
-        name: m.name,
-        avatar: m.avatar,
-        role: m.role,
-        lat: m.lat || centerCoords[0],
-        lng: m.lng || centerCoords[1],
-        distance: m.distance,
-        badge: m.badge
-      }));
-
-      const homePins = [...activeReportsPins, ...activeMemberPins];
+      const homePins = [...activeReportsPins];
       setTimeout(() => {
         loadLeafletMap('home-map', centerCoords, homePins, homeMapRef);
-      }, 100);
-    } else if (activeView === 'members') {
-      // Load Member Network Map (Screen 2)
-      const memberPins = computedMembers.map(m => ({
-        name: m.name,
-        avatar: m.avatar,
-        role: m.role,
-        lat: m.lat || centerCoords[0],
-        lng: m.lng || centerCoords[1],
-        distance: m.distance,
-        badge: m.badge
-      }));
-      setTimeout(() => {
-        loadLeafletMap('members-map', centerCoords, memberPins, membersMapRef);
       }, 100);
     }
 
@@ -653,158 +642,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
     };
   }, [activeView, selectedRequest, computedMembers, computedUpdates]);
 
-  // Shared component: Member Scroll/List Card
-  const renderMemberCard = (member: any) => {
-    const roleInfo = getRoleColors(member.role);
-    return (
-      <div 
-        key={member.id} 
-        className="bg-white border border-[#F0EBE1] rounded-2xl p-4 flex gap-4 items-center hover:shadow-md hover:border-[#3D5A45]/30 transition-all duration-300 cursor-pointer relative group shrink-0 w-[180px] select-none"
-        onClick={() => {
-          setActiveView('members');
-          setMemberFilter(member.role);
-        }}
-      >
-        <div className="flex flex-col items-center w-full text-center">
-          <div className="w-16 h-16 rounded-full overflow-hidden bg-gradient-to-br from-[#3D5A45]/5 to-[#B68A35]/5 border border-[#EBE3D5] flex items-center justify-center shadow-inner relative mb-2">
-            {member.avatar && member.avatar.startsWith('http') ? (
-              <img src={member.avatar} alt={member.name} className="w-full h-full object-cover" />
-            ) : (
-              renderRoleIcon(member.role, 'w-8 h-8')
-            )}
-            <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
-          </div>
-          <span className="text-xs font-bold text-charcoal truncate w-full">{member.name}</span>
-          <span className={`px-2 py-0.5 rounded text-[8px] font-extrabold uppercase mt-1 leading-none ${roleInfo.bg} ${roleInfo.text} border ${roleInfo.border}`}>
-            {roleInfo.label}
-          </span>
-          <span className="text-[10px] text-stone-500 font-bold mt-1.5 flex items-center gap-1">
-            <svg className="w-3 h-3 text-[#C85341] shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="10" r="3"/>
-              <path d="M12 21.7C12 21.7 4 14 4 10a8 8 0 0 1 16 0c0 4-8 11.7-8 11.7z"/>
-            </svg>
-            {member.distance}
-          </span>
-          {member.badge && (
-            <span className="text-[9px] font-bold text-[#B68A35] mt-1 italic">
-              {getBadgeText(member.badge)}
-            </span>
-          )}
-        </div>
-      </div>
-    );
-  };
 
-  // Shared component: Post card
-  const renderPostCard = (post: any) => {
-    const roleInfo = getRoleColors(post.authorRole);
-    return (
-      <div 
-        key={post.id} 
-        onClick={() => setSelectedRequest(post)}
-        className="bg-white border border-[#F0EBE1] rounded-[24px] p-5 flex flex-col gap-4 hover:shadow-md transition-all duration-300 group cursor-pointer"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-cream border border-[#F0EBE1] flex items-center justify-center shadow-inner shrink-0">
-              {post.avatar && post.avatar.startsWith('http') ? (
-                <img src={post.avatar} alt={post.author} className="w-full h-full rounded-full object-cover" />
-              ) : post.avatar === '🚨' ? (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-[#C85341] animate-pulse">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                  <line x1="12" y1="9" x2="12" y2="13" />
-                  <line x1="12" y1="17" x2="12.01" y2="17" />
-                </svg>
-              ) : (
-                renderRoleIcon(post.authorRole, 'w-5 h-5')
-              )}
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-charcoal">{post.author}</span>
-                <span className={`px-2 py-0.5 rounded text-[8px] font-extrabold uppercase leading-none ${roleInfo.bg} ${roleInfo.text} border ${roleInfo.border}`}>
-                  {roleInfo.label}
-                </span>
-              </div>
-              <span className="text-[10px] text-stone-400 font-semibold">{post.time}</span>
-            </div>
-          </div>
-          <button className="text-stone-400 hover:text-charcoal p-1">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>
-            </svg>
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="flex gap-4 items-start">
-          <div className="flex-1">
-            <h4 className="text-sm font-bold text-charcoal leading-snug group-hover:text-[#3D5A45] transition-colors">{post.title}</h4>
-            <p className="text-xs text-stone-600 font-medium leading-relaxed mt-1 text-ellipsis overflow-hidden line-clamp-3">
-              {post.description}
-            </p>
-          </div>
-          {post.image && (
-            <div className="w-20 h-20 rounded-xl overflow-hidden bg-stone-100 border border-[#F0EBE1] shrink-0 relative">
-              <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
-              <div className="absolute bottom-1 right-1 bg-black/60 px-1.5 py-0.5 rounded text-[8px] font-extrabold text-white flex items-center gap-1">
-                <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                  <circle cx="8.5" cy="8.5" r="1.5"/>
-                  <polyline points="21 15 16 10 5 21"/>
-                </svg>
-                2
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Meta / Actions Footer */}
-        <div className="flex items-center justify-between border-t border-[#F5F2EC] pt-3 text-[11px] text-stone-500 font-bold select-none">
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1 bg-[#FCFAF7] px-2 py-1 rounded-lg">
-              <svg className="w-3 h-3 text-[#C85341] shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="10" r="3"/>
-                <path d="M12 21.7C12 21.7 4 14 4 10a8 8 0 0 1 16 0c0 4-8 11.7-8 11.7z"/>
-              </svg>
-              {post.location}
-            </span>
-            <span className="text-[#3D5A45]">{post.distance}</span>
-            {['feeding', 'help', 'event'].includes(post.category) && (
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleJoinActivity(post.id, post.title);
-                }}
-                className={`px-2.5 py-0.5 rounded-lg text-[9px] font-extrabold transition-all ${
-                  joinedActivities.includes(post.id) 
-                    ? 'bg-[#E8F5E9] text-[#2E7D32] border border-[#C8E6C9]' 
-                    : 'bg-[#3D5A45] hover:bg-[#2A3E31] text-white'
-                }`}
-              >
-                {joinedActivities.includes(post.id) ? '✓ Joined' : 'Join Activity'}
-              </button>
-            )}
-          </div>
-          <div className="flex items-center gap-3">
-            <button className="flex items-center gap-1 hover:text-red-500 transition-colors">
-              <svg className="w-3.5 h-3.5 text-current shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-              </svg>
-              {post.likes}
-            </button>
-            <button className="flex items-center gap-1 hover:text-[#3D5A45] transition-colors">
-              <svg className="w-3.5 h-3.5 text-current shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-              </svg>
-              Comment
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   const renderEventGraphic = (id: string) => {
     switch (id) {
@@ -858,6 +696,18 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
     );
   }
 
+  // --- RENDER BLOG DETAIL SUB-PAGE ---
+  if (selectedBlog) {
+    return (
+      <BlogDetailView
+        selectedBlog={selectedBlog}
+        onBack={() => setSelectedBlog(null)}
+        joinedActivities={joinedActivities}
+        toggleJoinActivity={toggleJoinActivity}
+      />
+    );
+  }
+
   const renderChipIcon = (id: string) => {
     switch (id) {
       case 'all':
@@ -872,15 +722,15 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
       case 'feeder':
         return (
           <svg className="w-4 h-4 text-[#C85341]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-            <path d="M3 18c0-3 3-5 9-5s9 2 9 5H3z"/>
-            <path d="M12 6v3M9 7v2M15 7v2"/>
+            <path d="M3 18c0-3 3-5 9-5s9 2 9 5H3z" />
+            <path d="M12 6v3M9 7v2M15 7v2" />
           </svg>
         );
       case 'rescuer':
         return (
           <svg className="w-4 h-4 text-[#6A5ACD]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            <path d="M12 14.5l-2.4-2.4A1.7 1.7 0 0 1 12 9.7a1.7 1.7 0 0 1 2.4 2.4z"/>
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            <path d="M12 14.5l-2.4-2.4A1.7 1.7 0 0 1 12 9.7a1.7 1.7 0 0 1 2.4 2.4z" />
           </svg>
         );
       case 'volunteer':
@@ -895,15 +745,15 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
       case 'adopter':
         return (
           <svg className="w-4 h-4 text-[#B68A35]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-            <path d="M12 17v0c-1.5-1.5-2.5-2.5-2.5-3.5 0-1.1.9-2 2-2s2 .9 2 2c0 1-1 2-2 3.5z"/>
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <path d="M12 17v0c-1.5-1.5-2.5-2.5-2.5-3.5 0-1.1.9-2 2-2s2 .9 2 2c0 1-1 2-2 3.5z" />
           </svg>
         );
       case 'paravet':
         return (
           <svg className="w-4 h-4 text-[#7B1FA2]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
             <rect x="3" y="3" width="18" height="18" rx="5" />
-            <path d="M12 8v8M8 12h8"/>
+            <path d="M12 8v8M8 12h8" />
           </svg>
         );
       case 'lost':
@@ -920,13 +770,13 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
             <line x1="16" y1="2" x2="16" y2="6" />
             <line x1="8" y1="2" x2="8" y2="6" />
             <line x1="3" y1="10" x2="21" y2="10" />
-            <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/>
+            <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01" />
           </svg>
         );
       case 'help':
         return (
           <svg className="w-4 h-4 text-[#C85341]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-            <path d="M11 5L6 9H2v6h4l5 4V5zm8 7c0-2.21-1.29-4.13-3-5.06v10.12c1.71-.93 3-2.85 3-5.06z"/>
+            <path d="M11 5L6 9H2v6h4l5 4V5zm8 7c0-2.21-1.29-4.13-3-5.06v10.12c1.71-.93 3-2.85 3-5.06z" />
           </svg>
         );
       default:
@@ -949,7 +799,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
       avatarIcon = (
         <div className="w-full h-full bg-[#FCECE9] flex items-center justify-center text-[#C85341] shrink-0">
           <svg className="w-5 h-5 text-current" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-            <path d="M11 5L6 9H2v6h4l5 4V5zm8 7c0-2.21-1.29-4.13-3-5.06v10.12c1.71-.93 3-2.85 3-5.06z"/>
+            <path d="M11 5L6 9H2v6h4l5 4V5zm8 7c0-2.21-1.29-4.13-3-5.06v10.12c1.71-.93 3-2.85 3-5.06z" />
           </svg>
         </div>
       );
@@ -963,8 +813,8 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
       avatarIcon = (
         <div className="w-full h-full bg-[#FFF8E1] flex items-center justify-center text-[#B68A35] shrink-0">
           <svg className="w-5 h-5 text-current" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-            <path d="M12 17v0c-1.5-1.5-2.5-2.5-2.5-3.5 0-1.1.9-2 2-2s2 .9 2 2c0 1-1 2-2 3.5z"/>
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <path d="M12 17v0c-1.5-1.5-2.5-2.5-2.5-3.5 0-1.1.9-2 2-2s2 .9 2 2c0 1-1 2-2 3.5z" />
           </svg>
         </div>
       );
@@ -973,7 +823,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
         <div className="w-full h-full bg-[#F3E5F5] flex items-center justify-center text-[#7B1FA2] shrink-0">
           <svg className="w-5 h-5 text-current" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
             <rect x="3" y="3" width="18" height="18" rx="5" />
-            <path d="M12 8v8M8 12h8"/>
+            <path d="M12 8v8M8 12h8" />
           </svg>
         </div>
       );
@@ -985,20 +835,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
       );
     }
 
-    let badgeHtml = null;
-    if (isSos) {
-      badgeHtml = (
-        <div className="absolute bottom-0 right-0 w-4.5 h-4.5 bg-[#C85341] rounded-full border border-white flex items-center justify-center text-[10px] font-extrabold text-white shadow-xs">
-          !
-        </div>
-      );
-    } else if (isRescuer) {
-      badgeHtml = (
-        <div className="absolute bottom-0 right-0 w-4.5 h-4.5 bg-[#B68A35] rounded-full border border-white flex items-center justify-center text-[8px] text-white shadow-xs">
-          ★
-        </div>
-      );
-    }
+
 
     let infoColor = 'text-stone-500';
     if (isSos) infoColor = 'text-[#C85341]';
@@ -1008,15 +845,14 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
     else if (isEvent) infoColor = 'text-[#B68A35]';
 
     return (
-      <div 
+      <div
         key={post.id}
         onClick={() => setSelectedRequest(post)}
         className="bg-white border border-[#F0EBE1] hover:border-stone-300 rounded-[20px] p-3 flex items-center justify-between gap-3 hover:shadow-xs transition-all duration-300 cursor-pointer select-none"
       >
         <div className="flex items-center gap-3">
-          <div className="relative w-12 h-12 rounded-full overflow-hidden shrink-0 border border-stone-100 flex items-center justify-center bg-stone-50">
+          <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 border border-[#F0EBE1] flex items-center justify-center bg-stone-50 relative shadow-inner">
             {avatarIcon}
-            {badgeHtml}
           </div>
 
           <div className="flex flex-col">
@@ -1053,19 +889,19 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
       {/* TABS SELECTOR (Matches Header Style) */}
       <div className="w-full border-b border-[#F5F2EC] flex select-none text-xs font-bold text-stone-400">
         {[
-          { 
-            id: 'home', 
-            label: 'Home', 
+          {
+            id: 'home',
+            label: 'Home',
             icon: (
               <svg className="w-4 h-4 text-current" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                 <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                 <polyline points="9 22 9 12 15 12 15 22" />
               </svg>
-            ) 
+            )
           },
-          { 
-            id: 'members', 
-            label: 'Network', 
+          {
+            id: 'members',
+            label: 'Network',
             icon: (
               <svg className="w-4 h-4 text-current" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -1073,11 +909,11 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
                 <path d="M16 3.13a4 4 0 0 1 0 7.75" />
               </svg>
-            ) 
+            )
           },
-          { 
-            id: 'updates', 
-            label: 'Updates', 
+          {
+            id: 'updates',
+            label: 'Updates',
             icon: (
               <svg className="w-4 h-4 text-current" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                 <rect x="3" y="4" width="18" height="16" rx="2" />
@@ -1085,26 +921,25 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
                 <line x1="7" y1="12" x2="17" y2="12" />
                 <line x1="7" y1="16" x2="13" y2="16" />
               </svg>
-            ) 
+            )
           },
-          { 
-            id: 'impact', 
-            label: 'Impact', 
+          {
+            id: 'impact',
+            label: 'Impact',
             icon: (
               <svg className="w-4 h-4 text-current" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                 <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
               </svg>
-            ) 
+            )
           }
         ].map(t => (
           <button
             key={t.id}
             onClick={() => setActiveView(t.id as any)}
-            className={`flex-1 pb-3 text-center transition-all flex items-center justify-center gap-1.5 ${
-              activeView === t.id 
-                ? 'text-[#3D5A45] border-b-2 border-[#3D5A45]' 
+            className={`flex-1 pb-3 text-center transition-all flex items-center justify-center gap-1.5 ${activeView === t.id
+                ? 'text-[#3D5A45] border-b-2 border-[#3D5A45]'
                 : 'hover:text-charcoal border-b border-transparent'
-            }`}
+              }`}
           >
             {t.icon}
             <span>{t.label}</span>
@@ -1146,61 +981,26 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
       {/* ==================== 1. HOME VIEW (Screen 1) ==================== */}
       {activeView === 'home' && (
         <div className="w-full flex flex-col gap-6 animate-scaleIn">
-          
+
           {/* RADIUS MAP CARD */}
           <div className="bg-white border border-[#F0EBE1] rounded-[28px] p-4.5 shadow-sm flex flex-col gap-3">
             {/* Map Element */}
             <div id="home-map" className="h-64 w-full rounded-2xl bg-stone-50 border border-[#F0EBE1] overflow-hidden z-10" />
           </div>
 
-          {/* CHIPS FILTER SLIDER */}
-          <div className="flex gap-2 overflow-x-auto pb-1.5 pt-0.5 scrollbar-hide select-none">
-            {[
-              { id: 'all', label: 'All' },
-              { id: 'feeder', label: 'Feeders' },
-              { id: 'rescuer', label: 'Rescuers' },
-              { id: 'volunteer', label: 'Volunteers' },
-              { id: 'adopter', label: 'Adopters' },
-              { id: 'paravet', label: 'Paravets' },
-              { id: 'lost', label: 'Lost & Found' },
-              { id: 'event', label: 'Events' },
-              { id: 'help', label: 'Support Requests' }
-            ].map(chip => (
-              <button
-                key={chip.id}
-                onClick={() => {
-                  if (chip.id === 'lost' || chip.id === 'event' || chip.id === 'help') {
-                    setActiveView('updates');
-                    setUpdateFilter(chip.id);
-                  } else {
-                    setActiveView('members');
-                    setMemberFilter(chip.id as any);
-                  }
-                }}
-                className={`px-4 py-2 border rounded-full text-xs font-bold flex items-center gap-2 transition-all shadow-xs shrink-0 active:scale-95 ${
-                  chip.id === 'all'
-                    ? 'border-[#3D5A45] bg-[#E8EFE9]/40 text-[#2D4536]'
-                    : 'border-[#F5ECE8] bg-[#FDFBF8] text-stone-700 hover:border-stone-300'
-                }`}
-              >
-                {renderChipIcon(chip.id)}
-                <span>{chip.label}</span>
-              </button>
-            ))}
-          </div>
 
           {/* NEARBY ACTIVITY FEED LIST */}
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between px-1">
               <h3 className="text-sm font-bold text-charcoal">Nearby Activity</h3>
-              <button 
+              <button
                 onClick={() => setActiveView('updates')}
                 className="text-xs font-bold text-[#B68A35] flex items-center gap-0.5 hover:underline"
               >
                 View all <span>›</span>
               </button>
             </div>
-            
+
             <div className="flex flex-col gap-3">
               {computedUpdates.slice(0, 5).map(renderSimpleActivityCard)}
             </div>
@@ -1210,7 +1010,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
           <div className="flex flex-col gap-3">
             <h3 className="text-sm font-bold text-charcoal px-1">Quick Actions</h3>
             <div className="grid grid-cols-4 gap-3 select-none">
-              <button 
+              <button
                 onClick={() => setActiveTab?.('report')}
                 className="bg-[#FFF5F5] border border-[#FFE8E8] hover:scale-[1.02] transition-all rounded-[24px] p-3.5 flex flex-col items-center justify-between text-center min-h-[135px] shadow-xs group active:scale-98"
               >
@@ -1227,9 +1027,9 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
                 </div>
               </button>
 
-              <button 
+              <button
                 onClick={() => {
-                  alert('Opening Ask Neighbor Support helper...');
+                  setActiveView('members');
                 }}
                 className="bg-[#FFFBF2] border border-[#FDF0D5] hover:scale-[1.02] transition-all rounded-[24px] p-3.5 flex flex-col items-center justify-between text-center min-h-[135px] shadow-xs group active:scale-98"
               >
@@ -1247,7 +1047,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
                 </div>
               </button>
 
-              <button 
+              <button
                 onClick={() => {
                   setShowActivityModal(true);
                 }}
@@ -1266,7 +1066,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
                 </div>
               </button>
 
-              <button 
+              <button
                 onClick={() => {
                   setActiveView('updates');
                   setUpdateFilter('event');
@@ -1279,7 +1079,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
                     <line x1="16" y1="2" x2="16" y2="6" />
                     <line x1="8" y1="2" x2="8" y2="6" />
                     <line x1="3" y1="10" x2="21" y2="10" />
-                    <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/>
+                    <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01" />
                   </svg>
                 </div>
                 <div className="flex flex-col gap-1 mt-auto">
@@ -1296,110 +1096,14 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
 
       {/* ==================== 2. MEMBERS & NETWORK VIEW (Screen 2) ==================== */}
       {activeView === 'members' && (
-        <div className="w-full flex flex-col gap-6 animate-scaleIn">
-          
-          {/* STATS STRIP CARD */}
-          <div className="bg-white border border-[#F0EBE1] rounded-[24px] p-4 shadow-sm flex items-center justify-between text-center divide-x divide-stone-100 select-none">
-            <div className="flex-1 flex flex-col items-center">
-              <span className="text-[11px] uppercase tracking-wider font-extrabold text-stone-400">Total Members</span>
-              <span className="text-xl font-bold text-charcoal mt-1">{computedMembers.length}</span>
-            </div>
-            <div className="flex-1 flex flex-col items-center">
-              <span className="text-[11px] uppercase tracking-wider font-extrabold text-stone-400">Rescuers</span>
-              <span className="text-xl font-bold text-[#3D5A45] mt-1">{computedMembers.filter(m => m.role === 'rescuer').length}</span>
-            </div>
-            <div className="flex-1 flex flex-col items-center">
-              <span className="text-[11px] uppercase tracking-wider font-extrabold text-stone-400">Active SOS</span>
-              <span className="text-xl font-bold text-[#B68A35] mt-1">{dbSosReports.filter(r => r.status === 'active').length}</span>
-            </div>
-          </div>
-
-          {/* MEMBER ROLE SLIDE FILTERS */}
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide select-none">
-            {(['all', 'feeder', 'rescuer', 'volunteer', 'paravet', 'adopter'] as MemberRole[]).map(role => {
-              const roleInfo = getRoleColors(role);
-              const count = role === 'all' ? computedMembers.length : computedMembers.filter(m => m.role === role).length;
-              return (
-                <button
-                  key={role}
-                  onClick={() => setMemberFilter(role)}
-                  className={`px-4 py-2 border rounded-full text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm shrink-0 active:scale-95 ${
-                    memberFilter === role 
-                      ? 'bg-[#3D5A45] text-white border-[#3D5A45]' 
-                      : 'bg-white border-[#F0EBE1] text-stone-600 hover:border-stone-300'
-                  }`}
-                >
-                  <span>{roleInfo.icon}</span>
-                  {role === 'all' ? 'All Members' : roleInfo.label}
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ml-1 ${
-                    memberFilter === role ? 'bg-white/20 text-white' : 'bg-stone-100 text-stone-500'
-                  }`}>
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* CORE CONTRIBUTORS ROW (Horizontal scroll) */}
-          <div className="flex flex-col gap-3">
-            <div>
-              <h3 className="text-sm font-bold text-charcoal px-1">Core Contributors</h3>
-              <p className="text-[10px] text-stone-400 px-1 font-semibold leading-none mt-0.5">Trusted & Experienced members nearby</p>
-            </div>
-            <div className="flex gap-4 overflow-x-auto pb-2 pt-1 scrollbar-hide">
-              {computedMembers
-                .filter(m => m.badge === 'trusted' || m.badge === 'level5' || m.badge === 'level4')
-                .map(renderMemberCard)}
-            </div>
-          </div>
-
-          {/* RECENT JOINERS ROW */}
-          <div className="flex flex-col gap-3">
-            <div>
-              <h3 className="text-sm font-bold text-charcoal px-1">Recent Joiners</h3>
-              <p className="text-[10px] text-stone-400 px-1 font-semibold leading-none mt-0.5">Welcoming new helpers to the circle</p>
-            </div>
-            <div className="flex gap-4 overflow-x-auto pb-2 pt-1 scrollbar-hide">
-              {computedMembers
-                .slice()
-                .sort((a, b) => parseInt(a.joinedTime || '0') - parseInt(b.joinedTime || '0'))
-                .map(m => (
-                  <div 
-                    key={m.id}
-                    className="bg-white border border-[#F0EBE1] rounded-2xl p-4 flex flex-col items-center text-center w-[130px] shrink-0 hover:shadow-md transition-all duration-300 select-none cursor-pointer"
-                  >
-                    <div className="w-12 h-12 rounded-full overflow-hidden bg-stone-50 border border-stone-200 flex items-center justify-center relative shadow-inner mb-1.5 shrink-0">
-                      {m.avatar && (m.avatar.startsWith('http') || m.avatar.startsWith('/')) ? (
-                        <img src={m.avatar} alt={m.name} className="w-full h-full object-cover" />
-                      ) : (
-                        renderRoleIcon(m.role, 'w-6 h-6')
-                      )}
-                      <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border border-white"></span>
-                    </div>
-                    <span className="text-xs font-bold text-charcoal truncate w-full">{m.name}</span>
-                    <span className="text-[9px] font-bold text-stone-400 uppercase leading-none mt-0.5">{getRoleColors(m.role).label}</span>
-                    <span className="text-[8px] font-extrabold text-[#3D5A45] mt-1.5 leading-none bg-[#E8EFE9] px-1.5 py-0.5 rounded border border-[#C8E6C9]">
-                      Joined {m.joinedTime}d ago
-                    </span>
-                  </div>
-                ))}
-            </div>
-          </div>
-
-          {/* NETWORK MAP CARD */}
-          <div className="bg-white border border-[#F0EBE1] rounded-[28px] p-4.5 shadow-sm flex flex-col gap-3">
-            <div id="members-map" className="h-56 w-full rounded-2xl bg-stone-50 border border-[#F0EBE1] overflow-hidden z-10" />
-          </div>
-
-        </div>
+        <MohallaNetwork computedMembers={computedMembers} dbSosReports={dbSosReports} />
       )}
 
 
       {/* ==================== 3. MOHALLA IMPACT VIEW (Screen 3) ==================== */}
       {activeView === 'impact' && (
         <div className="w-full flex flex-col gap-6 animate-scaleIn">
-          
+
           {/* STATS TILES CARD */}
           <div className="bg-white border border-[#F0EBE1] rounded-[28px] p-6 shadow-sm flex flex-col gap-4">
             <div className="flex items-center justify-between">
@@ -1441,7 +1145,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
               <div className="flex flex-col items-center">
                 <span className="mb-1 flex items-center justify-center w-8 h-8 rounded-full bg-[#FFF3E0] border border-[#FFE0B2] text-[#E65100]">
                   <svg className="w-4 h-4 text-current" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="4"/><path d="M16 8v0a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2M12 5v14M5 12h14"/>
+                    <circle cx="12" cy="12" r="4" /><path d="M16 8v0a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2M12 5v14M5 12h14" />
                   </svg>
                 </span>
                 <span className="text-sm font-bold text-[#E65100] mt-1.5">{dbSosReports.filter(r => r.status === 'dispatched').length}</span>
@@ -1461,7 +1165,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
                   <span className="text-stone-500 text-[10px] font-semibold leading-normal">Keep going, you're helping build a kinder Mohalla.</span>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => alert('Sharing impact dashboard to social media...')}
                 className="text-[10px] font-extrabold text-[#3D5A45] hover:text-[#2A3E31] flex items-center gap-1 bg-white border border-[#EBE3D5] px-2.5 py-1.5 rounded-lg active:scale-95 transition-all shadow-sm"
               >
@@ -1473,21 +1177,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
             </div>
           </div>
 
-          {/* ACTIVE MEMBERS NEARBY SECTION */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between px-1">
-              <h3 className="text-sm font-bold text-charcoal">Active Members Nearby</h3>
-              <button 
-                onClick={() => { setActiveView('members'); setMemberFilter('all'); }}
-                className="text-xs font-bold text-[#B68A35] hover:underline"
-              >
-                View all members <span>›</span>
-              </button>
-            </div>
-            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-              {computedMembers.map(renderMemberCard)}
-            </div>
-          </div>
+
 
 
 
@@ -1504,7 +1194,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
                 </p>
               </div>
             </div>
-            
+
             {/* Donation Options Row */}
             <div className="grid grid-cols-3 gap-2.5 mt-1">
               {[
@@ -1512,7 +1202,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
                 { amount: '₹1,500', desc: 'Rescue Transport' },
                 { amount: '₹5,000', desc: 'Monthly Feeding' }
               ].map((opt, i) => (
-                <button 
+                <button
                   key={i}
                   onClick={() => alert(`Thank you! Directing to donation for ${opt.amount} (${opt.desc})...`)}
                   className="bg-white hover:bg-[#3D5A45]/5 hover:border-[#3D5A45] border border-[#EBE3D5] rounded-2xl py-3 px-2 flex flex-col items-center justify-center text-center transition-all cursor-pointer group active:scale-95 shadow-sm"
@@ -1527,13 +1217,13 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
             <div className="flex gap-2 items-center mt-1">
               <div className="relative flex-grow">
                 <span className="absolute inset-y-0 left-3 flex items-center text-xs font-bold text-stone-400 select-none">₹</span>
-                <input 
+                <input
                   type="number"
                   placeholder="Other amount"
                   className="w-full bg-white border border-[#EBE3D5] rounded-xl py-2 pl-6 pr-3 text-xs text-charcoal outline-none focus:border-[#3D5A45] transition-all font-semibold"
                 />
               </div>
-              <button 
+              <button
                 onClick={() => alert('Processing donation payment... (Ready for integration)')}
                 className="bg-[#3D5A45] hover:bg-[#2A3E31] text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all shadow-sm active:scale-95 whitespace-nowrap"
               >
@@ -1551,7 +1241,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
                 <span className="text-stone-600 text-[10px] md:text-xs font-semibold leading-normal">Your actions today create a safer, happier tomorrow for animals.</span>
               </div>
             </div>
-            <button 
+            <button
               onClick={() => alert('Opening neighbor invite link share...')}
               className="px-4 py-2 bg-[#3D5A45] hover:bg-[#2A3E31] active:scale-95 text-white text-[11px] font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-sm shrink-0"
             >
@@ -1565,94 +1255,28 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
 
       {/* ==================== 4. COMMUNITY UPDATES VIEW (Screen 4) ==================== */}
       {activeView === 'updates' && (
-        <div className="w-full flex flex-col gap-6 animate-scaleIn">
-          
-          {/* UPDATES CATEGORIES ROW FILTERS */}
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide select-none">
-            {[
-              { id: 'all', icon: '🎛️', label: 'All Updates' },
-              { id: 'help', icon: '🆘', label: 'Help & Rescue' },
-              { id: 'feeding', icon: '🥣', label: 'Feeding' },
-              { id: 'event', icon: '📅', label: 'Events' },
-              { id: 'awareness', icon: '🎓', label: 'Awareness' },
-              { id: 'lost', icon: '🔍', label: 'Lost & Found' }
-            ].map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => setUpdateFilter(cat.id)}
-                className={`px-4 py-2 border rounded-full text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm shrink-0 active:scale-95 ${
-                  updateFilter === cat.id 
-                    ? 'bg-[#3D5A45] text-white border-[#3D5A45]' 
-                    : 'bg-white border-[#F0EBE1] text-stone-600 hover:border-stone-300'
-                }`}
-              >
-                <span>{cat.icon}</span>
-                {cat.label}
-              </button>
-            ))}
-          </div>
-
-
-
-          {/* UPDATES FEED LIST */}
-          <div className="flex flex-col gap-4">
-            {computedUpdates
-              .filter(u => updateFilter === 'all' || u.category === updateFilter)
-              .map(renderPostCard)}
-          </div>
-
-          {/* PROMO BANNER CAROUSEL MOCKUP */}
-          <div className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-[28px] p-5 shadow-sm relative overflow-hidden flex flex-col md:flex-row gap-4 items-center justify-between select-none">
-            <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 bg-rose-50 border border-rose-100 rounded-2xl flex items-center justify-center text-2xl text-rose-500 shrink-0">
-                📣
-              </div>
-              <div className="min-w-0">
-                <span className="text-xs font-extrabold text-charcoal block">Awareness Drive This Sunday</span>
-                <span className="text-[10px] text-stone-500 font-semibold block leading-normal mt-0.5">Join our "Be Kind to Animals" street awareness drive.</span>
-              </div>
-            </div>
-            
-            <button 
-              onClick={() => alert('Showing Awareness Drive details...')}
-              className="px-3.5 py-1.5 bg-[#C85341] hover:bg-[#B04535] text-white text-[10px] font-bold rounded-lg transition-all shadow-sm shrink-0"
-            >
-              View Details
-            </button>
-            
-            {/* Carousel dots indicator */}
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#C85341]"></span>
-              <span className="w-1.5 h-1.5 rounded-full bg-stone-300"></span>
-              <span className="w-1.5 h-1.5 rounded-full bg-stone-300"></span>
-            </div>
-          </div>
-
-        </div>
+        <MohallaUpdates
+          computedUpdates={computedUpdates}
+          setSelectedRequest={handleSelectRequestOrBlog}
+          joinedActivities={joinedActivities}
+          toggleJoinActivity={toggleJoinActivity}
+          updateFilter={updateFilter}
+          setUpdateFilter={setUpdateFilter}
+        />
       )}
 
-      {/* FIXED INVITE BUTTON ON UPDATES/MAP SCREENS (Matching screen 3) */}
-      {(activeView === 'updates' || activeView === 'members') && (
-        <div className="fixed bottom-28 right-4 z-50">
-          <button 
-            onClick={() => alert('Opening neighbor invite link share...')}
-            className="bg-[#3D5A45] hover:bg-[#2A3E31] active:scale-95 text-white rounded-full px-4 py-3 font-extrabold shadow-lg flex items-center gap-2 text-xs transition-all duration-200 border border-white/10"
-          >
-            <span>👥</span> Invite Neighbors
-          </button>
-        </div>
-      )}
+
 
       {/* --- START COMMUNITY ACTIVITY MODAL --- */}
       {showActivityModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-end md:items-center justify-center px-4 transition-all">
-          <form 
+          <form
             onSubmit={handleCreateActivity}
             className="bg-white w-full max-w-lg rounded-t-[32px] md:rounded-[32px] p-6 shadow-2xl flex flex-col gap-5 max-h-[90vh] overflow-y-auto animate-scaleIn select-none"
           >
             {/* Header */}
             <div className="flex justify-between items-center border-b border-[#F0EBE1] pb-3.5">
-              <button 
+              <button
                 type="button"
                 onClick={() => setShowActivityModal(false)}
                 className="w-8 h-8 rounded-full border border-stone-200 flex items-center justify-center hover:bg-stone-50 active:scale-90"
@@ -1660,13 +1284,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
                 ←
               </button>
               <h3 className="font-serif text-lg text-charcoal font-semibold">Start Community Activity</h3>
-              <button 
-                type="button"
-                onClick={() => setShowActivityModal(false)}
-                className="w-8 h-8 rounded-full border border-stone-200 flex items-center justify-center hover:bg-rose-50 hover:text-red-500 active:scale-90 text-sm font-semibold"
-              >
-                ✕
-              </button>
+              <div className="w-8 h-8 pointer-events-none" />
             </div>
 
             {/* Inputs */}
@@ -1675,30 +1293,66 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
                 <label className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Activity Category</label>
                 <div className="grid grid-cols-4 gap-2">
                   {[
-                    { id: 'feeding', label: '🥣 Feeding' },
-                    { id: 'help', label: '🆘 Rescue' },
-                    { id: 'event', label: '📅 Event' },
-                    { id: 'awareness', label: '🎓 Info' }
-                  ].map(cat => (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => setActivityCategory(cat.id as any)}
-                      className={`py-2 rounded-xl text-xs font-bold border transition-all ${
-                        activityCategory === cat.id 
-                          ? 'bg-[#3D5A45] border-[#3D5A45] text-white' 
-                          : 'bg-white border-[#F0EBE1] text-stone-600 hover:border-stone-300'
-                      }`}
-                    >
-                      {cat.label}
-                    </button>
-                  ))}
+                    { id: 'feeding', label: 'Feeding' },
+                    { id: 'help', label: 'Help & Rescue' },
+                    { id: 'event', label: 'Events' },
+                    { id: 'awareness', label: 'Awareness' }
+                  ].map(cat => {
+                    const isSelected = activityCategory === cat.id;
+                    let icon;
+                    if (cat.id === 'feeding') {
+                      icon = (
+                        <svg className="w-3.5 h-3.5 text-current" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                          <path d="M3 18c0-3 3-5 9-5s9 2 9 5H3z"/>
+                          <path d="M12 6v3M9 7v2M15 7v2"/>
+                        </svg>
+                      );
+                    } else if (cat.id === 'help') {
+                      icon = (
+                        <svg className="w-3.5 h-3.5 text-current" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                          <line x1="12" y1="9" x2="12" y2="13" />
+                          <line x1="12" y1="17" x2="12.01" y2="17" />
+                        </svg>
+                      );
+                    } else if (cat.id === 'event') {
+                      icon = (
+                        <svg className="w-3.5 h-3.5 text-current" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                          <line x1="16" y1="2" x2="16" y2="6" />
+                          <line x1="8" y1="2" x2="8" y2="6" />
+                          <line x1="3" y1="10" x2="21" y2="10" />
+                        </svg>
+                      );
+                    } else {
+                      icon = (
+                        <svg className="w-3.5 h-3.5 text-current" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                        </svg>
+                      );
+                    }
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => setActivityCategory(cat.id as any)}
+                        className={`py-2.5 rounded-xl text-[10px] md:text-xs font-bold border transition-all flex items-center justify-center gap-1.5 active:scale-95 ${isSelected
+                            ? 'bg-[#3D5A45] border-[#3D5A45] text-white shadow-xs'
+                            : 'bg-white border-[#F0EBE1] text-stone-600 hover:border-stone-300'
+                          }`}
+                      >
+                        {icon}
+                        <span>{cat.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
               <div className="flex flex-col gap-1.5">
                 <label className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Activity Title</label>
-                <input 
+                <input
                   type="text"
                   placeholder="e.g. Stray Vaccination Drive Sector 4"
                   value={activityTitle}
@@ -1709,7 +1363,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
 
               <div className="flex flex-col gap-1.5">
                 <label className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Location / Venue</label>
-                <input 
+                <input
                   type="text"
                   placeholder="e.g. Sector 4 Community Park"
                   value={activityLocation}
@@ -1720,7 +1374,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
 
               <div className="flex flex-col gap-1.5">
                 <label className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Description</label>
-                <textarea 
+                <textarea
                   rows={3}
                   placeholder="Tell neighbors what this activity is, how they can join, or what supplies are needed..."
                   value={activityDesc}
@@ -1732,14 +1386,14 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
 
             {/* Actions */}
             <div className="flex gap-3 mt-2">
-              <button 
+              <button
                 type="button"
                 onClick={() => setShowActivityModal(false)}
                 className="flex-1 py-3 bg-[#FCFAF7] border border-[#F0EBE1] hover:border-stone-300 text-stone-600 font-bold rounded-2xl text-xs active:scale-95 transition-all"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 type="submit"
                 className="flex-1 py-3 bg-[#3D5A45] hover:bg-[#2A3E31] text-white font-bold rounded-2xl text-xs active:scale-95 transition-all shadow-md shadow-[#3D5A45]/15"
               >
@@ -1750,6 +1404,133 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
         </div>
       )}
 
+      {/* Floating Action Button (FAB) for starting community activity (visible on Updates page only) */}
+      {activeView === 'updates' && (
+        <DraggableFAB onTrigger={() => setShowActivityModal(true)} />
+      )}
+
+    </div>
+  );
+}
+
+interface DraggableFABProps {
+  onTrigger: () => void;
+}
+
+function DraggableFAB({ onTrigger }: DraggableFABProps) {
+  const [position, setPosition] = useState({ x: -1, y: -1 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartPos = useRef({ x: 0, y: 0 });
+  const elementStartPos = useRef({ x: 0, y: 0 });
+  const hasMoved = useRef(false);
+
+  // Helper to calculate content boundaries dynamically based on layout
+  const getContentBounds = () => {
+    const screenWidth = window.innerWidth;
+    const contentWidth = Math.min(screenWidth, 672);
+    // px-4 padding on wrapper means 16px inset
+    const leftBoundary = (screenWidth - contentWidth) / 2 + 16;
+    const rightBoundary = screenWidth - (screenWidth - contentWidth) / 2 - 16;
+    return { leftBoundary, rightBoundary, contentWidth };
+  };
+
+  useEffect(() => {
+    const updatePosition = () => {
+      const { rightBoundary } = getContentBounds();
+      setPosition({
+        x: rightBoundary - 56, // Snap to right edge of content
+        y: window.innerHeight - 160 // Above tab bar
+      });
+    };
+
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    return () => window.removeEventListener('resize', updatePosition);
+  }, []);
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    setIsDragging(true);
+    hasMoved.current = false;
+    dragStartPos.current = { x: e.clientX, y: e.clientY };
+    elementStartPos.current = { x: position.x, y: position.y };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+    const dx = e.clientX - dragStartPos.current.x;
+    const dy = e.clientY - dragStartPos.current.y;
+
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+      hasMoved.current = true;
+    }
+
+    let newX = elementStartPos.current.x + dx;
+    let newY = elementStartPos.current.y + dy;
+
+    const { leftBoundary, rightBoundary } = getContentBounds();
+    const buttonSize = 56;
+
+    // Constrain X to stay within content bounds
+    newX = Math.max(leftBoundary, Math.min(rightBoundary - buttonSize, newX));
+    // Constrain Y to stay within viewport bounds
+    newY = Math.max(16, Math.min(window.innerHeight - buttonSize - 16, newY));
+
+    setPosition({ x: newX, y: newY });
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    e.currentTarget.releasePointerCapture(e.pointerId);
+
+    if (!hasMoved.current) {
+      onTrigger();
+      return;
+    }
+
+    // Snap to the left or right side of the centered content area
+    const { leftBoundary, rightBoundary, contentWidth } = getContentBounds();
+    const buttonSize = 56;
+    const midPoint = leftBoundary + (contentWidth - 32) / 2;
+    const currentX = position.x;
+
+    let targetX = leftBoundary; // Snap to left side of content
+    if (currentX + buttonSize / 2 > midPoint) {
+      targetX = rightBoundary - buttonSize; // Snap to right side of content
+    }
+
+    setPosition(prev => ({
+      x: targetX,
+      y: prev.y
+    }));
+  };
+
+  const style: React.CSSProperties = {
+    position: 'fixed',
+    left: position.x >= 0 ? `${position.x}px` : 'auto',
+    top: position.y >= 0 ? `${position.y}px` : 'auto',
+    right: position.x >= 0 ? 'auto' : '16px',
+    bottom: position.y >= 0 ? 'auto' : '160px',
+    zIndex: 1900,
+    touchAction: 'none',
+    transition: isDragging ? 'none' : 'left 0.3s cubic-bezier(0.19, 1, 0.22, 1), top 0.3s cubic-bezier(0.19, 1, 0.22, 1)'
+  };
+
+  return (
+    <div
+      style={style}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      className={`w-14 h-14 rounded-full bg-[#3D5A45] hover:bg-[#2D4536] text-white flex items-center justify-center shadow-lg cursor-grab active:cursor-grabbing transition-all select-none hover:scale-105 active:scale-95 ${
+        isDragging ? 'shadow-2xl scale-105' : 'shadow-md'
+      }`}
+    >
+      <svg className="w-6 h-6 text-white stroke-[2.5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <line x1="12" y1="5" x2="12" y2="19" />
+        <line x1="5" y1="12" x2="19" y2="12" />
+      </svg>
     </div>
   );
 }
