@@ -62,15 +62,17 @@ const CATEGORY_CONFIGS: Record<string, {
   filterGroup: 'Wellness' | 'Behaviour' | 'Therapy' | 'Holistic';
   bgGradient: string;
   icon: React.ReactNode;
+  cardPhoto: string;
 }> = {
   'Nutritionist': {
-    title: 'Nutritionists',
+    title: 'Nutritionist',
     subtitle: 'Custom diet formulation & healthy meal planning',
     subFilters: ['Puppy Diet', 'Weight Management', 'Raw Feeding', 'Available Today'],
     color: 'text-emerald-700 bg-emerald-50 border-emerald-100',
     bgGradient: 'from-emerald-500/10 to-emerald-600/5',
     desc: 'Balanced diet plans for better health.',
     filterGroup: 'Wellness',
+    cardPhoto: 'https://res.cloudinary.com/vlcokfmq/image/upload/v1784019787/aumoha_expert_support/ywzf883iewtc7rnnsfyv.jpg',
     icon: (
       <svg className="w-5 h-5 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 2L2 7l10 5 10-5-10-5z" />
@@ -79,13 +81,14 @@ const CATEGORY_CONFIGS: Record<string, {
     )
   },
   'Animal Behaviourist': {
-    title: 'Animal Behaviourists',
+    title: 'Animal Behaviourist',
     subtitle: 'Canine & feline behavior rehabilitation',
     subFilters: ['Aggression', 'Separation Anxiety', 'Phobias', 'Available Today'],
     color: 'text-blue-700 bg-blue-50 border-blue-100',
     bgGradient: 'from-blue-500/10 to-blue-600/5',
     desc: 'Understand behaviour & build better bonds.',
     filterGroup: 'Behaviour',
+    cardPhoto: 'https://res.cloudinary.com/vlcokfmq/image/upload/v1784019788/aumoha_expert_support/rbczdeb61xcztdwmpki2.jpg',
     icon: (
       <svg className="w-5 h-5 text-blue-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -95,13 +98,14 @@ const CATEGORY_CONFIGS: Record<string, {
     )
   },
   'Trainer': {
-    title: 'Professional Trainers',
+    title: 'Trainer',
     subtitle: 'Obedience foundation & trick training',
     subFilters: ['Puppy Training', 'Basic Obedience', 'Leash Pulling', 'Available Today'],
     color: 'text-amber-700 bg-amber-50 border-amber-100',
     bgGradient: 'from-amber-500/10 to-amber-600/5',
     desc: 'Positive training for obedience & skills.',
     filterGroup: 'Behaviour',
+    cardPhoto: 'https://res.cloudinary.com/vlcokfmq/image/upload/v1784019790/aumoha_expert_support/wdocdb3tnafvgaxtte6x.jpg',
     icon: (
       <svg className="w-5 h-5 text-amber-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -110,13 +114,14 @@ const CATEGORY_CONFIGS: Record<string, {
     )
   },
   'Behaviourist': {
-    title: 'Behaviour Specialists',
+    title: 'Behaviourist',
     subtitle: 'Desensitization and confidence building',
     subFilters: ['Fear Desensitization', 'Socialization', 'Hyperactivity', 'Available Today'],
     color: 'text-indigo-700 bg-indigo-50 border-indigo-100',
     bgGradient: 'from-indigo-500/10 to-indigo-600/5',
     desc: 'Address behavioural challenges.',
     filterGroup: 'Behaviour',
+    cardPhoto: 'https://res.cloudinary.com/vlcokfmq/image/upload/v1784019792/aumoha_expert_support/mcs2brh0gm4ykaypvov0.jpg',
     icon: (
       <svg className="w-5 h-5 text-indigo-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -124,13 +129,14 @@ const CATEGORY_CONFIGS: Record<string, {
     )
   },
   'Physiotherapist': {
-    title: 'Physiotherapists',
+    title: 'Physiotherapist',
     subtitle: 'Muscle recovery, senior comfort & massage',
     subFilters: ['Mobility', 'Injury Recovery', 'Senior Care', 'Post-Surgery'],
     color: 'text-orange-700 bg-orange-50 border-orange-100',
     bgGradient: 'from-orange-500/10 to-orange-600/5',
     desc: 'Pain relief, mobility & recovery care.',
     filterGroup: 'Therapy',
+    cardPhoto: 'https://res.cloudinary.com/vlcokfmq/image/upload/v1784019793/aumoha_expert_support/ahskzh7rlx4pzlgoqu8m.jpg',
     icon: (
       <svg className="w-5 h-5 text-orange-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -139,13 +145,14 @@ const CATEGORY_CONFIGS: Record<string, {
     )
   },
   'Wellness & Palliative': {
-    title: 'Wellness & Palliative Care',
+    title: 'Wellness & Palliative',
     subtitle: 'Senior care guidance & comfort therapy',
     subFilters: ['Hospice Setup', 'Pain Relief', 'Senior Wellness', 'Available Today'],
     color: 'text-rose-700 bg-rose-50 border-rose-100',
     bgGradient: 'from-rose-500/10 to-rose-600/5',
     desc: 'Comfort, quality & holistic support.',
     filterGroup: 'Wellness',
+    cardPhoto: 'https://res.cloudinary.com/vlcokfmq/image/upload/v1784019794/aumoha_expert_support/bv6mi2vtluyg7gwptprh.jpg',
     icon: (
       <svg className="w-5 h-5 text-rose-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10" />
@@ -155,13 +162,14 @@ const CATEGORY_CONFIGS: Record<string, {
     )
   },
   'Homeopathy Vet': {
-    title: 'Homeopathic Consultants',
+    title: 'Homeopathy Vet',
     subtitle: 'Natural remedies and organic treatments',
     subFilters: ['Chronic Issues', 'Herbal Treatment', 'Holistic Wellness'],
     color: 'text-lime-700 bg-lime-50 border-lime-100',
     bgGradient: 'from-lime-500/10 to-lime-600/5',
     desc: 'Natural healing with gentle care.',
     filterGroup: 'Holistic',
+    cardPhoto: 'https://res.cloudinary.com/vlcokfmq/image/upload/v1784019903/aumoha_expert_support/b0ri3ijespu3gksqvwbw.jpg',
     icon: (
       <svg className="w-5 h-5 text-lime-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
@@ -169,13 +177,14 @@ const CATEGORY_CONFIGS: Record<string, {
     )
   },
   'Rehab Specialist': {
-    title: 'Rehabilitation Specialists',
+    title: 'Rehab Specialist',
     subtitle: 'Post-injury therapeutic recoveries',
     subFilters: ['Joint Therapy', 'Laser Therapy', 'Post-Surgery Recovery'],
     color: 'text-cyan-700 bg-cyan-50 border-cyan-100',
     bgGradient: 'from-cyan-500/10 to-cyan-600/5',
     desc: 'Rehabilitation for injuries & surgeries.',
     filterGroup: 'Therapy',
+    cardPhoto: 'https://res.cloudinary.com/vlcokfmq/image/upload/v1784019904/aumoha_expert_support/lkoqkkm0xa55bswrlfvw.jpg',
     icon: (
       <svg className="w-5 h-5 text-cyan-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
@@ -185,13 +194,14 @@ const CATEGORY_CONFIGS: Record<string, {
     )
   },
   'At-Home Support': {
-    title: 'At-Home Support assistants',
+    title: 'At-Home Support',
     subtitle: 'Nursing care, medication assistance & grooming support',
     subFilters: ['Medication Assist', 'Basic Nursing', 'Elderly Care', 'Available Today'],
     color: 'text-purple-700 bg-purple-50 border-purple-100',
     bgGradient: 'from-purple-500/10 to-purple-600/5',
     desc: 'Expert care in the comfort of home.',
     filterGroup: 'Wellness',
+    cardPhoto: 'https://res.cloudinary.com/vlcokfmq/image/upload/v1784019905/aumoha_expert_support/vcwda726nraodgj3txop.jpg',
     icon: (
       <svg className="w-5 h-5 text-purple-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
@@ -200,13 +210,14 @@ const CATEGORY_CONFIGS: Record<string, {
     )
   },
   'Communicator/Psychotherapist/Reiki Healing': {
-    title: 'Communicators & Reiki Healers',
+    title: 'Communicator / Psychotherapist / Reiki Healing',
     subtitle: 'Telepathic consultations & spiritual distance healing',
     subFilters: ['Reiki Healing', 'Grief Counseling', 'Energy Balance', 'Available Today'],
     color: 'text-fuchsia-700 bg-fuchsia-50 border-fuchsia-100',
     bgGradient: 'from-fuchsia-500/10 to-fuchsia-600/5',
     desc: 'Telepathic bonds & spiritual energy healing.',
     filterGroup: 'Holistic',
+    cardPhoto: 'https://res.cloudinary.com/vlcokfmq/image/upload/v1784019907/aumoha_expert_support/jzy0mfkjnyfjd4bkjj0v.jpg',
     icon: (
       <svg className="w-5 h-5 text-fuchsia-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
@@ -433,19 +444,36 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
 
       {/* ==================== SCREEN 1: EXPERT SUPPORT HOME ==================== */}
       {currentView === 'home' && (
-        <div className="flex flex-col gap-5 w-full animate-fadeIn">
+        <div className="flex flex-col gap-6 w-full animate-fadeIn relative">
           
-          {/* SEARCH BAR + FILTER */}
-          <div className="flex gap-2 w-full">
+          {/* Leaf shadow ambient header backdrop */}
+          <div className="absolute right-0 top-0 w-64 h-64 opacity-25 pointer-events-none z-0">
+            <svg viewBox="0 0 100 100" className="w-full h-full text-emerald-800/10 fill-current">
+              <path d="M70,10 C50,25 35,45 30,70 C45,75 60,65 75,45 C80,30 75,15 70,10 Z" />
+              <path d="M50,30 C35,40 25,55 20,75 C35,80 48,70 60,55 C65,42 60,30 50,30 Z" />
+            </svg>
+          </div>
+
+          {/* Hero Header block */}
+          <div className="z-10 flex flex-col gap-1.5 max-w-xl">
+            <span className="text-[10px] uppercase tracking-widest text-[#3D5A45] font-extrabold">CONSULT & CARE</span>
+            <h1 className="text-3xl font-serif font-extrabold text-[#1F2937] tracking-tight">Expert Support</h1>
+            <p className="text-xs text-stone-500 font-semibold leading-relaxed mt-1">
+              Connect with specialised experts who understand your pet's unique needs.
+            </p>
+          </div>
+          
+          {/* SEARCH BAR + FILTER BUTTON */}
+          <div className="flex gap-3.5 w-full z-10">
             <div className="relative flex-grow">
               <input 
                 type="text"
                 placeholder="Search experts or services..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white border border-[#F0EBE1] rounded-2xl pl-10 pr-4 py-2.5 text-xs font-semibold focus:outline-none focus:border-terracotta/40 shadow-sm"
+                className="w-full bg-white border border-[#EBE6DD] rounded-[22px] pl-11 pr-4 py-3 text-xs font-semibold focus:outline-none focus:border-emerald-600/40 shadow-sm"
               />
-              <svg className="absolute left-3.5 top-3.5 w-4 h-4 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <svg className="absolute left-4 top-3.5 w-4.5 h-4.5 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
@@ -453,35 +481,97 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
             
             <button 
               onClick={() => handleStartQuiz()}
-              className="px-4 bg-[#EBF5E9] hover:bg-[#C8E6C9] border border-[#E1EDE3] text-[#3D5A45] text-[10px] font-extrabold rounded-2xl flex items-center gap-1.5 shadow-sm transition-all"
+              className="px-6 bg-[#FCFAF7] hover:bg-stone-50 border border-[#EBE6DD] text-stone-600 text-xs font-extrabold rounded-[22px] flex items-center gap-2 shadow-sm transition-all shrink-0 active:scale-95"
             >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01" />
+              {/* Slider Filter Icon */}
+              <svg className="w-3.5 h-3.5 text-stone-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="4" y1="21" x2="4" y2="14" />
+                <line x1="4" y1="10" x2="4" y2="3" />
+                <line x1="12" y1="21" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12" y2="3" />
+                <line x1="20" y1="21" x2="20" y2="16" />
+                <line x1="20" y1="10" x2="20" y2="3" />
+                <line x1="1" y1="14" x2="7" y2="14" />
+                <line x1="9" y1="8" x2="15" y2="8" />
+                <line x1="17" y1="16" x2="23" y2="16" />
               </svg>
-              Quiz Match
+              Filter
             </button>
           </div>
 
-          {/* CATEGORY FILTER CHIPS */}
-          <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-hide select-none">
-            {(['All', 'Wellness', 'Behaviour', 'Therapy', 'Holistic'] as const).map(grp => (
+          {/* CATEGORY FILTER CHIPS WITH SVG ICONS */}
+          <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-hide select-none z-10">
+            {[
+              {
+                id: 'All',
+                name: 'All',
+                icon: (
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                    <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                    <rect x="14" y="14" width="7" height="7" rx="1.5" />
+                    <rect x="3" y="14" width="7" height="7" rx="1.5" />
+                  </svg>
+                )
+              },
+              {
+                id: 'Wellness',
+                name: 'Wellness',
+                icon: (
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 2A10 10 0 0 0 2 12c0 5.52 4.48 10 10 10s10-4.48 10-10S17.52 2 12 2z" />
+                    <path d="M12 6a6 6 0 0 0-6 6c0 3.31 2.69 6 6 6s6-2.69 6-6-2.69-6-6-6z" />
+                  </svg>
+                )
+              },
+              {
+                id: 'Behaviour',
+                name: 'Behaviour',
+                icon: (
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                    <line x1="9" y1="9" x2="9.01" y2="9" />
+                    <line x1="15" y1="9" x2="15.01" y2="9" />
+                  </svg>
+                )
+              },
+              {
+                id: 'Therapy',
+                name: 'Therapy',
+                icon: (
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5c0-3.08 2.42-5.5 5.5-5.5 1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                  </svg>
+                )
+              },
+              {
+                id: 'Holistic',
+                name: 'Holistic',
+                icon: (
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 3a9 9 0 0 0-9 9h18a9 9 0 0 0-9-9zM3 14c0 3.86 3.14 7 7 7h4c3.86 0 7-3.14 7-7H3z" />
+                  </svg>
+                )
+              }
+            ].map(grp => (
               <button
-                key={grp}
-                onClick={() => setHomeGroup(grp)}
-                className={`px-4 py-1.5 border rounded-full text-[10px] font-extrabold shrink-0 transition-all active:scale-95 flex items-center gap-1.5 ${
-                  homeGroup === grp 
+                key={grp.id}
+                onClick={() => setHomeGroup(grp.id as any)}
+                className={`px-4 py-2 border rounded-full text-[10px] font-extrabold shrink-0 transition-all active:scale-95 flex items-center gap-1.5 ${
+                  homeGroup === grp.id 
                     ? 'bg-[#3D5A45] border-[#3D5A45] text-white shadow-sm' 
-                    : 'bg-white border-[#F0EBE1] text-stone-600 hover:border-stone-300'
+                    : 'bg-white border-[#EBE6DD] text-stone-600 hover:border-stone-300'
                 }`}
               >
-                {grp}
+                {grp.icon}
+                {grp.name}
               </button>
             ))}
           </div>
 
           {/* 3-COLUMN CATEGORY GRID */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full z-10">
             {filteredCategoryKeys.map(catKey => {
               const conf = CATEGORY_CONFIGS[catKey];
               return (
@@ -492,24 +582,39 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                     setListingSubFilter(null);
                     setCurrentView('listing');
                   }}
-                  className="bg-white border border-[#F0EBE1] rounded-[24px] p-5 cursor-pointer hover:shadow-md transition-all group flex flex-col justify-between hover:scale-[1.01] hover:border-emerald-600/20"
+                  className="bg-white border border-[#EBE6DD] rounded-[24px] p-5 cursor-pointer hover:shadow-md transition-all group relative overflow-hidden flex flex-row justify-between min-h-[145px] hover:scale-[1.01]"
                 >
-                  <div className="flex flex-col gap-3">
-                    {/* SVG Icon circle wrapper */}
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-sm ${conf.color}`}>
-                      {conf.icon}
+                  {/* Left side text and icon */}
+                  <div className="flex flex-col justify-between z-10 w-[55%] select-none">
+                    <div className="flex flex-col gap-3">
+                      {/* SVG Icon circle wrapper */}
+                      <div className="w-9 h-9 rounded-full flex items-center justify-center bg-[#F3E8FF] border border-[#E9D5FF] shrink-0 shadow-sm text-purple-700">
+                        {conf.icon}
+                      </div>
+                      <div>
+                        {/* Use conf.title to avoid word overflow / slashes */}
+                        <h4 className="text-[11px] font-extrabold text-charcoal leading-tight break-words group-hover:text-purple-700 transition-colors">
+                          {conf.title}
+                        </h4>
+                        <p className="text-[9px] text-stone-400 font-semibold mt-1 leading-tight line-clamp-3">
+                          {conf.desc}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-charcoal group-hover:text-emerald-700 transition-colors">{catKey}</h4>
-                      <p className="text-[10px] text-stone-500 font-semibold mt-1 leading-normal">{conf.desc}</p>
+
+                    {/* Small circular chevron arrow button */}
+                    <div className="w-6 h-6 rounded-full border border-stone-200 bg-white flex items-center justify-center text-stone-400 group-hover:border-purple-600 group-hover:text-purple-700 group-hover:bg-purple-50 transition-all shadow-sm mt-2">
+                      <span className="text-[9px] font-bold">›</span>
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center pt-4 mt-2 border-t border-stone-50/50">
-                    <span className="text-[8px] bg-stone-100 text-stone-500 rounded-md px-1.5 py-0.5 font-bold uppercase tracking-wider">{conf.filterGroup}</span>
-                    <span className="text-[11px] font-bold text-stone-400 group-hover:text-emerald-600 transition-colors flex items-center gap-0.5">
-                      Explore <span className="text-xs font-extrabold mt-0.5">→</span>
-                    </span>
+                  {/* Right side cropped image */}
+                  <div className="absolute right-0 bottom-0 top-0 w-[45%] overflow-hidden flex items-end justify-end pointer-events-none">
+                    <img 
+                      src={conf.cardPhoto} 
+                      alt={conf.title} 
+                      className="h-[92%] w-auto object-contain object-bottom select-none translate-y-1 group-hover:scale-105 transition-all duration-500"
+                    />
                   </div>
                 </div>
               );
@@ -522,16 +627,28 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
           </div>
 
           {/* FIND MY EXPERT QUIZ BANNER */}
-          <div className="bg-[#EBF5E9] border border-[#E1EDE3] rounded-[28px] p-5 flex flex-col sm:flex-row items-center justify-between gap-4 mt-3 shadow-sm">
-            <div className="text-left flex flex-col gap-1 max-w-sm">
-              <h4 className="font-serif font-extrabold text-sm text-[#3D5A45]">Not sure who to book?</h4>
-              <p className="text-[10px] text-stone-600 font-semibold leading-relaxed">Answer a few simple questions about your pet's behavioral or health concerns, and we'll instantly match you with the right specialist.</p>
+          <div className="bg-white border border-[#EBE6DD] rounded-[28px] p-5 flex flex-col sm:flex-row items-center justify-between gap-5 mt-3 shadow-sm relative overflow-hidden">
+            <div className="flex items-center gap-4 z-10 w-full sm:w-auto">
+              {/* Circular portrait image of woman petting golden retriever */}
+              <div className="w-14 h-14 rounded-full overflow-hidden border border-stone-200 shrink-0">
+                <img 
+                  src="https://res.cloudinary.com/vlcokfmq/image/upload/v1784019908/aumoha_expert_support/rckkawqnirpbvqo712jf.jpg" 
+                  alt="Quiz match" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="text-left flex flex-col gap-0.5">
+                <h4 className="font-serif font-extrabold text-sm text-charcoal">Not sure who to book?</h4>
+                <p className="text-[9.5px] text-stone-500 font-semibold leading-normal">
+                  Answer a few questions and we'll suggest the right expert for your pet.
+                </p>
+              </div>
             </div>
             <button
               onClick={() => handleStartQuiz()}
-              className="px-5 py-2.5 bg-[#3D5A45] hover:bg-[#2A3E31] text-white text-[10px] font-extrabold rounded-xl transition-all shadow-sm shrink-0 active:scale-95 flex items-center gap-1.5"
+              className="px-6 py-2.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-[10px] font-extrabold rounded-full transition-all shadow-sm shrink-0 active:scale-95 flex items-center gap-1.5 z-10"
             >
-              Find My Expert <span>→</span>
+              Find My Expert <span>›</span>
             </button>
           </div>
 
