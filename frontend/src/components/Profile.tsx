@@ -411,7 +411,7 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
         </div>
 
         <div className="flex flex-wrap gap-2.5 sm:self-auto self-start shrink-0">
-          {isAdmin && onOpenAdmin && (
+          {(isAdmin || user?.role === 'admin') && onOpenAdmin && (
             <button
               onClick={onOpenAdmin}
               className="px-4 py-2 text-xs font-bold rounded-xl border border-transparent bg-terracotta hover:bg-terracotta/90 text-[#FDFBF7] transition-all duration-200 cursor-pointer whitespace-nowrap shadow-sm"

@@ -160,6 +160,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     setUser(null);
     setToken(null);
+    setFirebaseUser(null);
     setIsNewUser(false);
   };
 
