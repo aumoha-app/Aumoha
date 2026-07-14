@@ -80,6 +80,9 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
   const [rescheduleSlotId, setRescheduleSlotId] = useState('');
   const [isAddingNotesAppt, setIsAddingNotesAppt] = useState<Appointment | null>(null);
   const [noteText, setNoteText] = useState('');
+  
+  // All Slots viewer modal state
+  const [isViewingAllSlotsVet, setIsViewingAllSlotsVet] = useState<Vet | null>(null);
 
   // Role Security Checking
   const [isAdminUser, setIsAdminUser] = useState(false);
@@ -186,6 +189,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
       id: 'General Practice',
       name: 'General Practice',
       desc: 'Routine care & checkups',
+      colorClass: 'bg-gradient-to-br from-emerald-50 to-emerald-100/50 border border-emerald-100',
       icon: (
         <svg className="w-5 h-5 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -197,6 +201,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
       id: 'Surgery',
       name: 'Surgery',
       desc: 'Soft tissue & major surgeries',
+      colorClass: 'bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-100',
       icon: (
         <svg className="w-5 h-5 text-blue-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
@@ -209,6 +214,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
       id: 'Dermatology',
       name: 'Dermatology',
       desc: 'Skin, coat & allergy care',
+      colorClass: 'bg-gradient-to-br from-orange-50 to-orange-100/50 border border-orange-100',
       icon: (
         <svg className="w-5 h-5 text-orange-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 2a5 5 0 0 0-5 5v3a5 5 0 0 0 10 0V7a5 5 0 0 0-5-5z" />
@@ -220,6 +226,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
       id: 'Dentistry',
       name: 'Dentistry',
       desc: 'Teeth & oral health',
+      colorClass: 'bg-gradient-to-br from-cyan-50 to-cyan-100/50 border border-cyan-100',
       icon: (
         <svg className="w-5 h-5 text-cyan-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M7 12c.5-2 1.5-4 4-4s3.5 2 4 4c.5 2-1 4-2.5 5.5s-2 1.5-3.5 1.5S7 17.5 7 12z" />
@@ -231,6 +238,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
       id: 'Cardiology',
       name: 'Cardiology',
       desc: 'Heart & circulation care',
+      colorClass: 'bg-gradient-to-br from-rose-50 to-rose-100/50 border border-rose-100',
       icon: (
         <svg className="w-5 h-5 text-rose-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.5 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
@@ -241,6 +249,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
       id: 'Orthopedics',
       name: 'Orthopedics',
       desc: 'Bone, joint & mobility care',
+      colorClass: 'bg-gradient-to-br from-indigo-50 to-indigo-100/50 border border-indigo-100',
       icon: (
         <svg className="w-5 h-5 text-indigo-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="3" width="18" height="18" rx="2" />
@@ -252,6 +261,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
       id: 'Exotic Pet Care',
       name: 'Exotic Pet Care',
       desc: 'Birds, reptiles & small mammals',
+      colorClass: 'bg-gradient-to-br from-teal-50 to-teal-100/50 border border-teal-100',
       icon: (
         <svg className="w-5 h-5 text-teal-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10" />
@@ -264,6 +274,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
       id: 'Oncology',
       name: 'Oncology',
       desc: 'Cancer care & management',
+      colorClass: 'bg-gradient-to-br from-purple-50 to-purple-100/50 border border-purple-100',
       icon: (
         <svg className="w-5 h-5 text-purple-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7" />
@@ -564,7 +575,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                 : 'border-warmBeige hover:bg-[#FCFAF7] text-[#3D5A45]'
             }`}
           >
-            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             </svg>
             Admin Panel
@@ -640,7 +651,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
               </svg>
             </div>
             
-            {/* Standard Mock Search Filter Button */}
+            {/* Search Filter Icon */}
             <button 
               type="button"
               onClick={() => setCurrentView('directory')}
@@ -660,22 +671,21 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
             </button>
           </div>
 
-          {/* HERO BANNER */}
+          {/* HERO BANNER WITH STUNNING IMAGE GENERATED */}
           <div className="bg-gradient-to-br from-[#EBF5E9] to-[#C8E6C9] border border-[#E1EDE3] rounded-[28px] p-5 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex flex-col gap-1.5 max-w-[280px]">
               <h2 className="font-serif font-extrabold text-lg text-[#3D5A45] leading-tight">Compassionate care, expert advice</h2>
-              <p className="text-[10px] text-stone-600 font-semibold leading-relaxed">Connect with trusted veterinary experts for your pet's wellness diagnostics.</p>
+              <p className="text-[10px] text-stone-600 font-semibold leading-relaxed">Connect with trusted vets for your pet's health.</p>
               <button 
                 onClick={() => setCurrentView('directory')}
-                className="mt-2.5 px-4.5 py-2 bg-[#3D5A45] hover:bg-[#2A3E31] text-white text-[11px] font-extrabold rounded-xl transition-all shadow-sm self-start active:scale-95"
+                className="mt-3 px-4.5 py-2 bg-[#3D5A45] hover:bg-[#2A3E31] text-white text-[11px] font-extrabold rounded-xl transition-all shadow-sm self-start active:scale-95"
               >
                 Let's Consult
               </button>
             </div>
-            <div className="w-[120px] h-[90px] relative shrink-0 flex items-center justify-center bg-white/40 rounded-2xl overflow-hidden border border-white/20">
-              <svg className="w-14 h-14 text-[#3D5A45]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.5 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-              </svg>
+            {/* Premium Vet Consultation Hero Illustration */}
+            <div className="w-[130px] h-[95px] relative shrink-0 rounded-2xl overflow-hidden border border-white/40 bg-stone-100 shadow-sm">
+              <img src="/vet_consult_hero.png" alt="Trusted Vets" className="w-full h-full object-cover" />
             </div>
           </div>
 
@@ -691,7 +701,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
               </button>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 w-full">
               {specialisations.map(spec => (
                 <div 
                   key={spec.id}
@@ -699,13 +709,14 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                     setSelectedSpecialty(spec.id);
                     setCurrentView('directory');
                   }}
-                  className="bg-[#FCFAF7] border border-[#F0EBE1] hover:border-terracotta/20 rounded-[20px] p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:shadow-md transition-all group"
+                  className="bg-white border border-[#F0EBE1] hover:border-terracotta/20 rounded-[20px] p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:shadow-md transition-all hover:scale-[1.01] group"
                 >
-                  <div className="w-10 h-10 rounded-full bg-white border border-[#F0EBE1] flex items-center justify-center shadow-sm shrink-0 mb-3 group-hover:bg-[#FCFAF7] transition-colors">
+                  {/* Beautiful circular icon wrapper with soft color-coordinated background gradient */}
+                  <div className={`w-11 h-11 rounded-full flex items-center justify-center shadow-sm mb-3 group-hover:scale-105 transition-all ${spec.colorClass}`}>
                     {spec.icon}
                   </div>
                   <span className="text-[11px] font-bold block text-charcoal">{spec.name}</span>
-                  <span className="text-[9px] text-stone-500 font-semibold block leading-normal mt-0.5">{spec.desc}</span>
+                  <span className="text-[9px] text-stone-500 font-semibold block leading-normal mt-1">{spec.desc}</span>
                 </div>
               ))}
             </div>
@@ -723,20 +734,30 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
               </button>
             </div>
 
-            <div className="flex flex-col gap-3 w-full">
+            <div className="flex flex-col gap-3.5 w-full">
               {isLoadingVets ? (
                 <div className="w-full text-center py-6 text-xs text-stone-500 font-semibold">Loading vets list...</div>
               ) : computedVets.slice(0, 3).map(vet => (
                 <div 
                   key={vet._id}
-                  onClick={() => { setSelectedSpecialty(vet.specialisation); setCurrentView('directory'); }}
-                  className="bg-white border border-[#F0EBE1] hover:border-terracotta/20 rounded-2xl p-3.5 flex items-center justify-between hover:shadow-sm cursor-pointer transition-all"
+                  onClick={() => {
+                    // Pre-fill doctor directory filter
+                    setSearchQuery(vet.name);
+                    setSelectedSpecialty(null);
+                    setCurrentView('directory');
+                  }}
+                  className="bg-white border border-[#F0EBE1] hover:border-terracotta/20 rounded-2xl p-3.5 flex items-center justify-between hover:shadow-md cursor-pointer transition-all"
                 >
                   <div className="flex items-center gap-3">
+                    {/* High-quality Doctor Profile Avatar */}
                     <div className="w-12 h-12 rounded-full overflow-hidden bg-stone-100 border border-[#F0EBE1] relative shrink-0">
-                      <div className="w-full h-full bg-gradient-to-br from-[#E2E8F0] to-[#CBD5E1] flex items-center justify-center text-stone-600 font-bold text-sm">
-                        {vet.name.split(' ').map(n => n[0]).join('').replace('Dr.', '')}
-                      </div>
+                      {vet.photo ? (
+                        <img src={vet.photo} alt={vet.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-[#E2E8F0] to-[#CBD5E1] flex items-center justify-center text-stone-600 font-bold text-sm">
+                          {vet.name.split(' ').map(n => n[0]).join('').replace('Dr.', '')}
+                        </div>
+                      )}
                       {vet.isOnline && (
                         <span className="absolute bottom-0.5 right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border border-white"></span>
                       )}
@@ -786,6 +807,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
             </div>
             
             <button 
+              type="button"
               onClick={() => { setSelectedSpecialty(null); setSearchQuery(''); }}
               className="px-3.5 py-2.5 bg-[#FCFAF7] border border-[#F0EBE1] text-[10px] font-bold rounded-2xl flex items-center gap-1.5 shadow-sm text-stone-600 hover:bg-stone-50 transition-all shrink-0 active:scale-95"
             >
@@ -796,6 +818,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
           {/* ACTIVE SPECIALTY FILTER CHIPS */}
           <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-hide select-none">
             <button
+              type="button"
               onClick={() => setSelectedSpecialty(null)}
               className={`px-3.5 py-1.5 border rounded-full text-[10px] font-extrabold shrink-0 transition-all active:scale-95 ${
                 selectedSpecialty === null 
@@ -808,6 +831,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
             {specialisations.map(spec => (
               <button
                 key={spec.id}
+                type="button"
                 onClick={() => setSelectedSpecialty(spec.id)}
                 className={`px-3.5 py-1.5 border rounded-full text-[10px] font-extrabold shrink-0 transition-all active:scale-95 ${
                   selectedSpecialty === spec.id
@@ -837,9 +861,13 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
                     <div className="w-14 h-14 rounded-full overflow-hidden bg-stone-100 border border-[#F0EBE1]/60 relative shrink-0">
-                      <div className="w-full h-full bg-gradient-to-br from-[#E2E8F0] to-[#CBD5E1] flex items-center justify-center text-stone-600 font-bold text-sm">
-                        {vet.name.split(' ').map(n => n[0]).join('').replace('Dr.', '')}
-                      </div>
+                      {vet.photo ? (
+                        <img src={vet.photo} alt={vet.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-[#E2E8F0] to-[#CBD5E1] flex items-center justify-center text-stone-600 font-bold text-sm">
+                          {vet.name.split(' ').map(n => n[0]).join('').replace('Dr.', '')}
+                        </div>
+                      )}
                       {vet.isOnline && (
                         <span className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 bg-emerald-500 rounded-full border border-white"></span>
                       )}
@@ -871,8 +899,10 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                 <div className="flex flex-col gap-2.5 pt-2.5 border-t border-stone-100">
                   <div className="flex justify-between items-center px-1">
                     <span className="text-[9px] font-extrabold text-stone-400 uppercase tracking-wider">Next Available Slots</span>
+                    {/* View all slots triggers a nice modal sheet */}
                     <button 
-                      onClick={() => alert(`Showing all available schedules for ${vet.name}...`)}
+                      type="button"
+                      onClick={() => setIsViewingAllSlotsVet(vet)}
                       className="text-[9px] font-extrabold text-blue-600 hover:underline"
                     >
                       View all slots ›
@@ -903,6 +933,48 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
             ))}
           </div>
 
+          {/* VIEW ALL AVAILABLE SLOTS BOTTOM SHEET MODAL */}
+          {isViewingAllSlotsVet && (
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-end md:items-center justify-center px-4 transition-all">
+              <div className="bg-white rounded-t-3xl md:rounded-3xl p-5 w-full max-w-sm flex flex-col gap-4 shadow-xl border border-warmBeige">
+                <div className="flex justify-between items-center pb-2 border-b border-stone-100">
+                  <h3 className="text-xs font-extrabold text-stone-500 uppercase">All Available Slots</h3>
+                  <button 
+                    type="button"
+                    onClick={() => setIsViewingAllSlotsVet(null)}
+                    className="text-stone-400 hover:text-stone-600 font-extrabold text-xs px-1"
+                  >
+                    ✕
+                  </button>
+                </div>
+                
+                <div className="text-[10px] text-stone-500 font-semibold mb-1">
+                  Select an appointment slot with <strong>{isViewingAllSlotsVet.name}</strong>:
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pb-1">
+                  {isViewingAllSlotsVet.availableSlots.filter(s => !s.isBooked).map(slot => (
+                    <button
+                      key={slot._id}
+                      type="button"
+                      onClick={() => {
+                        handleStartBooking(isViewingAllSlotsVet, slot);
+                        setIsViewingAllSlotsVet(null);
+                      }}
+                      className="p-2.5 border border-[#F0EBE1] hover:border-blue-500/30 bg-[#FCFAF7] hover:bg-white rounded-xl text-[10px] font-bold text-[#1E40AF] text-center transition-all active:scale-95 flex flex-col gap-0.5"
+                    >
+                      <span className="text-[8px] text-stone-400 font-bold">{slot.date}</span>
+                      <span>{slot.time}</span>
+                    </button>
+                  ))}
+                  {isViewingAllSlotsVet.availableSlots.filter(s => !s.isBooked).length === 0 && (
+                    <span className="text-[10px] text-stone-400 font-semibold italic col-span-2 text-center py-2">No other slots are currently available.</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
         </div>
       )}
 
@@ -913,9 +985,13 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
           {/* Selected Vet Summary Card */}
           <div className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-[24px] p-4 flex items-center gap-3">
             <div className="w-12 h-12 rounded-full overflow-hidden bg-stone-100 border border-[#F0EBE1] relative shrink-0">
-              <div className="w-full h-full bg-gradient-to-br from-[#E2E8F0] to-[#CBD5E1] flex items-center justify-center text-stone-600 font-bold text-sm">
-                {selectedVet.name.split(' ').map(n => n[0]).join('').replace('Dr.', '')}
-              </div>
+              {selectedVet.photo ? (
+                <img src={selectedVet.photo} alt={selectedVet.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-[#E2E8F0] to-[#CBD5E1] flex items-center justify-center text-stone-600 font-bold text-sm">
+                  {selectedVet.name.split(' ').map(n => n[0]).join('').replace('Dr.', '')}
+                </div>
+              )}
               {selectedVet.isOnline && (
                 <span className="absolute bottom-0.5 right-0.5 w-3 h-3 bg-emerald-500 rounded-full border border-white"></span>
               )}
@@ -1211,6 +1287,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                   {appt.status !== 'cancelled' && (
                     <div className="grid grid-cols-3 gap-2.5 pt-2 border-t border-stone-100">
                       <button
+                        type="button"
                         onClick={() => {
                           setIsReschedulingAppt(appt);
                           const originalVet = vets.find(v => v.name === appt.vetName);
@@ -1227,6 +1304,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                         Reschedule
                       </button>
                       <button
+                        type="button"
                         onClick={() => {
                           setIsAddingNotesAppt(appt);
                           setNoteText(appt.notes || '');
@@ -1240,6 +1318,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                         Add Notes
                       </button>
                       <button
+                        type="button"
                         onClick={() => handleCancelAppointment(appt)}
                         className="py-2 border border-rose-100 text-rose-600 hover:bg-rose-50 rounded-xl text-[9px] font-extrabold text-center transition-all active:scale-95 flex items-center justify-center gap-1.5"
                       >
@@ -1403,7 +1482,13 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                   <div key={vet._id} className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl p-3 flex justify-between items-center">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full overflow-hidden bg-stone-100 border border-[#F0EBE1] flex items-center justify-center font-bold text-stone-600 text-xs">
-                        {vet.name.split(' ').map(n => n[0]).join('').replace('Dr.', '')}
+                        {vet.photo ? (
+                          <img src={vet.photo} alt={vet.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-[#E2E8F0] to-[#CBD5E1] flex items-center justify-center text-stone-600 font-bold text-sm">
+                            {vet.name.split(' ').map(n => n[0]).join('').replace('Dr.', '')}
+                          </div>
+                        )}
                       </div>
                       <div>
                         <h4 className="text-[11px] font-bold text-charcoal">{vet.name}</h4>

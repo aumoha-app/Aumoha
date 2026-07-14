@@ -70,7 +70,7 @@ export const fallbackVets: any[] = [
   {
     _id: 'vet1',
     name: 'Dr. Ananya Patra',
-    photo: '/sairaj_avatar.png',
+    photo: '/warden-2.png',
     specialisation: 'Small Animal & Surgery',
     experience: 8,
     fee: 400,
@@ -90,7 +90,7 @@ export const fallbackVets: any[] = [
   {
     _id: 'vet2',
     name: 'Dr. Rohit Nanda',
-    photo: '/sairaj_avatar.png',
+    photo: '/warden-1.png',
     specialisation: 'Dermatology & Oncology',
     experience: 12,
     fee: 600,
@@ -127,7 +127,7 @@ export const fallbackVets: any[] = [
   {
     _id: 'vet4',
     name: 'Dr. Sima Rath',
-    photo: '/sairaj_avatar.png',
+    photo: '/warden-3.png',
     specialisation: 'Exotic & Wildlife',
     experience: 7,
     fee: 500,
