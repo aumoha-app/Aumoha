@@ -380,6 +380,30 @@ app.get('/api/users/rescuers', authMiddleware, async (req: Request, res: Respons
 });
 
 /**
+ * GET /api/users
+ * Retrieves all registered users in the database for community view
+ */
+app.get('/api/users', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    let users = [];
+    if (mongoose.connection.readyState === 1) {
+      users = await User.find().select('fullName phone profilePic address role createdAt');
+    }
+    return res.json({
+      status: 'success',
+      users
+    });
+  } catch (error) {
+    console.error('Error in GET /api/users:', error);
+    return res.json({
+      status: 'success',
+      users: []
+    });
+  }
+});
+
+
+/**
  * GET /api/auth/admin-config
  * Checks if the current authenticated user's email is in the admin whitelist
  */

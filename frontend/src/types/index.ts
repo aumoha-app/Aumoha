@@ -66,7 +66,7 @@ export interface SosReport {
   updatedAt?: string;
 }
 
-export type MemberRole = 'all' | 'feeder' | 'rescuer' | 'volunteer' | 'paravet' | 'adopter';
+export type MemberRole = 'all' | 'feeder' | 'rescuer' | 'volunteer' | 'paravet' | 'adopter' | 'normal';
 
 export interface CircleMember {
   id: string;
