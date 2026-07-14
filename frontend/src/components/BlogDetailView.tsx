@@ -157,6 +157,46 @@ export default function BlogDetailView({
           >
             {isJoined ? 'Cancel Registration' : 'Register / Join Event'}
           </button>
+
+          {/* Registered Joinees List */}
+          {selectedBlog.joinees && selectedBlog.joinees.length > 0 && (
+            <div className="mt-4 bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl p-4 flex flex-col gap-3">
+              <span className="text-[10px] text-stone-500 font-extrabold uppercase tracking-wider">
+                Registered Attendants ({selectedBlog.joinees.length})
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {selectedBlog.joinees.map((joinee, idx) => (
+                  <div 
+                    key={idx} 
+                    className="flex items-center gap-2 bg-white border border-[#F0EBE1] pl-2 pr-3 py-1.5 rounded-full shadow-3xs"
+                    title={`${joinee.userName} (${joinee.userEmail})`}
+                  >
+                    <div className="w-5 h-5 rounded-full bg-cream border border-[#F0EBE1] flex items-center justify-center overflow-hidden shrink-0">
+                      {joinee.avatar && joinee.avatar.startsWith('http') ? (
+                        <img src={joinee.avatar} alt={joinee.userName} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-[10px]">👤</span>
+                      )}
+                    </div>
+                    <span className="text-xs text-charcoal font-bold">{joinee.userName}</span>
+                    
+                    {joinee.userPhone && (
+                      <a
+                        href={`tel:${joinee.userPhone}`}
+                        className="ml-1 p-1 hover:bg-[#E8F5E9] active:scale-90 rounded-full transition-all text-[#2E7D32] flex items-center justify-center cursor-pointer border border-[#C8E6C9] hover:border-[#81C784]"
+                        title={`Call ${joinee.userName} at ${joinee.userPhone}`}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.8" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.387a12.035 12.035 0 01-7.147-7.147c-.157-.441.009-.928.387-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                        </svg>
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
