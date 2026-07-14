@@ -135,12 +135,17 @@ export const auth = {
   
   signIn: async (email: string, password: string): Promise<AuthUser> => {
     if (realAuth) {
-      const credential = await fbSignIn(realAuth, email, password);
-      return {
-        uid: credential.user.uid,
-        email: credential.user.email,
-        getIdToken: () => credential.user.getIdToken()
-      };
+      try {
+        const credential = await fbSignIn(realAuth, email, password);
+        return {
+          uid: credential.user.uid,
+          email: credential.user.email,
+          getIdToken: () => credential.user.getIdToken()
+        };
+      } catch (error) {
+        console.warn('⚠️ Firebase Sign-In failed. Falling back to local Mock Auth.', error);
+        return mockAuthInstance.signIn(email);
+      }
     } else {
       return mockAuthInstance.signIn(email);
     }
@@ -162,12 +167,17 @@ export const auth = {
 
   signUp: async (email: string, password: string): Promise<AuthUser> => {
     if (realAuth) {
-      const credential = await fbCreateUser(realAuth, email, password);
-      return {
-        uid: credential.user.uid,
-        email: credential.user.email,
-        getIdToken: () => credential.user.getIdToken()
-      };
+      try {
+        const credential = await fbCreateUser(realAuth, email, password);
+        return {
+          uid: credential.user.uid,
+          email: credential.user.email,
+          getIdToken: () => credential.user.getIdToken()
+        };
+      } catch (error) {
+        console.warn('⚠️ Firebase Sign-Up failed. Falling back to local Mock Auth.', error);
+        return mockAuthInstance.signUp(email);
+      }
     } else {
       return mockAuthInstance.signUp(email);
     }

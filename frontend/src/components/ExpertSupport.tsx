@@ -25,6 +25,7 @@ interface Expert {
   rating: number;
   reviewCount: number;
   isOnline: boolean;
+  isApproved?: boolean;
   availableSlots: Slot[];
   email?: string;
   phone?: string;
@@ -328,7 +329,11 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
   const fetchExperts = async () => {
     setIsLoadingExperts(true);
     try {
-      const res = await fetch('http://localhost:5001/api/vets');
+      const headers: HeadersInit = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const res = await fetch('http://localhost:5001/api/vets', { headers });
       const data = await res.json();
       if (res.ok) {
         const allVets = data.vets || [];
@@ -568,6 +573,36 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
       });
       if (res.ok) {
         fetchExperts();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleToggleApproveExpert = async (exp: Expert) => {
+    if (!token) return;
+    const currentApproval = exp.isApproved !== false;
+    const nextApproval = !currentApproval;
+    const confirm = window.confirm(`Are you sure you want to ${nextApproval ? 'approve' : 'unapprove'} ${exp.name}?`);
+    if (!confirm) return;
+
+    try {
+      const res = await fetch(`http://localhost:5001/api/vets/${exp._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          'x-admin-password': adminPassword
+        },
+        body: JSON.stringify({
+          isApproved: nextApproval
+        })
+      });
+      if (res.ok) {
+        fetchExperts();
+      } else {
+        const d = await res.json();
+        alert(d.message || 'Action failed.');
       }
     } catch (err) {
       console.error(err);
@@ -1236,7 +1271,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                 </div>
 
                 <div className="grid grid-cols-2 gap-2.5">
-                  {selectedExpert.availableSlots && selectedExpert.availableSlots.map(slot => (
+                  {selectedExpert.availableSlots && selectedExpert.availableSlots.filter(s => !s.isBooked).map(slot => (
                     <button
                       key={slot._id}
                       type="button"
@@ -1244,16 +1279,17 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                         setSelectedSlot(slot);
                         setSelectedDate(slot.date);
                       }}
-                      className={`py-3.5 border rounded-2xl text-xs font-bold text-center transition-all ${
+                      className={`py-2 border rounded-2xl text-xs font-bold text-center transition-all flex flex-col items-center justify-center gap-0.5 ${
                         selectedSlot?._id === slot._id
                           ? 'bg-[#3D5A45] border-[#3D5A45] text-white shadow-sm'
                           : 'bg-[#FCFAF7] border-[#F0EBE1] text-charcoal hover:bg-white'
                       }`}
                     >
-                      {slot.time}
+                      <span className={`text-[8.5px] font-bold ${selectedSlot?._id === slot._id ? 'text-white/80' : 'text-stone-400'}`}>{slot.date}</span>
+                      <span>{slot.time}</span>
                     </button>
                   ))}
-                  {(!selectedExpert.availableSlots || selectedExpert.availableSlots.length === 0) && (
+                  {(!selectedExpert.availableSlots || selectedExpert.availableSlots.filter(s => !s.isBooked).length === 0) && (
                     <span className="text-[10px] text-stone-400 font-semibold italic col-span-2 text-center py-2">No slots available for this doctor.</span>
                   )}
                 </div>
@@ -1655,6 +1691,16 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                     </div>
 
                     <div className="flex gap-2">
+                      <button
+                        onClick={() => handleToggleApproveExpert(exp)}
+                        className={`px-2.5 py-1.5 rounded-lg text-[9px] font-bold border transition-colors ${
+                          exp.isApproved !== false
+                            ? 'bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-100'
+                            : 'bg-amber-50 border-amber-100 text-amber-600 hover:bg-amber-100'
+                        }`}
+                      >
+                        {exp.isApproved !== false ? 'Approved' : 'Pending'}
+                      </button>
                       <button
                         onClick={() => handleEditExpertClick(exp)}
                         className="px-2.5 py-1.5 bg-white border border-warmBeige hover:bg-stone-50 text-stone-600 rounded-lg text-[9px] font-bold"

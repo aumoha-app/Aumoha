@@ -24,6 +24,7 @@ interface Vet {
   rating: number;
   reviewCount: number;
   isOnline: boolean;
+  isApproved?: boolean;
   availableSlots: Slot[];
   email?: string;
   phone?: string;
@@ -120,7 +121,11 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
   const fetchVets = async () => {
     setIsLoadingVets(true);
     try {
-      const res = await fetch('http://localhost:5001/api/vets');
+      const headers: HeadersInit = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const res = await fetch('http://localhost:5001/api/vets', { headers });
       const data = await res.json();
       if (res.ok) {
         setVets(data.vets || []);
@@ -517,6 +522,36 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
       });
       if (res.ok) {
         fetchVets();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleToggleApproveVet = async (vet: Vet) => {
+    if (!token) return;
+    const currentApproval = vet.isApproved !== false;
+    const nextApproval = !currentApproval;
+    const confirm = window.confirm(`Are you sure you want to ${nextApproval ? 'approve' : 'unapprove'} ${vet.name}?`);
+    if (!confirm) return;
+
+    try {
+      const res = await fetch(`http://localhost:5001/api/vets/${vet._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+          'x-admin-password': adminPassword
+        },
+        body: JSON.stringify({
+          isApproved: nextApproval
+        })
+      });
+      if (res.ok) {
+        fetchVets();
+      } else {
+        const d = await res.json();
+        alert(d.message || 'Action failed.');
       }
     } catch (err) {
       console.error(err);
@@ -1523,6 +1558,16 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                     </div>
 
                     <div className="flex gap-2">
+                      <button
+                        onClick={() => handleToggleApproveVet(vet)}
+                        className={`px-2.5 py-1.5 rounded-lg text-[9px] font-bold border transition-colors ${
+                          vet.isApproved !== false
+                            ? 'bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-100'
+                            : 'bg-amber-50 border-amber-100 text-amber-600 hover:bg-amber-100'
+                        }`}
+                      >
+                        {vet.isApproved !== false ? 'Approved' : 'Pending'}
+                      </button>
                       <button
                         onClick={() => handleEditVetClick(vet)}
                         className="px-2.5 py-1.5 bg-white border border-warmBeige hover:bg-stone-50 text-stone-600 rounded-lg text-[9px] font-bold"

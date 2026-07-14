@@ -1,4 +1,5 @@
 import https from 'https';
+import nodemailer from 'nodemailer';
 
 export interface EmailOptions {
   to: string;
@@ -7,6 +8,39 @@ export interface EmailOptions {
 }
 
 export async function sendEmail({ to, subject, html }: EmailOptions): Promise<boolean> {
+  const smtpHost = process.env.SMTP_HOST;
+  const smtpPort = process.env.SMTP_PORT;
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
+  const smtpFrom = process.env.SMTP_FROM || 'Aumoha Vet Consultations <appointments@aumoha.com>';
+
+  if (smtpHost && smtpUser && smtpPass) {
+    console.log(`📤 Sending transactional email via SMTP host ${smtpHost} to ${to}...`);
+    try {
+      const transporter = nodemailer.createTransport({
+        host: smtpHost,
+        port: smtpPort ? Number(smtpPort) : 587,
+        secure: process.env.SMTP_SECURE === 'true',
+        auth: {
+          user: smtpUser,
+          pass: smtpPass
+        }
+      });
+
+      const info = await transporter.sendMail({
+        from: smtpFrom,
+        to,
+        subject,
+        html
+      });
+      console.log(`✅ Email sent successfully via SMTP! Message ID: ${info.messageId}`);
+      return true;
+    } catch (e) {
+      console.error(`❌ Error sending email via SMTP:`, e);
+      // Fall through to other email services on error
+    }
+  }
+
   const resendKey = process.env.RESEND_API_KEY;
   const sendgridKey = process.env.SENDGRID_API_KEY;
 

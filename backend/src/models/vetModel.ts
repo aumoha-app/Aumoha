@@ -47,6 +47,7 @@ const VetSchema = new Schema(
     rating: { type: Number, default: 4.5 },
     reviewCount: { type: Number, default: 10 },
     isOnline: { type: Boolean, default: false },
+    isApproved: { type: Boolean, default: true },
     availableSlots: { type: [SlotSchema], default: [] },
     email: { type: String, default: '' },
     phone: { type: String, default: '' }

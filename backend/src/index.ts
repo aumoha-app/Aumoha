@@ -1420,14 +1420,48 @@ app.post('/api/settings/checkout-phone', authMiddleware, adminMiddleware, async 
  */
 app.get('/api/vets', async (req: Request, res: Response) => {
   try {
-    if (mongoose.connection.readyState !== 1) {
-      return res.json({ status: 'success', vets: fallbackVets });
+    let showAll = false;
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split('Bearer ')[1];
+      const adminEmailsEnv = process.env.ADMIN_EMAILS || '';
+      const adminEmails = adminEmailsEnv
+        .split(',')
+        .map(email => email.trim().toLowerCase())
+        .filter(Boolean);
+
+      let email = '';
+      if (token.startsWith('mock-token-')) {
+        const parts = token.replace('mock-token-', '').split(':');
+        if (parts[1]) email = parts[1];
+      } else {
+        try {
+          const parts = token.split('.');
+          if (parts.length === 3) {
+            const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+            const payload = JSON.parse(Buffer.from(base64, 'base64').toString('utf-8'));
+            email = payload.email || '';
+          }
+        } catch (e) {}
+      }
+
+      if (email && adminEmails.includes(email.toLowerCase())) {
+        showAll = true;
+      }
     }
-    const vets = await Vet.find({});
+
+    if (mongoose.connection.readyState !== 1) {
+      const filtered = showAll ? fallbackVets : fallbackVets.filter(v => v.isApproved !== false);
+      return res.json({ status: 'success', vets: filtered });
+    }
+
+    const query = showAll ? {} : { isApproved: { $ne: false } };
+    const vets = await Vet.find(query);
     return res.json({ status: 'success', vets });
   } catch (error) {
     console.error('Error in GET /api/vets:', error);
-    return res.json({ status: 'success', vets: fallbackVets });
+    const filtered = fallbackVets.filter(v => v.isApproved !== false);
+    return res.json({ status: 'success', vets: filtered });
   }
 });
 
@@ -1836,7 +1870,7 @@ app.put('/api/appointments/:id/notes', authMiddleware, async (req: Request, res:
  */
 app.post('/api/vets', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
-    const { name, photo, specialisation, category, specialtyTags, experience, fee, bio, isOnline, availableSlots, email, phone } = req.body;
+    const { name, photo, specialisation, category, specialtyTags, experience, fee, bio, isOnline, availableSlots, email, phone, isApproved } = req.body;
     if (!name || !specialisation || !experience || !fee) {
       return res.status(400).json({ status: 'error', message: 'Missing required parameters' });
     }
@@ -1855,6 +1889,7 @@ app.post('/api/vets', authMiddleware, adminMiddleware, async (req: Request, res:
         rating: 5.0,
         reviewCount: 0,
         isOnline: !!isOnline,
+        isApproved: isApproved !== undefined ? !!isApproved : true,
         availableSlots: (availableSlots || []).map((s: any, idx: number) => ({
           _id: `slot_${Date.now()}_${idx}`,
           date: s.date || 'Today',
@@ -1878,6 +1913,7 @@ app.post('/api/vets', authMiddleware, adminMiddleware, async (req: Request, res:
       fee: Number(fee),
       bio: bio || '',
       isOnline: !!isOnline,
+      isApproved: isApproved !== undefined ? !!isApproved : true,
       availableSlots: (availableSlots || []).map((s: any) => ({
         date: s.date || 'Today',
         time: s.time || '10:00 AM',
@@ -1901,7 +1937,7 @@ app.post('/api/vets', authMiddleware, adminMiddleware, async (req: Request, res:
 app.put('/api/vets/:id', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, photo, specialisation, category, specialtyTags, experience, fee, bio, isOnline, availableSlots, email, phone } = req.body;
+    const { name, photo, specialisation, category, specialtyTags, experience, fee, bio, isOnline, availableSlots, email, phone, isApproved } = req.body;
 
     if (mongoose.connection.readyState !== 1) {
       const vet = fallbackVets.find(v => v._id === id);
@@ -1919,6 +1955,7 @@ app.put('/api/vets/:id', authMiddleware, adminMiddleware, async (req: Request, r
       if (isOnline !== undefined) vet.isOnline = !!isOnline;
       if (email !== undefined) (vet as any).email = email;
       if (phone !== undefined) (vet as any).phone = phone;
+      if (isApproved !== undefined) (vet as any).isApproved = !!isApproved;
       if (availableSlots) {
         vet.availableSlots = availableSlots.map((s: any, idx: number) => ({
           _id: s._id || `slot_${Date.now()}_${idx}`,
@@ -1946,6 +1983,7 @@ app.put('/api/vets/:id', authMiddleware, adminMiddleware, async (req: Request, r
     if (isOnline !== undefined) vet.isOnline = !!isOnline;
     if (email !== undefined) vet.email = email;
     if (phone !== undefined) vet.phone = phone;
+    if (isApproved !== undefined) vet.isApproved = !!isApproved;
     if (availableSlots) {
       vet.availableSlots = availableSlots;
     }

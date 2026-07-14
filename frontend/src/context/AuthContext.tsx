@@ -78,6 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const syncProfile = async (localData?: UserProfile) => {
     if (localData) {
       setUser(localData);
+      setIsNewUser(false);
       if (typeof window !== 'undefined') {
         localStorage.setItem('aumoha_profile_data', JSON.stringify(localData));
         localStorage.setItem('aumoha_is_logged_in', 'true');
@@ -157,6 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem('aumoha_profile_data');
       localStorage.removeItem('aumoha_auth_token');
       localStorage.removeItem('aumoha_is_logged_in');
+      sessionStorage.removeItem('aumoha_admin_password');
     }
     setUser(null);
     setToken(null);
@@ -228,6 +230,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     try {
       await auth.signIn(email, password);
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('aumoha_admin_password', password);
+      }
     } catch (error: any) {
       setLoading(false);
       throw new Error(error.message || 'Failed to sign in');
@@ -254,6 +259,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     try {
       await auth.signUp(email, password);
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('aumoha_admin_password', password);
+      }
     } catch (error: any) {
       setLoading(false);
       throw new Error(error.message || 'Failed to sign up');
