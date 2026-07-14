@@ -12,6 +12,8 @@ export interface IVet extends Document {
   name: string;
   photo?: string;
   specialisation: string;
+  category: string;
+  specialtyTags?: string[];
   experience: number;
   fee: number;
   bio?: string;
@@ -35,6 +37,8 @@ const VetSchema = new Schema(
     name: { type: String, required: true },
     photo: { type: String, default: '' },
     specialisation: { type: String, required: true },
+    category: { type: String, default: 'vet' },
+    specialtyTags: { type: [String], default: [] },
     experience: { type: Number, required: true },
     fee: { type: Number, required: true },
     bio: { type: String, default: '' },

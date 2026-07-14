@@ -13,6 +13,7 @@ import MohallaCircle from '../components/MohallaCircle';
 import Profile from '../components/Profile';
 import BottomNav from '../components/BottomNav';
 import VetConsultation from '../components/VetConsultation';
+import ExpertSupport from '../components/ExpertSupport';
 import { BackendInfo, CommunityPost } from '../types';
 import { useAuth } from '../context/AuthContext';
 import AuthScreen from '../components/AuthScreen';
@@ -30,7 +31,7 @@ export default function Home() {
   }, []);
 
   // Navigation active tab
-  const [activeTab, setActiveTab] = useState<'home' | 'marketplace' | 'report' | 'circle' | 'profile' | 'petcare' | 'admin' | 'vetconsult'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'marketplace' | 'report' | 'circle' | 'profile' | 'petcare' | 'admin' | 'vetconsult' | 'expertsupport'>('home');
 
 
   // General App / Connection States
@@ -231,6 +232,7 @@ export default function Home() {
                 <NavigationGrid 
                   onGroomingClick={() => setActiveTab('petcare')} 
                   onVetConsultationClick={() => setActiveTab('vetconsult')}
+                  onExpertSupportClick={() => setActiveTab('expertsupport')}
                 />
                 <NeighborhoodRadar />
                 <MarketplaceCategories onExploreMoreClick={() => setActiveTab('marketplace')} />
@@ -248,6 +250,11 @@ export default function Home() {
             {/* VET CONSULTATION TABS */}
             {activeTab === 'vetconsult' && (
               <VetConsultation setActiveTab={setActiveTab} />
+            )}
+
+            {/* EXPERT SUPPORT FEATURE SCREEN */}
+            {activeTab === 'expertsupport' && (
+              <ExpertSupport setActiveTab={setActiveTab} />
             )}
 
             {/* MARKETPLACE TAB SCREEN */}

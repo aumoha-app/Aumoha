@@ -72,6 +72,8 @@ export const fallbackVets: any[] = [
     name: 'Dr. Ananya Patra',
     photo: '/warden-2.png',
     specialisation: 'Small Animal & Surgery',
+    category: 'vet',
+    specialtyTags: ['Surgery', 'General Medicine'],
     experience: 8,
     fee: 400,
     bio: 'Specialist in feline medicine, soft tissue surgery, and companion animal practice.',
@@ -92,6 +94,8 @@ export const fallbackVets: any[] = [
     name: 'Dr. Rohit Nanda',
     photo: '/warden-1.png',
     specialisation: 'Dermatology & Oncology',
+    category: 'vet',
+    specialtyTags: ['Dermatology', 'Oncology'],
     experience: 12,
     fee: 600,
     bio: 'Focused on chronic skin conditions, allergies, and oncological diagnostic support.',
@@ -111,6 +115,8 @@ export const fallbackVets: any[] = [
     name: 'Dr. Meera Iyer',
     photo: '/sairaj_avatar.png',
     specialisation: 'Internal Medicine',
+    category: 'vet',
+    specialtyTags: ['Internal Medicine', 'Geriatrics'],
     experience: 10,
     fee: 500,
     bio: 'Internal pathology expert. Comprehensive healthcare management for senior pets.',
@@ -129,6 +135,8 @@ export const fallbackVets: any[] = [
     name: 'Dr. Sima Rath',
     photo: '/warden-3.png',
     specialisation: 'Exotic & Wildlife',
+    category: 'vet',
+    specialtyTags: ['Exotics', 'Reptiles'],
     experience: 7,
     fee: 500,
     bio: 'Passionate about reptiles, birds, pocket pets, and native wildlife rehabilitation.',
@@ -140,6 +148,187 @@ export const fallbackVets: any[] = [
       { _id: 'slot17', date: 'Today', time: '4:00 PM', isBooked: false },
       { _id: 'slot18', date: 'Tomorrow', time: '10:00 AM', isBooked: false },
       { _id: 'slot19', date: 'Tomorrow', time: '2:00 PM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp1',
+    name: 'Rohan Verma',
+    photo: '/sairaj_avatar.png',
+    specialisation: 'Certified Nutritionist',
+    category: 'Nutritionist',
+    specialtyTags: ['Diet Plans', 'Puppy Nutrition', 'Available Today'],
+    experience: 6,
+    fee: 300,
+    bio: 'Specialist in custom raw feeding, allergen-free diets, and weight management.',
+    rating: 4.8,
+    reviewCount: 52,
+    isOnline: true,
+    availableSlots: [
+      { _id: 'slot_e1', date: 'Today', time: '10:00 AM', isBooked: false },
+      { _id: 'slot_e2', date: 'Today', time: '3:00 PM', isBooked: false },
+      { _id: 'slot_e3', date: 'Tomorrow', time: '11:00 AM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp2',
+    name: 'Dr. Ananya Rao',
+    photo: '/warden-2.png',
+    specialisation: 'Certified Animal Behaviourist',
+    category: 'Animal Behaviourist',
+    specialtyTags: ['Anxiety', 'Aggression', 'Behaviour modification'],
+    experience: 9,
+    fee: 500,
+    bio: 'Helps pets overcome separation anxiety, fear aggression, and obsessive behaviors.',
+    rating: 4.9,
+    reviewCount: 120,
+    isOnline: true,
+    availableSlots: [
+      { _id: 'slot_e4', date: 'Today', time: '9:30 AM', isBooked: false },
+      { _id: 'slot_e5', date: 'Today', time: '1:30 PM', isBooked: false },
+      { _id: 'slot_e6', date: 'Tomorrow', time: '10:00 AM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp3',
+    name: 'Vikram Sen',
+    photo: '/warden-1.png',
+    specialisation: 'Professional Canine Trainer',
+    category: 'Trainer',
+    specialtyTags: ['Obedience', 'Leash Training', 'Puppy Socialization'],
+    experience: 8,
+    fee: 350,
+    bio: 'Specialist in positive reinforcement behavior training and puppy foundations.',
+    rating: 4.8,
+    reviewCount: 65,
+    isOnline: false,
+    availableSlots: [
+      { _id: 'slot_e7', date: 'Tomorrow', time: '9:00 AM', isBooked: false },
+      { _id: 'slot_e8', date: 'Tomorrow', time: '2:00 PM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp4',
+    name: 'Priya Sharma',
+    photo: '/warden-2.png',
+    specialisation: 'Behaviour Specialist',
+    category: 'Behaviourist',
+    specialtyTags: ['Fear Desensitization', 'Socialization', 'Available Today'],
+    experience: 5,
+    fee: 300,
+    bio: 'Dedicated to helping rescue dogs transition smoothly into household environments.',
+    rating: 4.7,
+    reviewCount: 42,
+    isOnline: true,
+    availableSlots: [
+      { _id: 'slot_e9', date: 'Today', time: '11:00 AM', isBooked: false },
+      { _id: 'slot_e10', date: 'Today', time: '4:00 PM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp5',
+    name: 'Aditi Shah',
+    photo: '/warden-3.png',
+    specialisation: 'Pet Physiotherapist',
+    category: 'Physiotherapist',
+    specialtyTags: ['Mobility', 'Injury Recovery', 'Senior Care', 'Post-Surgery'],
+    experience: 7,
+    fee: 450,
+    bio: 'Expert in canine massage, hydrotherapy guidance, and orthopedic mobility restoration.',
+    rating: 4.9,
+    reviewCount: 38,
+    isOnline: true,
+    availableSlots: [
+      { _id: 'slot_e11', date: 'Today', time: '12:00 PM', isBooked: false },
+      { _id: 'slot_e12', date: 'Tomorrow', time: '3:00 PM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp6',
+    name: 'Kabir Nair',
+    photo: '/sairaj_avatar.png',
+    specialisation: 'Wellness & Palliative Caretaker',
+    category: 'Wellness & Palliative',
+    specialtyTags: ['Pain Management', 'Senior Care', 'Emotional Comfort'],
+    experience: 10,
+    fee: 400,
+    bio: 'Providing gentle support, home hospice setup guidance, and senior pet comfort.',
+    rating: 4.6,
+    reviewCount: 29,
+    isOnline: false,
+    availableSlots: [
+      { _id: 'slot_e13', date: 'Tomorrow', time: '11:30 AM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp7',
+    name: 'Dr. Sameer Joshi',
+    photo: '/warden-1.png',
+    specialisation: 'Homeopathy Veterinarian',
+    category: 'Homeopathy Vet',
+    specialtyTags: ['Natural Healing', 'Chronic Illness', 'Holistic Wellness'],
+    experience: 15,
+    fee: 500,
+    bio: 'Offering natural, organic herbal and homeopathic treatment consults.',
+    rating: 4.8,
+    reviewCount: 88,
+    isOnline: true,
+    availableSlots: [
+      { _id: 'slot_e14', date: 'Today', time: '2:30 PM', isBooked: false },
+      { _id: 'slot_e15', date: 'Tomorrow', time: '10:30 AM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp8',
+    name: 'Maya Roy',
+    photo: '/warden-3.png',
+    specialisation: 'Rehab Specialist',
+    category: 'Rehab Specialist',
+    specialtyTags: ['Joint Therapy', 'Laser Therapy guidance', 'Post-Surgery'],
+    experience: 8,
+    fee: 450,
+    bio: 'Recovering joint mobility, muscle building post-surgeries, and fitness training.',
+    rating: 4.7,
+    reviewCount: 56,
+    isOnline: true,
+    availableSlots: [
+      { _id: 'slot_e16', date: 'Today', time: '4:30 PM', isBooked: false },
+      { _id: 'slot_e17', date: 'Tomorrow', time: '1:30 PM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp9',
+    name: 'Shalini Sen',
+    photo: '/warden-2.png',
+    specialisation: 'At-Home Support Assistant',
+    category: 'At-Home Support',
+    specialtyTags: ['Basic Nursing', 'Grooming Assist', 'Medication Admin'],
+    experience: 6,
+    fee: 250,
+    bio: 'Compassionate assistance with home nursing, ear cleaning, and administering injections.',
+    rating: 4.5,
+    reviewCount: 33,
+    isOnline: true,
+    availableSlots: [
+      { _id: 'slot_e18', date: 'Today', time: '10:30 AM', isBooked: false },
+      { _id: 'slot_e19', date: 'Today', time: '5:00 PM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp10',
+    name: 'Devika Das',
+    photo: '/warden-3.png',
+    specialisation: 'Pet Communicator & Reiki Healer',
+    category: 'Communicator/Psychotherapist/Reiki Healing',
+    specialtyTags: ['Energy Balance', 'Telepathy', 'Grief counseling'],
+    experience: 11,
+    fee: 600,
+    bio: 'Spiritual connection, pet mind reading, and natural distant reiki healing.',
+    rating: 4.9,
+    reviewCount: 91,
+    isOnline: true,
+    availableSlots: [
+      { _id: 'slot_e20', date: 'Today', time: '11:00 AM', isBooked: false },
+      { _id: 'slot_e21', date: 'Tomorrow', time: '4:00 PM', isBooked: false }
     ]
   }
 ];
@@ -1135,7 +1324,7 @@ app.get('/api/vets', async (req: Request, res: Response) => {
  */
 app.post('/api/appointments', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const { vetId, slotId, mode, petName, petId } = req.body;
+    const { vetId, slotId, mode, petName, petId, type } = req.body;
     const userEmail = req.user?.email;
 
     if (!userEmail) {
@@ -1151,7 +1340,7 @@ app.post('/api/appointments', authMiddleware, async (req: Request, res: Response
     if (mongoose.connection.readyState !== 1) {
       const vet = fallbackVets.find((v: any) => v._id === vetId);
       if (!vet) {
-        return res.status(404).json({ status: 'error', message: 'Vet not found' });
+        return res.status(404).json({ status: 'error', message: 'Vet/Expert not found' });
       }
       const slot = vet.availableSlots.find((s: any) => s._id === slotId);
       if (!slot) {
@@ -1174,6 +1363,7 @@ app.post('/api/appointments', authMiddleware, async (req: Request, res: Response
         time: slot.time,
         fee: vet.fee,
         mode: mode || 'in-clinic',
+        type: type || 'vet',
         petName,
         petId,
         status: 'confirmed',
@@ -1185,7 +1375,7 @@ app.post('/api/appointments', authMiddleware, async (req: Request, res: Response
     } else {
       const vet = await Vet.findById(vetId);
       if (!vet) {
-        return res.status(404).json({ status: 'error', message: 'Vet not found' });
+        return res.status(404).json({ status: 'error', message: 'Vet/Expert not found' });
       }
       const slot = vet.availableSlots.id(slotId);
       if (!slot) {
@@ -1208,6 +1398,7 @@ app.post('/api/appointments', authMiddleware, async (req: Request, res: Response
         time: slot.time,
         fee: vet.fee,
         mode: mode || 'in-clinic',
+        type: type || 'vet',
         petName,
         petId,
         status: 'confirmed',

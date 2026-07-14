@@ -3,9 +3,10 @@
 interface NavigationGridProps {
   onGroomingClick?: () => void;
   onVetConsultationClick?: () => void;
+  onExpertSupportClick?: () => void;
 }
 
-export default function NavigationGrid({ onGroomingClick, onVetConsultationClick }: NavigationGridProps) {
+export default function NavigationGrid({ onGroomingClick, onVetConsultationClick, onExpertSupportClick }: NavigationGridProps) {
   return (
     <div className="w-full select-none flex flex-col gap-3">
       {/* Header Row: Title */}
@@ -40,7 +41,10 @@ export default function NavigationGrid({ onGroomingClick, onVetConsultationClick
         </div>
 
         {/* Card 2: Expert Support */}
-        <div className="bg-[#FCFAF7] border border-[#EBE3D5]/65 rounded-[18px] md:rounded-[22px] px-2 py-4 md:p-4.5 flex flex-col items-center justify-center hover:border-[#7059E2]/30 hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md group">
+        <div 
+          onClick={onExpertSupportClick}
+          className="bg-[#FCFAF7] border border-[#EBE3D5]/65 rounded-[18px] md:rounded-[22px] px-2 py-4 md:p-4.5 flex flex-col items-center justify-center hover:border-[#7059E2]/30 hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md group"
+        >
           {/* Circle container for icon */}
           <div className="w-11 h-11 md:w-14 md:h-14 rounded-full bg-white border border-[#EBE3D5] flex items-center justify-center transition-colors group-hover:bg-[#FCFAF7] shadow-sm overflow-hidden">
             <img 

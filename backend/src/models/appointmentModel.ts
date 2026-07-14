@@ -10,6 +10,7 @@ export interface IAppointment extends Document {
   time: string;
   fee: number;
   mode: 'in-clinic' | 'tele-consult';
+  type: 'vet' | 'expert';
   petName: string;
   petId?: string;
   status: 'confirmed' | 'pending' | 'cancelled';
@@ -30,6 +31,7 @@ const AppointmentSchema = new Schema(
     time: { type: String, required: true },
     fee: { type: Number, required: true },
     mode: { type: String, enum: ['in-clinic', 'tele-consult'], default: 'in-clinic' },
+    type: { type: String, enum: ['vet', 'expert'], default: 'vet' },
     petName: { type: String, required: true },
     petId: { type: String, default: '' },
     status: { type: String, enum: ['confirmed', 'pending', 'cancelled'], default: 'confirmed' },

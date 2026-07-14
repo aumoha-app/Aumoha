@@ -17,6 +17,7 @@ interface Vet {
   name: string;
   photo?: string;
   specialisation: string;
+  category?: string;
   experience: number;
   fee: number;
   bio?: string;
@@ -37,6 +38,7 @@ interface Appointment {
   time: string;
   fee: number;
   mode: 'in-clinic' | 'tele-consult';
+  type?: 'vet' | 'expert';
   petName: string;
   petId?: string;
   status: 'confirmed' | 'pending' | 'cancelled';
@@ -285,6 +287,9 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
 
   // Filters logic
   const computedVets = vets.filter(v => {
+    const isVet = v.category === 'vet' || !v.category;
+    if (!isVet) return false;
+
     const matchesSearch = v.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           v.specialisation.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesSpecialty = selectedSpecialty ? v.specialisation === selectedSpecialty : true;
@@ -1230,7 +1235,14 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                   {/* Header info */}
                   <div className="flex justify-between items-start pl-1">
                     <div>
-                      <h4 className="text-xs font-bold text-charcoal">{appt.vetName}</h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-xs font-bold text-charcoal">{appt.vetName}</h4>
+                        {appt.type === 'expert' ? (
+                          <span className="text-[7.5px] font-extrabold uppercase bg-purple-50 text-purple-600 border border-purple-100 rounded px-1 shrink-0">Specialist</span>
+                        ) : (
+                          <span className="text-[7.5px] font-extrabold uppercase bg-blue-50 text-blue-600 border border-blue-100 rounded px-1 shrink-0">Vet</span>
+                        )}
+                      </div>
                       <span className="text-[10px] text-stone-500 font-semibold block mt-0.5">{appt.vetSpecialisation}</span>
                     </div>
 
