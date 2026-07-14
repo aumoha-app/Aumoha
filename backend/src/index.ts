@@ -11,6 +11,7 @@ import SosReport from './models/sosModel';
 import Settings from './models/settingsModel';
 import Vet from './models/vetModel';
 import Appointment from './models/appointmentModel';
+import ActivityPost from './models/activityModel';
 import { sendEmail, generateBookingEmailHtml } from './lib/emailService';
 import { v2 as cloudinary } from 'cloudinary';
 
@@ -1331,6 +1332,259 @@ app.delete('/api/sos/:id', authMiddleware, adminMiddleware, async (req: Request,
     });
   } catch (error) {
     console.error('Error in DELETE /api/sos/:id:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * POST /api/activities
+ * Creates a new community activity post or edits an existing one
+ */
+app.post('/api/activities', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id, category, title, description, location, image } = req.body;
+    const userEmail = req.user?.email || 'anonymous@aumoha.com';
+    const userUid = req.user?.uid;
+
+    if (!category || !title || !description || !location) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Missing required activity fields (category, title, description, location)'
+      });
+    }
+
+    let userPhone = '';
+    let authorName = 'Anonymous User';
+    let authorRole = 'volunteer';
+    let avatar = '';
+
+    if (userUid) {
+      const dbUser = await User.findOne({ firebaseUid: userUid });
+      if (dbUser) {
+        userPhone = dbUser.phone || '';
+        authorName = dbUser.fullName || 'Anonymous User';
+        authorRole = dbUser.role || 'volunteer';
+        avatar = dbUser.profilePic || '';
+      }
+    }
+
+    // Upload image to Cloudinary if provided and is base64
+    let imageUrl = image || '';
+    if (image && cloudinaryConfigured && (image.startsWith('data:') || !image.startsWith('http'))) {
+      try {
+        console.log('📤 Uploading Activity image to Cloudinary...');
+        const uploadResponse = await cloudinary.uploader.upload(image, {
+          folder: 'aumoha_activities',
+        });
+        imageUrl = uploadResponse.secure_url;
+      } catch (uploadError) {
+        console.error('❌ Failed to upload activity image to Cloudinary:', uploadError);
+      }
+    }
+
+    if (id && !id.startsWith('fallback_') && !id.startsWith('custom_')) {
+      // Edit mode (database record)
+      const existing = await ActivityPost.findById(id);
+      if (!existing) {
+        return res.status(404).json({ status: 'error', message: 'Activity not found' });
+      }
+
+      // Check ownership
+      if (existing.userEmail !== userEmail) {
+        return res.status(403).json({ status: 'error', message: 'Forbidden: You do not own this activity' });
+      }
+
+      existing.category = category;
+      existing.title = title;
+      existing.description = description;
+      existing.location = location;
+      if (image !== undefined) {
+        existing.image = imageUrl;
+      }
+
+      await existing.save();
+      return res.json({
+        status: 'success',
+        message: 'Community activity updated successfully',
+        activity: existing
+      });
+    } else {
+      // Create mode
+      const newPost = await ActivityPost.create({
+        userEmail,
+        userPhone,
+        authorName,
+        authorRole,
+        avatar,
+        category,
+        title,
+        description,
+        location,
+        image: imageUrl,
+        likes: 0
+      });
+
+      return res.json({
+        status: 'success',
+        message: 'Community activity created successfully',
+        activity: newPost
+      });
+    }
+  } catch (error) {
+    console.error('Error in POST /api/activities:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * GET /api/activities
+ * Fetches all community activity posts
+ */
+app.get('/api/activities', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const posts = await ActivityPost.find().sort({ createdAt: -1 });
+    return res.json({
+      status: 'success',
+      activities: posts
+    });
+  } catch (error) {
+    console.error('Error in GET /api/activities:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * DELETE /api/activities/:id
+ * Deletes a community activity post
+ */
+app.delete('/api/activities/:id', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userEmail = req.user?.email;
+
+    if (!userEmail) {
+      return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+    }
+
+    const post = await ActivityPost.findById(id);
+    if (!post) {
+      return res.status(404).json({ status: 'error', message: 'Post not found' });
+    }
+
+    // Check ownership
+    if (post.userEmail !== userEmail) {
+      return res.status(403).json({ status: 'error', message: 'Forbidden: You do not own this post' });
+    }
+
+    await ActivityPost.findByIdAndDelete(id);
+    return res.json({
+      status: 'success',
+      message: 'Post deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error in DELETE /api/activities/:id:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * POST /api/activities/:id/join
+ * Register/join a community event or feeding drive
+ */
+app.post('/api/activities/:id/join', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userEmail = req.user?.email;
+    const userUid = req.user?.uid;
+
+    if (!userEmail) {
+      return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+    }
+
+    const post = await ActivityPost.findById(id);
+    if (!post) {
+      return res.status(404).json({ status: 'error', message: 'Activity not found' });
+    }
+
+    // Lookup user details from DB to store rich info (name, avatar, phone)
+    let userName = 'Anonymous User';
+    let avatar = '';
+    let userPhone = '';
+
+    if (userUid) {
+      const dbUser = await User.findOne({ firebaseUid: userUid });
+      if (dbUser) {
+        userName = dbUser.fullName || 'Anonymous User';
+        avatar = dbUser.profilePic || '';
+        userPhone = dbUser.phone || '';
+      }
+    } else {
+      const dbUser = await User.findOne({ email: userEmail });
+      if (dbUser) {
+        userName = dbUser.fullName || 'Anonymous User';
+        avatar = dbUser.profilePic || '';
+        userPhone = dbUser.phone || '';
+      }
+    }
+
+    // Initialize joinees array if undefined
+    if (!post.joinees) {
+      post.joinees = [];
+    }
+
+    // Check if already joined
+    const exists = post.joinees.some((j: any) => j.userEmail.toLowerCase() === userEmail.toLowerCase());
+    if (!exists) {
+      post.joinees.push({
+        userEmail,
+        userName,
+        avatar,
+        userPhone
+      });
+      await post.save();
+    }
+
+    return res.json({
+      status: 'success',
+      message: 'Successfully registered for this activity',
+      activity: post
+    });
+  } catch (error) {
+    console.error('Error in POST /api/activities/:id/join:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * POST /api/activities/:id/leave
+ * Cancel registration / leave a community event or feeding drive
+ */
+app.post('/api/activities/:id/leave', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userEmail = req.user?.email;
+
+    if (!userEmail) {
+      return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+    }
+
+    const post = await ActivityPost.findById(id);
+    if (!post) {
+      return res.status(404).json({ status: 'error', message: 'Activity not found' });
+    }
+
+    if (post.joinees) {
+      post.joinees = post.joinees.filter((j: any) => j.userEmail.toLowerCase() !== userEmail.toLowerCase());
+      await post.save();
+    }
+
+    return res.json({
+      status: 'success',
+      message: 'Successfully cancelled registration for this activity',
+      activity: post
+    });
+  } catch (error) {
+    console.error('Error in POST /api/activities/:id/leave:', error);
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
   }
 });

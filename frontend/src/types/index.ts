@@ -104,6 +104,12 @@ export interface CommunityUpdate {
   likes?: number;
   lat?: number;
   lng?: number;
+  joinees?: Array<{
+    userEmail: string;
+    userName: string;
+    avatar?: string;
+    userPhone?: string;
+  }>;
 }
 
 export interface CircleLeader {
