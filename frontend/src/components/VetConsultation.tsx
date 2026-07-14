@@ -81,7 +81,8 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
   const [isAddingNotesAppt, setIsAddingNotesAppt] = useState<Appointment | null>(null);
   const [noteText, setNoteText] = useState('');
 
-  // Admin Dashboard States
+  // Role Security Checking
+  const [isAdminUser, setIsAdminUser] = useState(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
   const [adminError, setAdminError] = useState<string | null>(null);
@@ -142,11 +143,30 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
     }
   };
 
+  // Check if current user is admin whitelisted
+  useEffect(() => {
+    if (token) {
+      fetch('http://localhost:5001/api/auth/admin-config', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          setIsAdminUser(data.isAdmin);
+        }
+      })
+      .catch(err => console.error('Failed to retrieve admin configuration in Consult & Care:', err));
+    } else {
+      setIsAdminUser(false);
+    }
+  }, [token]);
+
   useEffect(() => {
     fetchVets();
     fetchAppointments();
 
-    // Recover cached admin password if active in session
     const cachedPass = sessionStorage.getItem('aumoha_admin_password');
     if (cachedPass) {
       verifyAdminPass(cachedPass);
@@ -167,7 +187,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
       name: 'General Practice',
       desc: 'Routine care & checkups',
       icon: (
-        <svg className="w-6 h-6 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg className="w-5 h-5 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
           <path d="M8 11h8M12 7v8" />
         </svg>
@@ -178,7 +198,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
       name: 'Surgery',
       desc: 'Soft tissue & major surgeries',
       icon: (
-        <svg className="w-6 h-6 text-blue-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg className="w-5 h-5 text-blue-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
           <line x1="8" y1="21" x2="16" y2="21" />
           <line x1="12" y1="17" x2="12" y2="21" />
@@ -190,7 +210,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
       name: 'Dermatology',
       desc: 'Skin, coat & allergy care',
       icon: (
-        <svg className="w-6 h-6 text-orange-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg className="w-5 h-5 text-orange-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 2a5 5 0 0 0-5 5v3a5 5 0 0 0 10 0V7a5 5 0 0 0-5-5z" />
           <path d="M12 10V22M8 14h8M6 18h12" />
         </svg>
@@ -201,7 +221,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
       name: 'Dentistry',
       desc: 'Teeth & oral health',
       icon: (
-        <svg className="w-6 h-6 text-cyan-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg className="w-5 h-5 text-cyan-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M7 12c.5-2 1.5-4 4-4s3.5 2 4 4c.5 2-1 4-2.5 5.5s-2 1.5-3.5 1.5S7 17.5 7 12z" />
           <path d="M12 8c.5-1.5 1.5-3 2.5-3s2.5 1.5 2.5 3" />
         </svg>
@@ -212,7 +232,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
       name: 'Cardiology',
       desc: 'Heart & circulation care',
       icon: (
-        <svg className="w-6 h-6 text-rose-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg className="w-5 h-5 text-rose-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.5 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
         </svg>
       )
@@ -222,7 +242,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
       name: 'Orthopedics',
       desc: 'Bone, joint & mobility care',
       icon: (
-        <svg className="w-6 h-6 text-indigo-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg className="w-5 h-5 text-indigo-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="3" width="18" height="18" rx="2" />
           <path d="M9 3v18M15 3v18M3 9h18M3 15h18" />
         </svg>
@@ -233,7 +253,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
       name: 'Exotic Pet Care',
       desc: 'Birds, reptiles & small mammals',
       icon: (
-        <svg className="w-6 h-6 text-teal-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg className="w-5 h-5 text-teal-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10" />
           <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
           <path d="M2 12h20" />
@@ -245,7 +265,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
       name: 'Oncology',
       desc: 'Cancer care & management',
       icon: (
-        <svg className="w-6 h-6 text-purple-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg className="w-5 h-5 text-purple-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7" />
         </svg>
       )
@@ -268,7 +288,6 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
     setSelectedSlot(slot);
     setBookingMode(subTab === 'tele' ? 'tele-consult' : 'in-clinic');
     
-    // Pick default pet name or input custom one
     if (user?.pets && user.pets.length > 0) {
       setSelectedPetName(user.pets[0].name);
       setNewPetInput(false);
@@ -309,7 +328,6 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
       if (res.ok) {
         setConfirmedAppt(data.appointment);
         setCurrentView('confirmed');
-        // Refresh listings
         fetchVets();
         fetchAppointments();
       } else {
@@ -528,34 +546,39 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
             </svg>
           </button>
           <div>
-            <h1 className="text-xs uppercase tracking-wider font-extrabold text-[#B68A35]">Consult & Care</h1>
-            <span className="text-[10px] text-stone-500 font-semibold mt-0.5 block">Expert care for every pet need</span>
+            <h1 className="text-sm font-serif font-extrabold text-charcoal">Consult & Care</h1>
+            <span className="text-[10px] text-stone-500 font-semibold block mt-0.5">Expert care for every pet need</span>
           </div>
         </div>
 
-        {/* Quick Admin Toggle Icon */}
-        <button 
-          onClick={() => {
-            setSubTab('admin');
-            setCurrentView('home');
-          }}
-          className={`px-3 py-1.5 rounded-xl border text-[10px] font-bold transition-all ${
-            subTab === 'admin' 
-              ? 'bg-[#3D5A45] border-[#3D5A45] text-white' 
-              : 'border-warmBeige hover:bg-warmBg text-[#3D5A45]'
-          }`}
-        >
-          🔐 Admin Panel
-        </button>
+        {/* Gated Admin Panel Button */}
+        {isAdminUser && (
+          <button 
+            onClick={() => {
+              setSubTab('admin');
+              setCurrentView('home');
+            }}
+            className={`px-3.5 py-2 rounded-xl border text-[10px] font-extrabold flex items-center gap-1.5 transition-all ${
+              subTab === 'admin' 
+                ? 'bg-[#3D5A45] border-[#3D5A45] text-white shadow-sm' 
+                : 'border-warmBeige hover:bg-[#FCFAF7] text-[#3D5A45]'
+            }`}
+          >
+            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+            Admin Panel
+          </button>
+        )}
       </div>
 
       {/* 2. SUB-TABS SELECTOR FOR FLOW STATES */}
-      {currentView === 'home' && (
+      {currentView === 'home' && subTab !== 'admin' && (
         <div className="grid grid-cols-3 bg-[#FCFAF7] border border-[#F0EBE1] p-1 rounded-2xl w-full select-none shadow-sm">
           <button 
             onClick={() => { setSubTab('book'); setSelectedSpecialty(null); }}
-            className={`py-2 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all ${
-              subTab === 'book' ? 'bg-white shadow-sm text-terracotta' : 'text-stone-500 hover:text-stone-700'
+            className={`py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
+              subTab === 'book' ? 'bg-white shadow-sm text-terracotta border border-[#EBE3D5]/20' : 'text-stone-500 hover:text-stone-700'
             }`}
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -569,8 +592,8 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
           
           <button 
             onClick={() => { setSubTab('tele'); setSelectedSpecialty(null); }}
-            className={`py-2 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all ${
-              subTab === 'tele' ? 'bg-white shadow-sm text-terracotta' : 'text-stone-500 hover:text-stone-700'
+            className={`py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
+              subTab === 'tele' ? 'bg-white shadow-sm text-terracotta border border-[#EBE3D5]/20' : 'text-stone-500 hover:text-stone-700'
             }`}
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -582,8 +605,8 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
 
           <button 
             onClick={() => setSubTab('my-appts')}
-            className={`py-2 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all ${
-              subTab === 'my-appts' ? 'bg-white shadow-sm text-terracotta' : 'text-stone-500 hover:text-stone-700'
+            className={`py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
+              subTab === 'my-appts' ? 'bg-white shadow-sm text-terracotta border border-[#EBE3D5]/20' : 'text-stone-500 hover:text-stone-700'
             }`}
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -591,9 +614,8 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
               <polyline points="14 2 14 8 20 8" />
               <line x1="16" y1="13" x2="8" y2="13" />
               <line x1="16" y1="17" x2="8" y2="17" />
-              <polyline points="10 9 9 9 8 9" />
             </svg>
-            My Appts
+            My Appointments
           </button>
         </div>
       )}
@@ -603,18 +625,39 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
         <div className="flex flex-col gap-6 w-full animate-fadeIn">
           
           {/* SEARCH BAR */}
-          <div className="relative w-full">
-            <input 
-              type="text"
-              placeholder="Search for specialisations, vets..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl pl-10 pr-4 py-3 text-xs font-semibold focus:outline-none focus:border-terracotta/40 shadow-sm"
-            />
-            <svg className="absolute left-3.5 top-3.5 w-4 h-4 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
+          <div className="flex gap-2 w-full">
+            <div className="relative flex-grow">
+              <input 
+                type="text"
+                placeholder="Search for specialisations, vets..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl pl-10 pr-4 py-3 text-xs font-semibold focus:outline-none focus:border-terracotta/40 shadow-sm"
+              />
+              <svg className="absolute left-3.5 top-3.5 w-4 h-4 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+            </div>
+            
+            {/* Standard Mock Search Filter Button */}
+            <button 
+              type="button"
+              onClick={() => setCurrentView('directory')}
+              className="w-11 h-11 bg-white border border-[#F0EBE1] hover:bg-[#FCFAF7] active:scale-95 transition-all rounded-2xl flex items-center justify-center shadow-sm shrink-0"
+            >
+              <svg className="w-4 h-4 text-stone-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="4" y1="21" x2="4" y2="14" />
+                <line x1="4" y1="10" x2="4" y2="3" />
+                <line x1="12" y1="21" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12" y2="3" />
+                <line x1="20" y1="21" x2="20" y2="16" />
+                <line x1="20" y1="12" x2="20" y2="3" />
+                <line x1="1" y1="14" x2="7" y2="14" />
+                <line x1="9" y1="8" x2="15" y2="8" />
+                <line x1="17" y1="16" x2="23" y2="16" />
+              </svg>
+            </button>
           </div>
 
           {/* HERO BANNER */}
@@ -624,7 +667,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
               <p className="text-[10px] text-stone-600 font-semibold leading-relaxed">Connect with trusted veterinary experts for your pet's wellness diagnostics.</p>
               <button 
                 onClick={() => setCurrentView('directory')}
-                className="mt-2.5 px-4.5 py-2 bg-[#3D5A45] hover:bg-[#2A3E31] text-white text-[11px] font-extrabold rounded-xl transition-all shadow-sm self-start"
+                className="mt-2.5 px-4.5 py-2 bg-[#3D5A45] hover:bg-[#2A3E31] text-white text-[11px] font-extrabold rounded-xl transition-all shadow-sm self-start active:scale-95"
               >
                 Let's Consult
               </button>
@@ -642,9 +685,9 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
               <h3 className="text-xs font-extrabold text-stone-400 uppercase tracking-wider">Browse by Specialisation</h3>
               <button 
                 onClick={() => { setSelectedSpecialty(null); setCurrentView('directory'); }}
-                className="text-[10px] font-bold text-terracotta hover:underline"
+                className="text-[10px] font-bold text-[#B68A35] hover:underline flex items-center gap-0.5"
               >
-                View all ›
+                View all <span className="text-xs font-extrabold mt-0.5">›</span>
               </button>
             </div>
 
@@ -674,9 +717,9 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
               <h3 className="text-xs font-extrabold text-stone-400 uppercase tracking-wider">Top Rated Vets</h3>
               <button 
                 onClick={() => { setSelectedSpecialty(null); setCurrentView('directory'); }}
-                className="text-[10px] font-bold text-terracotta hover:underline"
+                className="text-[10px] font-bold text-[#B68A35] hover:underline flex items-center gap-0.5"
               >
-                View all ›
+                View all <span className="text-xs font-extrabold mt-0.5">›</span>
               </button>
             </div>
 
@@ -687,7 +730,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                 <div 
                   key={vet._id}
                   onClick={() => { setSelectedSpecialty(vet.specialisation); setCurrentView('directory'); }}
-                  className="bg-white border border-[#F0EBE1] hover:border-terracotta/20 rounded-2xl p-3 flex items-center justify-between hover:shadow-sm cursor-pointer transition-all"
+                  className="bg-white border border-[#F0EBE1] hover:border-terracotta/20 rounded-2xl p-3.5 flex items-center justify-between hover:shadow-sm cursor-pointer transition-all"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full overflow-hidden bg-stone-100 border border-[#F0EBE1] relative shrink-0">
@@ -701,11 +744,11 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                     <div>
                       <h4 className="text-xs font-bold text-charcoal">{vet.name}</h4>
                       <span className="text-[10px] text-stone-500 block font-semibold mt-0.5">{vet.specialisation}</span>
-                      <span className="text-[9.5px] text-stone-400 block font-semibold">{vet.experience} yrs experience</span>
+                      <span className="text-[9.5px] text-stone-400 block font-semibold mt-0.5">{vet.experience} yrs experience</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-0.5">
+                    <div className="flex items-center gap-0.5 mr-2">
                       <span className="text-amber-500 text-xs">★</span>
                       <span className="text-[10px] font-extrabold text-charcoal">{vet.rating}</span>
                       <span className="text-[9px] text-stone-400 font-semibold">({vet.reviewCount})</span>
@@ -736,7 +779,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl pl-10 pr-4 py-2.5 text-xs font-semibold focus:outline-none focus:border-terracotta/40 shadow-sm"
               />
-              <svg className="absolute left-3 top-3 w-4 h-4 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <svg className="absolute left-3 top-3.5 w-4 h-4 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
@@ -744,14 +787,14 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
             
             <button 
               onClick={() => { setSelectedSpecialty(null); setSearchQuery(''); }}
-              className="px-3.5 py-2.5 bg-[#FCFAF7] border border-[#F0EBE1] text-xs font-bold rounded-2xl flex items-center gap-1.5 shadow-sm text-stone-600 hover:bg-stone-50 transition-all shrink-0 active:scale-95"
+              className="px-3.5 py-2.5 bg-[#FCFAF7] border border-[#F0EBE1] text-[10px] font-bold rounded-2xl flex items-center gap-1.5 shadow-sm text-stone-600 hover:bg-stone-50 transition-all shrink-0 active:scale-95"
             >
               Reset
             </button>
           </div>
 
           {/* ACTIVE SPECIALTY FILTER CHIPS */}
-          <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-hide">
+          <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-hide select-none">
             <button
               onClick={() => setSelectedSpecialty(null)}
               className={`px-3.5 py-1.5 border rounded-full text-[10px] font-extrabold shrink-0 transition-all active:scale-95 ${
@@ -788,7 +831,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
             ) : computedVets.map(vet => (
               <div 
                 key={vet._id}
-                className="bg-white border border-[#F0EBE1] rounded-[24px] p-4 flex flex-col gap-3 shadow-sm"
+                className="bg-white border border-[#F0EBE1] rounded-[24px] p-4 flex flex-col gap-3.5 shadow-sm"
               >
                 {/* Vet Header card section */}
                 <div className="flex justify-between items-start">
@@ -815,33 +858,44 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                     </div>
                   </div>
 
-                  <div className="text-right flex flex-col items-end gap-1">
-                    <span className="text-sm font-extrabold text-terracotta">₹{vet.fee}</span>
-                    <span className="text-[8px] bg-emerald-50/80 text-emerald-700 border border-emerald-100 rounded-full px-2 py-0.5 font-bold uppercase">Online</span>
+                  <div className="text-right flex flex-col items-end gap-1.5">
+                    <span className="text-sm font-extrabold text-[#3D5A45]">₹{vet.fee}</span>
+                    <div className="flex gap-1">
+                      <span className="text-[8px] bg-blue-50 text-blue-600 border border-blue-100 rounded-md px-1.5 py-0.5 font-bold uppercase">Today</span>
+                      <span className="text-[8px] bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-md px-1.5 py-0.5 font-bold uppercase">Online</span>
+                    </div>
                   </div>
                 </div>
 
                 {/* Available slots picker inside the card */}
-                <div className="flex flex-col gap-2 pt-2 border-t border-stone-100">
-                  <span className="text-[9px] font-extrabold text-stone-400 uppercase tracking-wider">Next Available Slots</span>
+                <div className="flex flex-col gap-2.5 pt-2.5 border-t border-stone-100">
+                  <div className="flex justify-between items-center px-1">
+                    <span className="text-[9px] font-extrabold text-stone-400 uppercase tracking-wider">Next Available Slots</span>
+                    <button 
+                      onClick={() => alert(`Showing all available schedules for ${vet.name}...`)}
+                      className="text-[9px] font-extrabold text-blue-600 hover:underline"
+                    >
+                      View all slots ›
+                    </button>
+                  </div>
                   
                   <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
                     {vet.availableSlots && vet.availableSlots.filter(s => !s.isBooked).slice(0, 4).map((slot, index) => (
                       <button
                         key={slot._id}
                         onClick={() => handleStartBooking(vet, slot)}
-                        className={`px-3 py-2 border rounded-xl text-[10px] font-bold text-center transition-all shrink-0 active:scale-95 flex flex-col gap-0.5 min-w-[70px] ${
-                          index === 0
-                            ? 'bg-[#3D5A45] border-[#3D5A45] text-white shadow-sm hover:bg-[#2A3E31]'
-                            : 'bg-white border-[#F0EBE1] text-[#3D5A45] hover:border-stone-300'
+                        className={`px-3.5 py-2 border rounded-xl text-[10px] font-bold text-center transition-all shrink-0 active:scale-95 flex flex-col gap-0.5 min-w-[70px] ${
+                          index === 1
+                            ? 'bg-[#1E40AF] border-[#1E40AF] text-white shadow-sm hover:bg-[#1E3A8A]'
+                            : 'bg-white border-[#EBE3D5] text-[#1E40AF] hover:border-stone-300'
                         }`}
                       >
-                        <span className="text-[8px] opacity-75 font-semibold">{slot.date}</span>
+                        <span className={`text-[8px] opacity-75 font-bold ${index === 1 ? 'text-white/80' : 'text-stone-400'}`}>{slot.date}</span>
                         <span>{slot.time}</span>
                       </button>
                     ))}
                     {(!vet.availableSlots || vet.availableSlots.filter(s => !s.isBooked).length === 0) && (
-                      <span className="text-[9px] text-stone-400 font-semibold italic py-1">No slots available. Contact clinic for schedule.</span>
+                      <span className="text-[9.5px] text-stone-400 font-semibold italic py-1 pl-1">No slots available. Contact clinic for schedules.</span>
                     )}
                   </div>
                 </div>
@@ -880,7 +934,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                 type="button"
                 onClick={() => setBookingMode('in-clinic')}
                 className={`py-2 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all ${
-                  bookingMode === 'in-clinic' ? 'bg-white shadow-sm text-[#3D5A45]' : 'text-stone-500 hover:text-stone-700'
+                  bookingMode === 'in-clinic' ? 'bg-white shadow-sm text-[#3D5A45] border border-[#EBE3D5]/20' : 'text-stone-500 hover:text-stone-700'
                 }`}
               >
                 In-Clinic Consult
@@ -889,7 +943,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                 type="button"
                 onClick={() => setBookingMode('tele-consult')}
                 className={`py-2 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all ${
-                  bookingMode === 'tele-consult' ? 'bg-white shadow-sm text-[#3D5A45]' : 'text-stone-500 hover:text-stone-700'
+                  bookingMode === 'tele-consult' ? 'bg-white shadow-sm text-[#3D5A45] border border-[#EBE3D5]/20' : 'text-stone-500 hover:text-stone-700'
                 }`}
               >
                 Tele-Consult (Online)
@@ -961,7 +1015,13 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                 </tr>
                 <tr className="border-b border-stone-100">
                   <td className="py-2.5 text-stone-400 font-medium">Pet</td>
-                  <td className="py-2.5 text-right font-extrabold text-charcoal">{newPetInput ? customPetName : selectedPetName}</td>
+                  <td className="py-2.5 text-right font-extrabold text-charcoal flex items-center justify-end gap-1.5">
+                    <span>{newPetInput ? customPetName : selectedPetName}</span>
+                    {/* Inline Vector SVG for Dog Icon */}
+                    <svg className="w-3.5 h-3.5 text-orange-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M10 5.172A2 2 0 0 0 8.586 4.5H5.414A2 2 0 0 0 4 5.172L2 7.172A2 2 0 0 0 1.5 8.586V14a2 2 0 0 0 2 2h1v2a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2h1a2 2 0 0 0 2-2v-5.414a2 2 0 0 0-.586-1.414L10 5.172z" />
+                    </svg>
+                  </td>
                 </tr>
                 <tr className="border-b border-stone-100">
                   <td className="py-2.5 text-stone-400 font-medium">Consultation Fee</td>
@@ -969,7 +1029,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                 </tr>
                 <tr className="pt-2">
                   <td className="py-3 text-charcoal font-extrabold text-sm">Total</td>
-                  <td className="py-3 text-right font-extrabold text-terracotta text-sm">₹{selectedVet.fee}</td>
+                  <td className="py-3 text-right font-extrabold text-blue-600 text-sm">₹{selectedVet.fee}</td>
                 </tr>
               </tbody>
             </table>
@@ -1102,25 +1162,42 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                       appt.status === 'cancelled'
                         ? 'bg-rose-50 text-rose-600 border border-rose-100'
                         : appt.status === 'confirmed'
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                          ? 'bg-blue-50 text-blue-600 border border-blue-100'
                           : 'bg-amber-50 text-amber-700 border border-amber-100'
                     }`}>
                       {appt.status}
                     </span>
                   </div>
 
-                  {/* Metadata Row */}
-                  <div className="flex flex-col md:flex-row gap-2 md:items-center pl-1 bg-[#FCFAF7] border border-[#F0EBE1] rounded-xl p-2 text-[10px] text-stone-600 font-semibold">
+                  {/* Metadata Row with High Quality SVGs */}
+                  <div className="flex flex-col md:flex-row gap-3 md:items-center pl-1 bg-[#FCFAF7] border border-[#F0EBE1] rounded-xl p-2.5 text-[10px] text-stone-600 font-semibold">
                     <div className="flex items-center gap-1.5">
-                      <span>🐶</span> <strong>For:</strong> {appt.petName}
+                      <svg className="w-3.5 h-3.5 text-stone-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M10 5.172A2 2 0 0 0 8.586 4.5H5.414A2 2 0 0 0 4 5.172L2 7.172A2 2 0 0 0 1.5 8.586V14a2 2 0 0 0 2 2h1v2a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2h1a2 2 0 0 0 2-2v-5.414a2 2 0 0 0-.586-1.414L10 5.172z" />
+                      </svg>
+                      <strong>For:</strong> {appt.petName}
                     </div>
+                    
                     <div className="hidden md:block text-stone-300">|</div>
+                    
                     <div className="flex items-center gap-1.5">
-                      <span>📅</span> <strong>Slot:</strong> {appt.date} • {appt.time}
+                      <svg className="w-3.5 h-3.5 text-stone-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                      </svg>
+                      <strong>Slot:</strong> {appt.date} • {appt.time}
                     </div>
+
                     <div className="hidden md:block text-stone-300">|</div>
+
                     <div className="flex items-center gap-1.5 text-terracotta">
-                      <span>💵</span> <strong>Fee:</strong> ₹{appt.fee} ({appt.mode === 'tele-consult' ? 'Tele-consult' : 'In-Clinic'})
+                      <svg className="w-3.5 h-3.5 text-terracotta" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                        <rect x="2" y="6" width="20" height="12" rx="2" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                      <strong>Fee:</strong> ₹{appt.fee} ({appt.mode === 'tele-consult' ? 'Tele-consult' : 'In-Clinic'})
                     </div>
                   </div>
 
@@ -1130,9 +1207,9 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                     </div>
                   )}
 
-                  {/* Booking Actions Row */}
+                  {/* Booking Actions Row with Vector SVGs */}
                   {appt.status !== 'cancelled' && (
-                    <div className="grid grid-cols-3 gap-2 pt-2 border-t border-stone-100">
+                    <div className="grid grid-cols-3 gap-2.5 pt-2 border-t border-stone-100">
                       <button
                         onClick={() => {
                           setIsReschedulingAppt(appt);
@@ -1141,24 +1218,36 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                             setSelectedVet(originalVet);
                           }
                         }}
-                        className="py-2 border border-warmBeige text-[#3D5A45] hover:bg-stone-50 rounded-xl text-[9px] font-bold text-center transition-all active:scale-95"
+                        className="py-2 border border-warmBeige text-[#3D5A45] hover:bg-stone-50 rounded-xl text-[9px] font-extrabold text-center transition-all active:scale-95 flex items-center justify-center gap-1.5"
                       >
-                        ⏱️ Reschedule
+                        <svg className="w-3 h-3 text-[#3D5A45]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <circle cx="12" cy="12" r="10" />
+                          <polyline points="12 6 12 12 16 14" />
+                        </svg>
+                        Reschedule
                       </button>
                       <button
                         onClick={() => {
                           setIsAddingNotesAppt(appt);
                           setNoteText(appt.notes || '');
                         }}
-                        className="py-2 border border-warmBeige text-stone-600 hover:bg-stone-50 rounded-xl text-[9px] font-bold text-center transition-all active:scale-95"
+                        className="py-2 border border-warmBeige text-stone-600 hover:bg-stone-50 rounded-xl text-[9px] font-extrabold text-center transition-all active:scale-95 flex items-center justify-center gap-1.5"
                       >
-                        📝 Add Notes
+                        <svg className="w-3 h-3 text-stone-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                        </svg>
+                        Add Notes
                       </button>
                       <button
                         onClick={() => handleCancelAppointment(appt)}
-                        className="py-2 border border-rose-100 text-rose-600 hover:bg-rose-50 rounded-xl text-[9px] font-bold text-center transition-all active:scale-95"
+                        className="py-2 border border-rose-100 text-rose-600 hover:bg-rose-50 rounded-xl text-[9px] font-extrabold text-center transition-all active:scale-95 flex items-center justify-center gap-1.5"
                       >
-                        🗑️ Cancel
+                        <svg className="w-3 h-3 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                        </svg>
+                        Cancel
                       </button>
                     </div>
                   )}
