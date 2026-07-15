@@ -66,7 +66,7 @@ export interface SosReport {
   updatedAt?: string;
 }
 
-export type MemberRole = 'all' | 'feeder' | 'rescuer' | 'volunteer' | 'paravet' | 'adopter' | 'normal';
+export type MemberRole = 'all' | 'feeder' | 'rescuer' | 'volunteer' | 'paravet' | 'adopter' | 'normal' | 'official';
 
 export interface CircleMember {
   id: string;
@@ -74,6 +74,7 @@ export interface CircleMember {
   avatar: string;
   role: MemberRole;
   distance: string;
+  distanceVal?: number;
   badge?: 'trusted' | 'level4' | 'level3' | 'available' | 'level5';
   joinedTime?: string;
   location?: string;
@@ -104,6 +105,7 @@ export interface CommunityUpdate {
   likes?: number;
   lat?: number;
   lng?: number;
+  status?: 'active' | 'dispatched' | 'resolved';
   joinees?: Array<{
     userEmail: string;
     userName: string;

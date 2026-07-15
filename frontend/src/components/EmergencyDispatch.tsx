@@ -299,6 +299,30 @@ export default function EmergencyDispatch({
     }
   };
 
+  const handleUpdateMyReportStatus = async (reportId: string, newStatus: string) => {
+    if (!token) return;
+    try {
+      const response = await fetch(`http://localhost:5001/api/sos/my/${reportId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      if (response.ok) {
+        fetchMyReports();
+      } else {
+        const errData = await response.json();
+        alert(errData.message || 'Failed to update status.');
+      }
+    } catch (err) {
+      console.error('Error updating report status:', err);
+      alert('Network error. Unable to update status.');
+    }
+  };
+
   const handleDeleteReport = (reportId: string) => {
     openConfirmation({
       title: 'Cancel Rescue Alert?',
@@ -1163,6 +1187,37 @@ export default function EmergencyDispatch({
                                 </div>
                               );
                             })}
+                          </div>
+                          
+                          {/* User status update controls */}
+                          <div className="flex justify-end gap-2 mt-2 pt-3 border-t border-[#F0EBE1]/60 flex-wrap select-none">
+                            {report.status === 'active' && (
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateMyReportStatus(report._id, 'dispatched')}
+                                className="px-3 py-1.5 bg-[#FFF8F1] hover:bg-[#FFEAE1] border border-[#FFE4E6] text-amber-700 text-[10px] font-extrabold rounded-xl transition-all cursor-pointer shadow-xs active:scale-95 flex items-center gap-1"
+                              >
+                                🚚 Mark Dispatched
+                              </button>
+                            )}
+                            {report.status !== 'resolved' && (
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateMyReportStatus(report._id, 'resolved')}
+                                className="px-3 py-1.5 bg-[#F0FDF4] hover:bg-[#DCFCE7] border border-[#BBF7D0] text-emerald-700 text-[10px] font-extrabold rounded-xl transition-all cursor-pointer shadow-xs active:scale-95 flex items-center gap-1"
+                              >
+                                ✓ Mark Resolved
+                              </button>
+                            )}
+                            {report.status !== 'active' && (
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateMyReportStatus(report._id, 'active')}
+                                className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-100 text-rose-700 text-[10px] font-extrabold rounded-xl transition-all cursor-pointer shadow-xs active:scale-95 flex items-center gap-1"
+                              >
+                                🚨 Reopen Alert
+                              </button>
+                            )}
                           </div>
                         </div>
                       );

@@ -139,7 +139,10 @@ export default function SupportRequestDetail({
             return `<svg class="w-3.5 h-3.5 text-[#546E7A]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
         }
       };
-      const coordinatesRegistry: { [key: string]: number } = {};
+      const centerKey = `${center[0].toFixed(6)},${center[1].toFixed(6)}`;
+      const coordinatesRegistry: { [key: string]: number } = {
+        [centerKey]: 0
+      };
 
       pins.forEach(pin => {
         let lat = pin.lat;
@@ -149,7 +152,7 @@ export default function SupportRequestDetail({
           coordinatesRegistry[key] += 1;
           const count = coordinatesRegistry[key];
           const angle = count * (Math.PI / 4);
-          const radius = 0.00015 * Math.ceil(count / 8);
+          const radius = 0.0006 * Math.ceil(count / 8);
           lat += Math.sin(angle) * radius;
           lng += Math.cos(angle) * radius;
         } else {
@@ -260,9 +263,9 @@ export default function SupportRequestDetail({
 
         {/* Proximity Map Card */}
         <div className="bg-white border border-[#F0EBE1] rounded-[28px] p-4 shadow-sm flex flex-col gap-3 relative">
-          {/* Within 3 km Badge */}
+          {/* Within 10 km Badge */}
           <div className="absolute top-6 right-6 bg-white/95 border border-[#F0EBE1] px-2.5 py-1 rounded-lg text-[9px] font-bold text-stone-600 flex items-center gap-1 z-20 shadow-xs select-none">
-            <span>Within 3 km</span>
+            <span>Within 10 km</span>
             <svg className="w-3 h-3 text-stone-500" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/>
             </svg>

@@ -6,21 +6,22 @@ import { CircleMember, MemberRole } from '../types';
 interface MohallaNetworkProps {
   computedMembers: CircleMember[];
   dbSosReports: any[];
+  resolvedSosCount?: number;
   memberFilter: MemberRole | 'all';
   setMemberFilter: (filter: MemberRole | 'all') => void;
 }
 
-export default function MohallaNetwork({ computedMembers, dbSosReports, memberFilter, setMemberFilter }: MohallaNetworkProps) {
+export default function MohallaNetwork({ computedMembers, dbSosReports, resolvedSosCount = 0, memberFilter, setMemberFilter }: MohallaNetworkProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Define role pills
-  const rolesList: { id: MemberRole | 'all'; label: string; icon: string }[] = [
-    { id: 'all', label: 'All', icon: '👥' },
-    { id: 'rescuer', label: 'Rescuers', icon: '🛡️' },
-    { id: 'feeder', label: 'Feeders', icon: '🥣' },
-    { id: 'paravet', label: 'Paravets', icon: '🩺' },
-    { id: 'adopter', label: 'Foster Homes', icon: '🏠' },
-    { id: 'volunteer', label: 'Volunteers', icon: '❤️' }
+  const rolesList: { id: MemberRole | 'all'; label: string }[] = [
+    { id: 'all', label: 'All' },
+    { id: 'rescuer', label: 'Rescuers' },
+    { id: 'feeder', label: 'Feeders' },
+    { id: 'paravet', label: 'Paravets' },
+    { id: 'adopter', label: 'Foster Homes' },
+    { id: 'volunteer', label: 'Volunteers' }
   ];
 
   // Helper to resolve role colors & display text
@@ -36,13 +37,74 @@ export default function MohallaNetwork({ computedMembers, dbSosReports, memberFi
         return { bg: 'bg-[#F3E5F5]', text: 'text-[#7B1FA2]', border: 'border-[#E1BEE7]', label: 'Paravet', icon: '🩺' };
       case 'adopter':
         return { bg: 'bg-[#E0F2F1]', text: 'text-[#004D40]', border: 'border-[#B2DFDB]', label: 'Foster Home', icon: '🏠' };
+      case 'official':
+        return { bg: 'bg-[#FFF8E1]', text: 'text-[#B68A35]', border: 'border-[#FFE082]', label: 'Official', icon: '✦' };
       default:
         return { bg: 'bg-[#ECEFF1]', text: 'text-[#37474F]', border: 'border-[#CFD8DC]', label: 'Member', icon: '👤' };
     }
   };
 
+  const getFilterIcon = (id: MemberRole | 'all', isActive: boolean) => {
+    const colorClass = isActive ? 'text-white' : {
+      all: 'text-stone-500',
+      rescuer: 'text-[#2E7D32]',
+      feeder: 'text-[#E65100]',
+      paravet: 'text-[#7B1FA2]',
+      adopter: 'text-[#004D40]',
+      volunteer: 'text-[#0D47A1]',
+      normal: 'text-stone-500',
+      official: 'text-[#B68A35]'
+    }[id];
+
+    switch (id) {
+      case 'all':
+        return (
+          <svg className={`w-3.5 h-3.5 ${colorClass}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+            <rect x="3" y="3" width="7" height="7" rx="1.5" />
+            <rect x="14" y="3" width="7" height="7" rx="1.5" />
+            <rect x="3" y="14" width="7" height="7" rx="1.5" />
+            <rect x="14" y="14" width="7" height="7" rx="1.5" />
+          </svg>
+        );
+      case 'rescuer':
+        return (
+          <svg className={`w-3.5 h-3.5 ${colorClass}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+        );
+      case 'feeder':
+        return (
+          <svg className={`w-3.5 h-3.5 ${colorClass}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+            <path d="M12 2v4M12 18h.01M3 20h18M5 10a7 7 0 0 0 14 0H5z" />
+          </svg>
+        );
+      case 'paravet':
+        return (
+          <svg className={`w-3.5 h-3.5 ${colorClass}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+            <path d="M4.82 17.22a3 3 0 1 1-3-3m0 0v-4a7 7 0 0 1 14 0v4m0-4V6a2 2 0 0 1 2-2h2m-6 13.22a3 3 0 1 1 3-3" />
+          </svg>
+        );
+      case 'adopter':
+        return (
+          <svg className={`w-3.5 h-3.5 ${colorClass}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+        );
+      case 'volunteer':
+        return (
+          <svg className={`w-3.5 h-3.5 ${colorClass}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+          </svg>
+        );
+      default:
+        return null;
+    }
+  };
+
   // Filter members based on selected role filter
   const filteredMembers = computedMembers.filter(m => {
+    if (m.role === 'normal' || m.role as string === 'member') return false;
     if (memberFilter !== 'all' && m.role !== memberFilter) return false;
     return true;
   });
@@ -54,7 +116,7 @@ export default function MohallaNetwork({ computedMembers, dbSosReports, memberFi
       (m.location || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const activeSosCount = dbSosReports.filter(r => r.status === 'active' || r.status === 'dispatched').length;
+  const activeSosCount = dbSosReports.filter(r => r.status === 'active').length;
 
   return (
     <div className="w-full flex flex-col gap-6 animate-scaleIn select-none">
@@ -69,13 +131,15 @@ export default function MohallaNetwork({ computedMembers, dbSosReports, memberFi
       {/* STATS STRIP CARD */}
       <div className="bg-white border border-[#F0EBE1] rounded-[24px] p-5 shadow-xs flex items-center justify-between text-center divide-x divide-stone-100">
         <div className="flex-1 flex flex-col items-center">
-          <span className="text-[10px] uppercase tracking-wider font-extrabold text-stone-400">Filtered Count</span>
-          <span className="text-2xl font-bold text-[#3D5A45] mt-1">{filteredMembers.length}</span>
+          <span className="text-[10px] uppercase tracking-wider font-extrabold text-stone-400">Total Members</span>
+          <span className="text-2xl font-bold text-[#3D5A45] mt-1">
+            {computedMembers.filter(m => m.role !== 'normal' && m.role as string !== 'member').length}
+          </span>
         </div>
         <div className="flex-1 flex flex-col items-center">
-          <span className="text-[10px] uppercase tracking-wider font-extrabold text-stone-400">Total Members</span>
+          <span className="text-[10px] uppercase tracking-wider font-extrabold text-stone-400">Resolved SOS</span>
           <span className="text-2xl font-bold text-[#2E7D32] mt-1">
-            {computedMembers.length}
+            {resolvedSosCount}
           </span>
         </div>
         <div className="flex-1 flex flex-col items-center">
@@ -98,7 +162,7 @@ export default function MohallaNetwork({ computedMembers, dbSosReports, memberFi
                   : 'bg-white border-[#F0EBE1] text-stone-500 hover:bg-stone-50'
               }`}
             >
-              <span>{r.icon}</span>
+              {getFilterIcon(r.id, isActive)}
               <span>{r.label}</span>
             </button>
           );

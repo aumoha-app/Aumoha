@@ -1231,6 +1231,54 @@ app.delete('/api/sos/my/:id', authMiddleware, async (req: Request, res: Response
 });
 
 /**
+ * PUT /api/sos/my/:id
+ * User endpoint to update status of their own SOS report
+ */
+app.put('/api/sos/my/:id', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const userEmail = req.user?.email;
+
+    if (!userEmail) {
+      return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+    }
+
+    if (!status || !['active', 'dispatched', 'resolved'].includes(status)) {
+      return res.status(400).json({ status: 'error', message: 'Invalid or missing status' });
+    }
+
+    const report = await SosReport.findById(id);
+    if (!report) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Emergency report not found'
+      });
+    }
+
+    // Verify ownership
+    if (report.userEmail !== userEmail) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Forbidden: You do not have permission to modify this report'
+      });
+    }
+
+    report.status = status;
+    await report.save();
+
+    return res.json({
+      status: 'success',
+      message: 'Emergency report status updated successfully',
+      report
+    });
+  } catch (error) {
+    console.error('Error in PUT /api/sos/my/:id:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
  * GET /api/sos/active
  * Retrieves all active/dispatched SOS reports for community view
  */
@@ -1251,6 +1299,31 @@ app.get('/api/sos/active', authMiddleware, async (req: Request, res: Response) =
     return res.json({
       status: 'success',
       reports: fallbackSosReports.filter(r => ['active', 'dispatched'].includes(r.status))
+    });
+  }
+});
+
+/**
+ * GET /api/sos/resolved
+ * Retrieves all resolved SOS reports for community view
+ */
+app.get('/api/sos/resolved', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    let reports = [];
+    if (mongoose.connection.readyState === 1) {
+      reports = await SosReport.find({ status: 'resolved' }).sort({ createdAt: -1 });
+    }
+    const resolvedFallbacks = fallbackSosReports.filter(r => r.status === 'resolved');
+    const merged = [...resolvedFallbacks, ...reports];
+    return res.json({
+      status: 'success',
+      reports: merged
+    });
+  } catch (error) {
+    console.error('Error in GET /api/sos/resolved:', error);
+    return res.json({
+      status: 'success',
+      reports: fallbackSosReports.filter(r => r.status === 'resolved')
     });
   }
 });
@@ -1483,6 +1556,153 @@ app.delete('/api/activities/:id', authMiddleware, async (req: Request, res: Resp
     });
   } catch (error) {
     console.error('Error in DELETE /api/activities/:id:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * POST /api/admin/activities
+ * Creates a new community activity post as an admin (Official)
+ */
+app.post('/api/admin/activities', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { category, title, description, location, image } = req.body;
+    const userEmail = req.user?.email || 'admin@aumoha.com';
+    const userUid = req.user?.uid;
+
+    if (!category || !title || !description || !location) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Missing required activity fields (category, title, description, location)'
+      });
+    }
+
+    let userPhone = '';
+    let authorName = 'Aumoha Admin';
+    let authorRole = 'official';
+    let avatar = '';
+
+    if (userUid) {
+      const dbUser = await User.findOne({ firebaseUid: userUid });
+      if (dbUser) {
+        userPhone = dbUser.phone || '';
+        authorName = dbUser.fullName || 'Aumoha Admin';
+        avatar = dbUser.profilePic || '';
+      }
+    }
+
+    let imageUrl = image || '';
+    if (image && cloudinaryConfigured && (image.startsWith('data:') || !image.startsWith('http'))) {
+      try {
+        console.log('📤 Uploading Admin Activity image to Cloudinary...');
+        const uploadResponse = await cloudinary.uploader.upload(image, {
+          folder: 'aumoha_activities',
+        });
+        imageUrl = uploadResponse.secure_url;
+      } catch (uploadError) {
+        console.error('❌ Failed to upload admin activity image to Cloudinary:', uploadError);
+      }
+    }
+
+    const newPost = await ActivityPost.create({
+      userEmail,
+      userPhone,
+      authorName,
+      authorRole,
+      avatar,
+      category,
+      title,
+      description,
+      location,
+      image: imageUrl,
+      likes: 0
+    });
+
+    return res.json({
+      status: 'success',
+      message: 'Community activity created successfully',
+      activity: newPost
+    });
+  } catch (error) {
+    console.error('Error in POST /api/admin/activities:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * PUT /api/admin/activities/:id
+ * Administrative edit of any community activity post
+ */
+app.put('/api/admin/activities/:id', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { category, title, description, location, image } = req.body;
+
+    if (!category || !title || !description || !location) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Missing required activity fields'
+      });
+    }
+
+    const existing = await ActivityPost.findById(id);
+    if (!existing) {
+      return res.status(404).json({ status: 'error', message: 'Activity not found' });
+    }
+
+    let imageUrl = image || '';
+    if (image && cloudinaryConfigured && (image.startsWith('data:') || !image.startsWith('http'))) {
+      try {
+        console.log('📤 Uploading Admin Activity image to Cloudinary...');
+        const uploadResponse = await cloudinary.uploader.upload(image, {
+          folder: 'aumoha_activities',
+        });
+        imageUrl = uploadResponse.secure_url;
+      } catch (uploadError) {
+        console.error('❌ Failed to upload admin activity image to Cloudinary:', uploadError);
+      }
+    }
+
+    existing.category = category;
+    existing.title = title;
+    existing.description = description;
+    existing.location = location;
+    if (image !== undefined) {
+      existing.image = imageUrl;
+    }
+
+    await existing.save();
+    return res.json({
+      status: 'success',
+      message: 'Community activity updated successfully',
+      activity: existing
+    });
+  } catch (error) {
+    console.error('Error in PUT /api/admin/activities/:id:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * DELETE /api/admin/activities/:id
+ * Administrative deletion of any community activity post
+ */
+app.delete('/api/admin/activities/:id', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const post = await ActivityPost.findById(id);
+    if (!post) {
+      return res.status(404).json({ status: 'error', message: 'Post not found' });
+    }
+
+    await ActivityPost.findByIdAndDelete(id);
+    return res.json({
+      status: 'success',
+      message: 'Post deleted successfully by admin'
+    });
+  } catch (error) {
+    console.error('Error in DELETE /api/admin/activities/:id:', error);
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
   }
 });
