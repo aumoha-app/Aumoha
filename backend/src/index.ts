@@ -331,6 +331,86 @@ export const fallbackVets: any[] = [
       { _id: 'slot_e20', date: 'Today', time: '11:00 AM', isBooked: false },
       { _id: 'slot_e21', date: 'Tomorrow', time: '4:00 PM', isBooked: false }
     ]
+  },
+  {
+    _id: 'care1',
+    name: 'Paws & Shine Grooming',
+    photo: '/warden-1.png',
+    specialisation: 'Independent groomer • Calm home visits',
+    category: 'Grooming',
+    specialtyTags: ['Home Visit', 'Verified', 'Available Today'],
+    experience: 8,
+    fee: 699,
+    bio: 'Paws & Shine Grooming offers premium grooming at the comfort of your home. Standard shampooing, nail clipping, and fur trimming included.',
+    rating: 4.8,
+    reviewCount: 230,
+    isOnline: true,
+    location: '2.1 km away',
+    availableSlots: [
+      { _id: 'slot_c1', date: 'Today', time: '10:00 AM', isBooked: false },
+      { _id: 'slot_c2', date: 'Today', time: '2:00 PM', isBooked: false },
+      { _id: 'slot_c3', date: 'Tomorrow', time: '11:00 AM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'care2',
+    name: 'Happy Stay Daycare',
+    photo: '/warden-2.png',
+    specialisation: 'Daycare & boarding with trusted hosts',
+    category: 'Boarding',
+    specialtyTags: ['Boarding', 'Verified', 'Available Today'],
+    experience: 5,
+    fee: 499,
+    bio: 'Happy Stay Daycare provides a warm, homely space for your pets to board and stay safely. Active playtime and balanced meals provided.',
+    rating: 4.9,
+    reviewCount: 340,
+    isOnline: true,
+    location: '1.8 km away',
+    availableSlots: [
+      { _id: 'slot_c4', date: 'Today', time: '9:00 AM', isBooked: false },
+      { _id: 'slot_c5', date: 'Today', time: '1:00 PM', isBooked: false },
+      { _id: 'slot_c6', date: 'Tomorrow', time: '10:00 AM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'care3',
+    name: 'Walk & Wag Club',
+    photo: '/warden-3.png',
+    specialisation: 'Solo walking and activity sessions',
+    category: 'Walking',
+    specialtyTags: ['Walk & Exercise', 'Verified', 'Available Today'],
+    experience: 4,
+    fee: 349,
+    bio: 'Get your pet moving with Walk & Wag Club. Solo dog walking sessions tailored for hyperactive and energetic breeds.',
+    rating: 4.7,
+    reviewCount: 180,
+    isOnline: true,
+    location: '1.4 km away',
+    availableSlots: [
+      { _id: 'slot_c7', date: 'Today', time: '8:00 AM', isBooked: false },
+      { _id: 'slot_c8', date: 'Today', time: '4:00 PM', isBooked: false },
+      { _id: 'slot_c9', date: 'Tomorrow', time: '9:30 AM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'care4',
+    name: 'Puppy Power Training',
+    photo: '/product-4.png',
+    specialisation: 'Reward-based manners and play training',
+    category: 'Training',
+    specialtyTags: ['Training', 'Verified', 'Available Today'],
+    experience: 6,
+    fee: 549,
+    bio: 'Puppy training foundations, potty training advice, obedience courses, and basic manners using positive reward systems.',
+    rating: 4.6,
+    reviewCount: 120,
+    isOnline: true,
+    location: '3.0 km away',
+    availableSlots: [
+      { _id: 'slot_c10', date: 'Today', time: '11:00 AM', isBooked: false },
+      { _id: 'slot_c11', date: 'Today', time: '3:00 PM', isBooked: false },
+      { _id: 'slot_c12', date: 'Tomorrow', time: '2:00 PM', isBooked: false }
+    ]
   }
 ];
 
@@ -2124,7 +2204,7 @@ app.put('/api/appointments/:id/notes', authMiddleware, async (req: Request, res:
  */
 app.post('/api/vets', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
-    const { name, photo, specialisation, category, specialtyTags, experience, fee, bio, isOnline, availableSlots, email, phone, isApproved } = req.body;
+    const { name, photo, specialisation, category, specialtyTags, experience, fee, bio, isOnline, availableSlots, email, phone, isApproved, location } = req.body;
     if (!name || !specialisation || !experience || !fee) {
       return res.status(400).json({ status: 'error', message: 'Missing required parameters' });
     }
@@ -2151,7 +2231,8 @@ app.post('/api/vets', authMiddleware, adminMiddleware, async (req: Request, res:
           isBooked: false
         })),
         email: email || '',
-        phone: phone || ''
+        phone: phone || '',
+        location: location || '2.1 km away'
       };
       fallbackVets.push(newVet);
       return res.json({ status: 'success', vet: newVet });
@@ -2174,7 +2255,8 @@ app.post('/api/vets', authMiddleware, adminMiddleware, async (req: Request, res:
         isBooked: false
       })),
       email: email || '',
-      phone: phone || ''
+      phone: phone || '',
+      location: location || '2.1 km away'
     });
 
     return res.json({ status: 'success', vet: newVet });
@@ -2191,7 +2273,7 @@ app.post('/api/vets', authMiddleware, adminMiddleware, async (req: Request, res:
 app.put('/api/vets/:id', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, photo, specialisation, category, specialtyTags, experience, fee, bio, isOnline, availableSlots, email, phone, isApproved } = req.body;
+    const { name, photo, specialisation, category, specialtyTags, experience, fee, bio, isOnline, availableSlots, email, phone, isApproved, location } = req.body;
 
     if (mongoose.connection.readyState !== 1) {
       const vet = fallbackVets.find(v => v._id === id);
@@ -2210,6 +2292,7 @@ app.put('/api/vets/:id', authMiddleware, adminMiddleware, async (req: Request, r
       if (email !== undefined) (vet as any).email = email;
       if (phone !== undefined) (vet as any).phone = phone;
       if (isApproved !== undefined) (vet as any).isApproved = !!isApproved;
+      if (location !== undefined) (vet as any).location = location;
       if (availableSlots) {
         vet.availableSlots = availableSlots.map((s: any, idx: number) => ({
           _id: s._id || `slot_${Date.now()}_${idx}`,
@@ -2238,6 +2321,7 @@ app.put('/api/vets/:id', authMiddleware, adminMiddleware, async (req: Request, r
     if (email !== undefined) vet.email = email;
     if (phone !== undefined) vet.phone = phone;
     if (isApproved !== undefined) vet.isApproved = !!isApproved;
+    if (location !== undefined) vet.location = location;
     if (availableSlots) {
       vet.availableSlots = availableSlots;
     }

@@ -23,6 +23,7 @@ export interface IVet extends Document {
   availableSlots: ISlot[];
   email?: string;
   phone?: string;
+  location?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -50,7 +51,8 @@ const VetSchema = new Schema(
     isApproved: { type: Boolean, default: true },
     availableSlots: { type: [SlotSchema], default: [] },
     email: { type: String, default: '' },
-    phone: { type: String, default: '' }
+    phone: { type: String, default: '' },
+    location: { type: String, default: '' }
   },
   {
     timestamps: true

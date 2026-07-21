@@ -245,7 +245,7 @@ export default function Home() {
             )}
 
             {/* PET CARE FEATURE SCREEN */}
-            {activeTab === 'petcare' && <PetCareFeature />}
+            {activeTab === 'petcare' && <PetCareFeature setActiveTab={setActiveTab} />}
 
             {/* VET CONSULTATION TABS */}
             {activeTab === 'vetconsult' && (
