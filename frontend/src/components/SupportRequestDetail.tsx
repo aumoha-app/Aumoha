@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { CommunityUpdate, CircleMember, MemberRole } from '../types';
+import { loadLeaflet } from '../lib/leafletLoader';
 
 interface SupportRequestDetailProps {
   selectedRequest: CommunityUpdate;
@@ -46,6 +47,8 @@ export default function SupportRequestDetail({
   useEffect(() => {
     const centerCoords = getCoordinatesForLocation(selectedLocation);
     const detailRequestCoords = getCoordinatesForLocation(selectedRequest.location || selectedLocation);
+    let isMounted = true;
+    let mapInstance: any = null;
     
     const detailPins = [
       { 
@@ -67,10 +70,7 @@ export default function SupportRequestDetail({
       }))
     ];
 
-    const loadLeafletMap = (mapId: string, center: [number, number], pins: any[]) => {
-      const win = window as any;
-      if (!win.L) return;
-
+    const loadLeafletMap = (L: any, mapId: string, center: [number, number], pins: any[]) => {
       const mapContainer = document.getElementById(mapId);
       if (!mapContainer) return;
 
@@ -82,15 +82,20 @@ export default function SupportRequestDetail({
         }
       }
 
-      const map = win.L.map(mapId, { zoomControl: false }).setView(center, 14);
+      if ((mapContainer as any)._leaflet_id) {
+        delete (mapContainer as any)._leaflet_id;
+      }
+
+      const map = L.map(mapId, { zoomControl: false }).setView(center, 14);
+      mapInstance = map;
       detailMapRef.current = map;
 
-      win.L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; OpenStreetMap &copy; CARTO'
       }).addTo(map);
 
       // User node center dot
-      const greenDotIcon = win.L.divIcon({
+      const greenDotIcon = L.divIcon({
         className: 'custom-center-icon',
         html: `<div class="w-6 h-6 bg-white rounded-full border-2 border-[#3D5A45] shadow-md flex items-center justify-center">
                  <div class="w-3 h-3 bg-[#3D5A45] rounded-full"></div>
@@ -98,10 +103,10 @@ export default function SupportRequestDetail({
         iconSize: [24, 24],
         iconAnchor: [12, 12]
       });
-      win.L.marker(center, { icon: greenDotIcon }).addTo(map);
+      L.marker(center, { icon: greenDotIcon }).addTo(map);
 
       // Draw search radius ring
-      win.L.circle(center, {
+      L.circle(center, {
         color: '#81C784',
         fillColor: '#C8E6C9',
         fillOpacity: 0.2,
@@ -134,7 +139,7 @@ export default function SupportRequestDetail({
           case 'rescuer':
             return `<svg class="w-3.5 h-3.5 text-[#E65100]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
           case 'help_needed':
-            return `<svg class="w-3.5 h-3.5 text-[#C85341]" fill="currentColor" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5zm8 7c0-2.21-1.29-4.13-3-5.06v10.12c1.71-.93 3-2.85 3-5.06z"/></svg>`;
+            return `<svg class="w-3.5 h-3.5 text-[#C85341]" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>`;
           default:
             return `<svg class="w-3.5 h-3.5 text-[#546E7A]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
         }
@@ -186,29 +191,39 @@ export default function SupportRequestDetail({
           </div>
         `;
 
-        const customIcon = win.L.divIcon({
+        const customIcon = L.divIcon({
           className: 'custom-member-pin',
           html: markerHtml,
           iconSize: [80, 80],
           iconAnchor: [40, 44]
         });
 
-        win.L.marker([lat, lng], { icon: customIcon }).addTo(map);
+        L.marker([lat, lng], { icon: customIcon }).addTo(map);
       });
     };
 
-    const win = window as any;
-    if (win.L) {
-      setTimeout(() => {
-        loadLeafletMap('detail-map', detailRequestCoords, detailPins);
-      }, 100);
-    }
+    const initMap = async () => {
+      try {
+        const L = await loadLeaflet();
+        if (!isMounted) return;
+        loadLeafletMap(L, 'detail-map', detailRequestCoords, detailPins);
+      } catch (err) {
+        console.error('Failed to initialize detail Leaflet map:', err);
+      }
+    };
+
+    initMap();
 
     return () => {
-      if (detailMapRef.current) {
-        detailMapRef.current.remove();
-        detailMapRef.current = null;
+      isMounted = false;
+      if (mapInstance) {
+        try {
+          mapInstance.remove();
+        } catch (e) {
+          console.error(e);
+        }
       }
+      detailMapRef.current = null;
     };
   }, [selectedRequest, selectedLocation, computedMembers]);
 

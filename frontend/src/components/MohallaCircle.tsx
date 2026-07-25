@@ -9,13 +9,14 @@ import {
   ImpactMetrics,
   MemberRole
 } from '../types';
-import { getDistance, DistanceInfo } from '../lib/proximity';
+import { getDistance, DistanceInfo, getCoordinatesForLocation as getCoordinatesForLocationShared, getDistanceBetweenCoordinates } from '../lib/proximity';
 import { useAuth } from '../context/AuthContext';
 import SupportRequestDetail from './SupportRequestDetail';
 import MohallaNetwork from './MohallaNetwork';
 import MohallaUpdates from './MohallaUpdates';
 import BlogDetailView from './BlogDetailView';
 import MohallaImpact from './MohallaImpact';
+import { loadLeaflet } from '../lib/leafletLoader';
 
 
 const formatTime = (dateStr: string) => {
@@ -224,36 +225,10 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
 
   const getCoordinatesForLocation = (location: string): [number, number] => {
     const clean = (location || '').toLowerCase();
-
-    // Check if the string contains coordinate patterns like "[28.4595, 77.0266]" or "Current Coordinates: 28.4595, 77.0266"
-    const coordRegex = /(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/;
-    const match = coordRegex.exec(location || '');
-    if (match) {
-      const lat = parseFloat(match[1]);
-      const lng = parseFloat(match[2]);
-      if (!isNaN(lat) && !isNaN(lng)) {
-        return [lat, lng];
-      }
-    }
-
-    if (clean.includes('saheed nagar')) return [28.4595, 77.0266];
-    if (clean.includes('sector 4,')) return [28.4575, 77.0246];
-    if (clean.includes('downtown')) return [28.4625, 77.0306];
-    if (clean.includes('market')) return [28.4715, 77.0356];
-
     if (deviceAddress && clean.includes(deviceAddress.split(',')[0].toLowerCase())) {
       if (deviceCoords) return deviceCoords;
     }
-
-    const baseCoords = deviceCoords || [28.4595, 77.0266];
-
-    let hash = 0;
-    for (let i = 0; i < clean.length; i++) {
-      hash = clean.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const latOffset = ((hash % 100) / 5000);
-    const lngOffset = (((hash >> 4) % 100) / 5000);
-    return [baseCoords[0] + latOffset, baseCoords[1] + lngOffset];
+    return getCoordinatesForLocationShared(location, deviceCoords || undefined);
   };
 
   useEffect(() => {
@@ -376,8 +351,9 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
   const allMembers = dbMappedUsers;
 
   const computedMembers: CircleMember[] = allMembers.map(m => {
-    const distInfo = getDistance(selectedLocation, m.location || '');
     const coords = getCoordinatesForLocation(m.location || '');
+    const centerCoords = getCoordinatesForLocation(selectedLocation);
+    const distInfo = getDistanceBetweenCoordinates(centerCoords, coords);
     return {
       id: m.id,
       name: m.name,
@@ -440,8 +416,9 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
   });
 
   const computedUpdates: CommunityUpdate[] = allUpdates.map(u => {
-    const distInfo = getDistance(selectedLocation, u.location || '');
     const coords = getCoordinatesForLocation(u.location || '');
+    const centerCoords = getCoordinatesForLocation(selectedLocation);
+    const distInfo = getDistanceBetweenCoordinates(centerCoords, coords);
     return {
       id: u.id,
       author: u.author,
@@ -520,209 +497,215 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
   };
 
   // CDN Leaflet loading logic (checks if loaded, loads on demand, cleans up)
-  const loadLeafletMap = (mapId: string, center: [number, number], pins: any[], setInstanceRef: any) => {
-    const win = window as any;
+  const loadLeafletMap = (L: any, mapId: string, center: [number, number], pins: any[], setInstanceRef: any) => {
+    const mapContainer = document.getElementById(mapId);
+    if (!mapContainer) return;
 
-    const init = (L: any) => {
-      const mapContainer = document.getElementById(mapId);
-      if (!mapContainer) return;
+    // Cleanup previous map on the same element if it exists
+    if (setInstanceRef.current) {
+      try {
+        setInstanceRef.current.remove();
+      } catch (e) {
+        console.error(e);
+      }
+    }
 
-      // Cleanup previous map on the same element if it exists
-      if (setInstanceRef.current) {
-        try {
-          setInstanceRef.current.remove();
-        } catch (e) {
-          console.error(e);
-        }
+    // Cleanup internal Leaflet id to prevent "Map container is already initialized" error
+    if ((mapContainer as any)._leaflet_id) {
+      delete (mapContainer as any)._leaflet_id;
+    }
+
+    const map = L.map(mapId, { zoomControl: false }).setView(center, 14);
+    setInstanceRef.current = map;
+
+    // CartoDB Positron clean light cream style map layer
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap &copy; CARTO'
+    }).addTo(map);
+
+    // User node center dot (White circle with dark green center dot)
+    const greenDotIcon = L.divIcon({
+      className: 'custom-center-icon',
+      html: `<div class="w-6 h-6 bg-white rounded-full border-2 border-[#3D5A45] shadow-md flex items-center justify-center">
+               <div class="w-3 h-3 bg-[#3D5A45] rounded-full"></div>
+             </div>`,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12]
+    });
+    L.marker(center, { icon: greenDotIcon }).addTo(map);
+
+    // Draw search radius ring (e.g. 1.2 km soft green outline/fill)
+    L.circle(center, {
+      color: '#81C784',
+      fillColor: '#C8E6C9',
+      fillOpacity: 0.2,
+      radius: 1200,
+      weight: 1.5
+    }).addTo(map);
+
+    const getPinColor = (role: string) => {
+      switch (role) {
+        case 'feeder': return '#D32F2F';
+        case 'rescuer': return '#E65100';
+        case 'volunteer': return '#E91E63';
+        case 'paravet': return '#7B1FA2';
+        case 'adopter': return '#2E7D32';
+        case 'help_needed': return '#C85341';
+        default: return '#546E7A';
+      }
+    };
+
+    const getPinIcon = (role: string) => {
+      switch (role) {
+        case 'feeder':
+          return `<svg class="w-3.5 h-3.5 text-[#D32F2F]" fill="currentColor" viewBox="0 0 24 24"><path d="M2 20h20v2H2v-2zm2-2h16c0-4.42-3.58-8-8-8s-8 3.58-8 8zm8-10c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>`;
+        case 'adopter':
+          return `<svg class="w-3.5 h-3.5 text-[#2E7D32]" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>`;
+        case 'paravet':
+          return `<svg class="w-3.5 h-3.5 text-[#7B1FA2]" fill="currentColor" viewBox="0 0 24 24"><path d="M19 10.5h-5.5V5h-3v5.5H5v3h5.5V19h3v-5.5H19v-3z"/></svg>`;
+        case 'volunteer':
+          return `<svg class="w-3.5 h-3.5 text-[#E91E63]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+        case 'rescuer':
+          return `<svg class="w-3.5 h-3.5 text-[#E65100]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
+        case 'help_needed':
+          return `<svg class="w-3.5 h-3.5 text-[#C85341]" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>`;
+        default:
+          return `<svg class="w-3.5 h-3.5 text-[#546E7A]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
+      }
+    };
+
+    // Add pins
+    const centerKey = `${center[0].toFixed(6)},${center[1].toFixed(6)}`;
+    const coordinatesRegistry: { [key: string]: number } = {
+      [centerKey]: 0
+    };
+
+    pins.forEach(pin => {
+      let lat = pin.lat;
+      let lng = pin.lng;
+      const key = `${lat.toFixed(6)},${lng.toFixed(6)}`;
+      if (coordinatesRegistry[key] !== undefined) {
+        coordinatesRegistry[key] += 1;
+        const count = coordinatesRegistry[key];
+        const angle = count * (Math.PI / 4);
+        const radius = 0.0006 * Math.ceil(count / 8);
+        lat += Math.sin(angle) * radius;
+        lng += Math.cos(angle) * radius;
+      } else {
+        coordinatesRegistry[key] = 0;
       }
 
-      const map = L.map(mapId, { zoomControl: false }).setView(center, 14);
-      setInstanceRef.current = map;
+      const color = getPinColor(pin.role);
+      const iconHtml = (pin.avatar && pin.avatar.startsWith('http'))
+        ? `<img src="${pin.avatar}" class="w-full h-full rounded-full object-cover" />`
+        : getPinIcon(pin.role);
 
-      // CartoDB Positron clean light cream style map layer
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap &copy; CARTO'
-      }).addTo(map);
+      // Gold badge star
+      const goldBadgeHtml = pin.badge
+        ? `<div class="absolute -top-1 -right-1 w-4 h-4 bg-[#B68A35] rounded-full border border-white flex items-center justify-center text-[8px] text-white shadow-xs">★</div>`
+        : '';
 
-      // User node center dot (White circle with dark green center dot)
-      const greenDotIcon = L.divIcon({
-        className: 'custom-center-icon',
-        html: `<div class="w-6 h-6 bg-white rounded-full border-2 border-[#3D5A45] shadow-md flex items-center justify-center">
-                 <div class="w-3 h-3 bg-[#3D5A45] rounded-full"></div>
-               </div>`,
-        iconSize: [24, 24],
-        iconAnchor: [12, 12]
-      });
-      L.marker(center, { icon: greenDotIcon }).addTo(map);
-
-      // Draw search radius ring (e.g. 1.2 km soft green outline/fill)
-      L.circle(center, {
-        color: '#81C784',
-        fillColor: '#C8E6C9',
-        fillOpacity: 0.2,
-        radius: 1200,
-        weight: 1.5
-      }).addTo(map);
-
-      const getPinColor = (role: string) => {
-        switch (role) {
-          case 'feeder': return '#D32F2F';
-          case 'rescuer': return '#E65100';
-          case 'volunteer': return '#E91E63';
-          case 'paravet': return '#7B1FA2';
-          case 'adopter': return '#2E7D32';
-          case 'help_needed': return '#C85341';
-          default: return '#546E7A';
-        }
-      };
-
-      const getPinIcon = (role: string) => {
-        switch (role) {
-          case 'feeder':
-            return `<svg class="w-3.5 h-3.5 text-[#D32F2F]" fill="currentColor" viewBox="0 0 24 24"><path d="M2 20h20v2H2v-2zm2-2h16c0-4.42-3.58-8-8-8s-8 3.58-8 8zm8-10c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>`;
-          case 'adopter':
-            return `<svg class="w-3.5 h-3.5 text-[#2E7D32]" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>`;
-          case 'paravet':
-            return `<svg class="w-3.5 h-3.5 text-[#7B1FA2]" fill="currentColor" viewBox="0 0 24 24"><path d="M19 10.5h-5.5V5h-3v5.5H5v3h5.5V19h3v-5.5H19v-3z"/></svg>`;
-          case 'volunteer':
-            return `<svg class="w-3.5 h-3.5 text-[#E91E63]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
-          case 'rescuer':
-            return `<svg class="w-3.5 h-3.5 text-[#E65100]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
-          case 'help_needed':
-            return `<svg class="w-3.5 h-3.5 text-[#C85341]" fill="currentColor" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5zm8 7c0-2.21-1.29-4.13-3-5.06v10.12c1.71-.93 3-2.85 3-5.06z"/></svg>`;
-          default:
-            return `<svg class="w-3.5 h-3.5 text-[#546E7A]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
-        }
-      };
-
-      // Add pins
-      const centerKey = `${center[0].toFixed(6)},${center[1].toFixed(6)}`;
-      const coordinatesRegistry: { [key: string]: number } = {
-        [centerKey]: 0
-      };
-
-      pins.forEach(pin => {
-        let lat = pin.lat;
-        let lng = pin.lng;
-        const key = `${lat.toFixed(6)},${lng.toFixed(6)}`;
-        if (coordinatesRegistry[key] !== undefined) {
-          coordinatesRegistry[key] += 1;
-          const count = coordinatesRegistry[key];
-          const angle = count * (Math.PI / 4);
-          const radius = 0.0006 * Math.ceil(count / 8);
-          lat += Math.sin(angle) * radius;
-          lng += Math.cos(angle) * radius;
-        } else {
-          coordinatesRegistry[key] = 0;
-        }
-
-        const color = getPinColor(pin.role);
-        const iconHtml = (pin.avatar && pin.avatar.startsWith('http'))
-          ? `<img src="${pin.avatar}" class="w-full h-full rounded-full object-cover" />`
-          : getPinIcon(pin.role);
-
-        // Gold badge star
-        const goldBadgeHtml = pin.badge
-          ? `<div class="absolute -top-1 -right-1 w-4 h-4 bg-[#B68A35] rounded-full border border-white flex items-center justify-center text-[8px] text-white shadow-xs">★</div>`
-          : '';
-
-        const markerHtml = `
-          <div class="flex flex-col items-center">
-            <div class="relative w-9 h-11 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)] active:scale-95 transition-all">
-              <!-- Pin SVG -->
-              <svg class="w-9 h-11" viewBox="0 0 36 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M18 0C8.06 0 0 8.06 0 18C0 28.5 18 44 18 44C18 44 36 28.5 36 18C36 8.06 27.94 0 18 0Z" fill="${color}"/>
-              </svg>
-              <!-- White inner circle -->
-              <div class="absolute top-[3px] left-[3px] w-[30px] h-[30px] rounded-full bg-white flex items-center justify-center overflow-hidden">
-                ${iconHtml}
-              </div>
-              <!-- Star Badge -->
-              ${goldBadgeHtml}
+      const markerHtml = `
+        <div class="flex flex-col items-center">
+          <div class="relative w-9 h-11 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.15)] active:scale-95 transition-all">
+            <!-- Pin SVG -->
+            <svg class="w-9 h-11" viewBox="0 0 36 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M18 0C8.06 0 0 8.06 0 18C0 28.5 18 44 18 44C18 44 36 28.5 36 18C36 8.06 27.94 0 18 0Z" fill="${color}"/>
+            </svg>
+            <!-- White inner circle -->
+            <div class="absolute top-[3px] left-[3px] w-[30px] h-[30px] rounded-full bg-white flex items-center justify-center overflow-hidden">
+              ${iconHtml}
             </div>
-            <!-- Label -->
-            <div class="mt-1 text-center bg-white/95 backdrop-blur-xs px-2 py-0.5 rounded-md border border-[#F0EBE1] shadow-xs leading-tight whitespace-nowrap">
-              <div class="text-[9px] font-extrabold text-charcoal leading-none">${pin.name}</div>
-              <div class="text-[8px] font-bold text-stone-500 mt-0.5 leading-none">${pin.distance || 'Nearby'}</div>
-            </div>
+            <!-- Star Badge -->
+            ${goldBadgeHtml}
           </div>
-        `;
+          <!-- Label -->
+          <div class="mt-1 text-center bg-white/95 backdrop-blur-xs px-2 py-0.5 rounded-md border border-[#F0EBE1] shadow-xs leading-tight whitespace-nowrap">
+            <div class="text-[9px] font-extrabold text-charcoal leading-none">${pin.name}</div>
+            <div class="text-[8px] font-bold text-stone-500 mt-0.5 leading-none">${pin.distance || 'Nearby'}</div>
+          </div>
+        </div>
+      `;
 
-        const customIcon = L.divIcon({
-          className: 'custom-member-pin',
-          html: markerHtml,
-          iconSize: [80, 80],
-          iconAnchor: [40, 44]
-        });
-
-        const marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
-
-        marker.on('click', () => {
-          if (pin.role === 'help_needed' && pin.id) {
-            const req = computedUpdates.find(u => u.id === pin.id);
-            if (req) {
-              setSelectedRequest(req);
-            }
-          } else {
-            // Filter members tab to this member or role
-            setActiveView('members');
-            setMemberFilter(pin.role);
-          }
-        });
+      const customIcon = L.divIcon({
+        className: 'custom-member-pin',
+        html: markerHtml,
+        iconSize: [80, 80],
+        iconAnchor: [40, 44]
       });
-    };
 
-    if (win.L) {
-      init(win.L);
-      return;
-    }
+      const marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
 
-    if (!document.getElementById('leaflet-css')) {
-      const link = document.createElement('link');
-      link.id = 'leaflet-css';
-      link.rel = 'stylesheet';
-      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-      document.head.appendChild(link);
-    }
-
-    const script = document.createElement('script');
-    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-    script.onload = () => {
-      if (win.L) init(win.L);
-    };
-    document.body.appendChild(script);
+      marker.on('click', () => {
+        if (pin.role === 'help_needed' && pin.id) {
+          const req = computedUpdates.find(u => u.id === pin.id);
+          if (req) {
+            setSelectedRequest(req);
+          }
+        } else {
+          // Filter members tab to this member or role
+          setActiveView('members');
+          setMemberFilter(pin.role);
+        }
+      });
+    });
   };
 
   // Load maps based on active sub-screen
   useEffect(() => {
     const centerCoords = getCoordinatesForLocation(selectedLocation);
+    let isMounted = true;
 
-    if (activeView === 'home') {
-      // Load Home Map (Screen 1)
-      const activeReportsPins = computedUpdates
-        .filter(u => u.category === 'help' && u.status === 'active')
-        .map(u => ({
-          id: u.id,
-          name: ((u as any).animalCategory || u.title || 'Emergency').replace(/^\w/, (c: string) => c.toUpperCase()),
-          avatar: '🚨',
-          role: 'help_needed',
-          lat: u.lat || centerCoords[0],
-          lng: u.lng || centerCoords[1],
-          distance: u.distance
-        }));
+    const initMap = async () => {
+      try {
+        const L = await loadLeaflet();
+        if (!isMounted) return;
 
-      const homePins = [...activeReportsPins];
-      setTimeout(() => {
-        loadLeafletMap('home-map', centerCoords, homePins, homeMapRef);
-      }, 100);
-    }
+        if (activeView === 'home') {
+          // Load Home Map (Screen 1)
+          const activeReportsPins = computedUpdates
+            .filter(u => u.category === 'help' && u.status === 'active')
+            .map(u => ({
+              id: u.id,
+              name: ((u as any).animalCategory || u.title || 'Emergency').replace(/^\w/, (c: string) => c.toUpperCase()),
+              avatar: '🚨',
+              role: 'help_needed',
+              lat: u.lat || centerCoords[0],
+              lng: u.lng || centerCoords[1],
+              distance: u.distance
+            }));
+
+          const homePins = [...activeReportsPins];
+          loadLeafletMap(L, 'home-map', centerCoords, homePins, homeMapRef);
+        }
+      } catch (err) {
+        console.error('Failed to initialize Leaflet map:', err);
+      }
+    };
+
+    initMap();
 
     return () => {
+      isMounted = false;
       // Clean up maps
-      if (homeMapRef.current) { homeMapRef.current.remove(); homeMapRef.current = null; }
-      if (membersMapRef.current) { membersMapRef.current.remove(); membersMapRef.current = null; }
+      if (homeMapRef.current) {
+        try {
+          homeMapRef.current.remove();
+        } catch (e) {
+          console.error(e);
+        }
+        homeMapRef.current = null;
+      }
+      if (membersMapRef.current) {
+        try {
+          membersMapRef.current.remove();
+        } catch (e) {
+          console.error(e);
+        }
+        membersMapRef.current = null;
+      }
     };
-  }, [activeView, selectedRequest, computedMembers, computedUpdates]);
+  }, [activeView, selectedRequest, computedMembers, computedUpdates, selectedLocation]);
 
 
 

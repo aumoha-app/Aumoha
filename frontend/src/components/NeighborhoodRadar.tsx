@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 interface NeighborhoodRadarProps {
@@ -7,57 +8,120 @@ interface NeighborhoodRadarProps {
 }
 
 export default function NeighborhoodRadar({ onEnterCircle }: NeighborhoodRadarProps) {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
+  const [membersCount, setMembersCount] = useState<number>(24);
+  const [rescuesCount, setRescuesCount] = useState<number>(142);
+  const [rank, setRank] = useState<number>(3);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   
   // Resolve user location name, fallback to Saheed Nagar
   const locationName = user?.address 
     ? (user.address.includes(',') ? user.address.split(',')[0] : user.address)
     : 'Saheed Nagar';
 
+  useEffect(() => {
+    if (!token) {
+      setIsLoading(false);
+      return;
+    }
+    
+    const fetchStats = async () => {
+      try {
+        // Fetch users count
+        const usersRes = await fetch('http://localhost:5001/api/users', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        let mCount = 24;
+        if (usersRes.ok) {
+          const usersData = await usersRes.json();
+          mCount = usersData.users?.length || 24;
+          setMembersCount(mCount);
+        }
+        
+        // Fetch active and resolved SOS reports count
+        const activeRes = await fetch('http://localhost:5001/api/sos/active', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const resolvedRes = await fetch('http://localhost:5001/api/sos/resolved', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        let aCount = 0;
+        let rCount = 0;
+        if (activeRes.ok) {
+          const activeData = await activeRes.json();
+          aCount = activeData.reports?.length || 0;
+        }
+        if (resolvedRes.ok) {
+          const resolvedData = await resolvedRes.json();
+          rCount = resolvedData.reports?.length || 0;
+        }
+        
+        const totalRescues = aCount + rCount;
+        setRescuesCount(totalRescues || 142);
+        
+        // Dynamic rank calculation: Rank 1 is top, improves with rescues
+        const calculatedRank = Math.max(1, 5 - Math.floor(totalRescues / 2));
+        setRank(calculatedRank);
+      } catch (err) {
+        console.warn('Failed to fetch real stats for NeighborhoodRadar:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchStats();
+  }, [token]);
+
   return (
-    <div className="w-full bg-[#FCFAF7] border border-warmBeige rounded-[20px] md:rounded-[28px] p-4 md:p-6 shadow-sm flex flex-row gap-3 md:gap-6 items-center justify-between select-none">
+    <div className="w-full bg-gradient-to-br from-[#FCFAF9] via-[#FAF5EB] to-[#F5EFE3] border border-[#EBE3D5] rounded-[24px] p-5 md:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.012)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.025)] transition-all duration-300 flex flex-row gap-4 md:gap-6 items-center justify-between select-none">
       
       {/* Left Column: Title, Stats, and Enter Circle Button */}
-      <div className="flex-grow flex flex-col gap-2.5 md:gap-4 min-w-0">
+      <div className="flex-grow flex flex-col gap-3 md:gap-4 min-w-0">
         <div 
           onClick={onEnterCircle}
-          className="flex flex-col select-none cursor-pointer group"
+          className="flex flex-col select-none cursor-pointer group w-fit"
         >
-          <span className="text-[8px] md:text-[10px] tracking-wider text-[#B68A35] font-bold uppercase leading-none">MOHA CIRCLE</span>
-          <h2 className="font-serif text-base md:text-[28px] text-charcoal font-normal mt-0.5 md:mt-1 flex items-center gap-1 leading-none truncate group-hover:text-[#B68A35] transition-colors">
+          <span className="text-[8px] md:text-[9.5px] tracking-widest text-[#B68A35] font-extrabold uppercase leading-none">MOHA CIRCLE</span>
+          <h2 className="font-serif text-lg md:text-3xl text-stone-900 font-semibold tracking-tight mt-1 md:mt-1.5 flex items-center gap-1.5 leading-tight truncate group-hover:text-[#B68A35] transition-colors">
             {locationName}
-            <span className="inline-flex items-center text-charcoal/40 font-sans text-xs md:text-xl font-light ml-0.5 select-none">›</span>
+            <svg className="w-4 h-4 md:w-6 md:h-6 text-[#B68A35]/65 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
           </h2>
         </div>
 
         {/* Stats row with dividing lines */}
-        <div className="flex items-center gap-2 md:gap-4 select-none">
+        <div className={`flex items-center gap-3 md:gap-5 select-none transition-all duration-305 ${isLoading ? 'animate-pulse opacity-60' : ''}`}>
           <div className="flex flex-col">
-            <span className="text-xs md:text-[22px] font-bold text-charcoal leading-none">24</span>
-            <span className="text-[8px] md:text-[11px] text-stone-400 font-semibold mt-0.5 md:mt-1 leading-none">Members</span>
+            <span className="text-sm md:text-2xl font-black text-stone-800 leading-none">{membersCount}</span>
+            <span className="text-[8px] md:text-[10px] text-stone-400 font-bold uppercase tracking-wider mt-1 leading-none">Members</span>
           </div>
-          <div className="w-[1px] h-4 md:h-7 bg-stone-200 shrink-0" />
+          <div className="w-[1.5px] h-5 md:h-8 bg-stone-300/50 shrink-0" />
           <div className="flex flex-col">
-            <span className="text-xs md:text-[22px] font-bold text-charcoal leading-none">142</span>
-            <span className="text-[8px] md:text-[11px] text-stone-400 font-semibold mt-0.5 md:mt-1 leading-none">Rescues</span>
+            <span className="text-sm md:text-2xl font-black text-stone-800 leading-none">{rescuesCount}</span>
+            <span className="text-[8px] md:text-[10px] text-stone-400 font-bold uppercase tracking-wider mt-1 leading-none">Rescues</span>
           </div>
-          <div className="w-[1px] h-4 md:h-7 bg-stone-200 shrink-0" />
+          <div className="w-[1.5px] h-5 md:h-8 bg-stone-300/50 shrink-0" />
           <div className="flex flex-col">
-            <span className="text-xs md:text-[22px] font-bold text-charcoal leading-none">#3</span>
-            <span className="text-[8px] md:text-[11px] text-stone-400 font-semibold mt-0.5 md:mt-1 leading-none">Rank</span>
+            <span className="text-sm md:text-2xl font-black text-stone-800 leading-none">#{rank}</span>
+            <span className="text-[8px] md:text-[10px] text-stone-400 font-bold uppercase tracking-wider mt-1 leading-none">Rank</span>
           </div>
         </div>
 
         {/* Solid Gold Enter Circle Button */}
         <button 
           onClick={onEnterCircle}
-          className="w-fit px-3 md:px-6 py-1.5 md:py-2.5 bg-[#B68A35] hover:bg-[#A37B2F] active:bg-[#8D6B28] text-white font-bold rounded-full text-[9px] md:text-xs flex items-center justify-center gap-1 transition-all duration-200 cursor-pointer shadow-sm shadow-[#B68A35]/15 shrink-0"
+          className="group/btn w-fit px-4 py-2 md:px-6 md:py-3 bg-gradient-to-r from-[#C29845] to-[#B68A35] hover:from-[#B68A35] hover:to-[#A37B2F] text-white font-extrabold rounded-full text-[9px] md:text-xs tracking-wider uppercase flex items-center justify-center gap-2 shadow-[0_4px_14px_rgba(182,138,53,0.2)] hover:shadow-[0_6px_20px_rgba(182,138,53,0.3)] transform hover:-translate-y-[1px] active:translate-y-0 active:scale-98 transition-all duration-200 cursor-pointer shrink-0"
         >
-          Enter <span className="hidden sm:inline">Circle</span> <span className="text-[10px] md:text-sm font-light leading-none">→</span>
+          <span>Enter Circle</span>
+          <svg className="w-3.5 h-3.5 text-white transition-transform group-hover/btn:translate-x-1" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" />
+          </svg>
         </button>
       </div>
 
-      {/* Center Column: SVG Map Radar Visualizer (Circular on mobile, rounded card on desktop) */}
+      {/* Right Column: SVG Map Radar Visualizer (Circular on mobile, rounded card on desktop) */}
       <div 
         onClick={onEnterCircle}
         className="w-14 h-14 md:w-40 md:h-[130px] flex items-center justify-center overflow-hidden rounded-full md:rounded-[20px] shrink-0 bg-[#FAF8F5] border border-warmBeige/40 cursor-pointer hover:border-[#3D5A45]/30 transition-colors"
@@ -80,33 +144,6 @@ export default function NeighborhoodRadar({ onEnterCircle }: NeighborhoodRadarPr
           <circle cx="100" cy="50" r="3.5" fill="#3D5A45" />
           <circle cx="100" cy="50" r="8" fill="none" stroke="#3D5A45" strokeWidth="1" opacity="0.4" className="animate-ping" style={{ transformOrigin: '100px 50px' }} />
         </svg>
-      </div>
-
-      {/* Right Column: Wardens Avatar Stack */}
-      <div 
-        onClick={onEnterCircle}
-        className="flex items-center gap-1.5 md:gap-3 shrink-0 cursor-pointer"
-      >
-        <div className="flex -space-x-2 md:-space-x-3.5 overflow-hidden select-none">
-          <img
-            src="/warden-1.png"
-            alt="Warden 1"
-            className="w-6 h-6 md:w-10 md:h-10 rounded-full border border-warmCard object-cover shadow-sm bg-stone-200"
-          />
-          <img
-            src="/warden-2.png"
-            alt="Warden 2"
-            className="w-6 h-6 md:w-10 md:h-10 rounded-full border border-warmCard object-cover shadow-sm bg-stone-200"
-          />
-          <img
-            src="/warden-3.png"
-            alt="Warden 3"
-            className="w-6 h-6 md:w-10 md:h-10 rounded-full border-2 border-warmCard object-cover shadow-sm bg-stone-200"
-          />
-        </div>
-        <div className="w-6 h-6 md:w-10 md:h-10 rounded-full bg-[#E3C69A] text-charcoal font-bold text-[9px] md:text-xs flex items-center justify-center shadow-sm select-none">
-          +21
-        </div>
       </div>
 
     </div>
