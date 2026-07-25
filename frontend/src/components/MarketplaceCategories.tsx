@@ -23,7 +23,7 @@ export default function MarketplaceCategories({ onExploreMoreClick }: Marketplac
         {/* Category 1: Food */}
         <div 
           onClick={onExploreMoreClick}
-          className="bg-[#FCFAF7] border border-[#EBE3D5]/65 rounded-[18px] md:rounded-[22px] px-2 py-4 md:p-4.5 flex flex-col items-center justify-center hover:border-blue-500/20 hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md group"
+          className="bg-[#FCFAF7] border border-[#EBE3D5]/65 rounded-[18px] md:rounded-[22px] px-2 py-4 md:p-4.5 flex flex-col items-center justify-center hover:border-terracotta/30 hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md group"
         >
           {/* Circle container for icon */}
           <div className="w-11 h-11 md:w-14 md:h-14 rounded-full bg-white border border-[#EBE3D5] flex items-center justify-center transition-colors group-hover:bg-[#FCFAF7] shadow-sm overflow-hidden">
@@ -31,12 +31,13 @@ export default function MarketplaceCategories({ onExploreMoreClick }: Marketplac
               src="/marketplace-food.png" 
               alt="Food" 
               className="w-7 h-7 md:w-9 md:h-9 object-contain"
+              style={{ filter: 'brightness(0) saturate(100%) invert(44%) sepia(55%) saturate(1210%) hue-rotate(349deg) brightness(94%) contrast(90%)' }}
             />
           </div>
           
           {/* Title and Badge */}
           <div className="flex flex-row items-center gap-1.5 justify-center mt-3.5 md:mt-4 w-full">
-            <div className="hidden md:flex w-4 h-4 md:w-4.5 md:h-4.5 rounded-full bg-[#D95D39] text-white items-center justify-center text-[9px] md:text-[10px] font-bold shadow-sm select-none shrink-0">
+            <div className="hidden md:flex w-4 h-4 md:w-4.5 md:h-4.5 rounded-full bg-terracotta text-white items-center justify-center text-[9px] md:text-[10px] font-bold shadow-sm select-none shrink-0">
               1
             </div>
             <h3 className="text-[10px] md:text-xs font-bold text-charcoal leading-tight text-center md:text-left whitespace-normal md:whitespace-nowrap">Marketplace - Food</h3>
@@ -54,7 +55,7 @@ export default function MarketplaceCategories({ onExploreMoreClick }: Marketplac
         {/* Category 2: Toys */}
         <div 
           onClick={onExploreMoreClick}
-          className="bg-[#FCFAF7] border border-[#EBE3D5]/65 rounded-[18px] md:rounded-[22px] px-2 py-4 md:p-4.5 flex flex-col items-center justify-center hover:border-yellow-500/20 hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md group"
+          className="bg-[#FCFAF7] border border-[#EBE3D5]/65 rounded-[18px] md:rounded-[22px] px-2 py-4 md:p-4.5 flex flex-col items-center justify-center hover:border-terracotta/30 hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md group"
         >
           {/* Circle container for icon */}
           <div className="w-11 h-11 md:w-14 md:h-14 rounded-full bg-white border border-[#EBE3D5] flex items-center justify-center transition-colors group-hover:bg-[#FCFAF7] shadow-sm overflow-hidden">
@@ -62,19 +63,20 @@ export default function MarketplaceCategories({ onExploreMoreClick }: Marketplac
               src="/marketplace-toys.png" 
               alt="Toys" 
               className="w-7 h-7 md:w-9 md:h-9 object-contain"
+              style={{ filter: 'brightness(0) saturate(100%) invert(44%) sepia(55%) saturate(1210%) hue-rotate(349deg) brightness(94%) contrast(90%)' }}
             />
           </div>
           
           {/* Title and Badge */}
           <div className="flex flex-row items-center gap-1.5 justify-center mt-3.5 md:mt-4 w-full">
-            <div className="hidden md:flex w-4 h-4 md:w-4.5 md:h-4.5 rounded-full bg-[#D99B26] text-white items-center justify-center text-[9px] md:text-[10px] font-bold shadow-sm select-none shrink-0">
+            <div className="hidden md:flex w-4 h-4 md:w-4.5 md:h-4.5 rounded-full bg-terracotta text-white items-center justify-center text-[9px] md:text-[10px] font-bold shadow-sm select-none shrink-0">
               2
             </div>
             <h3 className="text-[10px] md:text-xs font-bold text-charcoal leading-tight text-center md:text-left whitespace-normal md:whitespace-nowrap">Marketplace - Toys</h3>
           </div>
           
           {/* Decorative Divider Line */}
-          <div className="hidden md:block w-6 h-[1.5px] bg-gradient-to-r from-yellow-400 to-[#D99B26] rounded-full mt-1.5" />
+          <div className="hidden md:block w-6 h-[1.5px] bg-gradient-to-r from-orange-400 to-[#D95D39] rounded-full mt-1.5" />
           
           {/* Description */}
           <p className="hidden md:block text-center text-[9px] md:text-[10.5px] text-[#4A453E] font-medium mt-2 md:mt-2.5 leading-relaxed max-w-[130px]">
@@ -85,7 +87,7 @@ export default function MarketplaceCategories({ onExploreMoreClick }: Marketplac
         {/* Category 3: Medical */}
         <div 
           onClick={onExploreMoreClick}
-          className="bg-[#FCFAF7] border border-[#EBE3D5]/65 rounded-[18px] md:rounded-[22px] px-2 py-4 md:p-4.5 flex flex-col items-center justify-center hover:border-teal-500/20 hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md group"
+          className="bg-[#FCFAF7] border border-[#EBE3D5]/65 rounded-[18px] md:rounded-[22px] px-2 py-4 md:p-4.5 flex flex-col items-center justify-center hover:border-terracotta/30 hover:scale-[1.02] transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md group"
         >
           {/* Circle container for icon */}
           <div className="w-11 h-11 md:w-14 md:h-14 rounded-full bg-white border border-[#EBE3D5] flex items-center justify-center transition-colors group-hover:bg-[#FCFAF7] shadow-sm overflow-hidden">
@@ -93,19 +95,20 @@ export default function MarketplaceCategories({ onExploreMoreClick }: Marketplac
               src="/marketplace-med.png" 
               alt="Medical" 
               className="w-7 h-7 md:w-9 md:h-9 object-contain"
+              style={{ filter: 'brightness(0) saturate(100%) invert(44%) sepia(55%) saturate(1210%) hue-rotate(349deg) brightness(94%) contrast(90%)' }}
             />
           </div>
           
           {/* Title and Badge */}
           <div className="flex flex-row items-center gap-1.5 justify-center mt-3.5 md:mt-4 w-full">
-            <div className="hidden md:flex w-4 h-4 md:w-4.5 md:h-4.5 rounded-full bg-[#138A8A] text-white items-center justify-center text-[9px] md:text-[10px] font-bold shadow-sm select-none shrink-0">
+            <div className="hidden md:flex w-4 h-4 md:w-4.5 md:h-4.5 rounded-full bg-terracotta text-white items-center justify-center text-[9px] md:text-[10px] font-bold shadow-sm select-none shrink-0">
               3
             </div>
             <h3 className="text-[10px] md:text-xs font-bold text-charcoal leading-tight text-center md:text-left whitespace-normal md:whitespace-nowrap">Marketplace - Medical</h3>
           </div>
           
           {/* Decorative Divider Line */}
-          <div className="hidden md:block w-6 h-[1.5px] bg-gradient-to-r from-teal-400 to-[#138A8A] rounded-full mt-1.5" />
+          <div className="hidden md:block w-6 h-[1.5px] bg-gradient-to-r from-orange-400 to-[#D95D39] rounded-full mt-1.5" />
           
           {/* Description */}
           <p className="hidden md:block text-center text-[7.8px] md:text-[9.2px] text-[#4A453E] font-medium mt-2 md:mt-2.5 leading-snug max-w-[130px]">

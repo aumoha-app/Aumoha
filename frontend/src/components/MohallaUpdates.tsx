@@ -220,6 +220,10 @@ export default function MohallaUpdates({
 
   const renderPostCard = (post: any) => {
     const roleInfo = getRoleColors(post.authorRole);
+    const parts = (post.description || '').split(/\n\n🕒 Scheduled: |\\n\\n🕒 Scheduled: /);
+    const displayDesc = parts[0] || '';
+    const displayTime = parts[1] || '';
+
     return (
       <div
         key={post.id}
@@ -302,7 +306,7 @@ export default function MohallaUpdates({
           <div className="flex-1">
             <h4 className="text-sm font-bold text-charcoal leading-snug group-hover:text-[#3D5A45] transition-colors">{post.title}</h4>
             <p className="text-xs text-stone-600 font-medium leading-relaxed mt-1 text-ellipsis overflow-hidden line-clamp-3 whitespace-pre-line">
-              {post.description}
+              {displayDesc}
             </p>
           </div>
           {post.image && (
@@ -313,7 +317,7 @@ export default function MohallaUpdates({
         </div>
 
         {/* Meta / Actions Footer */}
-        <div className="flex items-center border-t border-[#F5F2EC] pt-3 text-[11px] text-stone-500 font-bold select-none">
+        <div className="flex items-center border-t border-[#F5F2EC] pt-3 text-[11px] text-stone-500 font-bold select-none justify-between">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1 bg-[#FCFAF7] px-2 py-1 rounded-lg">
               <svg className="w-3 h-3 text-[#C85341] shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
@@ -322,6 +326,12 @@ export default function MohallaUpdates({
               </svg>
               {post.location}
             </span>
+            {displayTime && (
+              <span className="flex items-center gap-1 bg-[#FFF9E6] text-[#B45309] border border-[#FFE0B2] px-2 py-1 rounded-lg">
+                <span>🕒</span>
+                {displayTime}
+              </span>
+            )}
           </div>
         </div>
       </div>

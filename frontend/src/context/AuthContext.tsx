@@ -148,7 +148,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error.name === 'AbortError') {
         console.warn('Profile sync timed out. Operating on cached local data.');
       } else {
-        console.error('Error syncing profile:', error);
+        console.warn('Profile sync failed. Operating on cached local data:', error.message || error);
       }
     }
   };

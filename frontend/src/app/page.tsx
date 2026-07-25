@@ -19,6 +19,7 @@ import { useAuth } from '../context/AuthContext';
 import AuthScreen from '../components/AuthScreen';
 import OnboardingScreen from '../components/OnboardingScreen';
 import AdminDashboard from '../components/AdminDashboard';
+import DonationSection from '../components/DonationSection';
 
 
 
@@ -236,6 +237,7 @@ export default function Home() {
                 />
                 <NeighborhoodRadar onEnterCircle={() => setActiveTab('circle')} />
                 <MarketplaceCategories onExploreMoreClick={() => setActiveTab('marketplace')} />
+                <DonationSection />
               </main>
             )}
 
@@ -245,7 +247,7 @@ export default function Home() {
             )}
 
             {/* PET CARE FEATURE SCREEN */}
-            {activeTab === 'petcare' && <PetCareFeature setActiveTab={setActiveTab} />}
+            {activeTab === 'petcare' && <PetCareFeature />}
 
             {/* VET CONSULTATION TABS */}
             {activeTab === 'vetconsult' && (

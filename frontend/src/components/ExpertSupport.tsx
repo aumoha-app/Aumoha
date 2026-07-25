@@ -67,25 +67,21 @@ const CATEGORY_CONFIGS: Record<string, {
   bgGradient: string;
   emoji: string;
   icon: React.ReactNode;
-  image: string;
 }> = {
   'Nutritionist': {
     title: 'Nutritionists',
     displayTitle: 'Nutritionist',
     subtitle: 'Custom diet formulation & healthy meal planning',
     subFilters: ['Puppy Diet', 'Weight Management', 'Raw Feeding', 'Available Today'],
-    color: 'text-[#7C3AED] bg-[#F5F3FF] border-[#E9E3FF]',
-    bgGradient: 'bg-gradient-to-tr from-purple-500/20 to-indigo-500/10',
+    color: 'text-emerald-700 bg-emerald-50 border-emerald-100',
+    bgGradient: 'bg-gradient-to-tr from-emerald-500/20 to-teal-500/10',
     desc: 'Balanced diet plans for better health.',
     filterGroup: 'Wellness',
-    emoji: '🌱',
-    image: '/expert_nutritionist.png',
+    emoji: '🐶',
     icon: (
-      <svg className="w-5 h-5 text-[#7C3AED]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 22C12 22 20 18 20 12C20 6 15 2 12 2C9 2 4 6 4 12C4 18 12 22 12 22Z" />
-        <path d="M12 2V22" />
-        <path d="M12 10c1.5-1 3.5-1 5-3" />
-        <path d="M12 14c-1.5-1-3.5-1-5-3" />
+      <svg className="w-5 h-5 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5z" />
+        <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
       </svg>
     )
   },
@@ -94,20 +90,16 @@ const CATEGORY_CONFIGS: Record<string, {
     displayTitle: 'Animal Behaviourist',
     subtitle: 'Canine & feline behavior rehabilitation',
     subFilters: ['Aggression', 'Separation Anxiety', 'Phobias', 'Available Today'],
-    color: 'text-[#7C3AED] bg-[#F5F3FF] border-[#E9E3FF]',
-    bgGradient: 'bg-gradient-to-tr from-purple-500/20 to-indigo-500/10',
+    color: 'text-blue-700 bg-blue-50 border-blue-100',
+    bgGradient: 'bg-gradient-to-tr from-blue-500/20 to-cyan-500/10',
     desc: 'Understand behaviour & build better bonds.',
     filterGroup: 'Behaviour',
-    emoji: '🐶',
-    image: '/expert_animal_behaviourist.png',
+    emoji: '🐕',
     icon: (
-      <svg className="w-5 h-5 text-[#7C3AED]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 14c0-3.3 2.7-6 6-6h4c3.3 0 6 2.7 6 6v4a2 2 0 0 1-2 2h-12a2 2 0 0 1-2-2v-4z" />
-        <path d="M6 8V6a2 2 0 0 1 4 0v2" />
-        <path d="M14 8V6a2 2 0 0 1 4 0v2" />
-        <circle cx="9" cy="13" r="1" fill="currentColor" />
-        <circle cx="15" cy="13" r="1" fill="currentColor" />
-        <path d="M11 16h2" />
+      <svg className="w-5 h-5 text-blue-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        <circle cx="9" cy="10" r="1.5" />
+        <circle cx="15" cy="10" r="1.5" />
       </svg>
     )
   },
@@ -116,16 +108,15 @@ const CATEGORY_CONFIGS: Record<string, {
     displayTitle: 'Trainer',
     subtitle: 'Obedience foundation & trick training',
     subFilters: ['Puppy Training', 'Basic Obedience', 'Leash Pulling', 'Available Today'],
-    color: 'text-[#7C3AED] bg-[#F5F3FF] border-[#E9E3FF]',
-    bgGradient: 'bg-gradient-to-tr from-purple-500/20 to-indigo-500/10',
+    color: 'text-amber-700 bg-amber-50 border-amber-100',
+    bgGradient: 'bg-gradient-to-tr from-amber-500/20 to-orange-500/10',
     desc: 'Positive training for obedience & skills.',
     filterGroup: 'Behaviour',
-    emoji: '🎓',
-    image: '/expert_trainer.png',
+    emoji: '🦮',
     icon: (
-      <svg className="w-5 h-5 text-[#7C3AED]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-        <path d="M6 12v5c0 2 2.5 3 6 3s6-1 6-3v-5" />
+      <svg className="w-5 h-5 text-amber-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
       </svg>
     )
   },
@@ -134,20 +125,14 @@ const CATEGORY_CONFIGS: Record<string, {
     displayTitle: 'Behaviourist',
     subtitle: 'Desensitization and confidence building',
     subFilters: ['Fear Desensitization', 'Socialization', 'Hyperactivity', 'Available Today'],
-    color: 'text-[#7C3AED] bg-[#F5F3FF] border-[#E9E3FF]',
-    bgGradient: 'bg-gradient-to-tr from-purple-500/20 to-indigo-500/10',
+    color: 'text-indigo-700 bg-indigo-50 border-indigo-100',
+    bgGradient: 'bg-gradient-to-tr from-indigo-500/20 to-purple-500/10',
     desc: 'Address behavioural challenges.',
     filterGroup: 'Behaviour',
-    emoji: '🐶',
-    image: '/expert_behaviourist.png',
+    emoji: 'poodle', // Fallback styled in code
     icon: (
-      <svg className="w-5 h-5 text-[#7C3AED]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 14c0-3.3 2.7-6 6-6h4c3.3 0 6 2.7 6 6v4a2 2 0 0 1-2 2h-12a2 2 0 0 1-2-2v-4z" />
-        <path d="M6 8V6a2 2 0 0 1 4 0v2" />
-        <path d="M14 8V6a2 2 0 0 1 4 0v2" />
-        <circle cx="9" cy="13" r="1" fill="currentColor" />
-        <circle cx="15" cy="13" r="1" fill="currentColor" />
-        <path d="M11 16h2" />
+      <svg className="w-5 h-5 text-indigo-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
       </svg>
     )
   },
@@ -156,19 +141,15 @@ const CATEGORY_CONFIGS: Record<string, {
     displayTitle: 'Physiotherapist',
     subtitle: 'Muscle recovery, senior comfort & massage',
     subFilters: ['Mobility', 'Injury Recovery', 'Senior Care', 'Post-Surgery'],
-    color: 'text-[#7C3AED] bg-[#F5F3FF] border-[#E9E3FF]',
-    bgGradient: 'bg-gradient-to-tr from-purple-500/20 to-indigo-500/10',
+    color: 'text-orange-700 bg-orange-50 border-orange-100',
+    bgGradient: 'bg-gradient-to-tr from-orange-500/20 to-yellow-500/10',
     desc: 'Pain relief, mobility & recovery care.',
     filterGroup: 'Therapy',
-    emoji: '🐾',
-    image: '/expert_physiotherapist.png',
+    emoji: '🐕',
     icon: (
-      <svg className="w-5 h-5 text-[#7C3AED]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="13" r="3" />
-        <circle cx="6" cy="9" r="2" />
-        <circle cx="9" cy="5" r="2" />
-        <circle cx="15" cy="5" r="2" />
-        <circle cx="18" cy="9" r="2" />
+      <svg className="w-5 h-5 text-orange-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        <circle cx="12" cy="12" r="3" />
       </svg>
     )
   },
@@ -177,16 +158,16 @@ const CATEGORY_CONFIGS: Record<string, {
     displayTitle: 'Wellness & Palliative',
     subtitle: 'Senior care guidance & comfort therapy',
     subFilters: ['Hospice Setup', 'Pain Relief', 'Senior Wellness', 'Available Today'],
-    color: 'text-[#7C3AED] bg-[#F5F3FF] border-[#E9E3FF]',
-    bgGradient: 'bg-gradient-to-tr from-purple-500/20 to-indigo-500/10',
+    color: 'text-rose-700 bg-rose-50 border-rose-100',
+    bgGradient: 'bg-gradient-to-tr from-rose-500/20 to-pink-500/10',
     desc: 'Comfort, quality & holistic support.',
     filterGroup: 'Wellness',
-    emoji: '🌸',
-    image: '/expert_wellness.png',
+    emoji: '🐈',
     icon: (
-      <svg className="w-5 h-5 text-[#7C3AED]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 22c3.5-3.5 5-7 5-10 0-4-3-7-5-7s-5 3-5 7c0 3 1.5 6.5 5 10z" />
-        <path d="M12 22c-3.5-3.5-7-5-10-5 0 0 .5-3 2-4.5s4-1.5 5 0l3 3.5M12 22c3.5-3.5 7-5 10-5 0 0-.5-3-2-4.5s-4-1.5-5 0l-3 3.5" />
+      <svg className="w-5 h-5 text-rose-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="16" />
+        <line x1="8" y1="12" x2="16" y2="12" />
       </svg>
     )
   },
@@ -195,16 +176,14 @@ const CATEGORY_CONFIGS: Record<string, {
     displayTitle: 'Homeopathy Vet',
     subtitle: 'Natural remedies and organic treatments',
     subFilters: ['Chronic Issues', 'Herbal Treatment', 'Holistic Wellness'],
-    color: 'text-[#7C3AED] bg-[#F5F3FF] border-[#E9E3FF]',
-    bgGradient: 'bg-gradient-to-tr from-purple-500/20 to-indigo-500/10',
+    color: 'text-lime-700 bg-lime-50 border-lime-100',
+    bgGradient: 'bg-gradient-to-tr from-lime-500/20 to-emerald-500/10',
     desc: 'Natural healing with gentle care.',
     filterGroup: 'Holistic',
-    emoji: '🌿',
-    image: '/expert_homeopathy.png',
+    emoji: '🌱',
     icon: (
-      <svg className="w-5 h-5 text-[#7C3AED]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 10h16M4 10v4c0 3.3 2.7 6 6 6h4c3.3 0 6-2.7 6-6v-4" />
-        <path d="M18 4l-4 6" />
+      <svg className="w-5 h-5 text-lime-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
       </svg>
     )
   },
@@ -213,17 +192,16 @@ const CATEGORY_CONFIGS: Record<string, {
     displayTitle: 'Rehab Specialist',
     subtitle: 'Post-injury therapeutic recoveries',
     subFilters: ['Joint Therapy', 'Laser Therapy', 'Post-Surgery Recovery'],
-    color: 'text-[#7C3AED] bg-[#F5F3FF] border-[#E9E3FF]',
-    bgGradient: 'bg-gradient-to-tr from-purple-500/20 to-indigo-500/10',
+    color: 'text-cyan-700 bg-cyan-50 border-cyan-100',
+    bgGradient: 'bg-gradient-to-tr from-cyan-500/20 to-blue-500/10',
     desc: 'Rehabilitation for injuries & surgeries.',
     filterGroup: 'Therapy',
-    emoji: '🩹',
-    image: '/expert_rehab.png',
+    emoji: '🐾',
     icon: (
-      <svg className="w-5 h-5 text-[#7C3AED]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="9" width="18" height="6" rx="1" transform="rotate(45 12 12)" />
-        <rect x="3" y="9" width="18" height="6" rx="1" transform="rotate(-45 12 12)" />
-        <circle cx="12" cy="12" r="1.2" fill="currentColor" />
+      <svg className="w-5 h-5 text-cyan-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+        <line x1="12" y1="8" x2="12" y2="16" />
+        <line x1="8" y1="12" x2="16" y2="12" />
       </svg>
     )
   },
@@ -232,16 +210,15 @@ const CATEGORY_CONFIGS: Record<string, {
     displayTitle: 'At-Home Support',
     subtitle: 'Nursing care, medication assistance & grooming support',
     subFilters: ['Medication Assist', 'Basic Nursing', 'Elderly Care', 'Available Today'],
-    color: 'text-[#7C3AED] bg-[#F5F3FF] border-[#E9E3FF]',
+    color: 'text-purple-700 bg-purple-50 border-purple-100',
     bgGradient: 'bg-gradient-to-tr from-purple-500/20 to-indigo-500/10',
     desc: 'Expert care in the comfort of home.',
     filterGroup: 'Wellness',
-    emoji: '🏠',
-    image: '/expert_athome.png',
+    emoji: '🐈',
     icon: (
-      <svg className="w-5 h-5 text-[#7C3AED]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+      <svg className="w-5 h-5 text-purple-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-        <path d="M9 16a3 3 0 0 1 6 0" />
+        <polyline points="9 22 9 12 15 12 15 22" />
       </svg>
     )
   },
@@ -250,14 +227,13 @@ const CATEGORY_CONFIGS: Record<string, {
     displayTitle: 'Reiki Healing',
     subtitle: 'Telepathic consultations & spiritual distance healing',
     subFilters: ['Reiki Healing', 'Grief Counseling', 'Energy Balance', 'Available Today'],
-    color: 'text-[#7C3AED] bg-[#F5F3FF] border-[#E9E3FF]',
-    bgGradient: 'bg-gradient-to-tr from-purple-500/20 to-indigo-500/10',
+    color: 'text-fuchsia-700 bg-fuchsia-50 border-fuchsia-100',
+    bgGradient: 'bg-gradient-to-tr from-fuchsia-500/20 to-pink-500/10',
     desc: 'Telepathic bonds & spiritual energy healing.',
     filterGroup: 'Holistic',
     emoji: '🔮',
-    image: '/expert_reiki.png',
     icon: (
-      <svg className="w-5 h-5 text-[#7C3AED]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+      <svg className="w-5 h-5 text-fuchsia-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
         <path d="M2 12h20" />
       </svg>
@@ -664,85 +640,63 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
   };
 
   return (
-    <div className="w-full flex flex-col gap-6 animate-scaleIn font-sans text-charcoal bg-[#FCFAF7] rounded-3xl p-4 md:p-6 shadow-sm min-h-[80vh] relative overflow-hidden">
+    <div className="w-full flex flex-col gap-6 animate-scaleIn font-sans text-charcoal bg-[#FAF8F5] rounded-3xl p-4 md:p-6 shadow-sm min-h-[80vh]">
       
       {/* HEADER BAR WITH NAVIGATION BACK ACTION & ADMIN PORTAL CONTROLS */}
-      <div className="relative w-full border-b border-warmBeige/40 pb-5 select-none min-h-[140px] flex flex-col justify-between z-10">
-        <div className="flex justify-between items-start w-full">
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={() => {
-                if (currentView === 'listing') {
-                  setCurrentView('home');
-                } else if (currentView === 'wizard') {
-                  if (wizardStep > 1) {
-                    setWizardStep(prev => prev - 1);
-                  } else {
-                    setCurrentView('listing');
-                  }
-                } else if (currentView === 'confirmed' || currentView === 'admin') {
-                  setCurrentView('home');
+      <div className="flex items-center justify-between pb-3 border-b border-warmBeige/40 select-none">
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => {
+              if (currentView === 'listing') {
+                setCurrentView('home');
+              } else if (currentView === 'wizard') {
+                if (wizardStep > 1) {
+                  setWizardStep(prev => prev - 1);
                 } else {
-                  setActiveTab('home');
+                  setCurrentView('listing');
                 }
-              }} 
-              className="w-10 h-10 rounded-full border border-warmBeige bg-white flex items-center justify-center hover:bg-warmBg transition-colors"
-            >
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-stone-600">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-            </button>
-            <div>
-              <span className="text-[10px] text-[#5F6955] font-extrabold uppercase tracking-widest block">Consult & Care</span>
-              <h1 className="text-3xl font-serif font-extrabold text-charcoal leading-tight mt-0.5">Expert Support</h1>
-            </div>
+              } else if (currentView === 'confirmed' || currentView === 'admin') {
+                setCurrentView('home');
+              } else {
+                setActiveTab('home');
+              }
+            }} 
+            className="w-10 h-10 rounded-full border border-warmBeige bg-white flex items-center justify-center hover:bg-warmBg transition-colors"
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-stone-600">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+          <div>
+            <span className="text-[10px] text-stone-400 font-extrabold uppercase tracking-widest block">Consult & Care</span>
+            <h1 className="text-sm font-serif font-extrabold text-charcoal">Expert Support</h1>
           </div>
         </div>
-        
-        {currentView === 'home' && (
-          <div className="flex flex-col gap-3">
-            <p className="text-xs md:text-sm text-stone-500 font-medium leading-relaxed mt-4 max-w-[65%] pl-1">
-              Connect with specialised experts who understand your pet&apos;s unique needs.
-            </p>
-            {/* Gated Admin panel button */}
-            {isAdminUser && (
-              <div className="pl-1 z-10">
-                <button
-                  onClick={() => {
-                    if ((currentView as string) === 'admin') {
-                      setCurrentView('home');
-                    } else {
-                      setCurrentView('admin');
-                    }
-                  }}
-                  className={`px-3 py-1.5 rounded-xl border text-[10px] font-extrabold flex items-center gap-1.5 transition-all shadow-sm ${
-                    (currentView as string) === 'admin'
-                      ? 'bg-[#3D5A45] border-[#3D5A45] text-white'
-                      : 'border-[#3D5A45]/30 hover:bg-[#F3F6F4] text-[#3D5A45] bg-white'
-                  }`}
-                >
-                  🛡️ Admin Panel
-                </button>
-              </div>
-            )}
-          </div>
-        )}
 
-        {/* Vase image decoration at top right */}
-        {currentView === 'home' && (
-          <div className="absolute right-0 top-0 w-[140px] h-[140px] pointer-events-none select-none z-0">
-            <img 
-              src="/expert_support_hero.png" 
-              alt="Decoration" 
-              className="w-full h-full object-contain object-right opacity-90 mix-blend-multiply"
-            />
-          </div>
+        {/* Gated Admin panel button */}
+        {isAdminUser && (
+          <button
+            onClick={() => {
+              if (currentView === 'admin') {
+                setCurrentView('home');
+              } else {
+                setCurrentView('admin');
+              }
+            }}
+            className={`px-3 py-1.5 rounded-xl border text-[10px] font-extrabold flex items-center gap-1.5 transition-all ${
+              currentView === 'admin'
+                ? 'bg-[#3D5A45] border-[#3D5A45] text-white shadow-sm'
+                : 'border-warmBeige hover:bg-[#FCFAF7] text-[#3D5A45] bg-white'
+            }`}
+          >
+            🛡️ Admin Panel
+          </button>
         )}
       </div>
 
       {/* ==================== SCREEN 1: EXPERT SUPPORT HOME ==================== */}
       {currentView === 'home' && (
-        <div className="flex flex-col gap-5 w-full animate-fadeIn z-10 relative">
+        <div className="flex flex-col gap-5 w-full animate-fadeIn">
           
           {/* SEARCH BAR + FILTER */}
           <div className="flex gap-2 w-full">
@@ -752,7 +706,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                 placeholder="Search experts or services..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white border border-[#F0EBE1] rounded-2xl pl-10 pr-4 py-3 text-xs font-semibold focus:outline-none focus:border-[#7C3AED]/40 shadow-sm"
+                className="w-full bg-white border border-[#F0EBE1] rounded-2xl pl-10 pr-4 py-2.5 text-xs font-semibold focus:outline-none focus:border-terracotta/40 shadow-sm"
               />
               <svg className="absolute left-3.5 top-3.5 w-4 h-4 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <circle cx="11" cy="11" r="8" />
@@ -762,76 +716,34 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
             
             <button 
               onClick={() => handleStartQuiz()}
-              className="px-5 bg-[#FAF6F0] border border-[#EBE3D5] hover:bg-[#F3ECE0] text-stone-700 text-xs font-bold rounded-2xl flex items-center gap-2 shadow-sm transition-all shrink-0 active:scale-95"
+              className="px-4 bg-[#EBF5E9] hover:bg-[#C8E6C9] border border-[#E1EDE3] text-[#3D5A45] text-[10px] font-extrabold rounded-2xl flex items-center gap-1.5 shadow-sm transition-all"
             >
-              <svg className="w-4 h-4 text-stone-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="4" y1="21" x2="4" y2="14" /><line x1="4" y1="10" x2="4" y2="3" />
-                <line x1="12" y1="21" x2="12" y2="12" /><line x1="12" y1="8" x2="12" y2="3" />
-                <line x1="20" y1="21" x2="20" y2="16" /><line x1="20" y1="12" x2="20" y2="3" />
-                <line x1="1" y1="14" x2="7" y2="14" /><line x1="9" y1="8" x2="15" y2="8" /><line x1="17" y1="16" x2="23" y2="16" />
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01" />
               </svg>
-              Filter
+              Quiz Match
             </button>
           </div>
 
           {/* CATEGORY FILTER CHIPS */}
           <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-hide select-none">
-            {(['All', 'Wellness', 'Behaviour', 'Therapy', 'Holistic'] as const).map(grp => {
-              const grpIcons = {
-                All: (
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="3" y="3" width="7" height="7" rx="1" />
-                    <rect x="14" y="3" width="7" height="7" rx="1" />
-                    <rect x="14" y="14" width="7" height="7" rx="1" />
-                    <rect x="3" y="14" width="7" height="7" rx="1" />
-                  </svg>
-                ),
-                Wellness: (
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 1.2 5.5-2.2 11.2a7 7 0 0 1-5.8 6.8z" />
-                    <path d="M9 15l3-3" />
-                  </svg>
-                ),
-                Behaviour: (
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-1.12-2.5-2.5-2.5S6 10.62 6 12a2.5 2.5 0 0 0 2.5 2.5z" />
-                    <path d="M15.5 14.5a2.5 2.5 0 0 0 2.5-2.5c0-1.38-1.12-2.5-2.5-2.5S13 10.62 13 12a2.5 2.5 0 0 0 2.5 2.5z" />
-                    <path d="M12 18c2.5 0 4-1.5 4-3v-4c0-2-1.5-4-4-4S8 9 8 11v4c0 1.5 1.5 3 4 3z" />
-                  </svg>
-                ),
-                Therapy: (
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 21a9 9 0 0 0 9-9c0-1.7-.5-3.3-1.3-4.7l-1.4 1.4A7 7 0 1 1 12 5V3a9 9 0 0 0-9 9 9 9 0 0 0 9 9z" />
-                    <path d="M12 5a3.5 3.5 0 0 1 3.5 3.5c0 2-3.5 5.5-3.5 5.5S8.5 10.5 8.5 8.5A3.5 3.5 0 0 1 12 5z" />
-                  </svg>
-                ),
-                Holistic: (
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M6 10h12M6 10v3a6 6 0 0 0 12 0v-3" />
-                    <path d="M16 4l-4 6" />
-                  </svg>
-                )
-              };
-
-              const isSelected = homeGroup === grp;
-              return (
-                <button
-                  key={grp}
-                  onClick={() => setHomeGroup(grp)}
-                  className={`px-4 py-2 border rounded-full text-[10px] font-extrabold shrink-0 transition-all active:scale-95 flex items-center gap-1.5 ${
-                    isSelected 
-                      ? 'bg-[#F3F0FA] border-[#E9E3FF] text-[#4D3E8C] shadow-sm' 
-                      : 'bg-white border-[#F0EBE1] text-[#55524D] hover:border-stone-300'
-                  }`}
-                >
-                  {grpIcons[grp]}
-                  {grp}
-                </button>
-              );
-            })}
+            {(['All', 'Wellness', 'Behaviour', 'Therapy', 'Holistic'] as const).map(grp => (
+              <button
+                key={grp}
+                onClick={() => setHomeGroup(grp)}
+                className={`px-4 py-1.5 border rounded-full text-[10px] font-extrabold shrink-0 transition-all active:scale-95 flex items-center gap-1.5 ${
+                  homeGroup === grp 
+                    ? 'bg-[#3D5A45] border-[#3D5A45] text-white shadow-sm' 
+                    : 'bg-white border-[#F0EBE1] text-stone-600 hover:border-stone-300'
+                }`}
+              >
+                {grp}
+              </button>
+            ))}
           </div>
 
-          {/* 3-COLUMN CATEGORY GRID */}
+          {/* 3-COLUMN CATEGORY GRID (REDESIGNED TO PREVENT SPILLING & MATCH MOCKUP WITH RIGHT-ALIGN DECORATIONS) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
             {filteredCategoryKeys.map(catKey => {
               const conf = CATEGORY_CONFIGS[catKey];
@@ -844,38 +756,39 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                     setListingSubFilter(null);
                     setCurrentView('listing');
                   }}
-                  className="bg-white border border-[#EBE6DD] rounded-[28px] p-5 cursor-pointer shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden flex flex-col justify-between min-h-[145px] hover:scale-[1.01] group"
+                  className="bg-white border border-[#F0EBE1] rounded-[24px] p-5 cursor-pointer hover:shadow-md transition-all group flex justify-between items-start hover:scale-[1.01] hover:border-emerald-600/20 relative overflow-hidden"
                 >
-                  <div className="flex flex-col gap-2.5 z-10 w-[55%]">
-                    {/* Purple circle icon wrapper */}
-                    <div className="w-9 h-9 rounded-full bg-[#F5F3FF] flex items-center justify-center text-[#7C3AED] shadow-sm">
-                      {conf.icon}
+                  <div className="flex flex-col justify-between h-full min-h-[130px] z-10 w-[70%]">
+                    <div className="flex flex-col gap-2">
+                      {/* Circle icon wrapper */}
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center shadow-sm ${conf.color}`}>
+                        {conf.icon}
+                      </div>
+                      <div>
+                        {/* Title wrapping correctly break-words */}
+                        <h4 className="text-xs font-serif font-extrabold text-charcoal group-hover:text-emerald-700 transition-colors leading-tight break-words whitespace-normal max-w-full">
+                          {displayTitle}
+                        </h4>
+                        <p className="text-[9.5px] text-stone-500 font-semibold mt-1 leading-normal">
+                          {conf.desc}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      {/* Title and Description */}
-                      <h4 className="text-xs font-bold text-charcoal leading-tight">
-                        {displayTitle}
-                      </h4>
-                      <p className="text-[10px] text-stone-500 font-semibold leading-relaxed mt-1">
-                        {conf.desc}
-                      </p>
+
+                    {/* Circular Chevron icon */}
+                    <div className="w-7 h-7 rounded-full border border-stone-200 bg-[#FCFAF7] flex items-center justify-center group-hover:bg-[#3D5A45] group-hover:text-white transition-all shadow-sm mt-3">
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
                     </div>
                   </div>
 
-                  {/* Circular Chevron icon */}
-                  <div className="w-7 h-7 rounded-full bg-white border border-[#E9E3FF] flex items-center justify-center text-[#7C3AED] shadow-sm group-hover:bg-[#F5F3FF] z-10 transition-all mt-3">
-                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                      <polyline points="9 18 15 12 9 6" />
-                    </svg>
-                  </div>
-
-                  {/* Right side high-quality transparent image of the pet */}
-                  <div className="absolute right-0 bottom-0 w-[105px] h-[105px] md:w-[115px] md:h-[115px] pointer-events-none select-none z-0">
-                    <img 
-                      src={conf.image} 
-                      alt={displayTitle} 
-                      className="w-full h-full object-contain object-right-bottom transition-transform duration-300 group-hover:scale-[1.05]"
-                    />
+                  {/* Right side mockup graphic decoration alignment */}
+                  <div className="absolute right-2 bottom-2 top-2 w-[30%] flex items-center justify-center overflow-hidden pointer-events-none select-none z-0">
+                    <div className={`w-14 h-14 rounded-full absolute opacity-25 filter blur-md ${conf.bgGradient || 'bg-emerald-500/10'}`} />
+                    <span className="text-3xl z-10 group-hover:scale-110 transition-transform duration-300">
+                      {conf.emoji === 'poodle' ? '🐩' : conf.emoji || '🐾'}
+                    </span>
                   </div>
                 </div>
               );
@@ -888,30 +801,16 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
           </div>
 
           {/* FIND MY EXPERT QUIZ BANNER */}
-          <div className="bg-[#F3F0FA] border border-[#E9E3FF] rounded-[28px] p-5 flex flex-col md:flex-row items-center justify-between gap-4 mt-3 shadow-sm relative overflow-hidden min-h-[120px]">
-            {/* Absolute positioned Illustration Image at bottom-left */}
-            <div className="absolute left-0 bottom-0 top-0 w-[110px] md:w-[130px] pointer-events-none select-none z-0">
-              <img 
-                src="/expert_quiz_banner.png" 
-                alt="Find Expert Quiz" 
-                className="absolute bottom-0 left-0 max-h-[100%] max-w-[100%] object-contain object-left-bottom"
-              />
+          <div className="bg-[#EBF5E9] border border-[#E1EDE3] rounded-[28px] p-5 flex flex-col sm:flex-row items-center justify-between gap-4 mt-3 shadow-sm">
+            <div className="text-left flex flex-col gap-1 max-w-sm">
+              <h4 className="font-serif font-extrabold text-sm text-[#3D5A45]">Not sure who to book?</h4>
+              <p className="text-[10px] text-stone-600 font-semibold leading-relaxed">Answer a few simple questions about your pet's behavioral or health concerns, and we'll instantly match you with the right specialist.</p>
             </div>
-            
-            {/* Left Side text padded to avoid the absolute illustration */}
-            <div className="text-left flex flex-col gap-1 max-w-[70%] pl-[95px] md:pl-[115px] z-10">
-              <h4 className="font-serif font-extrabold text-sm text-[#4D3E8C]">Not sure who to book?</h4>
-              <p className="text-[10.5px] text-stone-600 font-semibold leading-relaxed">
-                Answer a few questions and we&apos;ll suggest the right expert for your pet.
-              </p>
-            </div>
-            
-            {/* Right Side: Pill Button */}
             <button
               onClick={() => handleStartQuiz()}
-              className="px-6 py-3 bg-[#5C4E9C] hover:bg-[#483B80] text-white text-xs font-extrabold rounded-full transition-all shadow-sm shrink-0 active:scale-95 flex items-center gap-1.5 z-10"
+              className="px-5 py-2.5 bg-[#3D5A45] hover:bg-[#2A3E31] text-white text-[10px] font-extrabold rounded-xl transition-all shadow-sm shrink-0 active:scale-95 flex items-center gap-1.5"
             >
-              Find My Expert <span className="text-sm">›</span>
+              Find My Expert <span>→</span>
             </button>
           </div>
 

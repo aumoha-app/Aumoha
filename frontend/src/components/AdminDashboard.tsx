@@ -56,12 +56,26 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
   const [isSaving, setIsSaving] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const serviceFileInputRef = useRef<HTMLInputElement>(null);
 
   // TAB NAVIGATION & SOS STATES
-  const [currentTab, setCurrentTab] = useState<'products' | 'sos' | 'settings' | 'services'>('sos');
+  const [currentTab, setCurrentTab] = useState<'products' | 'sos' | 'settings' | 'community'>('sos');
   const [sosReports, setSosReports] = useState<SosReport[]>([]);
   const [isSosLoading, setIsSosLoading] = useState(false);
+
+  // Community Activities States
+  const [activities, setActivities] = useState<any[]>([]);
+  const [isActivitiesLoading, setIsActivitiesLoading] = useState(false);
+  const [isEditingActivity, setIsEditingActivity] = useState(false);
+  const [editActivityId, setEditActivityId] = useState<string | null>(null);
+  const [actFormCategory, setActFormCategory] = useState<'feeding' | 'help' | 'event' | 'awareness'>('event');
+  const [actFormTitle, setActFormTitle] = useState('');
+  const [actFormDescription, setActFormDescription] = useState('');
+  const [actFormLocation, setActFormLocation] = useState('');
+  const [actFormImage, setActFormImage] = useState('');
+  const [actFormScheduledTime, setActFormScheduledTime] = useState('');
+  const [isSavingActivity, setIsSavingActivity] = useState(false);
+  const [activityError, setActivityError] = useState<string | null>(null);
+  const actFileInputRef = useRef<HTMLInputElement>(null);
 
   // Settings States
   const [checkoutCountryCode, setCheckoutCountryCode] = useState('+91');
@@ -70,197 +84,6 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
   const [isSettingsSaving, setIsSettingsSaving] = useState(false);
   const [settingsError, setSettingsError] = useState<string | null>(null);
   const [settingsSuccess, setSettingsSuccess] = useState<boolean>(false);
-
-  // Care Services State
-  const [careServices, setCareServices] = useState<any[]>([]);
-  const [isCareLoading, setIsCareLoading] = useState(false);
-  
-  // Care Services Form State
-  const [serviceName, setServiceName] = useState('');
-  const [serviceCategory, setServiceCategory] = useState<'Grooming' | 'Boarding' | 'Walking' | 'Training'>('Grooming');
-  const [serviceSpecialisation, setServiceSpecialisation] = useState('');
-  const [serviceTags, setServiceTags] = useState('');
-  const [serviceFee, setServiceFee] = useState('');
-  const [serviceExperience, setServiceExperience] = useState('');
-  const [serviceBio, setServiceBio] = useState('');
-  const [serviceLocation, setServiceLocation] = useState('2.1 km away');
-  const [serviceImage, setServiceImage] = useState('');
-  const [serviceOnline, setServiceOnline] = useState(true);
-  const [serviceSlots, setServiceSlots] = useState<{ date: string; time: string }[]>([
-    { date: 'Today', time: '10:00 AM' },
-    { date: 'Today', time: '2:00 PM' },
-    { date: 'Tomorrow', time: '11:00 AM' }
-  ]);
-  const [isEditingService, setIsEditingService] = useState(false);
-  const [editServiceId, setEditServiceId] = useState<string | null>(null);
-  const [isServiceSaving, setIsServiceSaving] = useState(false);
-
-  // Custom Slot Builder State
-  const [newSlotDate, setNewSlotDate] = useState('Today');
-  const [newSlotTime, setNewSlotTime] = useState('10:00 AM');
-
-  const fetchCareServices = async () => {
-    setIsCareLoading(true);
-    setErrorMessage(null);
-    try {
-      const res = await fetch('http://localhost:5001/api/vets');
-      if (res.ok) {
-        const data = await res.json();
-        const careList = (data.vets || []).filter((v: any) => 
-          ['Grooming', 'Boarding', 'Walking', 'Training'].includes(v.category)
-        );
-        setCareServices(careList);
-      } else {
-        setErrorMessage('Failed to load care services.');
-      }
-    } catch (err) {
-      setErrorMessage('Network error fetching care services.');
-    } finally {
-      setIsCareLoading(false);
-    }
-  };
-
-  const handleSaveService = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!serviceName || !serviceSpecialisation || !serviceFee || !serviceExperience) {
-      alert('Please fill out all required fields (Name, Subtitle, Fee, Experience)');
-      return;
-    }
-
-    setIsServiceSaving(true);
-    setErrorMessage(null);
-
-    const payload = {
-      name: serviceName,
-      photo: serviceImage,
-      specialisation: serviceSpecialisation,
-      category: serviceCategory,
-      specialtyTags: serviceTags.split(',').map(t => t.trim()).filter(Boolean),
-      experience: Number(serviceExperience),
-      fee: Number(serviceFee),
-      bio: serviceBio,
-      isOnline: serviceOnline,
-      availableSlots: serviceSlots,
-      location: serviceLocation,
-      isApproved: true
-    };
-
-    const url = isEditingService
-      ? `http://localhost:5001/api/vets/${editServiceId}`
-      : 'http://localhost:5001/api/vets';
-    
-    const method = isEditingService ? 'PUT' : 'POST';
-
-    try {
-      const res = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'X-Admin-Password': adminPassword
-        },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      
-      if (res.ok) {
-        resetServiceForm();
-        fetchCareServices();
-      } else {
-        setErrorMessage(data.message || 'Failed to save care service.');
-      }
-    } catch (err) {
-      setErrorMessage('Network error saving care service.');
-    } finally {
-      setIsServiceSaving(false);
-    }
-  };
-
-  const handleEditServiceClick = (service: any) => {
-    setIsEditingService(true);
-    setEditServiceId(service._id || null);
-    setServiceName(service.name);
-    setServiceCategory(service.category);
-    setServiceSpecialisation(service.specialisation);
-    setServiceTags(service.specialtyTags?.join(', ') || '');
-    setServiceFee(service.fee.toString());
-    setServiceExperience(service.experience.toString());
-    setServiceBio(service.bio || '');
-    setServiceLocation(service.location || '2.1 km away');
-    setServiceImage(service.photo || '');
-    setServiceOnline(!!service.isOnline);
-    setServiceSlots(service.availableSlots || []);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleDeleteServiceClick = (id: string) => {
-    openConfirmation({
-      title: 'Delete Care Service?',
-      message: 'Are you sure you want to delete this care service provider? This action cannot be undone.',
-      confirmText: 'Delete',
-      cancelText: 'Cancel',
-      isDestructive: true,
-      onConfirm: async () => {
-        setErrorMessage(null);
-        try {
-          const res = await fetch(`http://localhost:5001/api/vets/${id}`, {
-            method: 'DELETE',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'X-Admin-Password': adminPassword
-            }
-          });
-          const data = await res.json();
-          if (res.ok) {
-            fetchCareServices();
-          } else {
-            setErrorMessage(data.message || 'Failed to delete care service.');
-          }
-        } catch (err) {
-          setErrorMessage('Network error deleting care service.');
-        }
-      }
-    });
-  };
-
-  const resetServiceForm = () => {
-    setIsEditingService(false);
-    setEditServiceId(null);
-    setServiceName('');
-    setServiceCategory('Grooming');
-    setServiceSpecialisation('');
-    setServiceTags('');
-    setServiceFee('');
-    setServiceExperience('');
-    setServiceBio('');
-    setServiceLocation('2.1 km away');
-    setServiceImage('');
-    setServiceOnline(true);
-    setServiceSlots([
-      { date: 'Today', time: '10:00 AM' },
-      { date: 'Today', time: '2:00 PM' },
-      { date: 'Tomorrow', time: '11:00 AM' }
-    ]);
-  };
-
-  const handleAddSlot = () => {
-    if (!newSlotDate.trim() || !newSlotTime.trim()) return;
-    setServiceSlots([...serviceSlots, { date: newSlotDate, time: newSlotTime }]);
-    setNewSlotTime('');
-  };
-
-  const handleRemoveSlot = (index: number) => {
-    setServiceSlots(serviceSlots.filter((_, idx) => idx !== index));
-  };
-
-  const handleServiceFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      compressImage(file, (base64) => {
-        setServiceImage(base64);
-      });
-    }
-  };
 
   // Load from sessionStorage if already validated in this tab session
   useEffect(() => {
@@ -479,13 +302,151 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
     if (isAuthenticated) {
       fetchSosReports(true);
       fetchCheckoutSettings();
-      fetchCareServices();
+      fetchActivities(true);
       const interval = setInterval(() => {
         fetchSosReports(false);
       }, 10000); // Poll every 10 seconds
       return () => clearInterval(interval);
     }
   }, [isAuthenticated, token]);
+
+  // Community Activity CRUD
+  const fetchActivities = async (showLoading = false) => {
+    if (showLoading) setIsActivitiesLoading(true);
+    try {
+      const res = await fetch('http://localhost:5001/api/activities', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setActivities(data.activities || []);
+      }
+    } catch (err) {
+      console.error('Error fetching activities:', err);
+    } finally {
+      if (showLoading) setIsActivitiesLoading(false);
+    }
+  };
+
+  const resetActivityForm = () => {
+    setIsEditingActivity(false);
+    setEditActivityId(null);
+    setActFormCategory('event');
+    setActFormTitle('');
+    setActFormDescription('');
+    setActFormLocation('');
+    setActFormImage('');
+    setActFormScheduledTime('');
+    setActivityError(null);
+    if (actFileInputRef.current) actFileInputRef.current.value = '';
+  };
+
+  const handleSaveActivity = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!actFormTitle || !actFormDescription || !actFormLocation) {
+      setActivityError('Please fill out Title, Description, and Location.');
+      return;
+    }
+    setIsSavingActivity(true);
+    setActivityError(null);
+
+    const fullDescription = actFormScheduledTime
+      ? `${actFormDescription}\n\n🕒 Scheduled: ${actFormScheduledTime}`
+      : actFormDescription;
+
+    const payload = {
+      category: actFormCategory,
+      title: actFormTitle,
+      description: fullDescription,
+      location: actFormLocation,
+      image: actFormImage || ''
+    };
+
+    try {
+      const url = isEditingActivity && editActivityId
+        ? `http://localhost:5001/api/admin/activities/${editActivityId}`
+        : 'http://localhost:5001/api/admin/activities';
+      const method = isEditingActivity ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'X-Admin-Password': adminPassword
+        },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (res.ok) {
+        resetActivityForm();
+        fetchActivities(false);
+      } else {
+        setActivityError(data.message || 'Failed to save activity.');
+      }
+    } catch (err) {
+      setActivityError('Network error saving activity.');
+    } finally {
+      setIsSavingActivity(false);
+    }
+  };
+
+  const handleEditActivity = (act: any) => {
+    setIsEditingActivity(true);
+    setEditActivityId(act._id);
+    setActFormCategory(act.category);
+    // Extract scheduled time from description if present
+    const parts = (act.description || '').split(/\n\n🕒 Scheduled: |\\n\\n🕒 Scheduled: /);
+    setActFormTitle(act.title);
+    setActFormDescription(parts[0] || '');
+    setActFormScheduledTime(parts[1] || '');
+    setActFormLocation(act.location);
+    setActFormImage(act.image || '');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDeleteActivity = (id: string) => {
+    openConfirmation({
+      title: 'Delete Community Post?',
+      message: 'Are you sure you want to permanently delete this community post? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      isDestructive: true,
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`http://localhost:5001/api/admin/activities/${id}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'X-Admin-Password': adminPassword
+            }
+          });
+          if (res.ok) {
+            fetchActivities(false);
+          } else {
+            const data = await res.json();
+            openConfirmation({
+              title: 'Error',
+              message: data.message || 'Failed to delete community post.',
+              confirmText: 'OK',
+              onConfirm: () => {}
+            });
+          }
+        } catch (err) {
+          console.error('Error deleting activity:', err);
+        }
+      }
+    });
+  };
+
+  const handleActivityFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      compressImage(file, (base64) => {
+        setActFormImage(base64);
+      });
+    }
+  };
 
   const resetForm = () => {
     setIsEditing(false);
@@ -762,14 +723,19 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
           Marketplace Settings
         </button>
         <button
-          onClick={() => setCurrentTab('services')}
-          className={`px-5 py-2.5 text-xs font-bold transition-all border-b-2 cursor-pointer ${
-            currentTab === 'services'
-              ? 'border-[#4A5D4E] text-[#4A5D4E]'
-              : 'border-transparent text-stone-400 hover:text-[#4A5D4E]'
+          onClick={() => setCurrentTab('community')}
+          className={`px-5 py-2.5 text-xs font-bold transition-all border-b-2 cursor-pointer flex items-center gap-1.5 ${
+            currentTab === 'community'
+              ? 'border-[#B68A35] text-[#B68A35]'
+              : 'border-transparent text-stone-400 hover:text-[#B68A35]'
           }`}
         >
-          Manage Care Services
+          <span>Manage Community</span>
+          {activities.length > 0 && (
+            <span className="bg-[#B68A35]/15 text-[#B68A35] text-[8px] px-1.5 py-0.5 rounded-full font-extrabold">
+              {activities.length}
+            </span>
+          )}
         </button>
       </div>
 
@@ -1315,348 +1281,301 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
         </section>
       )}
 
-      {currentTab === 'services' && (
+      {/* ======================= COMMUNITY TAB ======================= */}
+      {currentTab === 'community' && (
         <>
-          {/* ADD/EDIT SERVICE FORM */}
+          {/* ADD / EDIT ACTIVITY FORM */}
           <section className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-[24px] p-5 md:p-6 flex flex-col gap-4 shadow-sm hover:shadow-md transition-all duration-300">
             <div className="flex items-center justify-between border-b border-[#EBE3D5]/80 pb-2.5">
               <h2 className="font-serif text-lg text-[#1C1A17] font-normal">
-                {isEditingService ? 'Edit Care Service Provider' : 'Add New Care Service Provider'}
+                {isEditingActivity ? 'Edit Community Post' : 'Create Official Post'}
               </h2>
-              {isEditingService && (
-                <button
-                  type="button"
-                  onClick={resetServiceForm}
-                  className="text-[9px] font-extrabold bg-[#D95D39]/10 text-[#D95D39] px-2 py-1 rounded-full uppercase tracking-wider hover:bg-[#D95D39]/20 transition-all cursor-pointer"
-                >
-                  Cancel Edit
-                </button>
+              {isEditingActivity && (
+                <span className="text-[9px] font-extrabold bg-[#B68A35]/15 text-[#B68A35] px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  Editing Mode
+                </span>
               )}
             </div>
 
-            <form onSubmit={handleSaveService} className="flex flex-col gap-4">
+            <form onSubmit={handleSaveActivity} className="flex flex-col gap-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                
-                {/* Name */}
+                {/* Title */}
                 <div className="flex flex-col gap-1">
-                  <label htmlFor="serviceName" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Provider / Business Name *</label>
+                  <label htmlFor="actTitle" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Post Title *</label>
                   <input
                     type="text"
-                    id="serviceName"
-                    value={serviceName}
-                    onChange={(e) => setServiceName(e.target.value)}
-                    placeholder="e.g. Paws & Shine Grooming"
-                    className="w-full bg-white rounded-xl py-2.5 px-3.5 text-xs text-[#1C1A17] border border-[#EBE3D5] focus:border-[#4A5D4E] focus:ring-1 focus:ring-[#4A5D4E] outline-none transition-all shadow-sm"
+                    id="actTitle"
+                    value={actFormTitle}
+                    onChange={(e) => setActFormTitle(e.target.value)}
+                    placeholder="e.g. Community Feeding Drive at Park"
+                    className="w-full bg-white rounded-xl py-2.5 px-3.5 text-xs text-[#1C1A17] border border-[#EBE3D5] focus:border-[#B68A35] focus:ring-1 focus:ring-[#B68A35] outline-none transition-all shadow-sm"
                     required
                   />
                 </div>
 
-                {/* Category Selection */}
+                {/* Category */}
                 <div className="flex flex-col gap-1">
-                  <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Service Category *</span>
-                  <div className="grid grid-cols-4 gap-1.5">
-                    {(['Grooming', 'Boarding', 'Walking', 'Training'] as const).map((cat) => {
-                      const isActive = serviceCategory === cat;
+                  <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Category *</span>
+                  <div className="grid grid-cols-4 gap-2">
+                    {(['feeding', 'help', 'event', 'awareness'] as const).map((cat) => {
+                      const isActive = actFormCategory === cat;
+                      const labels: Record<string, string> = { feeding: '🍽️ Feed', help: '🆘 Help', event: '📅 Event', awareness: '📢 Info' };
                       return (
                         <button
                           key={cat}
                           type="button"
-                          onClick={() => setServiceCategory(cat)}
-                          className={`flex items-center justify-center py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                          onClick={() => setActFormCategory(cat)}
+                          className={`flex items-center justify-center py-2 rounded-xl text-[10px] font-bold transition-all cursor-pointer border ${
                             isActive
-                              ? 'bg-emerald-50 text-[#3D6B41] border-[#3D6B41]/30 scale-[1.01]'
+                              ? 'bg-[#B68A35]/10 text-[#B68A35] border-[#B68A35]/30 scale-[1.01]'
                               : 'bg-white hover:bg-stone-50 border-[#EBE3D5] text-stone-500 hover:text-charcoal'
                           }`}
                         >
-                          <span className="text-[9px] md:text-[10px]">{cat === 'Walking' ? 'Walk' : cat === 'Boarding' ? 'Board' : cat}</span>
+                          {labels[cat]}
                         </button>
                       );
                     })}
                   </div>
                 </div>
 
-                {/* Subtitle / Specialisation */}
-                <div className="flex flex-col gap-1">
-                  <label htmlFor="serviceSpecialisation" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Specialisation / Subtitle *</label>
-                  <input
-                    type="text"
-                    id="serviceSpecialisation"
-                    value={serviceSpecialisation}
-                    onChange={(e) => setServiceSpecialisation(e.target.value)}
-                    placeholder="e.g. Independent groomer • Calm home visits"
-                    className="w-full bg-white rounded-xl py-2.5 px-3.5 text-xs text-[#1C1A17] border border-[#EBE3D5] focus:border-[#4A5D4E] focus:ring-1 focus:ring-[#4A5D4E] outline-none transition-all shadow-sm"
-                    required
-                  />
-                </div>
-
-                {/* Specialty Tags */}
-                <div className="flex flex-col gap-1">
-                  <label htmlFor="serviceTags" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Specialty Tags (Comma Separated)</label>
-                  <input
-                    type="text"
-                    id="serviceTags"
-                    value={serviceTags}
-                    onChange={(e) => setServiceTags(e.target.value)}
-                    placeholder="e.g. Home Visit, Verified, Available Today"
-                    className="w-full bg-white rounded-xl py-2.5 px-3.5 text-xs text-[#1C1A17] border border-[#EBE3D5] focus:border-[#4A5D4E] focus:ring-1 focus:ring-[#4A5D4E] outline-none transition-all shadow-sm"
-                  />
-                </div>
-
-                {/* Price / Fee */}
-                <div className="flex flex-col gap-1">
-                  <label htmlFor="serviceFee" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Starting Price / Fee *</label>
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-3.5 flex items-center text-stone-400 text-xs select-none pointer-events-none font-bold">₹</span>
-                    <input
-                      type="number"
-                      id="serviceFee"
-                      value={serviceFee}
-                      onChange={(e) => setServiceFee(e.target.value)}
-                      placeholder="699"
-                      className="w-full bg-white rounded-xl py-2.5 pl-8 pr-3.5 text-xs text-[#1C1A17] border border-[#EBE3D5] focus:border-[#4A5D4E] focus:ring-1 focus:ring-[#4A5D4E] outline-none transition-all shadow-sm"
-                      required
-                    />
-                  </div>
-                </div>
-
-                {/* Experience */}
-                <div className="flex flex-col gap-1">
-                  <label htmlFor="serviceExperience" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Experience (Years) *</label>
-                  <input
-                    type="number"
-                    id="serviceExperience"
-                    value={serviceExperience}
-                    onChange={(e) => setServiceExperience(e.target.value)}
-                    placeholder="5"
-                    className="w-full bg-white rounded-xl py-2.5 px-3.5 text-xs text-[#1C1A17] border border-[#EBE3D5] focus:border-[#4A5D4E] focus:ring-1 focus:ring-[#4A5D4E] outline-none transition-all shadow-sm"
-                    required
-                  />
-                </div>
-
                 {/* Location */}
                 <div className="flex flex-col gap-1">
-                  <label htmlFor="serviceLocation" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Distance / Location (e.g. 2.1 km away)</label>
+                  <label htmlFor="actLocation" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Location *</label>
                   <input
                     type="text"
-                    id="serviceLocation"
-                    value={serviceLocation}
-                    onChange={(e) => setServiceLocation(e.target.value)}
-                    placeholder="2.1 km away"
-                    className="w-full bg-white rounded-xl py-2.5 px-3.5 text-xs text-[#1C1A17] border border-[#EBE3D5] focus:border-[#4A5D4E] focus:ring-1 focus:ring-[#4A5D4E] outline-none transition-all shadow-sm"
+                    id="actLocation"
+                    value={actFormLocation}
+                    onChange={(e) => setActFormLocation(e.target.value)}
+                    placeholder="e.g. Saheed Nagar, Bhubaneswar"
+                    className="w-full bg-white rounded-xl py-2.5 px-3.5 text-xs text-[#1C1A17] border border-[#EBE3D5] focus:border-[#B68A35] focus:ring-1 focus:ring-[#B68A35] outline-none transition-all shadow-sm"
+                    required
                   />
                 </div>
 
-                {/* Service Image Selector */}
+                {/* Scheduled Time */}
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Service Image</label>
-                  <div 
-                    onClick={() => serviceFileInputRef.current?.click()}
+                  <label htmlFor="actScheduledTime" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Scheduled Time (Optional)</label>
+                  <input
+                    type="text"
+                    id="actScheduledTime"
+                    value={actFormScheduledTime}
+                    onChange={(e) => setActFormScheduledTime(e.target.value)}
+                    placeholder="e.g. Tomorrow, 6:00 PM"
+                    className="w-full bg-white rounded-xl py-2.5 px-3.5 text-xs text-[#1C1A17] border border-[#EBE3D5] focus:border-[#B68A35] focus:ring-1 focus:ring-[#B68A35] outline-none transition-all shadow-sm"
+                  />
+                </div>
+
+                {/* Image Upload */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Cover Image (Optional)</label>
+                  <div
+                    onClick={() => actFileInputRef.current?.click()}
                     className={`border-2 border-dashed rounded-xl p-3 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all duration-300 bg-white ${
-                      serviceImage 
-                        ? 'border-emerald-650 bg-emerald-50/30' 
-                        : 'border-[#EBE3D5] hover:border-[#4A5D4E] hover:bg-stone-50'
+                      actFormImage
+                        ? 'border-[#B68A35] bg-[#B68A35]/5'
+                        : 'border-[#EBE3D5] hover:border-[#B68A35] hover:bg-stone-50'
                     }`}
                   >
                     <input
                       type="file"
-                      ref={serviceFileInputRef}
-                      onChange={handleServiceFileChange}
+                      ref={actFileInputRef}
+                      onChange={handleActivityFileChange}
                       accept="image/*"
                       className="hidden"
                     />
-                    {serviceImage ? (
-                      <div className="flex items-center gap-3.5 w-full select-none">
+                    {actFormImage ? (
+                      <div className="flex items-center gap-3 w-full select-none">
                         <div className="w-10 h-10 rounded-lg overflow-hidden border border-[#EBE3D5] bg-[#FAF6F0] shrink-0 shadow-sm">
-                          <img src={serviceImage} alt="Uploaded" className="w-full h-full object-cover" />
+                          <img src={actFormImage} alt="Preview" className="w-full h-full object-cover" />
                         </div>
                         <div className="flex-grow min-w-0">
-                          <p className="text-[10px] font-extrabold text-[#3D6B41] leading-none truncate">Image Loaded</p>
-                          <p className="text-[8px] text-stone-400 mt-1">Click to replace photo</p>
+                          <p className="text-[10px] font-extrabold text-[#B68A35] leading-none truncate">Image Loaded</p>
+                          <p className="text-[8px] text-stone-400 mt-1">Click to replace</p>
                         </div>
                         <button
                           type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setServiceImage('');
-                            if (serviceFileInputRef.current) serviceFileInputRef.current.value = '';
-                          }}
-                          className="w-5 h-5 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 flex items-center justify-center text-xs font-bold transition-colors cursor-pointer shrink-0 shadow-sm"
+                          onClick={(e) => { e.stopPropagation(); setActFormImage(''); if (actFileInputRef.current) actFileInputRef.current.value = ''; }}
+                          className="w-5 h-5 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 flex items-center justify-center text-xs font-bold transition-colors cursor-pointer shrink-0"
                           title="Remove image"
                         >
                           ×
                         </button>
                       </div>
                     ) : (
-                      <div className="flex flex-col items-center py-0.5 text-stone-400 hover:text-[#4A5D4E] transition-colors">
+                      <div className="flex flex-col items-center py-0.5 text-stone-400 hover:text-[#B68A35] transition-colors">
                         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="mb-0.5">
                           <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                           <circle cx="8.5" cy="8.5" r="1.5" />
                           <polyline points="21 15 16 10 5 21" />
                         </svg>
                         <span className="text-[10px] font-extrabold uppercase tracking-wide">Upload Image</span>
-                        <span className="text-[8px] mt-0.5 text-stone-400">Click to browse local files</span>
                       </div>
                     )}
                   </div>
                 </div>
-
               </div>
 
-              {/* Bio */}
+              {/* Description */}
               <div className="flex flex-col gap-1">
-                <label htmlFor="serviceBio" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Bio / Business Description</label>
+                <label htmlFor="actDescription" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Description *</label>
                 <textarea
-                  id="serviceBio"
-                  value={serviceBio}
-                  onChange={(e) => setServiceBio(e.target.value)}
-                  placeholder="Enter caregiver bio, detailed inclusions, policies..."
-                  rows={2}
-                  className="w-full bg-white rounded-xl py-2.5 px-3.5 text-xs text-[#1C1A17] border border-[#EBE3D5] focus:border-[#4A5D4E] focus:ring-1 focus:ring-[#4A5D4E] outline-none transition-all resize-none leading-relaxed shadow-sm"
+                  id="actDescription"
+                  value={actFormDescription}
+                  onChange={(e) => setActFormDescription(e.target.value)}
+                  placeholder="Describe the community activity, what participants should expect..."
+                  rows={3}
+                  className="w-full bg-white rounded-xl py-2.5 px-3.5 text-xs text-[#1C1A17] border border-[#EBE3D5] focus:border-[#B68A35] focus:ring-1 focus:ring-[#B68A35] outline-none transition-all resize-none leading-relaxed shadow-sm"
+                  required
                 />
               </div>
 
-              {/* Time Slots Builder */}
-              <div className="border border-[#EBE3D5] rounded-xl p-3 bg-white flex flex-col gap-3">
-                <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Manage Available Booking Slots</span>
-                
-                {/* Add slot controls */}
-                <div className="flex items-center gap-3">
-                  <div className="flex-grow grid grid-cols-2 gap-2">
-                    <input
-                      type="text"
-                      placeholder="Date (e.g. Today, Tomorrow)"
-                      value={newSlotDate}
-                      onChange={(e) => setNewSlotDate(e.target.value)}
-                      className="bg-[#FAF8F5] rounded-lg border border-[#EBE3D5] px-3 py-2 text-xs outline-none"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Time (e.g. 10:00 AM)"
-                      value={newSlotTime}
-                      onChange={(e) => setNewSlotTime(e.target.value)}
-                      className="bg-[#FAF8F5] rounded-lg border border-[#EBE3D5] px-3 py-2 text-xs outline-none"
-                    />
-                  </div>
+              {activityError && (
+                <div className="bg-[#FDEDEC] border border-[#F5C2C2] text-[#C0392B] rounded-xl px-4 py-2.5 text-xs font-semibold">
+                  {activityError}
+                </div>
+              )}
+
+              {/* Form Actions */}
+              <div className="flex justify-end gap-2.5 mt-2">
+                {isEditingActivity && (
                   <button
                     type="button"
-                    onClick={handleAddSlot}
-                    className="h-9 px-4 bg-[#3D6B41] hover:bg-[#2F5232] text-white text-xs font-bold rounded-lg transition-colors cursor-pointer shrink-0"
+                    onClick={resetActivityForm}
+                    className="px-4 py-2 text-xs font-bold rounded-xl border border-stone-200 bg-white text-stone-500 hover:bg-stone-50 transition-all cursor-pointer shadow-sm"
                   >
-                    + Add Slot
-                  </button>
-                </div>
-
-                {/* Slots List */}
-                <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto pt-1">
-                  {serviceSlots.map((slot, idx) => (
-                    <span 
-                      key={idx} 
-                      className="inline-flex items-center gap-1.5 text-[10px] font-bold bg-[#F5F3EF] border border-[#EBE3D5] text-[#1C1A17] px-2.5 py-1 rounded-lg"
-                    >
-                      {slot.date} ({slot.time})
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveSlot(idx)}
-                        className="text-red-500 hover:text-red-750 font-bold ml-0.5 text-xs transition-colors cursor-pointer"
-                        title="Delete slot"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                  {serviceSlots.length === 0 && (
-                    <span className="text-[10px] text-stone-400 italic">No available booking slots added.</span>
-                  )}
-                </div>
-              </div>
-
-              {/* Submit Buttons */}
-              <div className="flex justify-end gap-3 border-t border-[#EBE3D5]/80 pt-3">
-                {isEditingService && (
-                  <button
-                    type="button"
-                    onClick={resetServiceForm}
-                    className="px-5 py-2.5 rounded-xl border border-stone-200 bg-white text-stone-500 hover:bg-stone-50 font-bold text-xs transition-colors cursor-pointer"
-                  >
-                    Cancel
+                    Cancel Edit
                   </button>
                 )}
                 <button
                   type="submit"
-                  disabled={isServiceSaving}
-                  className="px-6 py-2.5 bg-[#4A5D4E] hover:bg-[#3A4D3E] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-75 text-white font-bold text-xs rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer"
+                  disabled={isSavingActivity}
+                  className="px-6 py-2.5 bg-[#B68A35] hover:bg-[#9A7430] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-75 text-white font-bold text-xs rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer"
                 >
-                  {isServiceSaving ? (
+                  {isSavingActivity ? (
                     <>
                       <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Saving Service...
+                      Saving...
                     </>
                   ) : (
-                    isEditingService ? 'Update Service' : 'Add Service'
+                    <>
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                      </svg>
+                      {isEditingActivity ? 'Update Post' : 'Publish Official Post'}
+                    </>
                   )}
                 </button>
               </div>
-
             </form>
           </section>
 
-          {/* CARE SERVICES DIRECTORY */}
-          <section className="flex flex-col gap-4 mt-6">
-            <h3 className="font-serif text-lg text-[#1C1A17] font-normal">Active Care Services Inventory</h3>
-            
-            {isCareLoading ? (
-              <div className="flex flex-col items-center justify-center py-10 gap-3 text-stone-400 select-none">
-                <div className="w-7 h-7 rounded-full border-2 border-stone-200 border-t-[#3D6B41] animate-spin" />
-                <p className="text-[10px] font-semibold">Loading care services...</p>
-              </div>
-            ) : careServices.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {careServices.map((service) => (
-                  <div
-                    key={service._id}
-                    className="bg-white border border-[#F0EBE1] rounded-2xl p-3.5 flex gap-4 hover:shadow-sm transition-all duration-200 group"
-                  >
-                    <div className="w-16 h-16 rounded-xl bg-[#FAF6F0] overflow-hidden shrink-0 border border-stone-100 select-none">
-                      <img
-                        src={service.photo || '/sairaj_avatar.png'}
-                        alt={service.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.src = '/sairaj_avatar.png';
-                        }}
-                      />
-                    </div>
+          {/* ACTIVITIES LIST */}
+          <section className="flex flex-col gap-3">
+            <h2 className="font-serif text-lg text-[#1C1A17] font-normal border-b border-[#EBE3D5] pb-2">
+              Community Posts ({activities.length})
+            </h2>
 
-                    <div className="flex flex-col flex-grow min-w-0 justify-between">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <span className="text-[9px] font-extrabold text-[#3D6B41] bg-[#E0F2DD] px-1.5 py-0.5 rounded uppercase tracking-wider">
-                            {service.category}
+            {isActivitiesLoading ? (
+              <div className="flex flex-col items-center justify-center py-10 gap-3 text-stone-400 select-none">
+                <div className="w-7 h-7 rounded-full border-2 border-stone-200 border-t-[#B68A35] animate-spin" />
+                <p className="text-[10px] font-semibold">Loading community posts...</p>
+              </div>
+            ) : activities.length > 0 ? (
+              <div className="flex flex-col gap-3">
+                {activities.map((act: any) => {
+                  const catColors: Record<string, string> = {
+                    feeding: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                    help: 'bg-red-50 text-red-600 border-red-200',
+                    event: 'bg-blue-50 text-blue-600 border-blue-200',
+                    awareness: 'bg-amber-50 text-amber-700 border-amber-200'
+                  };
+                  const catColor = catColors[act.category] || 'bg-stone-100 text-stone-500 border-stone-200';
+                  const isOfficial = act.authorRole === 'official';
+                  const descParts = (act.description || '').split(/\n\n🕒 Scheduled: |\\n\\n🕒 Scheduled: /);
+                  const descText = descParts[0] || '';
+                  const scheduledTime = descParts[1] || '';
+
+                  return (
+                    <div
+                      key={act._id}
+                      className={`bg-[#FCFAF7] border rounded-[24px] p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-all duration-200 group ${
+                        isOfficial ? 'border-[#B68A35]/30' : 'border-[#F0EBE1]'
+                      }`}
+                    >
+                      {/* Top Row */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider border ${catColor}`}>
+                            {act.category}
                           </span>
-                          <h4 className="font-serif text-sm text-[#1C1A17] font-bold leading-tight mt-1 truncate">
-                            {service.name}
-                          </h4>
-                          <p className="text-[10px] text-stone-400 mt-0.5 truncate">{service.specialisation}</p>
+                          {isOfficial && (
+                            <span className="text-[8px] font-extrabold bg-gradient-to-r from-[#B68A35] to-[#D4A84B] text-white px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                              ✦ Official
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[9px] text-stone-400 font-semibold">
+                          {act.createdAt ? new Date(act.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Just now'}
+                        </span>
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex gap-3">
+                        {act.image && (
+                          <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 border border-stone-100 shadow-sm">
+                            <img src={act.image} alt={act.title} className="w-full h-full object-cover" />
+                          </div>
+                        )}
+                        <div className="flex flex-col flex-grow min-w-0">
+                          <h4 className="font-serif text-sm text-[#1C1A17] font-semibold leading-tight truncate">{act.title}</h4>
+                          <p className="text-[11px] text-stone-500 leading-relaxed mt-1 line-clamp-2">{descText}</p>
+                          {scheduledTime && (
+                            <span className="text-[10px] text-[#B68A35] font-bold mt-1">🕒 {scheduledTime}</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Metadata Row */}
+                      <div className="bg-white border border-[#EBE3D5] rounded-xl p-2.5 flex items-center justify-between text-[10px] text-stone-500">
+                        <div className="flex items-center gap-3">
+                          <span className="flex items-center gap-1">
+                            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-stone-400">
+                              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                              <circle cx="12" cy="7" r="4" />
+                            </svg>
+                            <strong>{act.authorName}</strong>
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-stone-400">
+                              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                              <circle cx="12" cy="10" r="3" />
+                            </svg>
+                            {act.location}
+                          </span>
+                          <span className="font-bold text-[#4A5D4E]">
+                            {(act.joinees || []).length} joined
+                          </span>
                         </div>
 
-                        {/* Action buttons */}
+                        {/* Action Buttons */}
                         <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
-                            onClick={() => handleEditServiceClick(service)}
+                            onClick={() => handleEditActivity(act)}
                             className="p-1.5 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 text-stone-600 transition-colors cursor-pointer"
-                            title="Edit service"
+                            title="Edit post"
                           >
-                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                               <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                             </svg>
                           </button>
                           <button
-                            onClick={() => service._id && handleDeleteServiceClick(service._id)}
+                            onClick={() => act._id && handleDeleteActivity(act._id)}
                             className="p-1.5 rounded-lg border border-red-100 bg-white hover:bg-red-50 text-red-500 transition-colors cursor-pointer"
-                            title="Delete service"
+                            title="Delete post"
                           >
-                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                               <polyline points="3 6 5 6 21 6" />
                               <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                               <line x1="10" y1="11" x2="10" y2="17" />
@@ -1665,18 +1584,13 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                           </button>
                         </div>
                       </div>
-
-                      <div className="flex items-center justify-between text-xs mt-1">
-                        <span className="font-extrabold text-[#1C1A17]">₹{service.fee}</span>
-                        <span className="text-[9px] text-stone-400 font-bold">{service.availableSlots?.filter((s: any) => !s.isBooked).length || 0} slots left</span>
-                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
-              <div className="text-center py-10 border border-dashed border-[#EBE3D5] rounded-[20px] select-none">
-                <p className="text-xs text-stone-400 font-medium">No care services registered in database.</p>
+              <div className="text-center py-12 border border-dashed border-[#EBE3D5] rounded-[24px] select-none bg-[#FCFAF7]">
+                <p className="text-xs text-stone-400 font-semibold">No community posts yet. Use the form above to create the first official post!</p>
               </div>
             )}
           </section>

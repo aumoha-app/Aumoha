@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import EmergencySubmitted from './EmergencySubmitted';
 import { useAuth } from '../context/AuthContext';
+import { loadLeaflet } from '../lib/leafletLoader';
 
 interface EmergencyDispatchProps {
   sosReason: string;
@@ -144,15 +145,15 @@ export default function EmergencyDispatch({
       if (res.ok) {
         const data = await res.json();
         if (data.display_name) {
-          setLocationText(data.display_name);
+          setLocationText(`${data.display_name} [${lat.toFixed(6)}, ${lng.toFixed(6)}]`);
         } else {
-          setLocationText(`Pinned Location: ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+          setLocationText(`Pinned Location: [${lat.toFixed(6)}, ${lng.toFixed(6)}]`);
         }
       } else {
-        setLocationText(`Pinned Location: ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+        setLocationText(`Pinned Location: [${lat.toFixed(6)}, ${lng.toFixed(6)}]`);
       }
     } catch (err) {
-      setLocationText(`Pinned Location: ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+      setLocationText(`Pinned Location: [${lat.toFixed(6)}, ${lng.toFixed(6)}]`);
     }
   };
 
@@ -165,85 +166,76 @@ export default function EmergencyDispatch({
       return;
     }
 
+    let isMounted = true;
     let mapInstance: any = null;
     let markerInstance: any = null;
 
-    const initMap = (L: any) => {
-      const defaultLat = 22.2587;
-      const defaultLng = 84.8510; // Rourkela center
+    const initMap = async () => {
+      try {
+        const L = await loadLeaflet();
+        if (!isMounted) return;
 
-      const mapDiv = document.getElementById('leaflet-map');
-      if (!mapDiv) return;
+        const defaultLat = 22.2587;
+        const defaultLng = 84.8510; // Rourkela center
 
-      mapInstance = L.map('leaflet-map').setView([defaultLat, defaultLng], 14);
+        const mapDiv = document.getElementById('leaflet-map');
+        if (!mapDiv) return;
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-      }).addTo(mapInstance);
-
-      // Fix default marker icons loaded from CDN
-      const DefaultIcon = L.icon({
-        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41]
-      });
-      L.Marker.prototype.options.icon = DefaultIcon;
-
-      // Create draggable marker
-      markerInstance = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(mapInstance);
-
-      setLocationText(`Pinned Location: ${defaultLat.toFixed(5)}, ${defaultLng.toFixed(5)}`);
-      reverseGeocode(defaultLat, defaultLng);
-
-      // Drag event
-      markerInstance.on('dragend', () => {
-        const position = markerInstance.getLatLng();
-        reverseGeocode(position.lat, position.lng);
-      });
-
-      // Click map event
-      mapInstance.on('click', (e: any) => {
-        const coords = e.latlng;
-        markerInstance.setLatLng(coords);
-        reverseGeocode(coords.lat, coords.lng);
-      });
-    };
-
-    // CDN Dynamic load helpers
-    const loadLeaflet = () => {
-      const win = window as any;
-      if (win.L) {
-        initMap(win.L);
-        return;
-      }
-
-      if (!document.getElementById('leaflet-css')) {
-        const link = document.createElement('link');
-        link.id = 'leaflet-css';
-        link.rel = 'stylesheet';
-        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-        document.head.appendChild(link);
-      }
-
-      const script = document.createElement('script');
-      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-      script.onload = () => {
-        if (win.L) {
-          initMap(win.L);
+        if ((mapDiv as any)._leaflet_id) {
+          delete (mapDiv as any)._leaflet_id;
         }
-      };
-      document.body.appendChild(script);
+
+        mapInstance = L.map('leaflet-map').setView([defaultLat, defaultLng], 14);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(mapInstance);
+
+        // Fix default marker icons loaded from CDN
+        const DefaultIcon = L.icon({
+          iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+          shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+          iconSize: [25, 41],
+          iconAnchor: [12, 41]
+        });
+        L.Marker.prototype.options.icon = DefaultIcon;
+
+        // Create draggable marker
+        markerInstance = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(mapInstance);
+
+        setLocationText(`Pinned Location: [${defaultLat.toFixed(6)}, ${defaultLng.toFixed(6)}]`);
+        reverseGeocode(defaultLat, defaultLng);
+
+        // Drag event
+        markerInstance.on('dragend', () => {
+          const position = markerInstance.getLatLng();
+          reverseGeocode(position.lat, position.lng);
+        });
+
+        // Click map event
+        mapInstance.on('click', (e: any) => {
+          const coords = e.latlng;
+          markerInstance.setLatLng(coords);
+          reverseGeocode(coords.lat, coords.lng);
+        });
+      } catch (err) {
+        console.error('Failed to initialize dispatch Leaflet map:', err);
+      }
     };
 
-    loadLeaflet();
+    initMap();
 
     return () => {
+      isMounted = false;
       if (mapInstance) {
-        mapInstance.remove();
+        try {
+          mapInstance.remove();
+        } catch (e) {
+          console.error(e);
+        }
       }
     };
-  }, [locationMode]);
+  }, [locationMode, currentAddress]);
 
   const fileToBase64 = (file: File | Blob): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -296,6 +288,30 @@ export default function EmergencyDispatch({
       console.error('Error fetching my reports:', err);
     } finally {
       setIsHistoryLoading(false);
+    }
+  };
+
+  const handleUpdateMyReportStatus = async (reportId: string, newStatus: string) => {
+    if (!token) return;
+    try {
+      const response = await fetch(`http://localhost:5001/api/sos/my/${reportId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      if (response.ok) {
+        fetchMyReports();
+      } else {
+        const errData = await response.json();
+        alert(errData.message || 'Failed to update status.');
+      }
+    } catch (err) {
+      console.error('Error updating report status:', err);
+      alert('Network error. Unable to update status.');
     }
   };
 
@@ -1163,6 +1179,37 @@ export default function EmergencyDispatch({
                                 </div>
                               );
                             })}
+                          </div>
+                          
+                          {/* User status update controls */}
+                          <div className="flex justify-end gap-2 mt-2 pt-3 border-t border-[#F0EBE1]/60 flex-wrap select-none">
+                            {report.status === 'active' && (
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateMyReportStatus(report._id, 'dispatched')}
+                                className="px-3 py-1.5 bg-[#FFF8F1] hover:bg-[#FFEAE1] border border-[#FFE4E6] text-amber-700 text-[10px] font-extrabold rounded-xl transition-all cursor-pointer shadow-xs active:scale-95 flex items-center gap-1"
+                              >
+                                🚚 Mark Dispatched
+                              </button>
+                            )}
+                            {report.status !== 'resolved' && (
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateMyReportStatus(report._id, 'resolved')}
+                                className="px-3 py-1.5 bg-[#F0FDF4] hover:bg-[#DCFCE7] border border-[#BBF7D0] text-emerald-700 text-[10px] font-extrabold rounded-xl transition-all cursor-pointer shadow-xs active:scale-95 flex items-center gap-1"
+                              >
+                                ✓ Mark Resolved
+                              </button>
+                            )}
+                            {report.status !== 'active' && (
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateMyReportStatus(report._id, 'active')}
+                                className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-100 text-rose-700 text-[10px] font-extrabold rounded-xl transition-all cursor-pointer shadow-xs active:scale-95 flex items-center gap-1"
+                              >
+                                🚨 Reopen Alert
+                              </button>
+                            )}
                           </div>
                         </div>
                       );
