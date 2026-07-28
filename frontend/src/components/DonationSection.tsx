@@ -72,7 +72,7 @@ export default function DonationSection() {
               onClick={() => handlePresetSelect(preset.value)}
               className={`flex flex-col items-center py-2 px-1 rounded-xl border text-center transition-all duration-200 cursor-pointer ${
                 isSelected
-                  ? 'bg-[#C85341] border-[#C85341] text-white shadow-2xs'
+                  ? 'bg-[#8C5E45] border-[#8C5E45] text-white shadow-2xs'
                   : 'bg-white border-[#EBE3D5] text-stone-600 hover:bg-stone-50'
               }`}
             >
@@ -98,13 +98,13 @@ export default function DonationSection() {
             value={customAmount}
             onChange={(e) => handleCustomChange(e.target.value)}
             placeholder="Custom amount"
-            className="w-full bg-stone-50 border border-[#EBE3D5] rounded-xl py-2 pl-7 pr-2 text-xs text-[#1C1A17] outline-none focus:bg-white focus:border-[#C85341] transition-all font-bold"
+            className="w-full bg-stone-50 border border-[#EBE3D5] rounded-xl py-2 pl-7 pr-2 text-xs text-[#1C1A17] outline-none focus:bg-white focus:border-[#8C5E45] transition-all font-bold"
           />
         </div>
 
         <button
           onClick={handleDonateClick}
-          className="flex-grow py-2.5 bg-gradient-to-r from-[#D95D39] to-[#C85341] hover:from-[#C85341] hover:to-[#B34535] text-white font-extrabold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-98 transition-all cursor-pointer"
+          className="flex-grow py-2.5 bg-[#8C5E45] hover:bg-[#774E38] text-white font-extrabold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-98 transition-all cursor-pointer"
         >
           <span>Donate to Rescue</span>
           <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">

@@ -66,6 +66,7 @@ const CATEGORY_CONFIGS: Record<string, {
   filterGroup: 'Wellness' | 'Behaviour' | 'Therapy' | 'Holistic';
   bgGradient: string;
   emoji: string;
+  image: string;
   icon: React.ReactNode;
 }> = {
   'Nutritionist': {
@@ -78,6 +79,7 @@ const CATEGORY_CONFIGS: Record<string, {
     desc: 'Balanced diet plans for better health.',
     filterGroup: 'Wellness',
     emoji: '🐶',
+    image: '/expert_nutritionist.png',
     icon: (
       <svg className="w-5 h-5 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 2L2 7l10 5 10-5-10-5z" />
@@ -95,6 +97,7 @@ const CATEGORY_CONFIGS: Record<string, {
     desc: 'Understand behaviour & build better bonds.',
     filterGroup: 'Behaviour',
     emoji: '🐕',
+    image: '/expert_animal_behaviourist.png',
     icon: (
       <svg className="w-5 h-5 text-blue-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -113,6 +116,7 @@ const CATEGORY_CONFIGS: Record<string, {
     desc: 'Positive training for obedience & skills.',
     filterGroup: 'Behaviour',
     emoji: '🦮',
+    image: '/expert_trainer.png',
     icon: (
       <svg className="w-5 h-5 text-amber-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -129,7 +133,8 @@ const CATEGORY_CONFIGS: Record<string, {
     bgGradient: 'bg-gradient-to-tr from-indigo-500/20 to-purple-500/10',
     desc: 'Address behavioural challenges.',
     filterGroup: 'Behaviour',
-    emoji: 'poodle', // Fallback styled in code
+    emoji: 'poodle',
+    image: '/expert_behaviourist.png',
     icon: (
       <svg className="w-5 h-5 text-indigo-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -146,6 +151,7 @@ const CATEGORY_CONFIGS: Record<string, {
     desc: 'Pain relief, mobility & recovery care.',
     filterGroup: 'Therapy',
     emoji: '🐕',
+    image: '/expert_physiotherapist.png',
     icon: (
       <svg className="w-5 h-5 text-orange-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -163,6 +169,7 @@ const CATEGORY_CONFIGS: Record<string, {
     desc: 'Comfort, quality & holistic support.',
     filterGroup: 'Wellness',
     emoji: '🐈',
+    image: '/expert_wellness.png',
     icon: (
       <svg className="w-5 h-5 text-rose-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10" />
@@ -181,6 +188,7 @@ const CATEGORY_CONFIGS: Record<string, {
     desc: 'Natural healing with gentle care.',
     filterGroup: 'Holistic',
     emoji: '🌱',
+    image: '/expert_homeopathy.png',
     icon: (
       <svg className="w-5 h-5 text-lime-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
@@ -197,6 +205,7 @@ const CATEGORY_CONFIGS: Record<string, {
     desc: 'Rehabilitation for injuries & surgeries.',
     filterGroup: 'Therapy',
     emoji: '🐾',
+    image: '/expert_rehab.png',
     icon: (
       <svg className="w-5 h-5 text-cyan-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
@@ -215,6 +224,7 @@ const CATEGORY_CONFIGS: Record<string, {
     desc: 'Expert care in the comfort of home.',
     filterGroup: 'Wellness',
     emoji: '🐈',
+    image: '/expert_athome.png',
     icon: (
       <svg className="w-5 h-5 text-purple-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
@@ -232,6 +242,7 @@ const CATEGORY_CONFIGS: Record<string, {
     desc: 'Telepathic bonds & spiritual energy healing.',
     filterGroup: 'Holistic',
     emoji: '🔮',
+    image: '/expert_reiki.png',
     icon: (
       <svg className="w-5 h-5 text-fuchsia-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
@@ -271,6 +282,9 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
   const [customPetName, setCustomPetName] = useState('');
   const [timezone, setTimezone] = useState('Asia/Kolkata (IST)');
   const [isChangingTimezone, setIsChangingTimezone] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth());
+  const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
+  const [calendarSelectedDay, setCalendarSelectedDay] = useState<number | null>(null);
 
   // Post booking confirmation state
   const [confirmedAppt, setConfirmedAppt] = useState<Appointment | null>(null);
@@ -650,11 +664,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
               if (currentView === 'listing') {
                 setCurrentView('home');
               } else if (currentView === 'wizard') {
-                if (wizardStep > 1) {
-                  setWizardStep(prev => prev - 1);
-                } else {
-                  setCurrentView('listing');
-                }
+                setCurrentView('listing');
               } else if (currentView === 'confirmed' || currentView === 'admin') {
                 setCurrentView('home');
               } else {
@@ -685,8 +695,8 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
             }}
             className={`px-3 py-1.5 rounded-xl border text-[10px] font-extrabold flex items-center gap-1.5 transition-all ${
               currentView === 'admin'
-                ? 'bg-[#3D5A45] border-[#3D5A45] text-white shadow-sm'
-                : 'border-warmBeige hover:bg-[#FCFAF7] text-[#3D5A45] bg-white'
+                ? 'bg-terracotta border-terracotta text-white shadow-sm'
+                : 'border-warmBeige hover:bg-[#FCFAF7] text-terracotta bg-white'
             }`}
           >
             🛡️ Admin Panel
@@ -716,7 +726,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
             
             <button 
               onClick={() => handleStartQuiz()}
-              className="px-4 bg-[#EBF5E9] hover:bg-[#C8E6C9] border border-[#E1EDE3] text-[#3D5A45] text-[10px] font-extrabold rounded-2xl flex items-center gap-1.5 shadow-sm transition-all"
+              className="px-4 bg-[#FAF2EE] hover:bg-[#F5DFD8] border border-[#F5DFD8] text-terracotta text-[10px] font-extrabold rounded-2xl flex items-center gap-1.5 shadow-sm transition-all"
             >
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <circle cx="12" cy="12" r="10" />
@@ -727,15 +737,15 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
           </div>
 
           {/* CATEGORY FILTER CHIPS */}
-          <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-hide select-none">
+          <div className="flex gap-2.5 overflow-x-auto pb-2 pt-1 scrollbar-hide select-none">
             {(['All', 'Wellness', 'Behaviour', 'Therapy', 'Holistic'] as const).map(grp => (
               <button
                 key={grp}
                 onClick={() => setHomeGroup(grp)}
-                className={`px-4 py-1.5 border rounded-full text-[10px] font-extrabold shrink-0 transition-all active:scale-95 flex items-center gap-1.5 ${
+                className={`px-4 py-2 border rounded-full text-xs font-bold shrink-0 transition-all cursor-pointer active:scale-95 shadow-xs flex items-center gap-1.5 ${
                   homeGroup === grp 
-                    ? 'bg-[#3D5A45] border-[#3D5A45] text-white shadow-sm' 
-                    : 'bg-white border-[#F0EBE1] text-stone-600 hover:border-stone-300'
+                    ? 'bg-terracotta border-terracotta text-white shadow-sm' 
+                    : 'bg-white border-[#F0EBE1] text-stone-600 hover:border-stone-300 hover:bg-stone-50'
                 }`}
               >
                 {grp}
@@ -743,7 +753,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
             ))}
           </div>
 
-          {/* 3-COLUMN CATEGORY GRID (REDESIGNED TO PREVENT SPILLING & MATCH MOCKUP WITH RIGHT-ALIGN DECORATIONS) */}
+          {/* 3-COLUMN CATEGORY GRID */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
             {filteredCategoryKeys.map(catKey => {
               const conf = CATEGORY_CONFIGS[catKey];
@@ -756,39 +766,38 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                     setListingSubFilter(null);
                     setCurrentView('listing');
                   }}
-                  className="bg-white border border-[#F0EBE1] rounded-[24px] p-5 cursor-pointer hover:shadow-md transition-all group flex justify-between items-start hover:scale-[1.01] hover:border-emerald-600/20 relative overflow-hidden"
+                  className="bg-white border border-[#F0EBE1] rounded-[28px] p-5 cursor-pointer shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden flex flex-col justify-between min-h-[145px] hover:scale-[1.01] group"
                 >
-                  <div className="flex flex-col justify-between h-full min-h-[130px] z-10 w-[70%]">
-                    <div className="flex flex-col gap-2">
-                      {/* Circle icon wrapper */}
-                      <div className={`w-9 h-9 rounded-full flex items-center justify-center shadow-sm ${conf.color}`}>
-                        {conf.icon}
-                      </div>
-                      <div>
-                        {/* Title wrapping correctly break-words */}
-                        <h4 className="text-xs font-serif font-extrabold text-charcoal group-hover:text-emerald-700 transition-colors leading-tight break-words whitespace-normal max-w-full">
-                          {displayTitle}
-                        </h4>
-                        <p className="text-[9.5px] text-stone-500 font-semibold mt-1 leading-normal">
-                          {conf.desc}
-                        </p>
-                      </div>
+                  <div className="flex flex-col gap-2.5 z-10 w-[55%]">
+                    {/* Circle icon wrapper */}
+                    <div className="w-9 h-9 rounded-full bg-[#FAF2EE] border border-[#F5DFD8] flex items-center justify-center text-terracotta shadow-sm">
+                      {conf.icon}
                     </div>
-
-                    {/* Circular Chevron icon */}
-                    <div className="w-7 h-7 rounded-full border border-stone-200 bg-[#FCFAF7] flex items-center justify-center group-hover:bg-[#3D5A45] group-hover:text-white transition-all shadow-sm mt-3">
-                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                        <polyline points="9 18 15 12 9 6" />
-                      </svg>
+                    <div>
+                      {/* Title and Description */}
+                      <h4 className="text-xs font-bold text-charcoal leading-tight group-hover:text-terracotta transition-colors">
+                        {displayTitle}
+                      </h4>
+                      <p className="text-[10px] text-stone-500 font-semibold leading-relaxed mt-1">
+                        {conf.desc}
+                      </p>
                     </div>
                   </div>
 
-                  {/* Right side mockup graphic decoration alignment */}
-                  <div className="absolute right-2 bottom-2 top-2 w-[30%] flex items-center justify-center overflow-hidden pointer-events-none select-none z-0">
-                    <div className={`w-14 h-14 rounded-full absolute opacity-25 filter blur-md ${conf.bgGradient || 'bg-emerald-500/10'}`} />
-                    <span className="text-3xl z-10 group-hover:scale-110 transition-transform duration-300">
-                      {conf.emoji === 'poodle' ? '🐩' : conf.emoji || '🐾'}
-                    </span>
+                  {/* Circular Chevron icon */}
+                  <div className="w-7 h-7 rounded-full bg-white border border-[#F5DFD8] flex items-center justify-center text-terracotta shadow-sm group-hover:bg-[#FAF2EE] z-10 transition-all mt-3">
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                  </div>
+
+                  {/* Right side high-quality transparent image of the pet */}
+                  <div className="absolute right-0 bottom-0 w-[105px] h-[105px] md:w-[115px] md:h-[115px] pointer-events-none select-none z-0">
+                    <img 
+                      src={conf.image} 
+                      alt={displayTitle} 
+                      className="w-full h-full object-contain object-right-bottom transition-transform duration-300 group-hover:scale-[1.05]"
+                    />
                   </div>
                 </div>
               );
@@ -801,14 +810,14 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
           </div>
 
           {/* FIND MY EXPERT QUIZ BANNER */}
-          <div className="bg-[#EBF5E9] border border-[#E1EDE3] rounded-[28px] p-5 flex flex-col sm:flex-row items-center justify-between gap-4 mt-3 shadow-sm">
+          <div className="bg-[#FAF2EE] border border-[#F5DFD8] rounded-[28px] p-5 flex flex-col sm:flex-row items-center justify-between gap-4 mt-3 shadow-sm">
             <div className="text-left flex flex-col gap-1 max-w-sm">
-              <h4 className="font-serif font-extrabold text-sm text-[#3D5A45]">Not sure who to book?</h4>
+              <h4 className="font-serif font-extrabold text-sm text-terracotta">Not sure who to book?</h4>
               <p className="text-[10px] text-stone-600 font-semibold leading-relaxed">Answer a few simple questions about your pet's behavioral or health concerns, and we'll instantly match you with the right specialist.</p>
             </div>
             <button
               onClick={() => handleStartQuiz()}
-              className="px-5 py-2.5 bg-[#3D5A45] hover:bg-[#2A3E31] text-white text-[10px] font-extrabold rounded-xl transition-all shadow-sm shrink-0 active:scale-95 flex items-center gap-1.5"
+              className="px-5 py-2.5 bg-terracotta hover:bg-[#c2502f] text-white text-[10px] font-extrabold rounded-xl transition-all shadow-sm shrink-0 active:scale-95 flex items-center gap-1.5"
             >
               Find My Expert <span>→</span>
             </button>
@@ -837,13 +846,13 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                 <div className="grid grid-cols-2 gap-2.5">
                   <button 
                     onClick={() => handleQuizAnswer('petType', 'dog')}
-                    className="p-3 border border-[#F0EBE1] hover:border-[#3D5A45] rounded-xl text-xs font-bold text-center bg-[#FCFAF7] hover:bg-white"
+                    className="p-3 border border-[#F0EBE1] hover:border-terracotta rounded-xl text-xs font-bold text-center bg-[#FCFAF7] hover:bg-white"
                   >
                     🐶 Dog
                   </button>
                   <button 
                     onClick={() => handleQuizAnswer('petType', 'cat')}
-                    className="p-3 border border-[#F0EBE1] hover:border-[#3D5A45] rounded-xl text-xs font-bold text-center bg-[#FCFAF7] hover:bg-white"
+                    className="p-3 border border-[#F0EBE1] hover:border-terracotta rounded-xl text-xs font-bold text-center bg-[#FCFAF7] hover:bg-white"
                   >
                     🐱 Cat
                   </button>
@@ -864,7 +873,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                     <button 
                       key={ch.val}
                       onClick={() => handleQuizAnswer('challenge', ch.val)}
-                      className="p-2.5 border border-[#F0EBE1] hover:border-[#3D5A45] rounded-xl text-xs font-bold text-left bg-[#FCFAF7] hover:bg-white"
+                      className="p-2.5 border border-[#F0EBE1] hover:border-terracotta rounded-xl text-xs font-bold text-left bg-[#FCFAF7] hover:bg-white"
                     >
                       {ch.label}
                     </button>
@@ -881,27 +890,31 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
         <div className="flex flex-col gap-5 w-full animate-fadeIn">
           
           {/* CATEGORY HERO BANNER HEADER */}
-          <div className="bg-white border border-[#F0EBE1] rounded-[24px] p-5 shadow-sm flex items-center justify-between gap-4">
-            <div>
-              <span className="text-[8px] bg-emerald-50 border border-emerald-100 text-emerald-700 font-extrabold uppercase rounded px-2 py-0.5 tracking-wider">Specialist Directory</span>
-              <h2 className="text-base font-serif font-extrabold text-charcoal mt-1 leading-snug break-words max-w-[280px]">
+          <div className="bg-white border border-[#F0EBE1] rounded-[28px] p-5 md:p-6 shadow-sm flex items-center justify-between gap-4">
+            <div className="flex flex-col items-start min-w-0">
+              <span className="text-[10px] bg-[#FAF2EE] border border-[#F5DFD8] text-terracotta font-extrabold uppercase rounded-full px-3 py-1 tracking-wider shadow-3xs">
+                Specialist Directory
+              </span>
+              <h2 className="text-xl md:text-2xl font-serif text-charcoal font-normal mt-2 leading-tight">
                 {activeCategoryConfig.displayTitle}
               </h2>
-              <p className="text-[10px] text-stone-500 font-semibold mt-1 leading-normal">{activeCategoryConfig.subtitle}</p>
+              <p className="text-xs text-stone-500 font-medium mt-1 leading-relaxed">
+                {activeCategoryConfig.subtitle}
+              </p>
             </div>
-            <div className="w-12 h-12 rounded-full bg-stone-50 border border-[#F0EBE1] flex items-center justify-center shrink-0 shadow-sm text-stone-700">
+            <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-[#FAF2EE] border border-[#F5DFD8] flex items-center justify-center shrink-0 shadow-sm text-terracotta">
               {activeCategoryConfig.icon}
             </div>
           </div>
 
           {/* CATEGORY-SPECIFIC SUB-FILTER CHIPS */}
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide select-none">
+          <div className="flex gap-2.5 overflow-x-auto pb-2 pt-1 scrollbar-hide select-none">
             <button
               onClick={() => setListingSubFilter(null)}
-              className={`px-3 py-1 border rounded-full text-[9px] font-extrabold shrink-0 transition-all ${
+              className={`px-4 py-2 border rounded-full text-xs font-bold shrink-0 transition-all cursor-pointer active:scale-95 shadow-xs ${
                 listingSubFilter === null 
-                  ? 'bg-[#3D5A45] border-[#3D5A45] text-white shadow-sm' 
-                  : 'bg-white border-[#F0EBE1] text-stone-600'
+                  ? 'bg-terracotta border-terracotta text-white shadow-sm' 
+                  : 'bg-white border-[#F0EBE1] text-stone-600 hover:border-stone-300 hover:bg-stone-50'
               }`}
             >
               All Focuses
@@ -910,10 +923,10 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
               <button
                 key={subF}
                 onClick={() => setListingSubFilter(subF)}
-                className={`px-3 py-1 border rounded-full text-[9px] font-extrabold shrink-0 transition-all ${
+                className={`px-4 py-2 border rounded-full text-xs font-bold shrink-0 transition-all cursor-pointer active:scale-95 shadow-xs ${
                   listingSubFilter === subF
-                    ? 'bg-[#3D5A45] border-[#3D5A45] text-white shadow-sm' 
-                    : 'bg-white border-[#F0EBE1] text-stone-600'
+                    ? 'bg-terracotta border-terracotta text-white shadow-sm' 
+                    : 'bg-white border-[#F0EBE1] text-stone-600 hover:border-stone-300 hover:bg-stone-50'
                 }`}
               >
                 {subF}
@@ -935,36 +948,36 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
               return (
                 <div 
                   key={exp._id}
-                  className="bg-white border border-[#F0EBE1] rounded-[24px] p-4 flex flex-col gap-3.5 shadow-sm"
+                  className="bg-white border border-[#F0EBE1] hover:border-terracotta/20 hover:shadow-[0_8px_30px_rgb(217,93,57,0.05)] rounded-[28px] p-5 md:p-6 flex flex-col gap-4 shadow-sm transition-all duration-300"
                 >
                   <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3.5">
                       {/* Avatar */}
-                      <div className="w-12 h-12 rounded-full overflow-hidden bg-stone-100 border border-[#F0EBE1] relative shrink-0">
+                      <div className="w-13 h-13 md:w-14 md:h-14 rounded-full overflow-hidden bg-stone-100 border border-[#F0EBE1] relative shrink-0">
                         {exp.photo ? (
                           <img src={exp.photo} alt={exp.name} className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-[#E2E8F0] to-[#CBD5E1] flex items-center justify-center text-stone-600 font-bold text-sm">
+                          <div className="w-full h-full bg-gradient-to-br from-[#E2E8F0] to-[#CBD5E1] flex items-center justify-center text-stone-600 font-bold text-base">
                             {exp.name[0]}
                           </div>
                         )}
                         {exp.isOnline && (
-                          <span className="absolute bottom-0.5 right-0.5 w-3 h-3 bg-emerald-500 rounded-full border border-white"></span>
+                          <span className="absolute bottom-0.5 right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white"></span>
                         )}
                       </div>
 
                       {/* Bio Details */}
                       <div>
-                        <h4 className="text-xs font-bold text-charcoal flex items-center gap-1">
+                        <h4 className="text-sm md:text-base font-bold text-charcoal flex items-center gap-1.5 leading-snug">
                           {exp.name}
-                          <svg className="w-3.5 h-3.5 text-blue-500 fill-current" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 text-blue-500 fill-current" viewBox="0 0 24 24">
                             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                           </svg>
                         </h4>
-                        <span className="text-[10px] text-stone-500 font-semibold block mt-0.5">{exp.specialisation}</span>
-                        <div className="flex items-center gap-1.5 mt-1 text-[10px] text-stone-500">
-                          <span className="text-amber-500">★</span>
-                          <strong className="text-charcoal">{exp.rating}</strong>
+                        <span className="text-xs text-stone-500 font-semibold block mt-0.5">{exp.specialisation}</span>
+                        <div className="flex items-center gap-1.5 mt-1 text-xs text-stone-500">
+                          <span className="text-amber-500 font-bold">★</span>
+                          <strong className="text-charcoal font-extrabold">{exp.rating}</strong>
                           <span>({exp.reviewCount} sessions)</span>
                           <span>•</span>
                           <span>{exp.experience} yrs exp</span>
@@ -974,30 +987,28 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
 
                     {/* Price Tag styling */}
                     {!isTagForwardVariant && (
-                      <div className="text-right flex flex-col items-end gap-1 shrink-0">
-                        <span className="text-[9px] text-stone-400 font-bold uppercase tracking-wider">Starts at</span>
-                        <span className="text-sm font-extrabold text-emerald-700">₹{exp.fee}</span>
+                      <div className="text-right flex flex-col items-end gap-0.5 shrink-0">
+                        <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider">Starts at</span>
+                        <span className="text-base font-extrabold text-terracotta">₹{exp.fee}</span>
                       </div>
                     )}
                   </div>
 
                   {exp.bio && (
-                    <p className="text-[10px] text-stone-600 leading-normal font-semibold pl-1 border-l-2 border-stone-200/50">
+                    <p className="text-xs md:text-sm text-stone-600 leading-relaxed font-medium pl-3 border-l-2 border-terracotta/40">
                       {exp.bio}
                     </p>
                   )}
 
                   {/* Specialty Tags */}
-                  <div className="flex flex-wrap gap-1.5 select-none pl-1">
+                  <div className="flex flex-wrap gap-2 select-none">
                     {exp.specialtyTags && exp.specialtyTags.map((tag, tIdx) => (
                       <span 
-                        key={tIdx} 
-                        className={`text-[8.5px] font-bold px-2 py-0.5 rounded-md border ${
-                          tIdx === 0
-                            ? 'bg-blue-50 border-blue-100 text-blue-600'
-                            : tIdx === 1
-                              ? 'bg-emerald-50 border-emerald-100 text-emerald-700'
-                              : 'bg-[#FCFAF7] border-[#F0EBE1] text-stone-500'
+                        key={tag} 
+                        className={`text-[11px] md:text-xs font-bold px-3 py-1.5 rounded-full border transition-colors ${
+                          tIdx === 1
+                            ? 'bg-[#FAF2EE] border-[#F5DFD8] text-terracotta'
+                            : 'bg-white border-[#F0EBE1] text-stone-600'
                         }`}
                       >
                         {tag}
@@ -1006,18 +1017,14 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                   </div>
 
                   {/* Action CTA */}
-                  <div className="flex justify-between items-center pt-2.5 border-t border-stone-50/50 mt-1">
-                    {isTagForwardVariant ? (
-                      <div className="text-left flex flex-col">
-                        <span className="text-[8.5px] text-stone-400 font-extrabold uppercase tracking-wider">Consultation Fee</span>
-                        <span className="text-xs font-extrabold text-charcoal">₹{exp.fee} / session</span>
-                      </div>
-                    ) : (
-                      <div />
-                    )}
+                  <div className="flex justify-between items-center pt-3.5 border-t border-stone-100 mt-1 flex-wrap gap-3">
+                    <div className="text-left flex flex-col">
+                      <span className="text-[10px] font-extrabold text-stone-400 uppercase tracking-wider">Consultation Fee</span>
+                      <span className="text-sm md:text-base font-extrabold text-charcoal">₹{exp.fee} / session</span>
+                    </div>
                     <button
                       onClick={() => handleSelectExpert(exp)}
-                      className="px-4.5 py-2 bg-[#3D5A45] hover:bg-[#2A3E31] text-white text-[10px] font-extrabold rounded-xl transition-all shadow-sm active:scale-95"
+                      className="px-6 py-2.5 bg-terracotta hover:bg-[#c2502f] text-white text-xs md:text-sm font-bold rounded-full transition-all shadow-sm hover:shadow active:scale-95 cursor-pointer"
                     >
                       View Profile & Book
                     </button>
@@ -1030,452 +1037,448 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
         </div>
       )}
 
-      {/* ==================== SCREEN 3: BOOKING WIZARD ==================== */}
-      {currentView === 'wizard' && selectedExpert && (
-        <div className="flex flex-col gap-5 w-full animate-fadeIn select-none">
-          
-          {/* STEP 2: MODE SELECTOR */}
-          {wizardStep === 2 && (
-            <div className="flex flex-col gap-5 w-full">
-              <div className="bg-white border border-[#F0EBE1] p-5 rounded-[24px] shadow-sm">
-                <span className="text-[8px] bg-blue-50 border border-blue-100 text-blue-600 font-extrabold px-2 py-0.5 rounded uppercase tracking-wider">Step 2 of 5</span>
-                <h3 className="text-sm font-serif font-extrabold text-charcoal mt-1.5">Choose Session Mode</h3>
-                <p className="text-[10px] text-stone-500 font-semibold mt-1">Select how you'd like to consult with {selectedExpert.name}:</p>
-                
-                <div className="grid grid-cols-2 gap-3 mt-4">
-                  {[
-                    { mode: 'chat', label: 'Chat', desc: 'Secure text consulting', icon: '💬' },
-                    { mode: 'video', label: 'Video Call', desc: 'Face-to-face evaluation', icon: '📹' },
-                    { mode: 'audio', label: 'Voice Call', desc: 'Direct audio support', icon: '📞' },
-                    { mode: 'in-person', label: 'In-Clinic', desc: 'Visit our center location', icon: '🏥' }
-                  ].map(m => (
-                    <button
-                      key={m.mode}
-                      onClick={() => setBookingMode(m.mode as any)}
-                      className={`p-3.5 border rounded-2xl text-left transition-all active:scale-95 flex flex-col gap-1 ${
-                        bookingMode === m.mode 
-                          ? 'bg-[#3D5A45]/5 border-[#3D5A45] text-charcoal shadow-sm' 
-                          : 'bg-white border-[#F0EBE1] text-stone-600 hover:border-stone-300'
-                      }`}
-                    >
-                      <span className="text-lg">{m.icon}</span>
-                      <strong className="text-xs block mt-1">{m.label}</strong>
-                      <span className="text-[8.5px] text-stone-400 leading-tight block">{m.desc}</span>
-                    </button>
-                  ))}
+      {/* ==================== SCREEN 3: BOOKING FORM SHEET ==================== */}
+      {currentView === 'wizard' && selectedExpert && (() => {
+        const availableSlots = selectedExpert.availableSlots 
+          ? selectedExpert.availableSlots.filter(s => !s.isBooked) 
+          : [];
+
+        // Calendar helpers
+        const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        const dayNames = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+        const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+        const firstDayOfWeek = new Date(calendarYear, calendarMonth, 1).getDay();
+        const today = new Date();
+        const isCurrentMonth = calendarMonth === today.getMonth() && calendarYear === today.getFullYear();
+        const todayDate = today.getDate();
+
+        // Build slots lookup by date string for the calendar dots
+        const slotDateStrings = new Set(availableSlots.map(s => s.date));
+        const hasSlotOnDay = (day: number) => {
+          // Check common date label formats
+          const dateObj = new Date(calendarYear, calendarMonth, day);
+          const labels = ['Today', 'Tomorrow'];
+          const todayObj = new Date();
+          const tomorrowObj = new Date(); tomorrowObj.setDate(todayObj.getDate() + 1);
+          if (dateObj.toDateString() === todayObj.toDateString() && slotDateStrings.has('Today')) return true;
+          if (dateObj.toDateString() === tomorrowObj.toDateString() && slotDateStrings.has('Tomorrow')) return true;
+          // Also check formatted strings
+          const formatted = `${dateObj.getDate()} ${monthNames[dateObj.getMonth()].slice(0,3)}`;
+          if (slotDateStrings.has(formatted)) return true;
+          return slotDateStrings.has(dateObj.toLocaleDateString());
+        };
+
+        // Get label for selected calendar day
+        const getDateLabel = (day: number) => {
+          const dateObj = new Date(calendarYear, calendarMonth, day);
+          const todayObj = new Date();
+          const tomorrowObj = new Date(); tomorrowObj.setDate(todayObj.getDate() + 1);
+          if (dateObj.toDateString() === todayObj.toDateString()) return 'Today';
+          if (dateObj.toDateString() === tomorrowObj.toDateString()) return 'Tomorrow';
+          return `${day} ${monthNames[calendarMonth].slice(0,3)}`;
+        };
+
+        const activeDateLabel = calendarSelectedDay ? getDateLabel(calendarSelectedDay) : (availableSlots[0]?.date || 'Today');
+        const slotsForActiveDate = availableSlots.filter(s => s.date === activeDateLabel);
+
+        const prevMonth = () => {
+          if (calendarMonth === 0) { setCalendarMonth(11); setCalendarYear(calendarYear - 1); }
+          else setCalendarMonth(calendarMonth - 1);
+        };
+        const nextMonth = () => {
+          if (calendarMonth === 11) { setCalendarMonth(0); setCalendarYear(calendarYear + 1); }
+          else setCalendarMonth(calendarMonth + 1);
+        };
+
+        return (
+          <div className="w-full max-w-[860px] mx-auto grid grid-cols-1 md:grid-cols-[1fr_280px] gap-4 animate-fadeIn select-none text-left">
+            
+            {/* ─── LEFT COLUMN ─── */}
+            <div className="flex flex-col gap-4">
+              
+              {/* ── Section 1: Session Mode ── */}
+              <div className="bg-white border border-[#EBE3D5] rounded-2xl shadow-sm overflow-hidden">
+                <div className="px-5 pt-4 pb-2">
+                  <h3 className="text-[12px] font-extrabold text-charcoal uppercase tracking-wider">Session Mode</h3>
+                </div>
+                <div className="px-4 pb-4">
+                  <div className="grid grid-cols-4 gap-1.5 p-1.5 bg-[#FAF8F5] border border-[#F0EBE1] rounded-xl">
+                    {[
+                      { 
+                        mode: 'chat', 
+                        label: 'Chat', 
+                        icon: (
+                          <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                          </svg>
+                        ) 
+                      },
+                      { 
+                        mode: 'video', 
+                        label: 'Video', 
+                        icon: (
+                          <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polygon points="23 7 16 12 23 17 23 7" />
+                            <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+                          </svg>
+                        ) 
+                      },
+                      { 
+                        mode: 'audio', 
+                        label: 'Voice', 
+                        icon: (
+                          <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                          </svg>
+                        ) 
+                      },
+                      { 
+                        mode: 'in-person', 
+                        label: 'Clinic', 
+                        icon: (
+                          <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 21h18" />
+                            <path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16" />
+                            <path d="M9 21v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4" />
+                            <path d="M10 9h4" />
+                            <path d="M12 7v4" />
+                          </svg>
+                        ) 
+                      }
+                    ].map(m => (
+                      <button
+                        key={m.mode}
+                        type="button"
+                        onClick={() => setBookingMode(m.mode as any)}
+                        className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-[11px] font-bold transition-all ${
+                          bookingMode === m.mode
+                            ? 'bg-white text-terracotta shadow-sm border border-[#EBE3D5]'
+                            : 'text-stone-500 hover:text-charcoal hover:bg-white/60'
+                        }`}
+                      >
+                        {m.icon}
+                        <span>{m.label}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              <button
-                onClick={() => setWizardStep(3)}
-                className="w-full py-3.5 bg-[#3D5A45] hover:bg-[#2A3E31] text-white text-xs font-extrabold rounded-2xl shadow-sm"
-              >
-                Continue to Concerns
-              </button>
-            </div>
-          )}
+              {/* ── Section 2: Pet & Concerns ── */}
+              <div className="bg-white border border-[#EBE3D5] rounded-2xl shadow-sm overflow-hidden">
+                {/* Pet Selection */}
+                <div className="px-5 pt-4 pb-3 border-b border-stone-100/60">
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="text-[12px] font-extrabold text-charcoal uppercase tracking-wider">Your Pet</h3>
+                    <button 
+                      type="button"
+                      onClick={() => setNewPetInput(!newPetInput)}
+                      className="text-[10px] font-bold text-terracotta hover:underline"
+                    >
+                      {newPetInput ? '← Choose from list' : '+ Custom name'}
+                    </button>
+                  </div>
 
-          {/* STEP 3: CONCERN SELECTION */}
-          {wizardStep === 3 && (
-            <div className="flex flex-col gap-5 w-full">
-              <div className="bg-white border border-[#F0EBE1] p-5 rounded-[24px] shadow-sm">
-                <span className="text-[8px] bg-blue-50 border border-blue-100 text-blue-600 font-extrabold px-2 py-0.5 rounded uppercase tracking-wider">Step 3 of 5</span>
-                <h3 className="text-sm font-serif font-extrabold text-charcoal mt-1.5">Specify Pet Concerns</h3>
-                <p className="text-[10px] text-stone-500 font-semibold mt-1">Select focus tags and specify symptoms/notes:</p>
-
-                {/* Concern Tags */}
-                <div className="flex flex-wrap gap-2 mt-4 select-none">
-                  {['Anxiety', 'Aggression', 'Hyperactivity', 'Eating habits', 'Injury recovery', 'Grooming assist', 'Post-Surgery', 'Diet plan'].map(tag => {
-                    const isSelected = selectedConcerns.includes(tag);
-                    return (
-                      <button
-                        key={tag}
-                        type="button"
-                        onClick={() => {
-                          if (isSelected) {
-                            setSelectedConcerns(selectedConcerns.filter(t => t !== tag));
-                          } else {
-                            setSelectedConcerns([...selectedConcerns, tag]);
-                          }
-                        }}
-                        className={`px-3 py-1.5 border rounded-full text-[10px] font-bold transition-all ${
-                          isSelected 
-                            ? 'bg-[#3D5A45]/10 border-[#3D5A45] text-[#3D5A45] shadow-sm' 
-                            : 'bg-white border-[#F0EBE1] text-stone-600'
-                        }`}
-                      >
-                        {tag}
-                      </button>
-                    );
-                  })}
+                  {newPetInput ? (
+                    <input 
+                      type="text"
+                      placeholder="Enter pet name"
+                      value={customPetName}
+                      onChange={(e) => setCustomPetName(e.target.value)}
+                      className="w-full bg-[#FAF8F5] border border-[#F0EBE1] rounded-xl px-3.5 py-2 text-[11px] font-semibold text-charcoal focus:outline-none focus:border-terracotta/40 placeholder:text-stone-400"
+                    />
+                  ) : (
+                    <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-hide">
+                      {user?.pets && user.pets.map((pet: any) => (
+                        <button
+                          key={pet._id}
+                          type="button"
+                          onClick={() => setSelectedPetName(pet.name)}
+                          className={`px-3.5 py-1.5 border rounded-lg text-[11px] font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+                            selectedPetName === pet.name 
+                              ? 'bg-[#FAF2EE] border-terracotta/50 text-terracotta' 
+                              : 'bg-[#FAF8F5] border-[#F0EBE1] text-stone-600 hover:border-stone-300'
+                          }`}
+                        >
+                          🐶 {pet.name}
+                        </button>
+                      ))}
+                      {(!user?.pets || user.pets.length === 0) && (
+                        <span className="text-[10px] text-stone-400 italic py-1">No pets registered. Use custom name above.</span>
+                      )}
+                    </div>
+                  )}
                 </div>
 
-                <div className="mt-4.5">
-                  <label className="text-[9px] font-extrabold text-stone-400 uppercase tracking-wider block mb-1.5">Consultation Notes (Optional)</label>
+                {/* Concerns */}
+                <div className="px-5 pt-3 pb-4">
+                  <h3 className="text-[12px] font-extrabold text-charcoal uppercase tracking-wider mb-2.5">Concerns</h3>
+                  
+                  <div className="flex flex-wrap gap-1.5 select-none">
+                    {['Anxiety', 'Aggression', 'Hyperactivity', 'Eating habits', 'Injury recovery', 'Grooming', 'Post-Surgery', 'Diet plan'].map(tag => {
+                      const isSelected = selectedConcerns.includes(tag);
+                      return (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => {
+                            if (isSelected) {
+                              setSelectedConcerns(selectedConcerns.filter(t => t !== tag));
+                            } else {
+                              setSelectedConcerns([...selectedConcerns, tag]);
+                            }
+                          }}
+                          className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all ${
+                            isSelected 
+                              ? 'bg-[#FAF2EE] border-terracotta/40 text-terracotta' 
+                              : 'bg-[#FAF8F5] border-[#F0EBE1] text-stone-500 hover:border-stone-300'
+                          }`}
+                        >
+                          {tag}
+                        </button>
+                      );
+                    })}
+                  </div>
+
                   <textarea
-                    rows={4}
+                    rows={2}
                     value={concernText}
                     onChange={(e) => setConcernText(e.target.value)}
-                    placeholder="e.g. My pet is anxious during thunderstorms and has stopped eating dry food since 2 days..."
-                    className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl p-3 text-xs font-semibold focus:outline-none focus:border-terracotta/40"
+                    placeholder="Additional notes or symptoms..."
+                    className="w-full mt-3 bg-[#FAF8F5] border border-[#F0EBE1] rounded-xl p-3 text-[11px] font-semibold text-charcoal focus:outline-none focus:border-terracotta/40 placeholder:text-stone-400 resize-none"
                   />
                 </div>
               </div>
 
-              <button
-                onClick={() => setWizardStep(4)}
-                className="w-full py-3.5 bg-[#3D5A45] hover:bg-[#2A3E31] text-white text-xs font-extrabold rounded-2xl shadow-sm"
-              >
-                Continue to Date & Time
-              </button>
-            </div>
-          )}
-
-          {/* STEP 4: DATE & TIME SELECTOR */}
-          {wizardStep === 4 && (
-            <div className="flex flex-col gap-4 w-full">
-              
-              {/* Expert Summary Header */}
-              <div className="bg-white border border-[#F0EBE1] rounded-[24px] p-4 flex items-center justify-between shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-full overflow-hidden bg-stone-100 border border-[#F0EBE1]">
-                    {selectedExpert.photo ? (
-                      <img src={selectedExpert.photo} alt={selectedExpert.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-[#E2E8F0] to-[#CBD5E1] flex items-center justify-center text-stone-600 font-bold text-xs">
-                        {selectedExpert.name[0]}
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-charcoal">{selectedExpert.name}</h4>
-                    <span className="text-[10px] text-stone-500 block font-semibold">{selectedExpert.specialisation}</span>
-                  </div>
+              {/* ── Section 3: Calendar & Time Slots ── */}
+              <div className="bg-white border border-[#EBE3D5] rounded-2xl shadow-sm overflow-hidden">
+                <div className="px-5 pt-4 pb-2">
+                  <h3 className="text-[12px] font-extrabold text-charcoal uppercase tracking-wider">Schedule</h3>
                 </div>
-
-                {/* Confidential Badge */}
-                <div className="bg-emerald-50 border border-emerald-100 text-emerald-700 text-[8.5px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 shrink-0">
-                  <svg className="w-3 h-3 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  </svg>
-                  Private & Confidential
-                </div>
-              </div>
-
-              {/* Month calendar with dot-marked dates */}
-              <div className="bg-white border border-[#F0EBE1] rounded-[28px] p-5 shadow-sm">
-                <div className="flex justify-between items-center border-b border-stone-100 pb-2.5 mb-3.5">
-                  <span className="text-[10px] font-extrabold text-stone-400 uppercase tracking-widest">Select a Date</span>
-                  <span className="text-xs font-extrabold text-charcoal">May 2025</span>
-                </div>
-
-                <div className="grid grid-cols-7 text-center text-[10px] font-bold text-stone-400 gap-y-3">
-                  <span>SUN</span><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span>
-
-                  <span className="opacity-30">27</span><span className="opacity-30">28</span><span className="opacity-30">29</span><span className="opacity-30">30</span>
-                  <span className="p-2 cursor-pointer rounded-full hover:bg-stone-50 text-charcoal">1</span>
-                  <span className="p-2 cursor-pointer rounded-full hover:bg-stone-50 text-charcoal">2</span>
-                  <span className="p-2 cursor-pointer rounded-full hover:bg-stone-50 text-charcoal">3</span>
-                  
-                  <span className="p-2 cursor-pointer rounded-full hover:bg-stone-50 text-charcoal">4</span>
-                  <span className="p-2 cursor-pointer rounded-full hover:bg-stone-50 text-charcoal">5</span>
-                  <span className="p-2 cursor-pointer rounded-full hover:bg-stone-50 text-charcoal">6</span>
-                  <span className="p-2 cursor-pointer rounded-full hover:bg-stone-50 text-charcoal">7</span>
-                  <span className="p-2 cursor-pointer rounded-full hover:bg-stone-50 text-charcoal">8</span>
-                  <span className="p-2 cursor-pointer rounded-full hover:bg-stone-50 text-charcoal">9</span>
-                  <span className="p-2 cursor-pointer rounded-full hover:bg-stone-50 text-charcoal">10</span>
-
-                  <span className="p-2 cursor-pointer rounded-full hover:bg-stone-50 text-charcoal">11</span>
-                  <span className="p-2 cursor-pointer rounded-full hover:bg-stone-50 text-charcoal">12</span>
-                  <span className="p-2 cursor-pointer rounded-full hover:bg-stone-50 text-charcoal">13</span>
-                  <span className="p-2 cursor-pointer rounded-full hover:bg-stone-50 text-charcoal">14</span>
-                  
-                  {/* Selected Date: May 15 */}
-                  <span className="relative p-2 cursor-pointer bg-[#3D5A45] text-white rounded-full flex flex-col items-center justify-center font-bold">
-                    15
-                    <span className="absolute bottom-1 w-1 h-1 bg-white rounded-full"></span>
-                  </span>
-
-                  <span className="relative p-2 cursor-pointer hover:bg-stone-50 text-charcoal flex flex-col items-center justify-center">
-                    16
-                    <span className="absolute bottom-1 w-1 h-1 bg-emerald-500 rounded-full"></span>
-                  </span>
-                  <span className="p-2 cursor-pointer rounded-full hover:bg-stone-50 text-charcoal">17</span>
-
-                  <span className="p-2 cursor-pointer rounded-full hover:bg-stone-50 text-charcoal">18</span>
-                  <span className="relative p-2 cursor-pointer hover:bg-stone-50 text-charcoal flex flex-col items-center justify-center">
-                    19
-                    <span className="absolute bottom-1 w-1 h-1 bg-emerald-500 rounded-full"></span>
-                  </span>
-                  <span className="relative p-2 cursor-pointer hover:bg-stone-50 text-charcoal flex flex-col items-center justify-center">
-                    20
-                    <span className="absolute bottom-1 w-1 h-1 bg-emerald-500 rounded-full"></span>
-                  </span>
-                  <span className="relative p-2 cursor-pointer hover:bg-stone-50 text-charcoal flex flex-col items-center justify-center">
-                    21
-                    <span className="absolute bottom-1 w-1 h-1 bg-emerald-500 rounded-full"></span>
-                  </span>
-                  <span className="relative p-2 cursor-pointer hover:bg-stone-50 text-charcoal flex flex-col items-center justify-center">
-                    22
-                    <span className="absolute bottom-1 w-1 h-1 bg-emerald-500 rounded-full"></span>
-                  </span>
-                  <span className="relative p-2 cursor-pointer hover:bg-stone-50 text-charcoal flex flex-col items-center justify-center">
-                    23
-                    <span className="absolute bottom-1 w-1 h-1 bg-emerald-500 rounded-full"></span>
-                  </span>
-                  <span className="p-2 cursor-pointer rounded-full hover:bg-stone-50 text-charcoal">24</span>
-
-                  <span className="relative p-2 cursor-pointer hover:bg-stone-50 text-charcoal flex flex-col items-center justify-center">
-                    25
-                    <span className="absolute bottom-1 w-1 h-1 bg-emerald-500 rounded-full"></span>
-                  </span>
-                  <span className="relative p-2 cursor-pointer hover:bg-stone-50 text-charcoal flex flex-col items-center justify-center">
-                    26
-                    <span className="absolute bottom-1 w-1 h-1 bg-emerald-500 rounded-full"></span>
-                  </span>
-                  <span className="relative p-2 cursor-pointer hover:bg-stone-50 text-charcoal flex flex-col items-center justify-center">
-                    27
-                    <span className="absolute bottom-1 w-1 h-1 bg-emerald-500 rounded-full"></span>
-                  </span>
-                  <span className="relative p-2 cursor-pointer hover:bg-stone-50 text-charcoal flex flex-col items-center justify-center">
-                    28
-                    <span className="absolute bottom-1 w-1 h-1 bg-emerald-500 rounded-full"></span>
-                  </span>
-                  <span className="relative p-2 cursor-pointer hover:bg-stone-50 text-charcoal flex flex-col items-center justify-center">
-                    29
-                    <span className="absolute bottom-1 w-1 h-1 bg-emerald-500 rounded-full"></span>
-                  </span>
-                  <span className="relative p-2 cursor-pointer hover:bg-stone-50 text-charcoal flex flex-col items-center justify-center">
-                    30
-                    <span className="absolute bottom-1 w-1 h-1 bg-emerald-500 rounded-full"></span>
-                  </span>
-                  <span className="p-2 cursor-pointer rounded-full hover:bg-stone-50 text-charcoal">31</span>
-                </div>
-              </div>
-
-              {/* Time slot grid picker */}
-              <div className="bg-white border border-[#F0EBE1] rounded-[28px] p-5 shadow-sm">
-                <div className="flex justify-between items-center border-b border-stone-100 pb-2 mb-3">
-                  <span className="text-[10px] font-extrabold text-stone-400 uppercase tracking-widest">Select a Time</span>
-                  
-                  <select 
-                    value={timeToggle}
-                    onChange={(e) => setTimeToggle(e.target.value as any)}
-                    className="bg-stone-50 border border-stone-200 text-xs font-bold px-2.5 py-1 rounded-xl focus:outline-none"
-                  >
-                    <option value="Morning">☀️ Morning</option>
-                    <option value="Afternoon">🌤️ Afternoon</option>
-                    <option value="Evening">🌙 Evening</option>
-                  </select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2.5">
-                  {selectedExpert.availableSlots && selectedExpert.availableSlots.filter(s => !s.isBooked).map(slot => (
-                    <button
-                      key={slot._id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedSlot(slot);
-                        setSelectedDate(slot.date);
-                      }}
-                      className={`py-2 border rounded-2xl text-xs font-bold text-center transition-all flex flex-col items-center justify-center gap-0.5 ${
-                        selectedSlot?._id === slot._id
-                          ? 'bg-[#3D5A45] border-[#3D5A45] text-white shadow-sm'
-                          : 'bg-[#FCFAF7] border-[#F0EBE1] text-charcoal hover:bg-white'
-                      }`}
+                
+                {/* Calendar */}
+                <div className="px-5 pb-4 pt-1">
+                  {/* Month Navigation */}
+                  <div className="flex items-center justify-between mb-3">
+                    <button 
+                      type="button" 
+                      onClick={prevMonth}
+                      className="w-7 h-7 rounded-lg border border-[#F0EBE1] bg-[#FAF8F5] flex items-center justify-center text-stone-500 hover:bg-stone-100 transition-all"
                     >
-                      <span className={`text-[8.5px] font-bold ${selectedSlot?._id === slot._id ? 'text-white/80' : 'text-stone-400'}`}>{slot.date}</span>
-                      <span>{slot.time}</span>
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M15 19l-7-7 7-7" /></svg>
                     </button>
-                  ))}
-                  {(!selectedExpert.availableSlots || selectedExpert.availableSlots.filter(s => !s.isBooked).length === 0) && (
-                    <span className="text-[10px] text-stone-400 font-semibold italic col-span-2 text-center py-2">No slots available for this doctor.</span>
+                    <span className="text-[13px] font-extrabold text-charcoal">{monthNames[calendarMonth]} {calendarYear}</span>
+                    <button 
+                      type="button" 
+                      onClick={nextMonth}
+                      className="w-7 h-7 rounded-lg border border-[#F0EBE1] bg-[#FAF8F5] flex items-center justify-center text-stone-500 hover:bg-stone-100 transition-all"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M9 5l7 7-7 7" /></svg>
+                    </button>
+                  </div>
+
+                  {/* Day Headers */}
+                  <div className="grid grid-cols-7 mb-1">
+                    {dayNames.map(d => (
+                      <span key={d} className="text-center text-[9px] font-bold text-stone-400 uppercase py-1">{d}</span>
+                    ))}
+                  </div>
+
+                  {/* Day Grid */}
+                  <div className="grid grid-cols-7 gap-y-0.5">
+                    {Array.from({ length: firstDayOfWeek }).map((_, i) => (
+                      <span key={`empty-${i}`} />
+                    ))}
+                    {Array.from({ length: daysInMonth }).map((_, i) => {
+                      const day = i + 1;
+                      const isPast = isCurrentMonth && day < todayDate;
+                      const isToday = isCurrentMonth && day === todayDate;
+                      const isSelected = calendarSelectedDay === day;
+                      const hasSlot = hasSlotOnDay(day);
+                      
+                      return (
+                        <button
+                          key={day}
+                          type="button"
+                          disabled={isPast}
+                          onClick={() => {
+                            setCalendarSelectedDay(day);
+                            const label = getDateLabel(day);
+                            setSelectedDate(label);
+                            const firstSlot = availableSlots.find(s => s.date === label);
+                            if (firstSlot) setSelectedSlot(firstSlot);
+                          }}
+                          className={`relative w-full aspect-square flex items-center justify-center rounded-lg text-[10px] font-bold transition-all ${
+                            isPast 
+                              ? 'text-stone-300 cursor-default'
+                              : isSelected
+                                ? 'bg-terracotta text-white shadow-sm'
+                                : isToday
+                                  ? 'bg-[#FAF2EE] text-terracotta border border-terracotta/30'
+                                  : 'text-charcoal hover:bg-stone-50 cursor-pointer'
+                          }`}
+                        >
+                          {day}
+                          {hasSlot && !isSelected && (
+                            <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-emerald-500" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Legend */}
+                  <div className="flex items-center gap-4 mt-2.5 pt-2 border-t border-stone-100/60">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      <span className="text-[9px] font-semibold text-stone-400">Slots available</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-3 h-3 rounded bg-terracotta/10 border border-terracotta/30" />
+                      <span className="text-[9px] font-semibold text-stone-400">Today</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Time Slots */}
+                <div className="px-5 pb-4 pt-3 border-t border-stone-100">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-[12px] font-extrabold text-charcoal uppercase tracking-wider">
+                      {calendarSelectedDay ? activeDateLabel : 'Select a date'}
+                    </span>
+                    <span className="text-[10px] font-semibold text-stone-400 bg-[#FAF8F5] px-2 py-0.5 rounded-md">
+                      {slotsForActiveDate.length} slot{slotsForActiveDate.length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+
+                  {slotsForActiveDate.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {slotsForActiveDate.map(slot => (
+                        <button
+                          key={slot._id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedSlot(slot);
+                            setSelectedDate(slot.date);
+                          }}
+                          className={`py-2.5 px-5 border rounded-xl text-[12px] font-bold text-center transition-all ${
+                            selectedSlot?._id === slot._id
+                              ? 'bg-clay border-clay text-white shadow-sm'
+                              : 'bg-[#FAF8F5] border-[#F0EBE1] text-charcoal hover:border-stone-300 hover:bg-white'
+                          }`}
+                        >
+                          {slot.time}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center py-5">
+                      <span className="text-[11px] text-stone-400 font-semibold italic">
+                        {calendarSelectedDay ? 'No slots available on this date' : 'Pick a date from the calendar above'}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Timezone */}
+                  <div className="mt-3 pt-2.5 border-t border-stone-100/60 flex items-center justify-between">
+                    <span className="text-[10px] text-stone-400 font-semibold">🌐 {timezone}</span>
+                    <button 
+                      type="button" 
+                      onClick={() => setIsChangingTimezone(!isChangingTimezone)}
+                      className="text-[10px] text-terracotta font-bold hover:underline"
+                    >
+                      Change
+                    </button>
+                  </div>
+                  {isChangingTimezone && (
+                    <select 
+                      value={timezone}
+                      onChange={(e) => { setTimezone(e.target.value); setIsChangingTimezone(false); }}
+                      className="mt-1.5 bg-[#FAF8F5] border border-[#F0EBE1] text-[10px] font-bold px-2.5 py-1.5 rounded-lg focus:outline-none w-full"
+                    >
+                      <option value="Asia/Kolkata (IST)">Asia/Kolkata (IST)</option>
+                      <option value="America/New_York (EST)">America/New_York (EST)</option>
+                      <option value="Europe/London (GMT)">Europe/London (GMT)</option>
+                    </select>
                   )}
                 </div>
               </div>
-
-              {/* Session Duration Note */}
-              <div className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl p-3.5 flex items-start gap-3">
-                <span className="text-xl">📅</span>
-                <div>
-                  <strong className="text-[10px] text-charcoal block font-bold">Each session is 60 minutes</strong>
-                  <span className="text-[9.5px] text-stone-500 font-semibold leading-normal block mt-0.5">
-                    You'll have time to discuss, understand, and create a custom rehabilitation or diet plan for your pet.
-                  </span>
-                </div>
-              </div>
-
-              {/* Timezone display with Change option */}
-              <div className="flex justify-between items-center px-1 text-[10px] text-stone-500 font-semibold">
-                <span className="flex items-center gap-1">
-                  🌐 All times are shown in <strong>{timezone}</strong>
-                </span>
-                
-                {isChangingTimezone ? (
-                  <select 
-                    value={timezone}
-                    onChange={(e) => {
-                      setTimezone(e.target.value);
-                      setIsChangingTimezone(false);
-                    }}
-                    className="bg-white border border-stone-200 rounded px-1 text-[9px] font-bold focus:outline-none"
-                  >
-                    <option value="Asia/Kolkata (IST)">Asia/Kolkata (IST)</option>
-                    <option value="America/New_York (EST)">America/New_York (EST)</option>
-                    <option value="Europe/London (GMT)">Europe/London (GMT)</option>
-                  </select>
-                ) : (
-                  <button 
-                    type="button"
-                    onClick={() => setIsChangingTimezone(true)}
-                    className="text-blue-600 font-bold hover:underline"
-                  >
-                    Change
-                  </button>
-                )}
-              </div>
-
-              {/* Booking Summary table trigger */}
-              <button
-                onClick={() => setWizardStep(5)}
-                disabled={!selectedSlot}
-                className="w-full py-3.5 bg-[#3D5A45] hover:bg-[#2A3E31] disabled:bg-stone-300 disabled:cursor-not-allowed text-white text-xs font-extrabold rounded-2xl shadow-sm transition-all mt-2"
-              >
-                Continue to Summary
-              </button>
             </div>
-          )}
 
-          {/* STEP 5: BOOKING SUMMARY */}
-          {wizardStep === 5 && selectedSlot && (
-            <div className="flex flex-col gap-4 w-full">
+            {/* ─── RIGHT COLUMN ─── */}
+            <div className="flex flex-col gap-4 md:sticky md:top-4 h-fit">
               
-              {/* Pet Selector inside summary */}
-              <div className="bg-white border border-[#F0EBE1] rounded-[24px] p-4 flex flex-col gap-2.5">
-                <div className="flex justify-between items-center border-b border-stone-50 pb-2">
-                  <label className="text-[10px] font-extrabold text-stone-400 uppercase tracking-wider">Select Pet Profile</label>
-                  <button 
-                    type="button"
-                    onClick={() => setNewPetInput(!newPetInput)}
-                    className="text-[9px] font-extrabold text-terracotta hover:underline"
+              {/* Specialist Card */}
+              <div className="bg-white border border-[#EBE3D5] rounded-2xl shadow-sm p-4 flex items-center gap-3">
+                <div className="w-11 h-11 rounded-full overflow-hidden bg-stone-100 border border-[#F0EBE1] shrink-0">
+                  {selectedExpert.photo ? (
+                    <img src={selectedExpert.photo} alt={selectedExpert.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-stone-200 to-stone-300 flex items-center justify-center text-stone-600 font-bold text-[11px]">
+                      {selectedExpert.name[0]}
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-[12px] font-bold text-charcoal truncate leading-tight">{selectedExpert.name}</h4>
+                  <span className="text-[10px] text-stone-500 font-semibold truncate block">{selectedExpert.specialisation}</span>
+                </div>
+                <div className="bg-[#FAF2EE] border border-[#F5DFD8] text-terracotta text-[8px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 shrink-0">
+                  <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                  Private
+                </div>
+              </div>
+
+              {/* Invoice & CTA */}
+              <div className="bg-white border border-[#EBE3D5] rounded-2xl shadow-sm overflow-hidden">
+                <div className="px-4 pt-4 pb-2">
+                  <h3 className="text-[12px] font-extrabold text-charcoal uppercase tracking-wider">Booking Summary</h3>
+                </div>
+
+                <div className="px-4 pb-3">
+                  <div className="divide-y divide-stone-100">
+                    {[
+                      { label: 'Mode', value: bookingMode, capitalize: true },
+                      { label: 'Pet', value: (newPetInput ? customPetName : selectedPetName) || '—' },
+                      { label: 'Date & Time', value: selectedSlot ? `${selectedSlot.date} · ${selectedSlot.time}` : '—', highlight: !!selectedSlot },
+                      { label: 'Focus', value: selectedConcerns.length > 0 ? selectedConcerns.join(', ') : 'General' },
+                    ].map((row, i) => (
+                      <div key={i} className="flex justify-between items-center py-2.5">
+                        <span className="text-[11px] text-stone-400 font-semibold">{row.label}</span>
+                        <span className={`text-[11px] font-bold text-right max-w-[140px] truncate ${
+                          row.highlight ? 'text-emerald-700' : 'text-charcoal'
+                        } ${row.capitalize ? 'capitalize' : ''}`}>
+                          {row.value}
+                        </span>
+                      </div>
+                    ))}
+                    <div className="flex justify-between items-center py-3">
+                      <span className="text-[12px] text-charcoal font-extrabold">Total</span>
+                      <span className="text-base font-extrabold text-terracotta">₹{selectedExpert.fee}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="px-4 pb-4">
+                  <button
+                    onClick={handleConfirmBooking}
+                    disabled={!selectedSlot || !(newPetInput ? customPetName : selectedPetName).trim()}
+                    className="w-full py-3.5 bg-terracotta hover:bg-[#c2502f] disabled:bg-stone-200 disabled:text-stone-400 disabled:cursor-not-allowed text-white text-[13px] font-bold rounded-2xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2"
                   >
-                    {newPetInput ? 'Choose from list' : '+ Add Custom Pet'}
+                    Confirm Booking <span className="text-base">→</span>
                   </button>
                 </div>
-
-                {newPetInput ? (
-                  <input 
-                    type="text"
-                    placeholder="Enter custom pet name"
-                    value={customPetName}
-                    onChange={(e) => setCustomPetName(e.target.value)}
-                    className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-xl px-3.5 py-2 text-xs focus:outline-none"
-                  />
-                ) : (
-                  <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                    {user?.pets && user.pets.map((pet: any) => (
-                      <button
-                        key={pet._id}
-                        type="button"
-                        onClick={() => setSelectedPetName(pet.name)}
-                        className={`px-3 py-2 border rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-                          selectedPetName === pet.name 
-                            ? 'bg-[#3D5A45]/10 border-[#3D5A45] text-[#3D5A45] shadow-sm' 
-                            : 'bg-white border-[#F0EBE1] text-stone-600'
-                        }`}
-                      >
-                        🐶 {pet.name}
-                      </button>
-                    ))}
-                    {(!user?.pets || user.pets.length === 0) && (
-                      <span className="text-[9.5px] text-stone-400 italic">No registered pets found. Please specify custom.</span>
-                    )}
-                  </div>
-                )}
               </div>
-
-              {/* Invoice Table details */}
-              <div className="bg-white border border-[#F0EBE1] rounded-[28px] p-5 shadow-sm flex flex-col gap-3">
-                <h3 className="text-[10px] font-extrabold text-stone-400 uppercase tracking-wider border-b border-stone-100 pb-2">Consultation Invoice</h3>
-
-                <table className="w-full text-xs font-semibold text-stone-600 border-collapse">
-                  <tbody>
-                    <tr className="border-b border-stone-100">
-                      <td className="py-2.5 text-stone-400">Expert Care</td>
-                      <td className="py-2.5 text-right font-extrabold text-charcoal">{selectedExpert.name}</td>
-                    </tr>
-                    <tr className="border-b border-stone-100">
-                      <td className="py-2.5 text-stone-400">Specialisation</td>
-                      <td className="py-2.5 text-right font-extrabold text-stone-500">{selectedExpert.specialisation}</td>
-                    </tr>
-                    <tr className="border-b border-stone-100">
-                      <td className="py-2.5 text-stone-400">Date / Time</td>
-                      <td className="py-2.5 text-right font-extrabold text-emerald-700">{selectedSlot.date} • {selectedSlot.time}</td>
-                    </tr>
-                    <tr className="border-b border-stone-100">
-                      <td className="py-2.5 text-stone-400">Session Mode</td>
-                      <td className="py-2.5 text-right font-extrabold text-charcoal capitalize">{bookingMode}</td>
-                    </tr>
-                    <tr className="border-b border-stone-100">
-                      <td className="py-2.5 text-stone-400">Pet</td>
-                      <td className="py-2.5 text-right font-extrabold text-charcoal capitalize">{newPetInput ? customPetName : selectedPetName}</td>
-                    </tr>
-                    <tr className="border-b border-stone-100">
-                      <td className="py-2.5 text-stone-400">Selected Concerns</td>
-                      <td className="py-2.5 text-right font-extrabold text-charcoal max-w-[120px] truncate">{selectedConcerns.join(', ') || 'General Checkup'}</td>
-                    </tr>
-                    <tr className="pt-2">
-                      <td className="py-3 text-charcoal font-extrabold text-sm">Consult Fee</td>
-                      <td className="py-3 text-right font-extrabold text-blue-600 text-sm">₹{selectedExpert.fee}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Trigger reservation booking */}
-              <button
-                onClick={handleConfirmBooking}
-                className="w-full py-4 bg-[#3D5A45] hover:bg-[#2A3E31] text-white text-xs font-extrabold rounded-2xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
-              >
-                Confirm & Book Specialist Consult <span>→</span>
-              </button>
-
-            </div>
-          )}
-
-          {/* STEPPERS PROCESS STEPS BAR DISPLAYED AT BOTTOM PERSISTENTLY */}
-          <div className="w-full pt-4 mt-2 border-t border-stone-200/50 flex flex-col items-center gap-2 select-none">
-            <div className="flex items-center gap-2.5">
-              {[1, 2, 3, 4, 5].map(step => (
-                <div key={step} className="flex items-center">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-extrabold border transition-all ${
-                    wizardStep === step
-                      ? 'bg-[#3D5A45] border-[#3D5A45] text-white ring-4 ring-[#3D5A45]/10 shadow-sm'
-                      : wizardStep > step
-                        ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                        : 'bg-white border-stone-200 text-stone-400'
-                  }`}>
-                    {wizardStep > step ? '✓' : step}
-                  </div>
-                  {step < 5 && <div className={`w-8 h-0.5 ${wizardStep > step ? 'bg-emerald-300' : 'bg-stone-200'}`} />}
-                </div>
-              ))}
+              
             </div>
             
-            <span className="text-[9px] text-stone-400 font-extrabold uppercase tracking-widest mt-1">
-              Step {wizardStep}: {
-                wizardStep === 1 ? 'Choose Specialist' :
-                wizardStep === 2 ? 'Session Mode' :
-                wizardStep === 3 ? 'Pet Concerns' :
-                wizardStep === 4 ? 'Choose Schedule' : 'Invoice Review'
-              }
-            </span>
           </div>
-
-        </div>
-      )}
-
+        );
+      })()}
+      
       {/* ==================== SCREEN 4: BOOKING CONFIRMED SUCCESS SCREEN ==================== */}
       {currentView === 'confirmed' && confirmedAppt && (
         <div className="flex flex-col items-center justify-center text-center gap-6 py-6 w-full animate-fadeIn select-none">
@@ -1493,18 +1496,18 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
           </div>
 
           <div>
-            <h2 className="font-serif font-extrabold text-xl text-[#3D5A45]">Booking Confirmed!</h2>
+            <h2 className="font-serif font-extrabold text-xl text-terracotta">Booking Confirmed!</h2>
             <p className="text-[10px] text-stone-500 font-semibold mt-1">Your specialist consultation has been scheduled.</p>
           </div>
 
           {/* Real Email confirmation summary */}
-          <div className="bg-[#EBF5E9] border border-[#E1EDE3] text-[#3D5A45] rounded-xl px-4 py-2.5 text-[9.5px] font-bold w-full flex items-center justify-center gap-2">
+          <div className="bg-[#FAF2EE] border border-[#F5DFD8] text-terracotta rounded-xl px-4 py-2.5 text-[9.5px] font-bold w-full flex items-center justify-center gap-2">
             <span>🌿</span> A confirmation summary has been sent to your email.
           </div>
 
           {/* Session details */}
           <div className="w-full bg-white border border-[#F0EBE1] rounded-[24px] p-5 text-left flex flex-col gap-4 shadow-sm">
-            <h4 className="text-[10px] font-extrabold text-[#3D5A45] uppercase tracking-wider border-b border-stone-100 pb-2">Session Details</h4>
+            <h4 className="text-[10px] font-extrabold text-terracotta uppercase tracking-wider border-b border-stone-100 pb-2">Session Details</h4>
             
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center gap-2 text-xs font-semibold text-stone-600">
@@ -1603,7 +1606,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
               onClick={() => {
                 setActiveTab('vetconsult');
               }}
-              className="w-full py-3.5 bg-[#3D5A45] hover:bg-[#2A3E31] text-white text-xs font-extrabold rounded-2xl shadow-sm transition-all"
+              className="w-full py-3.5 bg-terracotta hover:bg-[#c2502f] text-white text-xs font-extrabold rounded-2xl shadow-sm transition-all"
             >
               Go to My Consultations
             </button>
@@ -1643,7 +1646,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
 
               <button 
                 onClick={() => verifyAdminPass(adminPassword)}
-                className="w-full py-2.5 bg-[#3D5A45] hover:bg-[#2A3E31] text-white text-xs font-bold rounded-2xl shadow-sm"
+                className="w-full py-2.5 bg-terracotta hover:bg-[#c2502f] text-white text-xs font-bold rounded-2xl shadow-sm"
               >
                 Authenticate Settings
               </button>
@@ -1860,7 +1863,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
 
                     <button 
                       type="submit"
-                      className="w-full py-3 bg-[#3D5A45] hover:bg-[#2A3E31] text-white text-xs font-bold rounded-2xl shadow-md mt-2"
+                      className="w-full py-3 bg-terracotta hover:bg-[#c2502f] text-white text-xs font-bold rounded-2xl shadow-md mt-2"
                     >
                       Save Specialist Profile
                     </button>

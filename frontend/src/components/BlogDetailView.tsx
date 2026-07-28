@@ -21,30 +21,30 @@ export default function BlogDetailView({
   const getRoleColors = (role: MemberRole) => {
     switch (role) {
       case 'feeder':
-        return { bg: 'bg-[#FFF3E0]', text: 'text-[#E65100]', border: 'border-[#FFE0B2]', label: 'Feeder' };
+        return { bg: 'bg-[#FAF2EE]', text: 'text-terracotta', border: 'border-[#F5DFD8]', label: 'Feeder' };
       case 'rescuer':
-        return { bg: 'bg-[#E8F5E9]', text: 'text-[#2E7D32]', border: 'border-[#C8E6C9]', label: 'Rescuer' };
+        return { bg: 'bg-[#FAF2EE]', text: 'text-terracotta', border: 'border-[#F5DFD8]', label: 'Rescuer' };
       case 'volunteer':
-        return { bg: 'bg-[#E3F2FD]', text: 'text-[#0D47A1]', border: 'border-[#BBDEFB]', label: 'Volunteer' };
+        return { bg: 'bg-[#FCFAF7]', text: 'text-clay', border: 'border-[#EBE3D5]', label: 'Volunteer' };
       case 'paravet':
-        return { bg: 'bg-[#F3E5F5]', text: 'text-[#7B1FA2]', border: 'border-[#E1BEE7]', label: 'Paravet' };
+        return { bg: 'bg-[#FAF2EE]', text: 'text-terracotta', border: 'border-[#F5DFD8]', label: 'Paravet' };
       case 'adopter':
-        return { bg: 'bg-[#E0F2F1]', text: 'text-[#004D40]', border: 'border-[#B2DFDB]', label: 'Foster Home' };
+        return { bg: 'bg-[#FCFAF7]', text: 'text-clay', border: 'border-[#EBE3D5]', label: 'Foster Home' };
       default:
-        return { bg: 'bg-[#ECEFF1]', text: 'text-[#37474F]', border: 'border-[#CFD8DC]', label: 'Member' };
+        return { bg: 'bg-[#F5F2EC]', text: 'text-stone-500', border: 'border-[#EBE3D5]', label: 'Member' };
     }
   };
 
   const getCategoryDetails = (cat: string) => {
     switch (cat) {
       case 'feeding':
-        return { label: 'Feeding Drive', bg: 'bg-[#FFF3E0]', text: 'text-[#E65100]', icon: '🥣' };
+        return { label: 'Feeding Drive', bg: 'bg-[#FAF2EE]', text: 'text-terracotta', icon: '🥣' };
       case 'event':
-        return { label: 'Community Event', bg: 'bg-[#F3E5F5]', text: 'text-[#7B1FA2]', icon: '📅' };
+        return { label: 'Community Event', bg: 'bg-[#FAF2EE]', text: 'text-terracotta', icon: '📅' };
       case 'awareness':
-        return { label: 'Info & Awareness', bg: 'bg-[#E5F2E8]', text: 'text-[#3D5A45]', icon: '📖' };
+        return { label: 'Info & Awareness', bg: 'bg-[#FCFAF7]', text: 'text-clay', icon: '📖' };
       default:
-        return { label: 'Community Update', bg: 'bg-[#ECEFF1]', text: 'text-[#37474F]', icon: '📣' };
+        return { label: 'Community Update', bg: 'bg-[#F5F2EC]', text: 'text-stone-500', icon: '📣' };
     }
   };
 
@@ -168,7 +168,7 @@ export default function BlogDetailView({
         {/* Structured Scheduled Time Card */}
         {scheduledTime && (
           <div className="flex items-center gap-3 bg-stone-50 border border-stone-200/60 rounded-xl p-3 md:p-3.5 w-fit">
-            <div className="w-8 h-8 rounded-lg bg-[#FAF5EC] border border-[#F5E6CC] flex items-center justify-center text-[#B68A35] shrink-0 shadow-3xs">
+            <div className="w-8 h-8 rounded-lg bg-[#FAF2EE] border border-[#F5DFD8] flex items-center justify-center text-terracotta shrink-0 shadow-3xs">
               <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -211,7 +211,7 @@ export default function BlogDetailView({
             className={`w-full py-3 rounded-xl text-xs font-bold transition-all active:scale-98 cursor-pointer ${
               isJoined 
                 ? 'bg-stone-50 border border-stone-200 hover:bg-stone-100 text-stone-600 font-extrabold shadow-sm' 
-                : 'bg-[#3D5A45] hover:bg-[#2F4636] text-white font-extrabold shadow-[0_4px_14px_rgba(61,90,69,0.2)] hover:shadow-[0_6px_20px_rgba(61,90,69,0.3)]'
+                : 'bg-terracotta hover:bg-[#c2502f] text-white font-extrabold shadow-[0_4px_14px_rgba(217,93,57,0.2)] hover:shadow-[0_6px_20px_rgba(217,93,57,0.3)]'
             }`}
           >
             {isJoined ? 'Cancel Registration' : 'Register / Join Event'}
@@ -242,7 +242,7 @@ export default function BlogDetailView({
                     {joinee.userPhone && (
                       <a
                         href={`tel:${joinee.userPhone}`}
-                        className="ml-1 p-1 bg-[#E8F5E9] text-[#2E7D32] hover:bg-[#2E7D32] hover:text-white border border-[#C8E6C9] hover:border-[#2E7D32] rounded-full transition-all flex items-center justify-center cursor-pointer"
+                        className="ml-1 p-1 bg-[#FAF2EE] text-terracotta hover:bg-terracotta hover:text-white border border-[#F5DFD8] hover:border-terracotta rounded-full transition-all flex items-center justify-center cursor-pointer"
                         title={`Call ${joinee.userName} at ${joinee.userPhone}`}
                         onClick={(e) => e.stopPropagation()}
                       >
@@ -261,9 +261,9 @@ export default function BlogDetailView({
 
       {selectedBlog.category === 'feeding' && (
         <div className="mt-2 border-t border-[#F0EBE1] pt-5 flex flex-col gap-3">
-          <div className="bg-[#FFF8E1] rounded-2xl p-4 border border-[#FFE082]/60 flex items-center justify-between">
+          <div className="bg-[#FCFAF7] rounded-2xl p-4 border border-[#EBE3D5]/60 flex items-center justify-between">
             <div className="flex flex-col">
-              <span className="text-[9px] text-[#B78103] font-extrabold uppercase tracking-wider">Feeding Drive Support</span>
+              <span className="text-[9px] text-clay font-extrabold uppercase tracking-wider">Feeding Drive Support</span>
               <span className="text-xs text-charcoal font-semibold mt-0.5">
                 Want to volunteer to help with feeding or donate supplies?
               </span>
@@ -273,7 +273,7 @@ export default function BlogDetailView({
           
           <button
             onClick={() => alert('Support request shared with the feeding coordinator!')}
-            className="w-full py-3 bg-gradient-to-r from-[#F57C00] to-[#E65100] hover:from-[#E65100] hover:to-[#D84315] text-white text-xs font-extrabold rounded-xl shadow-[0_4px_14px_rgba(230,81,0,0.2)] hover:shadow-[0_6px_20px_rgba(230,81,0,0.3)] transform hover:-translate-y-[1px] active:translate-y-0 active:scale-98 transition-all duration-200 cursor-pointer"
+            className="w-full py-3 bg-terracotta hover:bg-[#c2502f] text-white text-xs font-extrabold rounded-xl shadow-[0_4px_14px_rgba(217,93,57,0.2)] hover:shadow-[0_6px_20px_rgba(217,93,57,0.3)] transition-all duration-200 cursor-pointer"
           >
             Offer Feeding Help
           </button>

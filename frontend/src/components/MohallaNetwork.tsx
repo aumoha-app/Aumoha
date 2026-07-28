@@ -28,32 +28,32 @@ export default function MohallaNetwork({ computedMembers, dbSosReports, resolved
   const getRoleColors = (role: MemberRole) => {
     switch (role) {
       case 'feeder':
-        return { bg: 'bg-[#FFF3E0]', text: 'text-[#E65100]', border: 'border-[#FFE0B2]', label: 'Feeder', icon: '🥣' };
+        return { bg: 'bg-[#FAF2EE]', text: 'text-terracotta', border: 'border-[#F5DFD8]', label: 'Feeder', icon: '🥣' };
       case 'rescuer':
-        return { bg: 'bg-[#E8F5E9]', text: 'text-[#2E7D32]', border: 'border-[#C8E6C9]', label: 'Rescuer', icon: '🛡️' };
+        return { bg: 'bg-[#FAF2EE]', text: 'text-terracotta', border: 'border-[#F5DFD8]', label: 'Rescuer', icon: '🛡️' };
       case 'volunteer':
-        return { bg: 'bg-[#E3F2FD]', text: 'text-[#0D47A1]', border: 'border-[#BBDEFB]', label: 'Volunteer', icon: '❤️' };
+        return { bg: 'bg-[#FCFAF7]', text: 'text-clay', border: 'border-[#EBE3D5]', label: 'Volunteer', icon: '❤️' };
       case 'paravet':
-        return { bg: 'bg-[#F3E5F5]', text: 'text-[#7B1FA2]', border: 'border-[#E1BEE7]', label: 'Paravet', icon: '🩺' };
+        return { bg: 'bg-[#FAF2EE]', text: 'text-terracotta', border: 'border-[#F5DFD8]', label: 'Paravet', icon: '🩺' };
       case 'adopter':
-        return { bg: 'bg-[#E0F2F1]', text: 'text-[#004D40]', border: 'border-[#B2DFDB]', label: 'Foster Home', icon: '🏠' };
+        return { bg: 'bg-[#FCFAF7]', text: 'text-clay', border: 'border-[#EBE3D5]', label: 'Foster Home', icon: '🏠' };
       case 'official':
-        return { bg: 'bg-[#FFF8E1]', text: 'text-[#B68A35]', border: 'border-[#FFE082]', label: 'Official', icon: '✦' };
+        return { bg: 'bg-[#FAF2EE]', text: 'text-terracotta', border: 'border-[#F5DFD8]', label: 'Official', icon: '✦' };
       default:
-        return { bg: 'bg-[#ECEFF1]', text: 'text-[#37474F]', border: 'border-[#CFD8DC]', label: 'Member', icon: '👤' };
+        return { bg: 'bg-[#F5F2EC]', text: 'text-stone-500', border: 'border-[#EBE3D5]', label: 'Member', icon: '👤' };
     }
   };
 
   const getFilterIcon = (id: MemberRole | 'all', isActive: boolean) => {
     const colorClass = isActive ? 'text-white' : {
       all: 'text-stone-500',
-      rescuer: 'text-[#2E7D32]',
-      feeder: 'text-[#E65100]',
-      paravet: 'text-[#7B1FA2]',
-      adopter: 'text-[#004D40]',
-      volunteer: 'text-[#0D47A1]',
+      rescuer: 'text-terracotta',
+      feeder: 'text-terracotta',
+      paravet: 'text-terracotta',
+      adopter: 'text-clay',
+      volunteer: 'text-clay',
       normal: 'text-stone-500',
-      official: 'text-[#B68A35]'
+      official: 'text-terracotta'
     }[id];
 
     switch (id) {
@@ -130,21 +130,21 @@ export default function MohallaNetwork({ computedMembers, dbSosReports, resolved
 
       {/* STATS STRIP CARD */}
       <div className="bg-white border border-[#F0EBE1] rounded-[24px] p-5 shadow-xs flex items-center justify-between text-center divide-x divide-stone-100">
-        <div className="flex-1 flex flex-col items-center">
+        <div className="flex-grow flex flex-col items-center">
           <span className="text-[10px] uppercase tracking-wider font-extrabold text-stone-400">Total Members</span>
-          <span className="text-2xl font-bold text-[#3D5A45] mt-1">
+          <span className="text-2xl font-bold text-terracotta mt-1">
             {computedMembers.filter(m => m.role !== 'normal' && m.role as string !== 'member').length}
           </span>
         </div>
-        <div className="flex-1 flex flex-col items-center">
+        <div className="flex-grow flex flex-col items-center">
           <span className="text-[10px] uppercase tracking-wider font-extrabold text-stone-400">Resolved SOS</span>
-          <span className="text-2xl font-bold text-[#2E7D32] mt-1">
+          <span className="text-2xl font-bold text-clay mt-1">
             {resolvedSosCount}
           </span>
         </div>
-        <div className="flex-1 flex flex-col items-center">
+        <div className="flex-grow flex flex-col items-center">
           <span className="text-[10px] uppercase tracking-wider font-extrabold text-stone-400">Active SOS</span>
-          <span className="text-2xl font-bold text-[#C85341] mt-1">{activeSosCount}</span>
+          <span className="text-2xl font-bold text-emergency mt-1">{activeSosCount}</span>
         </div>
       </div>
 
@@ -182,7 +182,7 @@ export default function MohallaNetwork({ computedMembers, dbSosReports, resolved
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={`Search ${memberFilter === 'all' ? 'members' : memberFilter + 's'} by name or location...`}
-          className="w-full pl-10 pr-4 py-3 bg-[#FDFBF8] border border-[#F0EBE1] rounded-2xl text-xs font-bold text-charcoal placeholder-stone-400 focus:outline-none focus:border-[#3D5A45]/40 transition-colors shadow-inner"
+          className="w-full pl-10 pr-4 py-3 bg-[#FDFBF8] border border-[#F0EBE1] rounded-2xl text-xs font-bold text-charcoal placeholder-stone-400 focus:outline-none focus:border-terracotta/40 transition-colors shadow-inner"
         />
       </div>
 
@@ -222,11 +222,6 @@ export default function MohallaNetwork({ computedMembers, dbSosReports, resolved
                         <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded border ${roleDetails.bg} ${roleDetails.text} ${roleDetails.border}`}>
                           {roleDetails.icon} {roleDetails.label}
                         </span>
-                        {member.badge === 'trusted' && (
-                          <span className="text-[9px] font-extrabold text-[#2E7D32] bg-[#E8F5E9] px-1.5 py-0.5 rounded border border-[#C8E6C9]">
-                            ✓ Trusted
-                          </span>
-                        )}
                       </div>
 
                       <div className="flex items-center gap-1.5 text-[10px] text-stone-500 font-bold">
@@ -244,7 +239,7 @@ export default function MohallaNetwork({ computedMembers, dbSosReports, resolved
                   {/* Dispatch / Contact CTA */}
                   <button
                     onClick={() => alert(`Calling rescue responder ${member.name}...`)}
-                    className="p-3 bg-[#E8EFE9] text-[#2D4536] hover:bg-[#3D5A45] hover:text-white rounded-full transition-all duration-200 shadow-xs shrink-0 active:scale-95 border border-[#C8E6C9]/40"
+                    className="p-3 bg-[#FAF2EE] text-terracotta hover:bg-terracotta hover:text-white rounded-full transition-all duration-200 shadow-xs shrink-0 active:scale-95 border border-[#F5DFD8]"
                     aria-label={`Call ${member.name}`}
                   >
                     <svg className="w-4 h-4 text-current" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
