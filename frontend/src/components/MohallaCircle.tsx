@@ -34,31 +34,31 @@ const renderRoleIcon = (role: MemberRole, size = 'w-6 h-6') => {
   switch (role) {
     case 'feeder':
       return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-[#E65100]`}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-terracotta`}>
           <path d="M12 2v4M12 18h.01M3 20h18M5 10a7 7 0 0 0 14 0H5z" />
         </svg>
       );
     case 'rescuer':
       return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-[#2E7D32]`}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-terracotta`}>
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
         </svg>
       );
     case 'volunteer':
       return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-[#0D47A1]`}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-clay`}>
           <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
         </svg>
       );
     case 'paravet':
       return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-[#7B1FA2]`}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-terracotta`}>
           <path d="M4.82 17.22a3 3 0 1 1-3-3m0 0v-4a7 7 0 0 1 14 0v4m0-4V6a2 2 0 0 1 2-2h2m-6 13.22a3 3 0 1 1 3-3" />
         </svg>
       );
     case 'adopter':
       return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-[#004D40]`}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-clay`}>
           <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
           <polyline points="9 22 9 12 15 12 15 22" />
         </svg>
@@ -77,7 +77,7 @@ const renderPartnerIcon = (type: string, size = 'w-7 h-7') => {
   switch (type.toLowerCase()) {
     case 'veterinary':
       return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-[#C85341]`}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-terracotta`}>
           <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2z" />
           <line x1="12" y1="8" x2="12" y2="16" />
           <line x1="8" y1="12" x2="16" y2="12" />
@@ -85,20 +85,20 @@ const renderPartnerIcon = (type: string, size = 'w-7 h-7') => {
       );
     case 'ngo':
       return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className={`${size} text-[#2E7D32]`}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className={`${size} text-clay`}>
           <path d="M12 14c-1.66 0-3 1.34-3 3 0 2 2 3.5 3 4.5 1-1 3-2.5 3-4.5 0-1.66-1.34-3-3-3zm-4.5-2.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm9 0c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm-11-4C4.67 7.5 4 8.17 4 9s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5S6.33 7.5 5.5 7.5zm13 0c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zM12 2c-.83 0-1.5.67-1.5 1.5S11.17 5 12 5s1.5-.67 1.5-1.5S12.83 2 12 2z" fill="currentColor" />
         </svg>
       );
     case 'shelter':
       return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-[#004D40]`}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-clay`}>
           <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
           <polyline points="9 22 9 12 15 12 15 22" />
         </svg>
       );
     default:
       return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-[#0D47A1]`}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-clay`}>
           <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
         </svg>
       );
@@ -449,17 +449,17 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
   const getRoleColors = (role: MemberRole) => {
     switch (role) {
       case 'feeder':
-        return { bg: 'bg-[#FFF3E0]', text: 'text-[#E65100]', border: 'border-[#FFE0B2]', label: 'Feeder', icon: '🥣' };
+        return { bg: 'bg-[#FAF2EE]', text: 'text-terracotta', border: 'border-[#F5DFD8]', label: 'Feeder', icon: '🥣' };
       case 'rescuer':
-        return { bg: 'bg-[#E8F5E9]', text: 'text-[#2E7D32]', border: 'border-[#C8E6C9]', label: 'Rescuer', icon: '🛡️' };
+        return { bg: 'bg-[#FAF2EE]', text: 'text-terracotta', border: 'border-[#F5DFD8]', label: 'Rescuer', icon: '🛡️' };
       case 'volunteer':
-        return { bg: 'bg-[#E3F2FD]', text: 'text-[#0D47A1]', border: 'border-[#BBDEFB]', label: 'Volunteer', icon: '❤️' };
+        return { bg: 'bg-[#FCFAF7]', text: 'text-clay', border: 'border-[#EBE3D5]', label: 'Volunteer', icon: '❤️' };
       case 'paravet':
-        return { bg: 'bg-[#F3E5F5]', text: 'text-[#7B1FA2]', border: 'border-[#E1BEE7]', label: 'Paravet', icon: '🩺' };
+        return { bg: 'bg-[#FAF2EE]', text: 'text-terracotta', border: 'border-[#F5DFD8]', label: 'Paravet', icon: '🩺' };
       case 'adopter':
-        return { bg: 'bg-[#E0F2F1]', text: 'text-[#004D40]', border: 'border-[#B2DFDB]', label: 'Foster Home', icon: '🏠' };
+        return { bg: 'bg-[#FCFAF7]', text: 'text-clay', border: 'border-[#EBE3D5]', label: 'Foster Home', icon: '🏠' };
       default:
-        return { bg: 'bg-[#ECEFF1]', text: 'text-[#37474F]', border: 'border-[#CFD8DC]', label: 'Member', icon: '👤' };
+        return { bg: 'bg-[#F5F2EC]', text: 'text-stone-500', border: 'border-[#EBE3D5]', label: 'Member', icon: '👤' };
     }
   };
 
@@ -479,20 +479,20 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
     const clean = (roleOrType || '').toLowerCase();
     switch (clean) {
       case 'feeder':
-        return `<svg viewBox="0 0 24 24" fill="none" stroke="#E65100" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M12 2v4M12 18h.01M3 20h18M5 10a7 7 0 0 0 14 0H5z" /></svg>`;
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="#D95D39" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M12 2v4M12 18h.01M3 20h18M5 10a7 7 0 0 0 14 0H5z" /></svg>`;
       case 'rescuer':
-        return `<svg viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>`;
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="#D95D39" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>`;
       case 'volunteer':
-        return `<svg viewBox="0 0 24 24" fill="none" stroke="#0D47A1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /></svg>`;
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="#8C5E45" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /></svg>`;
       case 'paravet':
-        return `<svg viewBox="0 0 24 24" fill="none" stroke="#7B1FA2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M4.82 17.22a3 3 0 1 1-3-3m0 0v-4a7 7 0 0 1 14 0v4m0-4V6a2 2 0 0 1 2-2h2m-6 13.22a3 3 0 1 1 3-3" /></svg>`;
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="#D95D39" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M4.82 17.22a3 3 0 1 1-3-3m0 0v-4a7 7 0 0 1 14 0v4m0-4V6a2 2 0 0 1 2-2h2m-6 13.22a3 3 0 1 1 3-3" /></svg>`;
       case 'adopter':
-        return `<svg viewBox="0 0 24 24" fill="none" stroke="#004D40" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>`;
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="#8C5E45" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>`;
       case 'help_needed':
       case 'incident':
-        return `<svg viewBox="0 0 24 24" fill="none" stroke="#C85341" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-5.5 h-5.5 animate-pulse"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>`;
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="#C23B22" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-5.5 h-5.5 animate-pulse"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>`;
       default:
-        return `<svg viewBox="0 0 24 24" fill="none" stroke="#37474F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>`;
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="#8C5E45" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>`;
     }
   };
 
@@ -545,32 +545,32 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
 
     const getPinColor = (role: string) => {
       switch (role) {
-        case 'feeder': return '#D32F2F';
-        case 'rescuer': return '#E65100';
-        case 'volunteer': return '#E91E63';
-        case 'paravet': return '#7B1FA2';
-        case 'adopter': return '#2E7D32';
-        case 'help_needed': return '#C85341';
-        default: return '#546E7A';
+        case 'feeder': return '#D95D39';
+        case 'rescuer': return '#D95D39';
+        case 'volunteer': return '#8C5E45';
+        case 'paravet': return '#D95D39';
+        case 'adopter': return '#8C5E45';
+        case 'help_needed': return '#C23B22';
+        default: return '#8C5E45';
       }
     };
 
     const getPinIcon = (role: string) => {
       switch (role) {
         case 'feeder':
-          return `<svg class="w-3.5 h-3.5 text-[#D32F2F]" fill="currentColor" viewBox="0 0 24 24"><path d="M2 20h20v2H2v-2zm2-2h16c0-4.42-3.58-8-8-8s-8 3.58-8 8zm8-10c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>`;
+          return `<svg class="w-3.5 h-3.5 text-[#D95D39]" fill="currentColor" viewBox="0 0 24 24"><path d="M2 20h20v2H2v-2zm2-2h16c0-4.42-3.58-8-8-8s-8 3.58-8 8zm8-10c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>`;
         case 'adopter':
-          return `<svg class="w-3.5 h-3.5 text-[#2E7D32]" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>`;
+          return `<svg class="w-3.5 h-3.5 text-[#8C5E45]" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>`;
         case 'paravet':
-          return `<svg class="w-3.5 h-3.5 text-[#7B1FA2]" fill="currentColor" viewBox="0 0 24 24"><path d="M19 10.5h-5.5V5h-3v5.5H5v3h5.5V19h3v-5.5H19v-3z"/></svg>`;
+          return `<svg class="w-3.5 h-3.5 text-[#D95D39]" fill="currentColor" viewBox="0 0 24 24"><path d="M19 10.5h-5.5V5h-3v5.5H5v3h5.5V19h3v-5.5H19v-3z"/></svg>`;
         case 'volunteer':
-          return `<svg class="w-3.5 h-3.5 text-[#E91E63]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+          return `<svg class="w-3.5 h-3.5 text-[#8C5E45]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
         case 'rescuer':
-          return `<svg class="w-3.5 h-3.5 text-[#E65100]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
+          return `<svg class="w-3.5 h-3.5 text-[#D95D39]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
         case 'help_needed':
-          return `<svg class="w-3.5 h-3.5 text-[#C85341]" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>`;
+          return `<svg class="w-3.5 h-3.5 text-[#C23B22]" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>`;
         default:
-          return `<svg class="w-3.5 h-3.5 text-[#546E7A]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
+          return `<svg class="w-3.5 h-3.5 text-[#8C5E45]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
       }
     };
 
@@ -713,30 +713,30 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
     switch (id) {
       case 'e1': // Vaccination Camp
         return (
-          <div className="w-full h-full bg-gradient-to-br from-[#E3F2FD] to-[#BBDEFB] flex items-center justify-center relative">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10 text-[#0D47A1]">
+          <div className="w-full h-full bg-gradient-to-br from-[#FAF2EE] to-[#F5DFD8] flex items-center justify-center relative">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10 text-terracotta">
               <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
             </svg>
-            <span className="absolute bottom-2 right-2 bg-white/90 text-[#0D47A1] text-[8px] font-extrabold px-1.5 py-0.5 rounded border border-[#BBDEFB]">🏥 VACCINE</span>
+            <span className="absolute bottom-2 right-2 bg-white/90 text-terracotta text-[8px] font-extrabold px-1.5 py-0.5 rounded border border-[#F5DFD8]">🏥 VACCINE</span>
           </div>
         );
       case 'e2': // Clean Streets, Safe Paws
         return (
-          <div className="w-full h-full bg-gradient-to-br from-[#E8F5E9] to-[#C8E6C9] flex items-center justify-center relative">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10 text-[#2E7D32]">
+          <div className="w-full h-full bg-gradient-to-br from-[#FCFAF7] to-[#F5F2EC] flex items-center justify-center relative">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10 text-clay">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             </svg>
-            <span className="absolute bottom-2 right-2 bg-white/90 text-[#2E7D32] text-[8px] font-extrabold px-1.5 py-0.5 rounded border border-[#C8E6C9]">🌱 CLEANUP</span>
+            <span className="absolute bottom-2 right-2 bg-white/90 text-clay text-[8px] font-extrabold px-1.5 py-0.5 rounded border border-[#EBE3D5]">🌱 CLEANUP</span>
           </div>
         );
       case 'e3': // Adoption Meet
         return (
-          <div className="w-full h-full bg-gradient-to-br from-[#FFF3E0] to-[#FFE0B2] flex items-center justify-center relative">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10 text-[#E65100]">
+          <div className="w-full h-full bg-gradient-to-br from-[#FCFAF7] to-[#F5F2EC] flex items-center justify-center relative">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10 text-clay">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
-            <span className="absolute bottom-2 right-2 bg-white/90 text-[#E65100] text-[8px] font-extrabold px-1.5 py-0.5 rounded border border-[#FFE0B2]">🏠 ADOPTION</span>
+            <span className="absolute bottom-2 right-2 bg-white/90 text-clay text-[8px] font-extrabold px-1.5 py-0.5 rounded border border-[#EBE3D5]">🏠 ADOPTION</span>
           </div>
         );
       default:
@@ -904,11 +904,11 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
       );
     }
 
-    let infoColor = 'text-stone-500';
-    if (post.category === 'help') infoColor = 'text-[#C85341]';
-    else if (post.category === 'feeding') infoColor = 'text-[#E65100]';
-    else if (post.category === 'event') infoColor = 'text-[#7B1FA2]';
-    else if (post.category === 'awareness') infoColor = 'text-[#3D5A45]';
+    let infoColor = 'text-clay';
+    if (post.category === 'help') infoColor = 'text-emergency';
+    else if (post.category === 'feeding') infoColor = 'text-terracotta';
+    else if (post.category === 'event') infoColor = 'text-terracotta';
+    else if (post.category === 'awareness') infoColor = 'text-clay';
 
     return (
       <div
@@ -921,21 +921,15 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
             setUpdateFilter(post.category);
           }
         }}
-        className="bg-white border border-[#F0EBE1] hover:border-stone-300 rounded-[20px] p-3 flex items-center justify-between gap-3 hover:shadow-xs transition-all duration-300 cursor-pointer select-none"
+        className="bg-white border border-[#F0EBE1] hover:border-stone-300 rounded-[20px] p-3.5 flex items-center justify-between gap-3 hover:shadow-xs transition-all duration-300 cursor-pointer select-none"
       >
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 border border-[#F0EBE1] flex items-center justify-center bg-stone-50 relative shadow-inner">
-            {avatarIcon}
-          </div>
-
-          <div className="flex flex-col">
-            <span className="text-sm font-bold text-charcoal tracking-tight leading-snug line-clamp-1">
-              {post.title}
-            </span>
-            <span className="text-[11px] text-stone-400 font-semibold mt-0.5 leading-none line-clamp-1">
-              {isSos ? post.description : displayDesc}
-            </span>
-          </div>
+        <div className="flex flex-col min-w-0">
+          <span className="text-sm font-bold text-charcoal tracking-tight leading-snug line-clamp-1">
+            {post.title}
+          </span>
+          <span className="text-[11px] text-stone-400 font-semibold mt-0.5 leading-none line-clamp-1">
+            {isSos ? post.description : displayDesc}
+          </span>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">

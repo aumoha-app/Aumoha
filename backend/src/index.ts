@@ -227,7 +227,7 @@ export const fallbackVets: any[] = [
   },
   {
     _id: 'exp5',
-    name: 'Aditi Shah',
+    name: 'John',
     photo: '/warden-3.png',
     specialisation: 'Pet Physiotherapist',
     category: 'Physiotherapist',
@@ -528,6 +528,8 @@ export const fallbackActivities: any[] = [
 async function seedVets() {
   try {
     const VetModel = mongoose.models.Vet || mongoose.model('Vet');
+    // Ensure any existing profile named "Aditi Shah" is renamed to "John"
+    await VetModel.updateMany({ name: 'Aditi Shah' }, { $set: { name: 'John' } });
     const count = await VetModel.countDocuments();
     if (count > 0) return;
 

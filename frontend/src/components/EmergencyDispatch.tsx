@@ -483,7 +483,7 @@ export default function EmergencyDispatch({
           href="tel:1962" 
           className="px-3.5 py-1.5 bg-[#9B1C1C] hover:bg-[#821414] active:scale-95 text-white font-bold rounded-full text-[10px] md:text-xs shrink-0 flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm shadow-rose-200"
         >
-          📞 Call 1962
+          Call 1962
         </a>
       </div>
 
@@ -1012,7 +1012,7 @@ export default function EmergencyDispatch({
             <line x1="22" y1="2" x2="11" y2="13" />
             <polygon points="22 2 15 22 11 13 2 9 22 2" />
           </svg>
-          {sosSent ? "🚨 Broadcasting Distress Signal..." : "Activate Rescue Network"}
+          {sosSent ? "Broadcasting Distress Signal..." : "Activate Rescue Network"}
         </button>
 
       </form>
@@ -1189,7 +1189,7 @@ export default function EmergencyDispatch({
                                 onClick={() => handleUpdateMyReportStatus(report._id, 'dispatched')}
                                 className="px-3 py-1.5 bg-[#FFF8F1] hover:bg-[#FFEAE1] border border-[#FFE4E6] text-amber-700 text-[10px] font-extrabold rounded-xl transition-all cursor-pointer shadow-xs active:scale-95 flex items-center gap-1"
                               >
-                                🚚 Mark Dispatched
+                                Mark Dispatched
                               </button>
                             )}
                             {report.status !== 'resolved' && (
@@ -1198,7 +1198,7 @@ export default function EmergencyDispatch({
                                 onClick={() => handleUpdateMyReportStatus(report._id, 'resolved')}
                                 className="px-3 py-1.5 bg-[#F0FDF4] hover:bg-[#DCFCE7] border border-[#BBF7D0] text-emerald-700 text-[10px] font-extrabold rounded-xl transition-all cursor-pointer shadow-xs active:scale-95 flex items-center gap-1"
                               >
-                                ✓ Mark Resolved
+                                Mark Resolved
                               </button>
                             )}
                             {report.status !== 'active' && (
@@ -1207,7 +1207,7 @@ export default function EmergencyDispatch({
                                 onClick={() => handleUpdateMyReportStatus(report._id, 'active')}
                                 className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-100 text-rose-700 text-[10px] font-extrabold rounded-xl transition-all cursor-pointer shadow-xs active:scale-95 flex items-center gap-1"
                               >
-                                🚨 Reopen Alert
+                                Reopen Alert
                               </button>
                             )}
                           </div>

@@ -1,28 +1,24 @@
 export default function HeroSection() {
   return (
     <main className="w-full max-w-2xl mx-auto transition-all duration-300">
-      {/* Split Hero Layout - No Background Card & Consistent Row for both Mobile/Desktop */}
-      <div className="w-full flex flex-row h-[200px] md:h-[340px]">
+      <div className="w-full flex flex-col items-center select-none">
         
-        {/* Left Column: Core Messaging & Tagline */}
-        <div className="w-[50%] pr-4 flex flex-col justify-center select-none">
-          <h2 className="font-serif text-xl md:text-[36px] text-charcoal font-normal leading-[1.15] tracking-tight">
-            Together,<br />
-            we protect<br />
-            what matters.
+        {/* Tagline */}
+        <div className="w-full text-center pt-2 pb-1">
+          <h2 className="font-serif text-2xl md:text-[40px] text-charcoal font-normal leading-[1.15] tracking-tight">
+            Together, we protect<br />what matters.
           </h2>
-          <div className="text-[10px] md:text-sm text-stone-500 font-medium leading-relaxed mt-4 md:mt-8 flex flex-col gap-0.5">
-            <span>Rescue. Protect. Care.</span>
-            <span>For every life.</span>
+          <div className="text-[11px] md:text-sm text-stone-500 font-medium leading-relaxed mt-2 md:mt-3">
+            <span>Rescue. Protect. Care. For every life.</span>
           </div>
         </div>
         
-        {/* Right Column: Sunlit Golden Retriever Puppy Image */}
-        <div className="w-[50%] h-full rounded-[16px] md:rounded-[24px] overflow-hidden" suppressHydrationWarning>
+        {/* Group Pets Image (CSS cropped from top to eliminate empty image padding) */}
+        <div className="w-full max-w-sm mx-auto h-[250px] sm:h-[250px] md:h-[280px] overflow-hidden flex items-end justify-center" suppressHydrationWarning>
           <img
-            src="/hero-golden-retriever.png"
-            alt="MOHA Golden Retriever Puppy"
-            className="w-full h-full object-cover object-center rounded-[16px] md:rounded-[24px]"
+            src="/hero-pets-group.png"
+            alt="Group of dogs and cats — Aumoha pet care community"
+            className="w-full h-full object-cover object-bottom"
             suppressHydrationWarning
           />
         </div>
@@ -31,3 +27,4 @@ export default function HeroSection() {
     </main>
   );
 }
+
