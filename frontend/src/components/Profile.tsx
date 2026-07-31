@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { UserProfile } from '../types';
 import { DogIcon, CatIcon, BirdIcon, FishIcon, RabbitIcon, ReptileIcon, PawIcon } from './icons/PetIcons';
+import { API_BASE } from '../lib/api';
 
 interface ProfileProps {
   onOpenAdmin?: () => void;
@@ -135,7 +136,7 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
     setPetError(null);
 
     try {
-      const response = await fetch('http://localhost:5001/api/auth/profile/pets', {
+      const response = await fetch(`${API_BASE}/auth/profile/pets`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -183,7 +184,7 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
       onConfirm: async () => {
         setIsPetSaving(true);
         try {
-          const response = await fetch(`http://localhost:5001/api/auth/profile/pets/${petId}`, {
+          const response = await fetch(`${API_BASE}/auth/profile/pets/${petId}`, {
             method: 'DELETE',
             headers: {
               Authorization: `Bearer ${token}`,
@@ -209,7 +210,7 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
   // Check if current user is admin whitelisted
   useEffect(() => {
     if (token) {
-      fetch('http://localhost:5001/api/auth/admin-config', {
+      fetch(`${API_BASE}/auth/admin-config`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -270,7 +271,7 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:5001/api/auth/profile', {
+      const response = await fetch(`${API_BASE}/auth/profile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -357,7 +358,7 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
   const saveProfileDirectly = async (base64Pic: string) => {
     if (!user) return;
     try {
-      await fetch('http://localhost:5001/api/auth/profile', {
+      await fetch(`${API_BASE}/auth/profile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

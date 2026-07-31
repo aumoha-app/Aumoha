@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { DogIcon, LockIcon } from './icons/PetIcons';
+import { API_BASE } from '../lib/api';
 
 // Define Interface types
 interface Slot {
@@ -126,7 +127,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
-      const res = await fetch('http://localhost:5001/api/vets', { headers });
+      const res = await fetch(`${API_BASE}/vets`, { headers });
       const data = await res.json();
       if (res.ok) {
         setVets(data.vets || []);
@@ -143,7 +144,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
     if (!token) return;
     setIsLoadingAppts(true);
     try {
-      const res = await fetch('http://localhost:5001/api/appointments', {
+      const res = await fetch(`${API_BASE}/appointments`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -162,7 +163,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
   // Check if current user is admin whitelisted
   useEffect(() => {
     if (token) {
-      fetch('http://localhost:5001/api/auth/admin-config', {
+      fetch(`${API_BASE}/auth/admin-config`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -183,7 +184,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
   const verifyAdminPass = async (pass: string) => {
     setAdminError(null);
     try {
-      const res = await fetch('http://localhost:5001/api/auth/verify-admin', {
+      const res = await fetch(`${API_BASE}/auth/verify-admin`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -361,7 +362,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
     }
 
     try {
-      const res = await fetch('http://localhost:5001/api/appointments', {
+      const res = await fetch(`${API_BASE}/appointments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -397,7 +398,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
     if (!confirm) return;
 
     try {
-      const res = await fetch(`http://localhost:5001/api/appointments/${appt._id}/cancel`, {
+      const res = await fetch(`${API_BASE}/appointments/${appt._id}/cancel`, {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${token}`
@@ -417,7 +418,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
     if (!token || !isReschedulingAppt || !rescheduleSlotId) return;
 
     try {
-      const res = await fetch(`http://localhost:5001/api/appointments/${isReschedulingAppt._id}/reschedule`, {
+      const res = await fetch(`${API_BASE}/appointments/${isReschedulingAppt._id}/reschedule`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -443,7 +444,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
     if (!token || !isAddingNotesAppt) return;
 
     try {
-      const res = await fetch(`http://localhost:5001/api/appointments/${isAddingNotesAppt._id}/notes`, {
+      const res = await fetch(`${API_BASE}/appointments/${isAddingNotesAppt._id}/notes`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -485,7 +486,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
 
     try {
       const method = isEditingVet ? 'PUT' : 'POST';
-      const endpoint = isEditingVet ? `http://localhost:5001/api/vets/${isEditingVet._id}` : 'http://localhost:5001/api/vets';
+      const endpoint = isEditingVet ? `${API_BASE}/vets/${isEditingVet._id}` : `${API_BASE}/vets`;
       const res = await fetch(endpoint, {
         method,
         headers: {
@@ -516,7 +517,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
     if (!confirm) return;
 
     try {
-      const res = await fetch(`http://localhost:5001/api/vets/${vetId}`, {
+      const res = await fetch(`${API_BASE}/vets/${vetId}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -539,7 +540,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
     if (!confirm) return;
 
     try {
-      const res = await fetch(`http://localhost:5001/api/vets/${vet._id}`, {
+      const res = await fetch(`${API_BASE}/vets/${vet._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

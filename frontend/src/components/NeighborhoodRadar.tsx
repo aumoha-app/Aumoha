@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE } from '../lib/api';
 
 interface NeighborhoodRadarProps {
   onEnterCircle?: () => void;
@@ -65,7 +66,7 @@ export default function NeighborhoodRadar({ onEnterCircle }: NeighborhoodRadarPr
     const fetchStats = async () => {
       try {
         // Fetch users count
-        const usersRes = await fetch('http://localhost:5001/api/users', {
+        const usersRes = await fetch(`${API_BASE}/users`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         let mCount = 24;
@@ -76,10 +77,10 @@ export default function NeighborhoodRadar({ onEnterCircle }: NeighborhoodRadarPr
         }
         
         // Fetch active and resolved SOS reports count
-        const activeRes = await fetch('http://localhost:5001/api/sos/active', {
+        const activeRes = await fetch(`${API_BASE}/sos/active`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        const resolvedRes = await fetch('http://localhost:5001/api/sos/resolved', {
+        const resolvedRes = await fetch(`${API_BASE}/sos/resolved`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         

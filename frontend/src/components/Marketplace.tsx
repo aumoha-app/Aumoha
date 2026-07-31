@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import CartDrawer, { type CartItem } from './CartDrawer';
 import { useAuth } from '../context/AuthContext';
 import { Product } from '../types';
+import { API_BASE } from '../lib/api';
 
 interface MarketplaceProps {
   onOpenAdmin?: () => void;
@@ -29,7 +30,7 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await fetch('http://localhost:5001/api/settings/checkout-phone');
+        const res = await fetch(`${API_BASE}/settings/checkout-phone`);
         if (res.ok) {
           const data = await res.json();
           if (data.status === 'success') {
@@ -48,7 +49,7 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
   const fetchProducts = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await fetch('http://localhost:5001/api/products');
+      const res = await fetch(`${API_BASE}/products`);
       if (res.ok) {
         const data = await res.json();
         setProducts(data.products || []);
@@ -72,7 +73,7 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
         return;
       }
       try {
-        const res = await fetch('http://localhost:5001/api/auth/admin-config', {
+        const res = await fetch(`${API_BASE}/auth/admin-config`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }

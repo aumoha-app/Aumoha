@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CircleMember } from '../types';
+import { API_BASE } from '../lib/api';
 
 interface MohallaImpactProps {
   computedMembers: CircleMember[];
@@ -20,7 +21,7 @@ export default function MohallaImpact({
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await fetch('http://localhost:5001/api/settings/checkout-phone');
+        const res = await fetch(`${API_BASE}/settings/checkout-phone`);
         if (res.ok) {
           const data = await res.json();
           if (data.status === 'success') {

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { CommunityUpdate, MemberRole } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { ClockIcon } from './icons/PetIcons';
+import { API_BASE } from '../lib/api';
 
 interface MohallaUpdatesProps {
   computedUpdates: CommunityUpdate[];
@@ -72,7 +73,7 @@ export default function MohallaUpdates({
     }
 
     try {
-      const response = await fetch('http://localhost:5001/api/activities', {
+      const response = await fetch(`${API_BASE}/activities`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -135,9 +136,9 @@ export default function MohallaUpdates({
   const handleDeletePost = async (postId: string, category: string) => {
     if (!token) return;
     try {
-      let url = `http://localhost:5001/api/activities/${postId}`;
+      let url = `${API_BASE}/activities/${postId}`;
       if (category === 'help') {
-        url = `http://localhost:5001/api/sos/my/${postId}`;
+        url = `${API_BASE}/sos/my/${postId}`;
       }
       
       const response = await fetch(url, {

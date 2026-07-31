@@ -18,6 +18,7 @@ import BlogDetailView from './BlogDetailView';
 import MohallaImpact from './MohallaImpact';
 import { loadLeaflet } from '../lib/leafletLoader';
 import { CalendarIcon, SyringeIcon, LeafIcon, HouseIcon } from './icons/PetIcons';
+import { API_BASE } from '../lib/api';
 
 
 const formatTime = (dateStr: string) => {
@@ -156,7 +157,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
     const isCurrentlyJoined = joinedActivities.includes(activityId);
     const action = isCurrentlyJoined ? 'leave' : 'join';
     try {
-      const res = await fetch(`http://localhost:5001/api/activities/${activityId}/${action}`, {
+      const res = await fetch(`${API_BASE}/activities/${activityId}/${action}`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`
@@ -265,7 +266,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
   const refreshUpdates = async () => {
     if (!token) return;
     try {
-      const actRes = await fetch('http://localhost:5001/api/activities', {
+      const actRes = await fetch(`${API_BASE}/activities`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (actRes.ok) {
@@ -273,7 +274,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
         setDbActivities(actData.activities || []);
       }
 
-      const sosRes = await fetch('http://localhost:5001/api/sos/active', {
+      const sosRes = await fetch(`${API_BASE}/sos/active`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (sosRes.ok) {
@@ -281,7 +282,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
         setDbSosReports(sosData.reports || []);
       }
 
-      const resolvedRes = await fetch('http://localhost:5001/api/sos/resolved', {
+      const resolvedRes = await fetch(`${API_BASE}/sos/resolved`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (resolvedRes.ok) {
@@ -297,7 +298,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
     const fetchData = async () => {
       if (!token) return;
       try {
-        const userRes = await fetch('http://localhost:5001/api/users', {
+        const userRes = await fetch(`${API_BASE}/users`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (userRes.ok) {
@@ -305,7 +306,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
           setDbUsers(userData.users || []);
         }
 
-        const sosRes = await fetch('http://localhost:5001/api/sos/active', {
+        const sosRes = await fetch(`${API_BASE}/sos/active`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (sosRes.ok) {
@@ -313,7 +314,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
           setDbSosReports(sosData.reports || []);
         }
 
-        const resolvedRes = await fetch('http://localhost:5001/api/sos/resolved', {
+        const resolvedRes = await fetch(`${API_BASE}/sos/resolved`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (resolvedRes.ok) {
@@ -321,7 +322,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
           setResolvedSosCount(resolvedData.reports?.length || 0);
         }
 
-        const actRes = await fetch('http://localhost:5001/api/activities', {
+        const actRes = await fetch(`${API_BASE}/activities`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (actRes.ok) {

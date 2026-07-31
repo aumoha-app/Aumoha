@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Product, SosReport } from '../types';
+import { API_BASE } from '../lib/api';
 
 interface AdminDashboardProps {
   onClose: () => void;
@@ -89,7 +90,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const res = await fetch('http://localhost:5001/api/products');
+      const res = await fetch(`${API_BASE}/products`);
       if (res.ok) {
         const data = await res.json();
         setProducts(data.products || []);
@@ -106,7 +107,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
   const fetchSosReports = async (showLoading = false) => {
     if (showLoading) setIsSosLoading(true);
     try {
-      const res = await fetch('http://localhost:5001/api/sos', {
+      const res = await fetch(`${API_BASE}/sos`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'X-Admin-Password': adminPassword
@@ -127,7 +128,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
     setIsVerifying(true);
     setAuthError(null);
     try {
-      const res = await fetch('http://localhost:5001/api/auth/verify-admin', {
+      const res = await fetch(`${API_BASE}/auth/verify-admin`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -169,7 +170,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
 
   const handleUpdateSosStatus = async (id: string, newStatus: string) => {
     try {
-      const res = await fetch(`http://localhost:5001/api/sos/${id}`, {
+      const res = await fetch(`${API_BASE}/sos/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -198,7 +199,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
       isDestructive: true,
       onConfirm: async () => {
         try {
-          const res = await fetch(`http://localhost:5001/api/sos/${id}`, {
+          const res = await fetch(`${API_BASE}/sos/${id}`, {
             method: 'DELETE',
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -233,7 +234,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
     setIsSettingsLoading(true);
     setSettingsError(null);
     try {
-      const res = await fetch('http://localhost:5001/api/settings/checkout-phone');
+      const res = await fetch(`${API_BASE}/settings/checkout-phone`);
       if (res.ok) {
         const data = await res.json();
         setCheckoutCountryCode(data.countryCode || '+91');
@@ -271,7 +272,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
 
     setIsSettingsSaving(true);
     try {
-      const res = await fetch('http://localhost:5001/api/settings/checkout-phone', {
+      const res = await fetch(`${API_BASE}/settings/checkout-phone`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -301,7 +302,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
   const fetchActivities = async (showLoading = false) => {
     if (showLoading) setIsActivitiesLoading(true);
     try {
-      const res = await fetch('http://localhost:5001/api/activities', {
+      const res = await fetch(`${API_BASE}/activities`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -364,8 +365,8 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
 
     try {
       const url = isEditingActivity && editActivityId
-        ? `http://localhost:5001/api/admin/activities/${editActivityId}`
-        : 'http://localhost:5001/api/admin/activities';
+        ? `${API_BASE}/admin/activities/${editActivityId}`
+        : `${API_BASE}/admin/activities`;
       const method = isEditingActivity ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
@@ -414,7 +415,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
       isDestructive: true,
       onConfirm: async () => {
         try {
-          const res = await fetch(`http://localhost:5001/api/admin/activities/${id}`, {
+          const res = await fetch(`${API_BASE}/admin/activities/${id}`, {
             method: 'DELETE',
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -530,8 +531,8 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
     };
 
     const url = isEditing
-      ? `http://localhost:5001/api/products/${editId}`
-      : 'http://localhost:5001/api/products';
+      ? `${API_BASE}/products/${editId}`
+      : `${API_BASE}/products`;
     
     const method = isEditing ? 'PUT' : 'POST';
 
@@ -583,7 +584,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
       onConfirm: async () => {
         setErrorMessage(null);
         try {
-          const res = await fetch(`http://localhost:5001/api/products/${id}`, {
+          const res = await fetch(`${API_BASE}/products/${id}`, {
             method: 'DELETE',
             headers: {
               'Authorization': `Bearer ${token}`,

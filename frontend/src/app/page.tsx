@@ -21,6 +21,7 @@ import OnboardingScreen from '../components/OnboardingScreen';
 import AdminDashboard from '../components/AdminDashboard';
 import DonationSection from '../components/DonationSection';
 import CommunityActionsGrid from '../components/CommunityActionsGrid';
+import { API_BASE } from '../lib/api';
 
 
 
@@ -115,7 +116,7 @@ export default function Home() {
     const checkBackend = async () => {
       try {
         setBackendStatus('connecting');
-        const res = await fetch('http://localhost:5001/api/info', { mode: 'cors' });
+        const res = await fetch(`${API_BASE}/info`, { mode: 'cors' });
         if (res.ok) {
           const data = await res.json();
           setBackendInfo(data);
@@ -151,7 +152,7 @@ export default function Home() {
     audio?: string
   ) => {
     try {
-      const response = await fetch('http://localhost:5001/api/sos', {
+      const response = await fetch(`${API_BASE}/sos`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

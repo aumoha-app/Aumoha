@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import EmergencySubmitted from './EmergencySubmitted';
 import { useAuth } from '../context/AuthContext';
 import { loadLeaflet } from '../lib/leafletLoader';
+import { API_BASE } from '../lib/api';
 
 interface EmergencyDispatchProps {
   sosReason: string;
@@ -275,7 +276,7 @@ export default function EmergencyDispatch({
     if (!token) return;
     setIsHistoryLoading(true);
     try {
-      const res = await fetch('http://localhost:5001/api/sos/my', {
+      const res = await fetch(`${API_BASE}/sos/my`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -294,7 +295,7 @@ export default function EmergencyDispatch({
   const handleUpdateMyReportStatus = async (reportId: string, newStatus: string) => {
     if (!token) return;
     try {
-      const response = await fetch(`http://localhost:5001/api/sos/my/${reportId}`, {
+      const response = await fetch(`${API_BASE}/sos/my/${reportId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -324,7 +325,7 @@ export default function EmergencyDispatch({
       isDestructive: true,
       onConfirm: async () => {
         try {
-          const response = await fetch(`http://localhost:5001/api/sos/my/${reportId}`, {
+          const response = await fetch(`${API_BASE}/sos/my/${reportId}`, {
             method: 'DELETE',
             headers: {
               Authorization: `Bearer ${token}`

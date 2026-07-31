@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { UserProfile } from '../types';
 import { ClipboardIcon, ShieldIcon, MapPinIcon } from './icons/PetIcons';
+import { API_BASE } from '../lib/api';
 
 interface EmergencySubmittedProps {
   category: string;
@@ -60,7 +61,7 @@ export default function EmergencySubmitted({
     if (!token) return;
 
     setLoading(true);
-    fetch('http://localhost:5001/api/users/rescuers', {
+    fetch(`${API_BASE}/users/rescuers`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }

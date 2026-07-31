@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_BASE } from '../lib/api';
 
 export default function DonationSection() {
   const [selectedAmount, setSelectedAmount] = useState<number | null>(1000);
@@ -9,7 +10,7 @@ export default function DonationSection() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await fetch('http://localhost:5001/api/settings/checkout-phone');
+        const res = await fetch(`${API_BASE}/settings/checkout-phone`);
         if (res.ok) {
           const data = await res.json();
           if (data.status === 'success') {
