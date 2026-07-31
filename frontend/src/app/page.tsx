@@ -20,6 +20,7 @@ import AuthScreen from '../components/AuthScreen';
 import OnboardingScreen from '../components/OnboardingScreen';
 import AdminDashboard from '../components/AdminDashboard';
 import DonationSection from '../components/DonationSection';
+import CommunityActionsGrid from '../components/CommunityActionsGrid';
 
 
 
@@ -202,10 +203,14 @@ export default function Home() {
 
   if (!mounted || loading) {
     return (
-      <div className="min-h-screen bg-warmBg flex flex-col items-center justify-center font-sans text-charcoal">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 rounded-full border-4 border-[#EBE3D5] border-t-[#4A5D4E] animate-spin" />
-          <p className="text-xs font-semibold text-stone-500">Connecting to Moha network...</p>
+      <div className="min-h-screen bg-[#FAF6F0] flex flex-col items-center justify-center font-sans select-none">
+        {/* Sketch Dog Small Hops Loader without text */}
+        <div className="relative w-28 h-28 flex items-center justify-center">
+          <img
+            src="/running_sketch_dog.png"
+            alt="Loading..."
+            className="w-24 h-24 object-contain animate-small-hop"
+          />
         </div>
       </div>
     );
@@ -235,6 +240,11 @@ export default function Home() {
                   onVetConsultationClick={() => setActiveTab('vetconsult')}
                   onExpertSupportClick={() => setActiveTab('expertsupport')}
                 />
+                <CommunityActionsGrid
+                  onAskNeighborClick={() => setActiveTab('circle')}
+                  onStartActivityClick={() => setActiveTab('circle')}
+                  onJoinEventClick={() => setActiveTab('circle')}
+                />
                 <NeighborhoodRadar onEnterCircle={() => setActiveTab('circle')} />
                 <MarketplaceCategories onExploreMoreClick={() => setActiveTab('marketplace')} />
                 <DonationSection />
@@ -247,7 +257,7 @@ export default function Home() {
             )}
 
             {/* PET CARE FEATURE SCREEN */}
-            {activeTab === 'petcare' && <PetCareFeature />}
+            {activeTab === 'petcare' && <PetCareFeature setActiveTab={setActiveTab} />}
 
             {/* VET CONSULTATION TABS */}
             {activeTab === 'vetconsult' && (

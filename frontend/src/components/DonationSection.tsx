@@ -56,11 +56,16 @@ export default function DonationSection() {
       
       {/* Inline Section Title */}
       <div className="flex items-center justify-between border-t border-[#F0EBE1] pt-4 mt-1">
-        <h3 className="text-[10px] font-extrabold text-stone-400 uppercase tracking-wider">
+        <span className="text-[10px] md:text-xs uppercase tracking-widest text-[#B68A35] font-extrabold">
           Support Rescue Mission
-        </h3>
-        <span className="text-[9px] text-stone-400 font-bold">Direct street rescue funding</span>
+        </span>
+        <span className="text-[9px] md:text-[10px] text-stone-400 font-bold">Direct street rescue funding</span>
       </div>
+
+      {/* Encouraging Donation Mission Message */}
+      <p className="text-[11px] md:text-xs text-stone-800 font-semibold leading-relaxed bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl p-3 select-none">
+        Every contribution directly funds emergency medical aid, daily food bowls, and street rescues for vulnerable stray animals in your community.
+      </p>
 
       {/* Preset Pills */}
       <div className="grid grid-cols-3 gap-2">

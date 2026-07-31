@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { auth } from '../lib/firebase';
+import { LightbulbIcon } from './icons/PetIcons';
 
 export default function AuthScreen() {
   const { signIn, signInWithGoogle, signUp } = useAuth();
@@ -95,8 +96,9 @@ export default function AuthScreen() {
 
       {/* Mode Note */}
       {auth.isMock && (
-        <div className="bg-[#FAF6F0] border border-[#EBE3D5] rounded-xl p-3 text-[11px] text-[#4A5D4E] leading-normal font-semibold">
-          💡 <strong>Dev Mode Active:</strong> Firebase is running in mock mode. You can sign in or register with any credentials to test the MongoDB connection.
+        <div className="bg-[#FAF6F0] border border-[#EBE3D5] rounded-xl p-3 text-[11px] text-[#4A5D4E] leading-normal font-semibold flex items-center gap-1.5">
+          <LightbulbIcon className="w-4 h-4 text-amber-500 shrink-0" />
+          <span><strong>Dev Mode Active:</strong> Firebase is running in mock mode. You can sign in or register with any credentials to test the MongoDB connection.</span>
         </div>
       )}
 

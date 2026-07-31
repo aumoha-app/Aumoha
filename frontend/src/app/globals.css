@@ -48,3 +48,17 @@
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
+
+/* Small Hop Loading Animation for Dog Sketch */
+@keyframes smallHop {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+.animate-small-hop {
+  animation: smallHop 0.48s infinite ease-in-out;
+}

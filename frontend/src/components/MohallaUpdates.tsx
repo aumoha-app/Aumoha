@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { CommunityUpdate, MemberRole } from '../types';
 import { useAuth } from '../context/AuthContext';
+import { ClockIcon } from './icons/PetIcons';
 
 interface MohallaUpdatesProps {
   computedUpdates: CommunityUpdate[];
@@ -27,6 +28,9 @@ export default function MohallaUpdates({
 }: MohallaUpdatesProps) {
   const { token } = useAuth();
 
+  // Modal States
+  const [showActivityModal, setShowActivityModal] = useState<boolean>(false);
+
   useEffect(() => {
     if (triggerStartActivity) {
       setShowActivityModal(true);
@@ -34,8 +38,6 @@ export default function MohallaUpdates({
     }
   }, [triggerStartActivity, onStartActivityTriggered]);
 
-  // Modal States
-  const [showActivityModal, setShowActivityModal] = useState<boolean>(false);
   const [activityTitle, setActivityTitle] = useState<string>('');
   const [activityCategory, setActivityCategory] = useState<'feeding' | 'help' | 'event' | 'awareness'>('feeding');
   const [activityLocation, setActivityLocation] = useState<string>('');
@@ -328,7 +330,7 @@ export default function MohallaUpdates({
             </span>
             {displayTime && (
               <span className="flex items-center gap-1 bg-[#FAF2EE] text-terracotta border border-[#F5DFD8] px-2 py-1 rounded-lg">
-                <span>🕒</span>
+                <ClockIcon className="w-3 h-3 text-terracotta" />
                 {displayTime}
               </span>
             )}

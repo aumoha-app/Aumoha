@@ -13,12 +13,12 @@ export default function HeroSection() {
           </div>
         </div>
         
-        {/* Group Pets Image (CSS cropped from top to eliminate empty image padding) */}
-        <div className="w-full max-w-sm mx-auto h-[250px] sm:h-[250px] md:h-[280px] overflow-hidden flex items-end justify-center" suppressHydrationWarning>
+        {/* Group Pets Image */}
+        <div className="w-full max-w-md mx-auto flex items-center justify-center pt-2" suppressHydrationWarning>
           <img
             src="/hero-pets-group.png"
             alt="Group of dogs and cats — Aumoha pet care community"
-            className="w-full h-full object-cover object-bottom"
+            className="w-full h-auto object-contain max-h-[340px]"
             suppressHydrationWarning
           />
         </div>

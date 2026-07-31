@@ -1,15 +1,15 @@
 {
-  "short_name": "MOHA",
-  "name": "Mohalla of Humans & Animals",
+  "short_name": "Aumoha",
+  "name": "Aumoha - Rescue, Protect & Care",
   "icons": [
     {
-      "src": "/icon-192x192.png",
+      "src": "/logo.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "any maskable"
     },
     {
-      "src": "/icon-512x512.png",
+      "src": "/logo.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"
@@ -17,7 +17,7 @@
   ],
   "start_url": "/",
   "background_color": "#FAF8F5",
-  "theme_color": "#D95D39",
+  "theme_color": "#C85341",
   "display": "standalone",
   "orientation": "portrait",
   "scope": "/"

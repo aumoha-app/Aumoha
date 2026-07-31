@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import {
   CircleMember,
   CommunityUpdate,
@@ -17,6 +17,7 @@ import MohallaUpdates from './MohallaUpdates';
 import BlogDetailView from './BlogDetailView';
 import MohallaImpact from './MohallaImpact';
 import { loadLeaflet } from '../lib/leafletLoader';
+import { CalendarIcon, SyringeIcon, LeafIcon, HouseIcon } from './icons/PetIcons';
 
 
 const formatTime = (dateStr: string) => {
@@ -336,17 +337,20 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
     fetchData();
   }, [token]);
 
-  const dbMappedUsers = dbUsers.map(u => ({
-    id: u._id,
-    name: u.fullName,
-    avatar: u.profilePic || '',
-    role: (u.role || 'normal') as MemberRole,
-    location: u.address || 'Saheed Nagar',
-    badge: u.role === 'rescuer' ? ('trusted' as const) : undefined,
-    joinedTime: u.createdAt
-      ? Math.max(1, Math.round((Date.now() - new Date(u.createdAt).getTime()) / (1000 * 60 * 60 * 24))).toString()
-      : '1'
-  }));
+  const [nowTs] = useState(() => Date.now());
+  const dbMappedUsers = useMemo(() => {
+    return dbUsers.map(u => ({
+      id: u._id,
+      name: u.fullName,
+      avatar: u.profilePic || '',
+      role: (u.role || 'normal') as MemberRole,
+      location: u.address || 'Saheed Nagar',
+      badge: u.role === 'rescuer' ? ('trusted' as const) : undefined,
+      joinedTime: u.createdAt
+        ? Math.max(1, Math.round((nowTs - new Date(u.createdAt).getTime()) / (1000 * 60 * 60 * 24))).toString()
+        : '1'
+    }));
+  }, [dbUsers, nowTs]);
 
   const allMembers = dbMappedUsers;
 
@@ -717,7 +721,9 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10 text-terracotta">
               <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
             </svg>
-            <span className="absolute bottom-2 right-2 bg-white/90 text-terracotta text-[8px] font-extrabold px-1.5 py-0.5 rounded border border-[#F5DFD8]">🏥 VACCINE</span>
+            <span className="absolute bottom-2 right-2 bg-white/90 text-terracotta text-[8px] font-extrabold px-1.5 py-0.5 rounded border border-[#F5DFD8] flex items-center gap-1">
+              <SyringeIcon className="w-3 h-3 text-terracotta" /> VACCINE
+            </span>
           </div>
         );
       case 'e2': // Clean Streets, Safe Paws
@@ -726,7 +732,9 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-10 h-10 text-clay">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             </svg>
-            <span className="absolute bottom-2 right-2 bg-white/90 text-clay text-[8px] font-extrabold px-1.5 py-0.5 rounded border border-[#EBE3D5]">🌱 CLEANUP</span>
+            <span className="absolute bottom-2 right-2 bg-white/90 text-clay text-[8px] font-extrabold px-1.5 py-0.5 rounded border border-[#EBE3D5] flex items-center gap-1">
+              <LeafIcon className="w-3 h-3 text-clay" /> CLEANUP
+            </span>
           </div>
         );
       case 'e3': // Adoption Meet
@@ -736,13 +744,15 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
-            <span className="absolute bottom-2 right-2 bg-white/90 text-clay text-[8px] font-extrabold px-1.5 py-0.5 rounded border border-[#EBE3D5]">🏠 ADOPTION</span>
+            <span className="absolute bottom-2 right-2 bg-white/90 text-clay text-[8px] font-extrabold px-1.5 py-0.5 rounded border border-[#EBE3D5] flex items-center gap-1">
+              <HouseIcon className="w-3 h-3 text-clay" /> ADOPTION
+            </span>
           </div>
         );
       default:
         return (
           <div className="w-full h-full bg-gradient-to-br from-[#ECEFF1] to-[#CFD8DC] flex items-center justify-center">
-            <span className="text-2xl">📅</span>
+            <CalendarIcon className="w-6 h-6 text-stone-500" />
           </div>
         );
     }
@@ -948,6 +958,59 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
       </div>
     );
   };
+
+  // --- SKELETAL LOADER COMPONENT FOR AUMOHA CIRCLE ---
+  const renderSkeletalLoader = () => (
+    <div className="w-full flex flex-col gap-6 select-none animate-fadeIn">
+      {/* Navigation Tabs Skeleton */}
+      <div className="w-full border-b border-[#F5F2EC] flex gap-4 pb-2">
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className="h-8 w-24 bg-stone-200/70 rounded-xl animate-pulse" />
+        ))}
+      </div>
+
+
+      {/* Interactive Map Box Skeleton */}
+      <div className="w-full aspect-[16/9] min-h-[220px] rounded-3xl bg-[#F5F2EC] border border-[#EBE3D5] p-5 flex flex-col justify-between relative overflow-hidden animate-pulse">
+        <div className="flex items-center justify-between z-10">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-stone-300/80" />
+            <div className="flex flex-col gap-1.5">
+              <div className="h-4 w-32 bg-stone-300/80 rounded" />
+              <div className="h-3 w-20 bg-stone-300/60 rounded" />
+            </div>
+          </div>
+          <div className="h-7 w-24 bg-stone-300/70 rounded-xl" />
+        </div>
+      </div>
+
+      {/* Section Title Skeleton */}
+      <div className="flex justify-between items-center pt-2">
+        <div className="h-4 w-40 bg-stone-200/80 rounded animate-pulse" />
+        <div className="h-3 w-20 bg-stone-200/70 rounded animate-pulse" />
+      </div>
+
+      {/* Cards List Skeleton */}
+      <div className="flex flex-col gap-3">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="bg-white border border-[#F0EBE1] rounded-[20px] p-4 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 w-full">
+              <div className="w-11 h-11 rounded-2xl bg-stone-200/80 animate-pulse shrink-0" />
+              <div className="flex flex-col gap-2 flex-1">
+                <div className="h-4 w-3/4 bg-stone-200/80 rounded animate-pulse" />
+                <div className="h-3 w-1/2 bg-stone-200/70 rounded animate-pulse" />
+              </div>
+            </div>
+            <div className="h-6 w-16 bg-stone-200/70 rounded-lg animate-pulse shrink-0" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  if (isDataLoading) {
+    return renderSkeletalLoader();
+  }
 
   // --- RENDER MAIN TAB VIEWS ---
   return (

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { UserProfile } from '../types';
+import { DogIcon, CatIcon, BirdIcon, FishIcon, RabbitIcon, ReptileIcon, PawIcon } from './icons/PetIcons';
 
 interface ProfileProps {
   onOpenAdmin?: () => void;
@@ -69,15 +70,15 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
     notes: ''
   });
 
-  const getPetIcon = (type: string) => {
+  const getPetIcon = (type: string, sizeClass = "w-6 h-6 text-black") => {
     switch (type.toLowerCase()) {
-      case 'dog': return '🐶';
-      case 'cat': return '🐱';
-      case 'bird': return '🐦';
-      case 'fish': return '🐟';
-      case 'rabbit': return '🐰';
-      case 'reptile': return '🦎';
-      default: return '🐾';
+      case 'dog': return <DogIcon className={sizeClass} />;
+      case 'cat': return <CatIcon className={sizeClass} />;
+      case 'bird': return <BirdIcon className={sizeClass} />;
+      case 'fish': return <FishIcon className={sizeClass} />;
+      case 'rabbit': return <RabbitIcon className={sizeClass} />;
+      case 'reptile': return <ReptileIcon className={sizeClass} />;
+      default: return <PawIcon className={sizeClass} />;
     }
   };
 
@@ -394,8 +395,54 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
 
   if (!user) {
     return (
-      <main className="w-full max-w-2xl mx-auto bg-white rounded-3xl p-6 text-center select-none">
-        <p className="text-xs text-stone-400 font-semibold">No profile data found.</p>
+      <main className="w-full max-w-2xl mx-auto bg-white rounded-3xl p-4 md:p-8 flex flex-col gap-6 shadow-sm select-none animate-fadeIn">
+        {/* Header Skeleton */}
+        <div className="flex justify-between items-center w-full">
+          <div className="flex flex-col gap-2">
+            <div className="h-8 w-44 bg-stone-200/80 rounded-lg animate-pulse" />
+            <div className="h-3 w-64 bg-stone-200/60 rounded animate-pulse" />
+          </div>
+          <div className="h-9 w-28 bg-stone-200/80 rounded-xl animate-pulse" />
+        </div>
+
+        {/* Profile Details Card Skeleton */}
+        <div className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-[28px] p-6 flex flex-col sm:flex-row items-center gap-5">
+          <div className="w-24 h-24 rounded-full bg-stone-200/80 animate-pulse shrink-0" />
+          <div className="flex flex-col gap-3 w-full">
+            <div className="h-6 w-48 bg-stone-200/80 rounded-lg animate-pulse" />
+            <div className="h-4 w-36 bg-stone-200/60 rounded animate-pulse" />
+            <div className="h-4 w-56 bg-stone-200/60 rounded animate-pulse" />
+          </div>
+        </div>
+
+        {/* Form Fields Skeletons */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="flex flex-col gap-2">
+              <div className="h-3 w-24 bg-stone-200/70 rounded animate-pulse" />
+              <div className="h-11 w-full bg-stone-100 rounded-2xl animate-pulse" />
+            </div>
+          ))}
+        </div>
+
+        {/* My Pets Section Skeleton */}
+        <div className="border-t border-[#FAF6F0] pt-6 flex flex-col gap-4">
+          <div className="flex justify-between items-center">
+            <div className="h-6 w-28 bg-stone-200/80 rounded-lg animate-pulse" />
+            <div className="h-8 w-24 bg-stone-200/80 rounded-xl animate-pulse" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {[1, 2].map(i => (
+              <div key={i} className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl p-4 flex gap-4 items-center">
+                <div className="w-16 h-16 rounded-xl bg-stone-200/80 animate-pulse shrink-0" />
+                <div className="flex flex-col gap-2 flex-1">
+                  <div className="h-4 w-28 bg-stone-200/80 rounded animate-pulse" />
+                  <div className="h-3 w-20 bg-stone-200/60 rounded animate-pulse" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </main>
     );
   }
@@ -677,7 +724,7 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
         {!user.pets || user.pets.length === 0 ? (
           <div className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl p-6 text-center">
             <div className="w-10 h-10 rounded-full bg-[#FAF6F0] border border-[#EBE3D5] flex items-center justify-center text-[#4A5D4E] mx-auto mb-2.5">
-              🐾
+              <PawIcon className="w-5 h-5 text-[#4A5D4E]" />
             </div>
             <p className="text-xs text-[#1C1A17] font-semibold">No pets added yet</p>
             <p className="text-[10px] text-stone-400 mt-0.5">Share details about your companions by clicking the Add Pet button.</p>
@@ -691,11 +738,11 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
                 className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl p-4 flex gap-3.5 items-center hover:shadow-md hover:border-[#4A5D4E]/30 transition-all duration-300 cursor-pointer relative group"
               >
                 {/* Pet Photo */}
-                <div className="w-16 h-16 rounded-xl overflow-hidden bg-gradient-to-br from-terracotta/20 to-clay/20 border border-[#EBE3D5] flex items-center justify-center shrink-0 shadow-sm relative">
+                <div className="w-16 h-16 rounded-xl overflow-hidden bg-[#F5F2EC] border border-[#EBE3D5] flex items-center justify-center shrink-0 shadow-sm relative">
                   {pet.photo ? (
                     <img src={pet.photo} alt={pet.name} className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-2xl">{getPetIcon(pet.type)}</span>
+                    getPetIcon(pet.type, "w-8 h-8 text-black")
                   )}
                 </div>
 
@@ -770,11 +817,11 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
             <form onSubmit={handleSavePet} className="flex flex-col gap-4">
               {/* Photo Upload Container */}
               <div className="flex flex-col items-center gap-2 select-none">
-                <div className="w-20 h-20 rounded-2xl overflow-hidden border border-[#EBE3D5] bg-gradient-to-br from-terracotta/10 to-clay/10 flex items-center justify-center shadow-inner relative">
+                <div className="w-20 h-20 rounded-2xl overflow-hidden border border-[#EBE3D5] bg-[#F5F2EC] flex items-center justify-center shadow-inner relative">
                   {petForm.photo ? (
                     <img src={petForm.photo} alt="Pet Preview" className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-3xl">{getPetIcon(petForm.type)}</span>
+                    getPetIcon(petForm.type, "w-10 h-10 text-black")
                   )}
                 </div>
 

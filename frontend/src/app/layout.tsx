@@ -15,18 +15,23 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mohalla of Humans & Animals",
-  description: "Mohalla of Humans & Animals (MOHA) PWA Grid Node.",
+  title: "Aumoha - Rescue, Protect & Care",
+  description: "Aumoha Animal Welfare & Community Rescue Network.",
   manifest: "/manifest.json",
+  icons: [
+    { rel: "icon", url: "/logo.png", type: "image/png" },
+    { rel: "shortcut icon", url: "/logo.png", type: "image/png" },
+    { rel: "apple-touch-icon", url: "/logo.png", type: "image/png" },
+  ],
   appleWebApp: {
     capable: true,
-    title: "MOHA",
+    title: "Aumoha",
     statusBarStyle: "default",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#D95D39",
+  themeColor: "#C85341",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
