@@ -360,6 +360,30 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
     }
   };
 
+  // Admin Credentials Verification
+  const verifyAdminPass = async (pass: string) => {
+    setAdminError(null);
+    try {
+      const res = await fetch('http://localhost:5001/api/auth/verify-admin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ password: pass })
+      });
+      if (res.ok) {
+        setIsAdminAuthenticated(true);
+        setAdminPassword(pass);
+        sessionStorage.setItem('aumoha_admin_password', pass);
+      } else {
+        setAdminError('Invalid Admin Passcode');
+      }
+    } catch (err) {
+      setAdminError('Could not verify credentials.');
+    }
+  };
+
   useEffect(() => {
     fetchExperts();
     const cachedPass = sessionStorage.getItem('aumoha_admin_password');
@@ -477,29 +501,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
     }
   };
 
-  // Admin Credentials Verification
-  const verifyAdminPass = async (pass: string) => {
-    setAdminError(null);
-    try {
-      const res = await fetch('http://localhost:5001/api/auth/verify-admin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ password: pass })
-      });
-      if (res.ok) {
-        setIsAdminAuthenticated(true);
-        setAdminPassword(pass);
-        sessionStorage.setItem('aumoha_admin_password', pass);
-      } else {
-        setAdminError('Invalid Admin Passcode');
-      }
-    } catch (err) {
-      setAdminError('Could not verify credentials.');
-    }
-  };
+
 
   // Admin Specialist Form Action
   const handleSaveExpert = async (e: React.FormEvent) => {

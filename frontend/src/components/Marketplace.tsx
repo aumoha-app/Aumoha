@@ -290,12 +290,23 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
         {/* 5. PRODUCT GRID */}
         <section className="w-full">
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-12 gap-3 text-stone-400 select-none">
-              <div className="w-8 h-8 rounded-full border-2 border-stone-200 border-t-[#4A5D4E] animate-spin" />
-              <p className="text-[11px] font-semibold">Loading marketplace...</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full select-none">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-[24px] p-3 flex flex-col gap-3.5">
+                  <div className="aspect-square w-full rounded-2xl bg-stone-200/70 animate-pulse" />
+                  <div className="flex flex-col gap-2 px-0.5">
+                    <div className="h-4 w-3/4 bg-stone-200/80 rounded animate-pulse" />
+                    <div className="h-3 w-1/2 bg-stone-200/60 rounded animate-pulse" />
+                  </div>
+                  <div className="flex justify-between items-center mt-auto px-0.5 pt-1">
+                    <div className="h-5 w-16 bg-stone-200/80 rounded animate-pulse" />
+                    <div className="h-7 w-16 bg-stone-200/80 rounded-xl animate-pulse" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-2 gap-4 w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
               {filteredProducts.map((product) => {
                 const prodId = product._id || product.id || '';
                 const inCartQty = getCartQuantity(prodId);

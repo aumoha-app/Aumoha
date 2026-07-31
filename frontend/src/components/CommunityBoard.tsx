@@ -1,6 +1,7 @@
 'use client';
 
 import { CommunityPost } from '../types';
+import { HeartIcon } from './icons/PetIcons';
 
 interface CommunityBoardProps {
   posts: CommunityPost[];
@@ -54,7 +55,8 @@ export default function CommunityBoard({
                 onClick={() => onLikePost(post.id)}
                 className="flex items-center gap-1.5 px-3 py-1.5 border border-warmBeige bg-white hover:bg-cream/40 rounded-xl text-xs text-stone-500 font-bold transition-all cursor-pointer"
               >
-                <span>❤️ {post.likes}</span>
+                <HeartIcon className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
+                <span>{post.likes}</span>
               </button>
             </div>
             <p className="text-xs md:text-sm text-stone-600 leading-relaxed font-medium">

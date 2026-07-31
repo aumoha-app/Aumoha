@@ -85,50 +85,6 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
   const [settingsError, setSettingsError] = useState<string | null>(null);
   const [settingsSuccess, setSettingsSuccess] = useState<boolean>(false);
 
-  // Load from sessionStorage if already validated in this tab session
-  useEffect(() => {
-    const cachedPass = sessionStorage.getItem('aumoha_admin_password');
-    if (cachedPass) {
-      verifyPasswordDirectly(cachedPass);
-    }
-  }, []);
-
-  const verifyPasswordDirectly = async (password: string) => {
-    setIsVerifying(true);
-    setAuthError(null);
-    try {
-      const res = await fetch('http://localhost:5001/api/auth/verify-admin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ password })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setIsAuthenticated(true);
-        setAdminPassword(password);
-        sessionStorage.setItem('aumoha_admin_password', password);
-        fetchProducts(password);
-        fetchSosReports(true);
-      } else {
-        setAuthError(data.message || 'Incorrect admin password.');
-        sessionStorage.removeItem('aumoha_admin_password');
-      }
-    } catch (err) {
-      setAuthError('Connection error. Unable to verify admin password.');
-    } finally {
-      setIsVerifying(false);
-    }
-  };
-
-  const handleAuthSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!adminPassword.trim()) return;
-    verifyPasswordDirectly(adminPassword);
-  };
-
   const fetchProducts = async (password: string) => {
     setIsLoading(true);
     setErrorMessage(null);
@@ -165,6 +121,50 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
     } finally {
       if (showLoading) setIsSosLoading(false);
     }
+  };
+
+  const verifyPasswordDirectly = async (password: string) => {
+    setIsVerifying(true);
+    setAuthError(null);
+    try {
+      const res = await fetch('http://localhost:5001/api/auth/verify-admin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ password })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setIsAuthenticated(true);
+        setAdminPassword(password);
+        sessionStorage.setItem('aumoha_admin_password', password);
+        fetchProducts(password);
+        fetchSosReports(true);
+      } else {
+        setAuthError(data.message || 'Incorrect admin password.');
+        sessionStorage.removeItem('aumoha_admin_password');
+      }
+    } catch (err) {
+      setAuthError('Connection error. Unable to verify admin password.');
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  // Load from sessionStorage if already validated in this tab session
+  useEffect(() => {
+    const cachedPass = sessionStorage.getItem('aumoha_admin_password');
+    if (cachedPass) {
+      verifyPasswordDirectly(cachedPass);
+    }
+  }, []);
+
+  const handleAuthSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adminPassword.trim()) return;
+    verifyPasswordDirectly(adminPassword);
   };
 
   const handleUpdateSosStatus = async (id: string, newStatus: string) => {
@@ -297,19 +297,6 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
     }
   };
 
-  // Polling hook for ASAP updates
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchSosReports(true);
-      fetchCheckoutSettings();
-      fetchActivities(true);
-      const interval = setInterval(() => {
-        fetchSosReports(false);
-      }, 10000); // Poll every 10 seconds
-      return () => clearInterval(interval);
-    }
-  }, [isAuthenticated, token]);
-
   // Community Activity CRUD
   const fetchActivities = async (showLoading = false) => {
     if (showLoading) setIsActivitiesLoading(true);
@@ -327,6 +314,19 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
       if (showLoading) setIsActivitiesLoading(false);
     }
   };
+
+  // Polling hook for ASAP updates
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchSosReports(true);
+      fetchCheckoutSettings();
+      fetchActivities(true);
+      const interval = setInterval(() => {
+        fetchSosReports(false);
+      }, 10000); // Poll every 10 seconds
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated, token]);
 
   const resetActivityForm = () => {
     setIsEditingActivity(false);

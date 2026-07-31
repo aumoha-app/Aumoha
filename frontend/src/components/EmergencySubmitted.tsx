@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { UserProfile } from '../types';
+import { ClipboardIcon, ShieldIcon, MapPinIcon } from './icons/PetIcons';
 
 interface EmergencySubmittedProps {
   category: string;
@@ -88,7 +89,7 @@ export default function EmergencySubmitted({
   const paginatedRescuers = rescuers.slice(startIndex, startIndex + itemsPerPage);
 
   // Generate a mock cryptographic grid case ID
-  const caseId = 'AUM-' + Math.floor(1000 + Math.random() * 9000);
+  const [caseId] = useState(() => 'AUM-' + Math.floor(1000 + Math.random() * 9000));
 
   const handleShare = () => {
     const mockUrl = `https://aumoha.app/rescue/${caseId}`;
@@ -209,7 +210,7 @@ export default function EmergencySubmitted({
       {/* 3. Safety Guidelines (While Waiting) */}
       <div className="w-full bg-[#FCFAF7] border border-warmBeige rounded-2xl p-4.5 flex flex-col gap-3 select-none mt-2">
         <span className="text-[10px] uppercase tracking-widest text-[#B68A35] font-extrabold border-b border-warmBeige/40 pb-2 flex items-center gap-1.5">
-          <span>📋</span> Safety Guidelines (While Waiting)
+          <ClipboardIcon className="w-3.5 h-3.5 text-[#B68A35]" /> Safety Guidelines (While Waiting)
         </span>
         
         <ul className="flex flex-col gap-2.5 text-stone-600 text-[11px] leading-relaxed">
@@ -286,7 +287,7 @@ export default function EmergencySubmitted({
       <div className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl p-4.5 flex flex-col gap-3 select-none">
         <span className="text-[10px] uppercase tracking-widest text-[#4A5D4E] font-extrabold border-b border-[#F0EBE1] pb-2 flex items-center justify-between">
           <span className="flex items-center gap-1.5">
-            <span>🛡️</span> Contact Rescuers
+            <ShieldIcon className="w-3.5 h-3.5 text-[#4A5D4E]" /> Contact Rescuers
           </span>
           {loading && <span className="text-[9px] text-[#4A5D4E] lowercase animate-pulse font-normal">Loading rescuers...</span>}
         </span>
@@ -320,8 +321,8 @@ export default function EmergencySubmitted({
                             </span>
                           )}
                         </span>
-                        <span className="text-[10px] text-stone-500 truncate mt-0.5" title={rescuer.address}>
-                          📍 {rescuer.address}
+                        <span className="text-[10px] text-stone-500 truncate mt-0.5 flex items-center gap-1" title={rescuer.address}>
+                          <MapPinIcon className="w-3 h-3 text-stone-400 shrink-0" /> {rescuer.address}
                         </span>
                       </div>
                     </div>

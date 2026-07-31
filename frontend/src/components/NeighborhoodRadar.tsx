@@ -13,11 +13,48 @@ export default function NeighborhoodRadar({ onEnterCircle }: NeighborhoodRadarPr
   const [rescuesCount, setRescuesCount] = useState<number>(142);
   const [rank, setRank] = useState<number>(3);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  
-  // Resolve user location name, fallback to Saheed Nagar
-  const locationName = user?.address 
+  const [geoLocName, setGeoLocName] = useState<string>('');
+
+  // Geolocation detection for real current location
+  useEffect(() => {
+    if (typeof window === 'undefined' || !navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`, {
+            headers: { 'Accept-Language': 'en' }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.address) {
+              const shortAddr = data.address.neighbourhood || 
+                                data.address.suburb || 
+                                data.address.residential || 
+                                data.address.road || 
+                                data.address.village || 
+                                data.address.town || 
+                                data.address.city_district || 
+                                (data.display_name ? data.display_name.split(',')[0] : '');
+              if (shortAddr) {
+                setGeoLocName(shortAddr);
+              }
+            }
+          }
+        } catch (err) {
+          console.warn('Geolocation reverse lookup failed:', err);
+        }
+      },
+      (err) => console.warn('Geolocation access declined or unavailable:', err),
+      { timeout: 8000 }
+    );
+  }, []);
+
+  // Resolve current location name with fallback
+  const locationName = geoLocName || (user?.address 
     ? (user.address.includes(',') ? user.address.split(',')[0] : user.address)
-    : 'Saheed Nagar';
+    : 'Saheed Nagar');
 
   useEffect(() => {
     if (!token) {
@@ -74,22 +111,35 @@ export default function NeighborhoodRadar({ onEnterCircle }: NeighborhoodRadarPr
   }, [token]);
 
   return (
-    <div className="w-full bg-gradient-to-br from-[#FCFAF9] via-[#FAF5EB] to-[#F5EFE3] border border-[#EBE3D5] rounded-[24px] p-5 md:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.012)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.025)] transition-all duration-300 flex flex-row gap-4 md:gap-6 items-center justify-between select-none">
-      
-      {/* Left Column: Title, Stats, and Enter Circle Button */}
-      <div className="flex-grow flex flex-col gap-3 md:gap-4 min-w-0">
-        <div 
-          onClick={onEnterCircle}
-          className="flex flex-col select-none cursor-pointer group w-fit"
-        >
-          <span className="text-[8px] md:text-[9.5px] tracking-widest text-[#B68A35] font-extrabold uppercase leading-none">MOHA CIRCLE</span>
-          <h2 className="font-serif text-lg md:text-3xl text-stone-900 font-semibold tracking-tight mt-1 md:mt-1.5 flex items-center gap-1.5 leading-tight truncate group-hover:text-[#B68A35] transition-colors">
-            {locationName}
-            <svg className="w-4 h-4 md:w-6 md:h-6 text-[#B68A35]/65 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-            </svg>
-          </h2>
-        </div>
+    <div className="w-full flex flex-col gap-2.5 select-none mt-1">
+      {/* Section Header Row */}
+      <div className="flex items-center justify-between w-full border-b border-warmBeige/40 pb-2 select-none">
+        <span className="text-[10px] md:text-xs uppercase tracking-widest text-[#B68A35] font-extrabold">
+          Neighborhood Radar
+        </span>
+        <span className="text-[9px] md:text-[10px] text-stone-400 font-bold">
+          Live active rescue network
+        </span>
+      </div>
+
+      <div className="w-full bg-gradient-to-br from-[#FCFAF9] via-[#FAF5EB] to-[#F5EFE3] border border-[#EBE3D5] rounded-[24px] p-5 md:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.012)] hover:shadow-[0_12px_40px_rgb(0,0,0,0.025)] transition-all duration-300 flex flex-row gap-4 md:gap-6 items-center justify-between select-none">
+        
+        {/* Left Column: Title, Stats, and Enter Circle Button */}
+        <div className="flex-grow flex flex-col gap-3 md:gap-4 min-w-0">
+          <div 
+            onClick={onEnterCircle}
+            className="flex flex-col select-none cursor-pointer group w-fit"
+          >
+            <span className="text-[8px] md:text-[9.5px] tracking-widest text-[#B68A35] font-extrabold uppercase leading-none">
+              MOHA CIRCLE • CURRENT LOCATION
+            </span>
+            <h2 className="font-serif text-lg md:text-3xl text-stone-900 font-semibold tracking-tight mt-1 md:mt-1.5 flex items-center gap-1.5 leading-tight truncate group-hover:text-[#B68A35] transition-colors">
+              {locationName}
+              <svg className="w-4 h-4 md:w-6 md:h-6 text-[#B68A35]/65 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              </svg>
+            </h2>
+          </div>
 
         {/* Stats row with dividing lines */}
         <div className={`flex items-center gap-3 md:gap-5 select-none transition-all duration-305 ${isLoading ? 'animate-pulse opacity-60' : ''}`}>
@@ -146,6 +196,7 @@ export default function NeighborhoodRadar({ onEnterCircle }: NeighborhoodRadarPr
         </svg>
       </div>
 
+      </div>
     </div>
   );
 }

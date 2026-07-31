@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CommunityUpdate, CircleMember, MemberRole } from '../types';
 import { loadLeaflet } from '../lib/leafletLoader';
+import { CameraIcon, ShieldIcon, SirenIcon } from './icons/PetIcons';
 
 interface SupportRequestDetailProps {
   selectedRequest: CommunityUpdate;
@@ -58,16 +59,7 @@ export default function SupportRequestDetail({
         lat: detailRequestCoords[0], 
         lng: detailRequestCoords[1], 
         distance: selectedRequest.distance 
-      },
-      ...computedMembers.slice(0, 3).map(m => ({
-        name: m.name,
-        avatar: m.avatar,
-        role: m.role,
-        lat: m.lat || centerCoords[0],
-        lng: m.lng || centerCoords[1],
-        distance: m.distance,
-        badge: m.badge
-      }))
+      }
     ];
 
     const loadLeafletMap = (L: any, mapId: string, center: [number, number], pins: any[]) => {
@@ -265,8 +257,8 @@ export default function SupportRequestDetail({
           {selectedRequest.image ? (
             <div className="w-full md:w-[140px] h-[110px] rounded-2xl overflow-hidden bg-stone-100 border border-[#F0EBE1] relative shadow-inner shrink-0 select-none">
               <img src={selectedRequest.image} alt={displayTitle} className="w-full h-full object-cover" />
-              <div className="absolute bottom-2 right-2 bg-black/60 px-2 py-0.5 rounded-full text-[9px] font-extrabold text-white flex items-center gap-0.5 shadow-sm">
-                📷 2
+              <div className="absolute bottom-2 right-2 bg-black/60 px-2 py-0.5 rounded-full text-[9px] font-extrabold text-white flex items-center gap-1 shadow-sm">
+                <CameraIcon className="w-3 h-3 text-white" /> 2
               </div>
             </div>
           ) : (
@@ -504,7 +496,7 @@ export default function SupportRequestDetail({
 
             {/* Informative Security Banner */}
             <div className="bg-[#FDF6F0] border border-[#FBE9E7] rounded-xl p-3.5 flex items-start gap-2.5">
-              <span className="text-lg">🛡️</span>
+              <ShieldIcon className="w-5 h-5 text-terracotta shrink-0 mt-0.5" />
               <p className="text-[11px] text-stone-600 font-medium leading-relaxed">
                 Your help will be shared with the reporter and nearby helpers. You can choose one or more ways to help.
               </p>
