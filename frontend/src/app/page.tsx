@@ -219,15 +219,21 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] flex flex-col font-sans text-charcoal relative overflow-hidden">
+    <div className="min-h-screen bg-[#CEC7BE] flex flex-col font-sans text-charcoal relative overflow-hidden">
       {/* Full-Screen Backdrop Layer for Home Screen */}
       {activeTab === 'home' && (
-        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-60">
-          <img
-            src="/backdrop-sunlight.png"
-            alt="Full screen warm sunlight backdrop"
-            className="w-full h-full object-cover object-top opacity-70 mix-blend-multiply"
-          />
+        <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+          <div className="relative w-full h-[48%] overflow-hidden">
+            <img
+              src="/backdrop-sunlight.png"
+              alt="Full screen warm sunlight backdrop"
+              className="w-full h-full object-cover object-top opacity-50 mix-blend-multiply"
+            />
+            {/* Top White Transparent Gradient Overlay (fading down from white to opacity 0) */}
+            <div className="absolute top-0 left-0 right-0 h-36 bg-gradient-to-b from-white/85 via-white/35 to-transparent pointer-events-none" />
+            {/* Soft Smudge Gradient Overlay to dissolve sharp horizontal divider */}
+            <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-[#CEC7BE] via-[#CEC7BE]/70 to-transparent" />
+          </div>
         </div>
       )}
       
