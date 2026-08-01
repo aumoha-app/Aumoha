@@ -58,7 +58,7 @@ export default function NeighborhoodRadar({ onEnterCircle }: NeighborhoodRadarPr
         console.warn('Geolocation access declined or unavailable:', err);
         setGeoLoading(false);
       },
-      { timeout: 8000 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   }, []);
 

@@ -229,7 +229,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
         console.warn('Browser geolocation access failed or denied:', error);
         setSelectedLocation(fallbackAddr);
       },
-      { timeout: 8000 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   }, [user?.address, userAddress]);
 

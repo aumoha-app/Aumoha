@@ -123,7 +123,7 @@ export default function EmergencyDispatch({
         setLocationText(fallbackAddr);
         setCurrentAddress(fallbackAddr);
       },
-      { timeout: 8000 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   }, [user?.address]);
 

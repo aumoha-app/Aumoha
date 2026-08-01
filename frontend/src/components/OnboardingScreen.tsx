@@ -70,7 +70,7 @@ export default function OnboardingScreen() {
         setAddress('');
         console.warn('Geolocation permission denied or failed:', error);
       },
-      { timeout: 4500 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
 
     return () => clearTimeout(timeoutId);
