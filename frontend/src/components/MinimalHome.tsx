@@ -31,7 +31,7 @@ export default function MinimalHome({
       {/* 1. TOP GREETING & HERO TITLE */}
       <div className="flex flex-col gap-3 pt-2">
         <div>
-          <span className="text-stone-500 font-serif text-sm sm:text-base tracking-wide block">
+          <span className="text-stone-700 font-serif text-sm sm:text-base tracking-wide block">
             Good morning,
           </span>
           <h2 className="font-serif text-stone-900 font-bold text-lg sm:text-xl leading-tight">
@@ -88,12 +88,12 @@ export default function MinimalHome({
           </div>
         </div>
 
-        {/* Right Column: Laying Dog Image (Bigger sizing) */}
+        {/* Right Column: Laying Dog Image (Bigger sizing & deep shadow) */}
         <div className="flex items-center justify-end shrink-0">
           <img 
             src="/laying-dog.png" 
             alt="Laying Dog" 
-            className="w-44 xs:w-52 sm:w-64 md:w-76 h-auto max-h-[210px] sm:max-h-[250px] object-contain group-hover:scale-105 transition-transform duration-500 mix-blend-multiply opacity-90"
+            className="w-48 xs:w-58 sm:w-69 md:w-80 h-auto max-h-[250px] sm:max-h-[270px] object-contain group-hover:scale-105 transition-transform duration-500 mix-blend-multiply drop-shadow-[0_14px_28px_rgba(20,15,10,0.5)]"
           />
         </div>
       </div>
