@@ -32,7 +32,7 @@ export default function EmergencyDispatch({
   onSubmitSos,
   onResetSos
 }: EmergencyDispatchProps) {
-  const { token } = useAuth();
+  const { user, token } = useAuth();
 
   // Stateful form components
   const [subTab, setSubTab] = useState<'report' | 'my-reports'>('report');
@@ -76,9 +76,10 @@ export default function EmergencyDispatch({
 
   // Hook to fetch initial browser geolocation and reverse-geocode it on component mount
   useEffect(() => {
+    const fallbackAddr = user?.address || 'Saheed Nagar, Sector 45';
     if (!navigator.geolocation) {
-      setLocationText('Location not supported. Please pin manually.');
-      setCurrentAddress('Location not supported. Please pin manually.');
+      setLocationText(fallbackAddr);
+      setCurrentAddress(fallbackAddr);
       return;
     }
 
@@ -109,32 +110,22 @@ export default function EmergencyDispatch({
               setCurrentAddress(coordStr);
             }
           } else {
-            const coordStr = `Current Coordinates: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-            setLocationText(coordStr);
-            setCurrentAddress(coordStr);
+            setLocationText(fallbackAddr);
+            setCurrentAddress(fallbackAddr);
           }
         } catch (err) {
-          const coordStr = `Current Coordinates: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-          setLocationText(coordStr);
-          setCurrentAddress(coordStr);
+          setLocationText(fallbackAddr);
+          setCurrentAddress(fallbackAddr);
         }
       },
       (error) => {
         console.warn('Geolocation access failed or denied:', error);
-        let errorMsg = 'Location access disabled. Please pin manually.';
-        if (error.code === error.PERMISSION_DENIED) {
-          errorMsg = 'Location permission denied. Please pin manually.';
-        } else if (error.code === error.POSITION_UNAVAILABLE) {
-          errorMsg = 'GPS signal unavailable. Please pin manually.';
-        } else if (error.code === error.TIMEOUT) {
-          errorMsg = 'Location request timed out. Please pin manually.';
-        }
-        setLocationText(errorMsg);
-        setCurrentAddress(errorMsg);
+        setLocationText(fallbackAddr);
+        setCurrentAddress(fallbackAddr);
       },
       { timeout: 8000 }
     );
-  }, []);
+  }, [user?.address]);
 
   const reverseGeocode = async (lat: number, lng: number) => {
     setLocationText(`Fetching pinned address...`);

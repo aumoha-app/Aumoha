@@ -15,10 +15,15 @@ export default function NeighborhoodRadar({ onEnterCircle }: NeighborhoodRadarPr
   const [rank, setRank] = useState<number>(3);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [geoLocName, setGeoLocName] = useState<string>('');
+  const [geoLoading, setGeoLoading] = useState<boolean>(true);
 
   // Geolocation detection for real current location
   useEffect(() => {
-    if (typeof window === 'undefined' || !navigator.geolocation) return;
+    if (typeof window === 'undefined' || !navigator.geolocation) {
+      setGeoLoading(false);
+      return;
+    }
+    setGeoLoading(true);
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const lat = position.coords.latitude;
@@ -45,17 +50,24 @@ export default function NeighborhoodRadar({ onEnterCircle }: NeighborhoodRadarPr
           }
         } catch (err) {
           console.warn('Geolocation reverse lookup failed:', err);
+        } finally {
+          setGeoLoading(false);
         }
       },
-      (err) => console.warn('Geolocation access declined or unavailable:', err),
+      (err) => {
+        console.warn('Geolocation access declined or unavailable:', err);
+        setGeoLoading(false);
+      },
       { timeout: 8000 }
     );
   }, []);
 
-  // Resolve current location name with fallback
-  const locationName = geoLocName || (user?.address 
-    ? (user.address.includes(',') ? user.address.split(',')[0] : user.address)
-    : 'Saheed Nagar');
+  // Resolve current location name with fallback to user's registered address
+  const fallbackLoc = user?.address
+    ? (user.address.includes(',') ? user.address.split(',')[0].trim() : user.address.trim())
+    : 'Saheed Nagar';
+
+  const locationName = geoLocName || fallbackLoc;
 
   useEffect(() => {
     if (!token) {
@@ -134,8 +146,8 @@ export default function NeighborhoodRadar({ onEnterCircle }: NeighborhoodRadarPr
             <span className="text-[9px] sm:text-[10px] tracking-widest text-[#B68A35] font-extrabold uppercase leading-none">
               MOHA CIRCLE • CURRENT LOCATION
             </span>
-            <h2 className="font-serif text-lg md:text-3xl text-stone-900 font-semibold tracking-tight mt-1 md:mt-1.5 flex items-center gap-1.5 leading-tight truncate group-hover:text-[#B68A35] transition-colors">
-              {locationName}
+            <h2 className={`font-serif text-lg md:text-3xl font-semibold tracking-tight mt-1 md:mt-1.5 flex items-center gap-1.5 leading-tight truncate transition-colors duration-500 ${geoLoading ? 'text-stone-300 animate-pulse' : 'text-stone-900 group-hover:text-[#B68A35]'}`}>
+              {geoLoading ? 'Detecting location...' : locationName}
               <svg className="w-4 h-4 md:w-6 md:h-6 text-[#B68A35]/65 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
               </svg>

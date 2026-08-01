@@ -115,6 +115,7 @@ interface MohallaCircleProps {
 }
 
 export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gurugram', setActiveTab, view }: MohallaCircleProps) {
+  const { token, user } = useAuth();
   const [activeView, setActiveView] = useState<'home' | 'members' | 'impact' | 'updates'>(view || 'home');
 
   useEffect(() => {
@@ -195,7 +196,11 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
   const [deviceAddress, setDeviceAddress] = useState<string>('');
 
   useEffect(() => {
-    if (!navigator.geolocation) return;
+    const fallbackAddr = user?.address || userAddress || 'Saheed Nagar, Sector 45';
+    if (!navigator.geolocation) {
+      setSelectedLocation(fallbackAddr);
+      return;
+    }
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const lat = position.coords.latitude;
@@ -217,13 +222,16 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
           }
         } catch (err) {
           console.warn('Failed to reverse geocode device location:', err);
+          setSelectedLocation(fallbackAddr);
         }
       },
       (error) => {
-        console.warn('Browser geolocation access failed:', error);
-      }
+        console.warn('Browser geolocation access failed or denied:', error);
+        setSelectedLocation(fallbackAddr);
+      },
+      { timeout: 8000 }
     );
-  }, []);
+  }, [user?.address, userAddress]);
 
   const getCoordinatesForLocation = (location: string): [number, number] => {
     const clean = (location || '').toLowerCase();
@@ -234,10 +242,11 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
   };
 
   useEffect(() => {
-    if (userAddress && !deviceAddress) {
-      setSelectedLocation(userAddress);
+    const fallbackAddr = user?.address || userAddress;
+    if (fallbackAddr && !deviceAddress) {
+      setSelectedLocation(fallbackAddr);
     }
-  }, [userAddress, deviceAddress]);
+  }, [user?.address, userAddress, deviceAddress]);
 
   // Navigation states for sub-screens
   const [selectedRequest, setSelectedRequest] = useState<CommunityUpdate | null>(null);
@@ -257,7 +266,6 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
 
 
 
-  const { token, user } = useAuth();
   const [dbUsers, setDbUsers] = useState<any[]>([]);
   const [dbSosReports, setDbSosReports] = useState<any[]>([]);
   const [resolvedSosCount, setResolvedSosCount] = useState<number>(0);
