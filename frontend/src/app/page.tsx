@@ -18,6 +18,7 @@ import { BackendInfo, CommunityPost } from '../types';
 import { useAuth } from '../context/AuthContext';
 import AuthScreen from '../components/AuthScreen';
 import OnboardingScreen from '../components/OnboardingScreen';
+import MinimalHome from '../components/MinimalHome';
 import AdminDashboard from '../components/AdminDashboard';
 import DonationSection from '../components/DonationSection';
 import CommunityActionsGrid from '../components/CommunityActionsGrid';
@@ -234,7 +235,18 @@ export default function Home() {
           <>
             {/* HOME TAB SCREEN */}
             {activeTab === 'home' && (
-              <main className="w-full max-w-2xl mx-auto bg-white rounded-3xl p-4 md:p-8 flex flex-col gap-6 shadow-sm transition-all duration-300">
+              <main className="w-full max-w-2xl mx-auto bg-[#F4F0EA] rounded-[32px] p-4 sm:p-6 md:p-8 flex flex-col gap-6 shadow-xs transition-all duration-300">
+                <MinimalHome
+                  userName={user?.fullName || 'Ananya'}
+                  onSosClick={() => setActiveTab('report')}
+                  onVetCareClick={() => setActiveTab('vetconsult')}
+                  onExpertSupportClick={() => setActiveTab('expertsupport')}
+                  onPetServicesClick={() => setActiveTab('petcare')}
+                  onCommunityClick={() => setActiveTab('circle')}
+                />
+
+                {/* Commented out as requested by user */}
+                {/* 
                 <HeroSection />
                 <NavigationGrid 
                   onGroomingClick={() => setActiveTab('petcare')} 
@@ -249,6 +261,7 @@ export default function Home() {
                 <NeighborhoodRadar onEnterCircle={() => setActiveTab('circle')} />
                 <MarketplaceCategories onExploreMoreClick={() => setActiveTab('marketplace')} />
                 <DonationSection />
+                */}
               </main>
             )}
 
