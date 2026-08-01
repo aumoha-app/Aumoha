@@ -206,7 +206,7 @@ export default function Home() {
           <img
             src="/running_sketch_dog.png"
             alt="Loading..."
-            className="w-24 h-24 object-contain animate-small-hop"
+            className="w-20 h-20 object-contain animate-small-hop"
           />
         </div>
       </div>
@@ -225,7 +225,7 @@ export default function Home() {
               className="w-full h-full object-cover object-top opacity-50 mix-blend-multiply"
             />
             {/* Top White Transparent Gradient Overlay (fading down from white to opacity 0) */}
-            <div className="absolute top-0 left-0 right-0 h-36 bg-gradient-to-b from-white/85 via-white/35 to-transparent pointer-events-none" />
+            {/* <div className="absolute top-0 left-0 right-0 h-36 bg-gradient-to-b from-white/85 via-white/35 to-transparent pointer-events-none" /> */}
             {/* Soft Smudge Gradient Overlay to dissolve sharp horizontal divider */}
             <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-[#CEC7BE] via-[#CEC7BE]/70 to-transparent" />
           </div>
@@ -236,7 +236,7 @@ export default function Home() {
       <Header deferredPrompt={deferredPrompt} onInstallClick={handleInstallClick} />
 
       {/* MAIN CONTENT AREA */}
-      <div className="flex-grow w-full max-w-2xl mx-auto px-4 py-4 pb-28 relative z-10">
+      <div className="flex-grow w-full max-w-3xl md:max-w-4xl mx-auto px-4 sm:px-6 py-4 pb-28 relative z-10">
         
         {!firebaseUser ? (
           <AuthScreen />
@@ -246,7 +246,7 @@ export default function Home() {
           <>
             {/* HOME TAB SCREEN */}
             {activeTab === 'home' && (
-              <main className="w-full max-w-2xl mx-auto flex flex-col gap-6 transition-all duration-300">
+              <main className="w-full max-w-3xl md:max-w-4xl mx-auto flex flex-col gap-6 transition-all duration-300">
                 <MinimalHome
                   userName={user?.fullName || 'Ananya'}
                   onSosClick={() => setActiveTab('report')}
@@ -254,6 +254,7 @@ export default function Home() {
                   onExpertSupportClick={() => setActiveTab('expertsupport')}
                   onPetServicesClick={() => setActiveTab('petcare')}
                   onCommunityClick={() => setActiveTab('circle')}
+                  onMarketplaceClick={() => setActiveTab('marketplace')}
                 />
               </main>
             )}

@@ -7,7 +7,7 @@ interface HeaderProps {
 
 export default function Header({ deferredPrompt, onInstallClick }: HeaderProps) {
   return (
-    <header className="w-full max-w-2xl mx-auto px-4 pt-8 pb-4 flex justify-between items-center select-none relative z-10">
+    <header className="w-full max-w-3xl md:max-w-4xl mx-auto px-4 sm:px-6 pt-8 pb-4 flex justify-between items-center select-none relative z-10">
       {/* Left Side: Brand Logo & Text */}
       <div className="flex items-center gap-3">
         <img 

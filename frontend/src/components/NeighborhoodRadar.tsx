@@ -135,7 +135,7 @@ export default function NeighborhoodRadar({ onEnterCircle }: NeighborhoodRadarPr
         </span>
       </div>
 
-      <div className="w-full bg-[#F8F5EE] border-2 border-[#D2CBBA] rounded-[24px] sm:rounded-[28px] p-5 sm:p-6 shadow-2xs hover:shadow-md transition-all duration-300 flex flex-row items-center justify-between gap-4 sm:gap-6 select-none relative overflow-hidden">
+      <div className="w-full bg-[#EFEAE2] hover:bg-[#E6E0D6] border border-[#D5CEBF] rounded-[24px] sm:rounded-[28px] p-5 sm:p-6 shadow-2xs hover:shadow-md transition-all duration-300 flex flex-row items-center justify-between gap-4 sm:gap-6 select-none relative overflow-hidden">
 
         {/* Left Column: Title, Stats, and Enter Circle Button */}
         <div className="flex-1 flex flex-col gap-3 sm:gap-4 min-w-0 z-10">
@@ -144,7 +144,7 @@ export default function NeighborhoodRadar({ onEnterCircle }: NeighborhoodRadarPr
             className="flex flex-col select-none cursor-pointer group w-fit max-w-full"
           >
             <span className="font-serif text-xs sm:text-base font-bold text-[#1C1A17] leading-tight tracking-wider mb-1">
-              Aumoha Circle • Current Location
+              Aumoha Circle 
             </span>
             <h2 className={`font-serif text-lg sm:text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-1.5 leading-tight truncate transition-colors duration-500 ${geoLoading ? 'text-stone-300 animate-pulse' : 'text-[#1C1A17] group-hover:text-[#B68A35]'}`}>
               <span className="truncate">{geoLoading ? 'Detecting location...' : locationName}</span>
@@ -186,28 +186,35 @@ export default function NeighborhoodRadar({ onEnterCircle }: NeighborhoodRadarPr
           </div>
         </div>
 
-        {/* Right Column: SVG Map Radar Visualizer (Proportioned for mobile & desktop) */}
+        {/* Right Column: SVG Map Radar Visualizer (Bigger sizing & detailed map) */}
         <div
           onClick={onEnterCircle}
-          className="w-14 h-14 sm:w-28 sm:h-28 md:w-36 md:h-[120px] flex items-center justify-center overflow-hidden rounded-full sm:rounded-[20px] shrink-0 bg-[#FAF8F5] border border-warmBeige/60 cursor-pointer hover:border-[#3D5A45]/30 transition-colors shadow-2xs z-10"
+          className="w-20 h-20 sm:w-32 sm:h-32 md:w-40 md:h-[135px] flex items-center justify-center overflow-hidden rounded-full sm:rounded-[24px] shrink-0 bg-[#F4EFE6] border border-[#D5CEBF] cursor-pointer hover:border-[#2D4536]/40 transition-colors shadow-xs z-10"
         >
-          <svg viewBox="0 0 200 100" className="w-full h-full opacity-70">
-            {/* Map streets */}
-            <path d="M 0,20 Q 50,40 100,20 T 200,30" fill="none" stroke="#F1E8DC" strokeWidth="2.5" />
-            <path d="M 30,0 L 50,100" fill="none" stroke="#F1E8DC" strokeWidth="2" />
-            <path d="M 120,0 L 100,100" fill="none" stroke="#F1E8DC" strokeWidth="1.5" />
-            <path d="M 0,70 L 200,60" fill="none" stroke="#F1E8DC" strokeWidth="3" />
-            <path d="M 80,0 Q 120,40 150,100" fill="none" stroke="#F1E8DC" strokeWidth="2" />
-            <path d="M 0,45 Q 100,45 200,45" fill="none" stroke="#F1E8DC" strokeWidth="1" strokeDasharray="3 3" />
+          <svg viewBox="0 0 200 120" className="w-full h-full">
+            {/* Map Background */}
+            <rect x="0" y="0" width="200" height="120" fill="#F4EFE6" />
 
-            {/* Radar overlay */}
-            <circle cx="100" cy="50" r="32" fill="#E8EFE9" fillOpacity="0.6" stroke="#D3E2D6" strokeWidth="1.2" />
-            <circle cx="100" cy="50" r="20" fill="none" stroke="#D3E2D6" strokeWidth="0.8" strokeDasharray="2 2" />
-            <circle cx="100" cy="50" r="9" fill="none" stroke="#D3E2D6" strokeWidth="0.8" />
+            {/* Map Roads / Streets */}
+            <path d="M 0,25 Q 60,45 120,25 T 200,35" fill="none" stroke="#D5CEBF" strokeWidth="3" />
+            <path d="M 35,0 L 55,120" fill="none" stroke="#D5CEBF" strokeWidth="2.5" />
+            <path d="M 130,0 L 110,120" fill="none" stroke="#D5CEBF" strokeWidth="2" />
+            <path d="M 0,85 L 200,75" fill="none" stroke="#D5CEBF" strokeWidth="3.5" />
+            <path d="M 85,0 Q 125,50 155,120" fill="none" stroke="#D5CEBF" strokeWidth="2.5" />
+            <path d="M 0,55 Q 100,55 200,55" fill="none" stroke="#C8BFB0" strokeWidth="1.5" strokeDasharray="4 4" />
 
-            {/* Center Node Dot */}
-            <circle cx="100" cy="50" r="3.5" fill="#3D5A45" />
-            <circle cx="100" cy="50" r="8" fill="none" stroke="#3D5A45" strokeWidth="1" opacity="0.4" className="animate-ping" style={{ transformOrigin: '100px 50px' }} />
+            {/* Secondary Arterials */}
+            <path d="M 15,0 L 15,120" fill="none" stroke="#E2DCD0" strokeWidth="1.2" />
+            <path d="M 175,0 L 175,120" fill="none" stroke="#E2DCD0" strokeWidth="1.2" />
+
+            {/* Radar Overlay Concentric Circles */}
+            <circle cx="100" cy="60" r="42" fill="#2D4536" fillOpacity="0.08" stroke="#2D4536" strokeOpacity="0.25" strokeWidth="1.5" />
+            <circle cx="100" cy="60" r="28" fill="none" stroke="#2D4536" strokeOpacity="0.2" strokeWidth="1" strokeDasharray="3 3" />
+            <circle cx="100" cy="60" r="14" fill="none" stroke="#2D4536" strokeOpacity="0.3" strokeWidth="1.2" />
+
+            {/* Center Pin Node */}
+            <circle cx="100" cy="60" r="4.5" fill="#2D4536" />
+            <circle cx="100" cy="60" r="11" fill="none" stroke="#2D4536" strokeWidth="1.5" opacity="0.5" className="animate-ping" style={{ transformOrigin: '100px 60px' }} />
           </svg>
         </div>
 
