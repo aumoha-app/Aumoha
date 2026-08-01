@@ -595,10 +595,10 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
   };
 
   return (
-    <div className="w-full flex flex-col gap-6 animate-scaleIn select-none font-sans text-charcoal bg-white rounded-3xl p-4 md:p-6 shadow-sm">
+    <div className="w-full flex flex-col gap-5 sm:gap-6 animate-fadeIn select-none font-sans text-[#1C1A17] pb-4">
       
       {/* 1. TOP HEADER NAV WITH BACK BUTTON */}
-      <div className="flex items-center justify-between w-full pb-3 border-b border-warmBeige/40 select-none">
+      <div className="flex items-center justify-between w-full pb-3 border-b border-[#D8D0C0] select-none">
         <div className="flex items-center gap-3">
           <button 
             onClick={() => {
@@ -608,15 +608,15 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                 setActiveTab('home');
               }
             }} 
-            className="w-10 h-10 rounded-full border border-warmBeige flex items-center justify-center hover:bg-warmBg transition-colors"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-[#D5CEBF] bg-[#EFEAE2] flex items-center justify-center hover:bg-[#E6E0D6] transition-colors shadow-2xs"
           >
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-stone-600">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-stone-700">
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </button>
           <div>
-            <h1 className="text-sm font-serif font-extrabold text-charcoal">Consult & Care</h1>
-            <span className="text-[10px] text-stone-500 font-semibold block mt-0.5">Expert care for every pet need</span>
+            <h1 className="text-sm font-serif font-bold text-[#1C1A17]">Consult & Care</h1>
+            <span className="text-[10.5px] text-stone-600 font-medium block mt-0.5">Expert care for every pet need</span>
           </div>
         </div>
 
@@ -627,10 +627,10 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
               setSubTab('admin');
               setCurrentView('home');
             }}
-            className={`px-3.5 py-2 rounded-xl border text-[10px] font-extrabold flex items-center gap-1.5 transition-all ${
+            className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl border text-[10.5px] font-extrabold flex items-center gap-1.5 transition-all ${
               subTab === 'admin' 
-                ? 'bg-terracotta border-terracotta text-white shadow-sm' 
-                : 'border-warmBeige hover:bg-[#FCFAF7] text-terracotta'
+                ? 'bg-[#C85341] border-[#C85341] text-white shadow-xs' 
+                : 'border-[#D5CEBF] bg-[#EFEAE2] hover:bg-[#E6E0D6] text-[#C85341]'
             }`}
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -641,13 +641,13 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
         )}
       </div>
 
-      {/* 2. SUB-TABS SELECTOR FOR FLOW STATES (Mobile Responsive) */}
+      {/* 2. SUB-TABS SELECTOR FOR FLOW STATES */}
       {currentView === 'home' && subTab !== 'admin' && (
-        <div className="grid grid-cols-3 bg-[#FCFAF7] border border-[#F0EBE1] p-1 rounded-2xl w-full select-none shadow-sm gap-1">
+        <div className="grid grid-cols-3 bg-[#EFEAE2] border border-[#D5CEBF] p-1 rounded-2xl w-full select-none shadow-2xs gap-1">
           <button 
             onClick={() => { setSubTab('book'); setSelectedSpecialty(null); }}
-            className={`py-2 sm:py-2.5 px-1.5 rounded-xl text-[11px] sm:text-xs font-extrabold flex items-center justify-center gap-1 sm:gap-1.5 transition-all active:scale-95 whitespace-nowrap ${
-              subTab === 'book' ? 'bg-white shadow-sm text-terracotta border border-[#EBE3D5]/20' : 'text-stone-500 hover:text-stone-700'
+            className={`py-2 sm:py-2.5 px-1.5 rounded-xl text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1 sm:gap-1.5 transition-all active:scale-95 whitespace-nowrap ${
+              subTab === 'book' ? 'bg-white shadow-xs text-[#C85341] border border-[#D5CEBF]/40' : 'text-stone-600 hover:text-stone-800'
             }`}
           >
             <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -661,8 +661,8 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
           
           <button 
             onClick={() => { setSubTab('tele'); setSelectedSpecialty(null); }}
-            className={`py-2 sm:py-2.5 px-1.5 rounded-xl text-[11px] sm:text-xs font-extrabold flex items-center justify-center gap-1 sm:gap-1.5 transition-all active:scale-95 whitespace-nowrap ${
-              subTab === 'tele' ? 'bg-white shadow-sm text-terracotta border border-[#EBE3D5]/20' : 'text-stone-500 hover:text-stone-700'
+            className={`py-2 sm:py-2.5 px-1.5 rounded-xl text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1 sm:gap-1.5 transition-all active:scale-95 whitespace-nowrap ${
+              subTab === 'tele' ? 'bg-white shadow-xs text-[#C85341] border border-[#D5CEBF]/40' : 'text-stone-600 hover:text-stone-800'
             }`}
           >
             <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -675,8 +675,8 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
 
           <button 
             onClick={() => setSubTab('my-appts')}
-            className={`py-2 sm:py-2.5 px-1.5 rounded-xl text-[11px] sm:text-xs font-extrabold flex items-center justify-center gap-1 sm:gap-1.5 transition-all active:scale-95 whitespace-nowrap ${
-              subTab === 'my-appts' ? 'bg-white shadow-sm text-terracotta border border-[#EBE3D5]/20' : 'text-stone-500 hover:text-stone-700'
+            className={`py-2 sm:py-2.5 px-1.5 rounded-xl text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1 sm:gap-1.5 transition-all active:scale-95 whitespace-nowrap ${
+              subTab === 'my-appts' ? 'bg-white shadow-xs text-[#C85341] border border-[#D5CEBF]/40' : 'text-stone-600 hover:text-stone-800'
             }`}
           >
             <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -693,7 +693,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
 
       {/* ==================== SCREEN 1: CONSULT & CARE HOME ==================== */}
       {currentView === 'home' && subTab !== 'my-appts' && subTab !== 'admin' && (
-        <div className="flex flex-col gap-6 w-full animate-fadeIn">
+        <div className="flex flex-col gap-5 sm:gap-6 w-full animate-fadeIn">
           
           {/* SEARCH BAR */}
           <div className="flex gap-2 w-full">
@@ -703,9 +703,9 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                 placeholder="Search for specialisations, vets..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl pl-10 pr-4 py-3 text-xs font-semibold focus:outline-none focus:border-terracotta/40 shadow-sm"
+                className="w-full bg-[#EFEAE2] border border-[#D5CEBF] focus:border-[#C85341] rounded-2xl pl-10 pr-4 py-3 text-xs sm:text-sm text-[#1C1A17] placeholder-stone-600 outline-none transition-all font-sans font-medium shadow-2xs"
               />
-              <svg className="absolute left-3.5 top-3.5 w-4 h-4 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <svg className="absolute left-3.5 top-3.5 w-4 h-4 text-stone-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
@@ -715,9 +715,9 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
             <button 
               type="button"
               onClick={() => setCurrentView('directory')}
-              className="w-11 h-11 bg-white border border-[#F0EBE1] hover:bg-[#FCFAF7] active:scale-95 transition-all rounded-2xl flex items-center justify-center shadow-sm shrink-0"
+              className="w-11 h-11 bg-[#EFEAE2] border border-[#D5CEBF] hover:bg-[#E6E0D6] active:scale-95 transition-all rounded-2xl flex items-center justify-center shadow-2xs shrink-0"
             >
-              <svg className="w-4 h-4 text-stone-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <svg className="w-4 h-4 text-stone-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="4" y1="21" x2="4" y2="14" />
                 <line x1="4" y1="10" x2="4" y2="3" />
                 <line x1="12" y1="21" x2="12" y2="12" />
@@ -731,34 +731,36 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
             </button>
           </div>
 
-          {/* HERO BANNER WITH STUNNING IMAGE GENERATED */}
-          <div className="relative bg-gradient-to-br from-[#FAF2EE] to-[#F5DFD8] border border-[#F5DFD8] rounded-[32px] p-6 md:p-8 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6 overflow-hidden">
-            {/* Background vector accents for a premium feel */}
-            <div className="absolute -top-12 -left-12 w-28 h-28 rounded-full bg-white/30 filter blur-2xl pointer-events-none" />
-            <div className="absolute -bottom-12 -right-12 w-32 h-32 rounded-full bg-[#FAF2EE]/60 filter blur-2xl pointer-events-none" />
-
-            <div className="flex flex-col gap-2 z-10 text-left max-w-lg">
-              <h2 className="font-serif font-extrabold text-lg md:text-xl text-terracotta leading-tight tracking-tight">
-                Compassionate care,<br className="hidden sm:block" /> expert advice
-              </h2>
-              <p className="text-[11px] md:text-xs text-stone-600 font-semibold leading-relaxed mt-1 max-w-[280px] md:max-w-xs">
-                Connect with highly trusted, verified veterinarians to ensure your pet's lifelong health and happiness.
+          {/* HERO BANNER MATCHING USER SPECIFICATION */}
+          <div className="relative bg-[#EFEAE2] border border-[#D5CEBF] rounded-2xl sm:rounded-[32px] p-5 sm:p-7 md:p-8 shadow-2xs flex flex-row items-center justify-between gap-4 overflow-hidden">
+            {/* Left Column: Text Content */}
+            <div className="flex flex-col items-start max-w-[62%] sm:max-w-lg z-10 select-none pl-1 sm:pl-2">
+              <span className="text-[10.5px] sm:text-xs font-sans font-extrabold text-[#C85341] tracking-widest uppercase mb-1.5 sm:mb-2 block">
+                VET CARE
+              </span>
+              <h1 className="font-serif text-lg xs:text-xl sm:text-3xl md:text-4xl font-bold leading-[1.18] text-[#1C1A17] tracking-tight mb-2 sm:mb-3">
+                Find the right<br />care for your<br />companion.
+              </h1>
+              <p className="text-[11px] sm:text-sm text-stone-700 font-medium leading-relaxed mb-3.5 sm:mb-5">
+                Expert medical care,<br className="xs:hidden" /> when they need it.
               </p>
               <button 
                 onClick={() => setCurrentView('directory')}
-                className="mt-4 px-5 py-2.5 bg-terracotta hover:bg-[#c2502f] text-white text-[11px] font-extrabold rounded-2xl transition-all shadow-md hover:shadow-lg self-start active:scale-95 flex items-center gap-1.5"
+                className="px-4 py-2 sm:px-5 sm:py-2.5 bg-[#2D4536] hover:bg-[#1F3325] active:scale-95 text-white text-[11px] sm:text-xs font-bold rounded-xl sm:rounded-2xl transition-all shadow-2xs flex items-center gap-1.5"
               >
-                Let's Consult <span>→</span>
+                <span>Find Vets</span>
+                <span className="text-xs sm:text-sm">→</span>
               </button>
             </div>
 
-            {/* Premium Vet Consultation Hero Illustration */}
-            <div className="relative shrink-0 w-[160px] h-[110px] md:w-[200px] md:h-[135px] z-10 flex items-center justify-center">
-              <div className="absolute inset-0 bg-white/40 rounded-[24px] filter blur-md -rotate-3" />
+            {/* Right Column: New Golden Retriever Studio Cutout */}
+            <div className="relative flex items-center justify-center shrink-0 w-32 xs:w-40 sm:w-60 md:w-72 h-[140px] xs:h-[170px] sm:h-[220px] z-10 pr-1 sm:pr-2">
+              <div className="absolute w-28 h-28 xs:w-36 xs:h-36 sm:w-52 sm:h-52 rounded-full bg-white/80 shadow-xs border border-white/90 pointer-events-none z-0" />
               <img 
-                src="/vet_consult_hero.png" 
-                alt="Trusted Vets" 
-                className="w-full h-full object-cover rounded-[24px] border-2 border-white/85 shadow-md transform hover:rotate-0 hover:scale-[1.02] transition-all duration-300 -rotate-2" 
+                src="/vet-hero-dog-transparent.png" 
+                alt="Vet Care Golden Companion" 
+                className="w-full h-auto max-h-[145px] xs:max-h-[175px] sm:max-h-[250px] object-contain relative z-10 scale-110 sm:scale-120 hover:scale-125 transition-transform duration-500 drop-shadow-[0_10px_20px_rgba(30,20,10,0.2)]" 
+                onError={(e) => { e.currentTarget.src = '/laying-dog.png'; }}
               />
             </div>
           </div>
@@ -766,16 +768,16 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
           {/* BROWSE BY SPECIALISATION GRID */}
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between px-1">
-              <h3 className="text-xs font-extrabold text-stone-400 uppercase tracking-wider">Browse by Specialisation</h3>
+              <h3 className="font-serif text-sm sm:text-lg text-[#1C1A17] font-bold tracking-tight">Browse by Specialisation</h3>
               <button 
                 onClick={() => { setSelectedSpecialty(null); setCurrentView('directory'); }}
-                className="text-[10px] font-extrabold text-terracotta hover:underline flex items-center gap-0.5"
+                className="text-xs text-[#C85341] font-bold hover:underline flex items-center gap-0.5"
               >
-                View all <span className="text-xs font-extrabold mt-0.5">›</span>
+                View all <span className="text-xs font-bold">→</span>
               </button>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 w-full">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-3.5 w-full">
               {specialisations.map(spec => (
                 <div 
                   key={spec.id}
@@ -783,16 +785,19 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                     setSelectedSpecialty(spec.id);
                     setCurrentView('directory');
                   }}
-                  className="bg-white border border-[#F0EBE1] hover:border-terracotta/20 rounded-[24px] p-4 flex flex-col items-start justify-between cursor-pointer hover:shadow-md transition-all hover:scale-[1.01] group min-h-[115px] relative overflow-hidden"
+                  className="bg-[#EFEAE2] hover:bg-[#E6E0D6] border border-[#D5CEBF] rounded-2xl sm:rounded-[24px] p-3.5 sm:p-4 flex flex-col items-start justify-between cursor-pointer hover:shadow-md transition-all group min-h-[105px] sm:min-h-[115px] relative overflow-hidden"
                 >
                   <div className="flex flex-col gap-2">
-                    {/* Beautiful circular icon wrapper with soft color-coordinated background gradient */}
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center shadow-sm ${spec.colorClass} transition-transform group-hover:scale-105`}>
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center bg-[#EAE4D8] border border-[#D5CEBF] text-[#2D4536] transition-transform group-hover:scale-105">
                       {spec.icon}
                     </div>
                     <div>
-                      <span className="text-[11px] font-extrabold block text-charcoal group-hover:text-terracotta transition-colors leading-tight">{spec.name}</span>
-                      <span className="text-[9px] text-stone-500 font-semibold block leading-normal mt-1">{spec.desc}</span>
+                      <span className="font-serif text-xs sm:text-sm font-bold block text-[#1C1A17] group-hover:text-[#C85341] transition-colors leading-tight">
+                        {spec.name}
+                      </span>
+                      <span className="text-[10px] sm:text-[11px] text-stone-600 font-sans font-medium block leading-normal mt-0.5">
+                        {spec.desc}
+                      </span>
                     </div>
                   </div>
                 </div>
