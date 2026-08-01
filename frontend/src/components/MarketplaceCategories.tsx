@@ -27,10 +27,10 @@ export default function MarketplaceCategories({ onExploreMoreClick }: Marketplac
     <div className="w-full flex flex-col gap-3 mt-1 select-none">
       {/* Header Row: Title & Explore More Button */}
       <div className="flex items-center justify-between w-full border-b border-warmBeige/40 pb-2 select-none">
-        <span className="text-[10px] md:text-xs uppercase tracking-widest text-[#B68A35] font-bold">Market Categories</span>
+        <span className="text-[11px] sm:text-xs uppercase tracking-widest text-[#B68A35] font-extrabold">Market Categories</span>
         <button 
           onClick={onExploreMoreClick}
-          className="text-[10px] md:text-xs text-stone-400 font-bold hover:text-clay transition-all duration-200 cursor-pointer flex items-center gap-1 leading-none"
+          className="text-[11px] sm:text-xs text-stone-500 font-bold hover:text-clay transition-all duration-200 cursor-pointer flex items-center gap-1 leading-none"
         >
           Explore More <span className="text-xs md:text-sm font-light">→</span>
         </button>
@@ -55,7 +55,7 @@ export default function MarketplaceCategories({ onExploreMoreClick }: Marketplac
             </div>
 
             {/* Label below Bubble */}
-            <h3 className="mt-1.5 text-[10px] sm:text-xs md:text-xs font-bold text-charcoal leading-tight text-center max-w-[90px] sm:max-w-[110px]">
+            <h3 className="mt-1.5 text-xs sm:text-xs md:text-sm font-bold text-charcoal leading-tight text-center max-w-[100px] sm:max-w-[120px]">
               {item.title}
             </h3>
           </div>

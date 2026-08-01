@@ -1018,7 +1018,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
     <div className="w-full flex flex-col gap-6 select-none animate-fadeIn">
 
       {/* TABS SELECTOR (Matches Header Style) */}
-      <div className="w-full border-b border-[#F5F2EC] flex select-none text-xs font-bold text-stone-400">
+      <div className="w-full border-b border-[#F5F2EC] flex select-none text-xs sm:text-sm font-extrabold text-stone-500">
         {[
           {
             id: 'home',
@@ -1068,8 +1068,8 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
             key={t.id}
             onClick={() => setActiveView(t.id as any)}
             className={`flex-1 pb-3 text-center transition-all flex items-center justify-center gap-1.5 ${activeView === t.id
-                ? 'text-[#3D5A45] border-b-2 border-[#3D5A45]'
-                : 'hover:text-charcoal border-b border-transparent'
+                ? 'text-[#3D5A45] border-b-2 border-[#3D5A45] font-black'
+                : 'hover:text-charcoal border-b border-transparent font-extrabold'
               }`}
           >
             {t.icon}

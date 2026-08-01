@@ -47,6 +47,7 @@ export default function EmergencyDispatch({
   const [photoSelected, setPhotoSelected] = useState<boolean>(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string>('');
+  const [photoError, setPhotoError] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioPlayUrl, setAudioPlayUrl] = useState<string>('');
@@ -250,6 +251,13 @@ export default function EmergencyDispatch({
   // Intercept and pass local states to the page submit handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!photoSelected || !photoFile) {
+      setPhotoError('Emergency photo is required to submit a distress alert.');
+      return;
+    }
+    setPhotoError(null);
+
     let photoBase64 = '';
     let audioBase64 = '';
 
@@ -378,6 +386,7 @@ export default function EmergencyDispatch({
       setPhotoFile(file);
       setPhotoSelected(true);
       setPhotoPreviewUrl(URL.createObjectURL(file));
+      setPhotoError(null);
     }
   };
 
@@ -759,7 +768,9 @@ export default function EmergencyDispatch({
 
         {/* Section 3: Add Photo Container (File input trigger) */}
         <div className="flex flex-col gap-2.5">
-          <label className="text-xs md:text-sm font-bold text-charcoal select-none">3. Add Photo <span className="text-stone-400 font-normal">(optional)</span></label>
+          <label className="text-xs md:text-sm font-bold text-charcoal select-none">
+            3. Add Photo <span className="text-[#9B1C1C] font-bold ml-1">*</span>
+          </label>
           
           <input 
             type="file" 
@@ -810,7 +821,9 @@ export default function EmergencyDispatch({
           ) : (
             <div 
               onClick={handlePhotoClick}
-              className="w-full bg-[#FDFBF9] hover:bg-[#F9F6F0] border-2 border-dashed border-[#EBE3D5] rounded-2xl p-6 flex flex-col items-center justify-center gap-2.5 cursor-pointer hover:border-stone-400 transition-all select-none group"
+              className={`w-full bg-[#FDFBF9] hover:bg-[#F9F6F0] border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center gap-2.5 cursor-pointer transition-all select-none group ${
+                photoError ? 'border-rose-400 bg-rose-50/30' : 'border-[#EBE3D5] hover:border-stone-400'
+              }`}
             >
               <div className="p-3 bg-[#F5F2EC] rounded-full text-stone-500 group-hover:scale-105 transition-transform duration-200">
                 <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -822,6 +835,13 @@ export default function EmergencyDispatch({
                 <span className="text-xs font-bold text-charcoal">Upload Emergency Photo</span>
                 <span className="text-[10px] text-stone-400 font-semibold mt-0.5">JPEG, PNG up to 10MB</span>
               </div>
+            </div>
+          )}
+
+          {photoError && (
+            <div className="w-full flex items-center gap-2 bg-[#FDF2F2] border border-[#F8B4B4] rounded-xl p-2.5 mt-1 text-[10px] text-rose-700 font-semibold select-none leading-normal">
+              <span className="shrink-0 text-xs">⚠️</span>
+              <span className="flex-1">{photoError}</span>
             </div>
           )}
         </div>
@@ -993,13 +1013,14 @@ export default function EmergencyDispatch({
 
         {/* urgent description text area (replaces page.tsx standard input but references hook value) */}
         <div className="flex flex-col gap-1.5 mt-1 select-none">
-          <label className="text-xs font-bold text-charcoal">Description of Emergency</label>
+          <label className="text-xs font-bold text-charcoal">
+            Description of Emergency <span className="text-stone-400 font-normal">(optional)</span>
+          </label>
           <textarea
             value={sosReason}
             onChange={(e) => setSosReason(e.target.value)}
             placeholder="Describe what you see to help wardens prepare (e.g. animal size, visible symptoms, physical surroundings)..."
             className="bg-[#FCFAF7] border border-warmBeige rounded-xl p-3 text-sm text-charcoal outline-none focus:border-emergency min-h-[90px] resize-y transition-all"
-            required
           />
         </div>
 

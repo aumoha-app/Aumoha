@@ -5,10 +5,10 @@ export default function HeroSection() {
         
         {/* Tagline */}
         <div className="w-full text-center pt-2 pb-1">
-          <h2 className="font-serif text-2xl md:text-[40px] text-charcoal font-normal leading-[1.15] tracking-tight">
+          <h2 className="font-serif text-2xl sm:text-3xl md:text-[40px] text-charcoal font-medium leading-[1.2] tracking-tight">
             Together, we protect<br />what matters.
           </h2>
-          <div className="text-[11px] md:text-sm text-stone-500 font-medium leading-relaxed mt-2 md:mt-3">
+          <div className="text-xs sm:text-sm text-stone-600 font-semibold leading-relaxed mt-2 md:mt-3">
             <span>Rescue. Protect. Care. For every life.</span>
           </div>
         </div>

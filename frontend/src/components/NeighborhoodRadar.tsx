@@ -115,10 +115,10 @@ export default function NeighborhoodRadar({ onEnterCircle }: NeighborhoodRadarPr
     <div className="w-full flex flex-col gap-2.5 select-none mt-1">
       {/* Section Header Row */}
       <div className="flex items-center justify-between w-full border-b border-warmBeige/40 pb-2 select-none">
-        <span className="text-[10px] md:text-xs uppercase tracking-widest text-[#B68A35] font-extrabold">
+        <span className="text-[11px] sm:text-xs uppercase tracking-widest text-[#B68A35] font-extrabold">
           Neighborhood Radar
         </span>
-        <span className="text-[9px] md:text-[10px] text-stone-400 font-bold">
+        <span className="text-[10px] sm:text-xs text-stone-500 font-bold">
           Live active rescue network
         </span>
       </div>
@@ -131,7 +131,7 @@ export default function NeighborhoodRadar({ onEnterCircle }: NeighborhoodRadarPr
             onClick={onEnterCircle}
             className="flex flex-col select-none cursor-pointer group w-fit"
           >
-            <span className="text-[8px] md:text-[9.5px] tracking-widest text-[#B68A35] font-extrabold uppercase leading-none">
+            <span className="text-[9px] sm:text-[10px] tracking-widest text-[#B68A35] font-extrabold uppercase leading-none">
               MOHA CIRCLE • CURRENT LOCATION
             </span>
             <h2 className="font-serif text-lg md:text-3xl text-stone-900 font-semibold tracking-tight mt-1 md:mt-1.5 flex items-center gap-1.5 leading-tight truncate group-hover:text-[#B68A35] transition-colors">
@@ -145,18 +145,18 @@ export default function NeighborhoodRadar({ onEnterCircle }: NeighborhoodRadarPr
         {/* Stats row with dividing lines */}
         <div className={`flex items-center gap-3 md:gap-5 select-none transition-all duration-305 ${isLoading ? 'animate-pulse opacity-60' : ''}`}>
           <div className="flex flex-col">
-            <span className="text-sm md:text-2xl font-black text-stone-800 leading-none">{membersCount}</span>
-            <span className="text-[8px] md:text-[10px] text-stone-400 font-bold uppercase tracking-wider mt-1 leading-none">Members</span>
+            <span className="text-base sm:text-xl md:text-2xl font-black text-stone-800 leading-none">{membersCount}</span>
+            <span className="text-[9px] sm:text-[10px] text-stone-500 font-bold uppercase tracking-wider mt-1 leading-none">Members</span>
           </div>
           <div className="w-[1.5px] h-5 md:h-8 bg-stone-300/50 shrink-0" />
           <div className="flex flex-col">
-            <span className="text-sm md:text-2xl font-black text-stone-800 leading-none">{rescuesCount}</span>
-            <span className="text-[8px] md:text-[10px] text-stone-400 font-bold uppercase tracking-wider mt-1 leading-none">Rescues</span>
+            <span className="text-base sm:text-xl md:text-2xl font-black text-stone-800 leading-none">{rescuesCount}</span>
+            <span className="text-[9px] sm:text-[10px] text-stone-500 font-bold uppercase tracking-wider mt-1 leading-none">Rescues</span>
           </div>
           <div className="w-[1.5px] h-5 md:h-8 bg-stone-300/50 shrink-0" />
           <div className="flex flex-col">
-            <span className="text-sm md:text-2xl font-black text-stone-800 leading-none">#{rank}</span>
-            <span className="text-[8px] md:text-[10px] text-stone-400 font-bold uppercase tracking-wider mt-1 leading-none">Rank</span>
+            <span className="text-base sm:text-xl md:text-2xl font-black text-stone-800 leading-none">#{rank}</span>
+            <span className="text-[9px] sm:text-[10px] text-stone-500 font-bold uppercase tracking-wider mt-1 leading-none">Rank</span>
           </div>
         </div>
 

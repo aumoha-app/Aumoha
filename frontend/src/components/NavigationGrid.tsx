@@ -32,7 +32,7 @@ export default function NavigationGrid({ onGroomingClick, onVetConsultationClick
     <div className="w-full select-none flex flex-col gap-3">
       {/* Header Row: Title */}
       <div className="flex items-center justify-between w-full border-b border-warmBeige/40 pb-2 select-none">
-        <span className="text-[10px] md:text-xs uppercase tracking-widest text-[#B68A35] font-bold">Consult and Care</span>
+        <span className="text-[11px] sm:text-xs uppercase tracking-widest text-[#B68A35] font-extrabold">Consult and Care</span>
       </div>
 
       {/* 3-Column Compact Bubble Grid */}
@@ -54,7 +54,7 @@ export default function NavigationGrid({ onGroomingClick, onVetConsultationClick
             </div>
 
             {/* Label below Bubble */}
-            <h3 className="mt-1.5 text-[10px] sm:text-xs md:text-xs font-bold text-charcoal leading-tight text-center max-w-[90px] sm:max-w-[110px]">
+            <h3 className="mt-1.5 text-xs sm:text-xs md:text-sm font-bold text-charcoal leading-tight text-center max-w-[100px] sm:max-w-[120px]">
               {item.title}
             </h3>
           </div>
