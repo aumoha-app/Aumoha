@@ -43,7 +43,7 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
       }
     };
     fetchSettings();
-  }, [isCartOpen]); // Fetch or refresh settings when cart is opened
+  }, [isCartOpen]);
 
   // Fetch products from MongoDB
   const fetchProducts = useCallback(async () => {
@@ -114,7 +114,6 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
       }];
     });
 
-    // Visual feedback: briefly show "Added" on the button
     setAddedProductId(prodId);
     setTimeout(() => setAddedProductId(null), 1200);
   }, []);
@@ -139,13 +138,11 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
     setCartItems([]);
   }, []);
 
-  // Get quantity in cart for a product (for button label)
   const getCartQuantity = (productId: string | number) => {
     const item = cartItems.find(i => i.id === productId);
     return item ? item.quantity : 0;
   };
 
-  // Filter products based on category and search query
   const filteredProducts = products.filter(product => {
     const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
     const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -155,29 +152,27 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
 
   return (
     <>
-      <main className="w-full max-w-2xl mx-auto bg-white rounded-3xl p-4 md:p-8 flex flex-col gap-5 transition-all duration-300">
+      <main className="w-full max-w-3xl md:max-w-4xl mx-auto flex flex-col gap-5 transition-all duration-300 font-sans">
         
-        {/* 1. HEADER: Title, Admin Panel Badge, and Shopping Cart Icon */}
+        {/* 1. HEADER: Title & Shopping Cart Icon */}
         <header className="flex items-center justify-between w-full select-none px-1">
           <div className="flex items-center gap-2">
-            <h1 className="font-serif text-3xl md:text-4xl text-[#1C1A17] font-normal tracking-tight">Marketplace</h1>
-            {/* Admin Panel button removed from here */}
+            <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl text-[#1C1A17] font-bold tracking-tight">Marketplace</h1>
           </div>
           
-          {/* Shopping Cart Icon with item counter */}
           <button 
             onClick={() => setIsCartOpen(true)}
-            className="relative p-2 hover:opacity-85 transition-all cursor-pointer select-none group"
+            className="relative p-2.5 bg-[#EFEAE2] hover:bg-[#E6E0D6] border border-[#D5CEBF] rounded-2xl transition-all cursor-pointer select-none group shadow-2xs"
             aria-label={`Open cart with ${cartCount} items`}
           >
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#1C1A17" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform duration-200">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#1C1A17" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-105 transition-transform duration-200">
               <circle cx="9" cy="21" r="1" />
               <circle cx="20" cy="21" r="1" />
               <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
             </svg>
             {cartCount > 0 && (
               <span 
-                className="absolute -top-0.5 -right-0.5 bg-[#4A5D4E] text-[#FDFBF7] text-[8px] font-bold w-4 h-4 rounded-full flex items-center justify-center select-none"
+                className="absolute -top-1 -right-1 bg-[#C85341] text-white text-[9px] font-extrabold w-4 h-4 rounded-full flex items-center justify-center select-none shadow-xs"
                 style={{ animation: 'scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)' }}
               >
                 {cartCount > 99 ? '99+' : cartCount}
@@ -186,77 +181,70 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
           </button>
         </header>
 
-        {/* 2. SEARCH BAR */}
+        {/* 2. SEARCH BAR (Matching Homepage Input) */}
         <div className="relative w-full">
-          <span className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-stone-400 select-none">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <span className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-stone-600 select-none">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
           </span>
           <input
             type="text"
-            placeholder="Search for products, brands..."
+            placeholder="Search for food, toys, medical care..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#F5F3EF] rounded-2xl py-3 pl-12 pr-4 text-xs md:text-sm text-[#1C1A17] placeholder-stone-500 outline-none focus:ring-1 focus:ring-[#4A5D4E] transition-all"
+            className="w-full bg-[#EFEAE2] border border-[#D5CEBF] focus:border-[#C85341] rounded-2xl py-3.5 pl-11 pr-4 text-xs sm:text-sm text-[#1C1A17] placeholder-stone-600 outline-none transition-all font-sans font-medium shadow-2xs"
           />
         </div>
 
         {/* 3. CATEGORY RAIL */}
-        <div className="flex items-center justify-between w-full select-none mt-1 pb-2">
-          {/* Category: All */}
+        <div className="flex items-center justify-between w-full select-none mt-1 pb-2 gap-2 overflow-x-auto scrollbar-none no-scrollbar scrollbar-hide">
           <button
             onClick={() => setSelectedCategory('all')}
             className={`flex items-center justify-center px-5 py-2 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer shrink-0 ${
               selectedCategory === 'all'
-                ? 'bg-[#4A5D4E] text-[#FDFBF7] shadow-sm'
-                : 'bg-transparent text-stone-500 hover:text-[#1C1A17]'
+                ? 'bg-[#2D4536] text-white shadow-xs'
+                : 'bg-[#EFEAE2] text-stone-700 hover:text-[#1C1A17] border border-[#D5CEBF]'
             }`}
           >
             All
           </button>
 
-          {/* Separator */}
-          <div className="w-[1px] h-4 bg-stone-200 shrink-0" />
+          <div className="w-[1px] h-4 bg-[#D5CEBF] shrink-0" />
 
-          {/* Category: Food */}
           <button
             onClick={() => setSelectedCategory('food')}
-            className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-full text-xs transition-all duration-200 cursor-pointer shrink-0 ${
+            className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer shrink-0 ${
               selectedCategory === 'food'
-                ? 'bg-[#4A5D4E] text-[#FDFBF7] font-bold'
-                : 'bg-transparent text-stone-500 hover:text-[#1C1A17] font-semibold'
+                ? 'bg-[#2D4536] text-white shadow-xs'
+                : 'bg-[#EFEAE2] text-stone-700 hover:text-[#1C1A17] border border-[#D5CEBF]'
             }`}
           >
             Food
           </button>
 
-          {/* Separator */}
-          <div className="w-[1px] h-4 bg-stone-200 shrink-0" />
+          <div className="w-[1px] h-4 bg-[#D5CEBF] shrink-0" />
 
-          {/* Category: Toys */}
           <button
             onClick={() => setSelectedCategory('toys')}
-            className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-full text-xs transition-all duration-200 cursor-pointer shrink-0 ${
+            className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer shrink-0 ${
               selectedCategory === 'toys'
-                ? 'bg-[#4A5D4E] text-[#FDFBF7] font-bold'
-                : 'bg-transparent text-stone-500 hover:text-[#1C1A17] font-semibold'
+                ? 'bg-[#2D4536] text-white shadow-xs'
+                : 'bg-[#EFEAE2] text-stone-700 hover:text-[#1C1A17] border border-[#D5CEBF]'
             }`}
           >
             Toys
           </button>
 
-          {/* Separator */}
-          <div className="w-[1px] h-4 bg-stone-200 shrink-0" />
+          <div className="w-[1px] h-4 bg-[#D5CEBF] shrink-0" />
 
-          {/* Category: Medical */}
           <button
             onClick={() => setSelectedCategory('medical')}
-            className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-full text-xs transition-all duration-200 cursor-pointer shrink-0 ${
+            className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer shrink-0 ${
               selectedCategory === 'medical'
-                ? 'bg-[#4A5D4E] text-[#FDFBF7] font-bold'
-                : 'bg-transparent text-stone-500 hover:text-[#1C1A17] font-semibold'
+                ? 'bg-[#2D4536] text-white shadow-xs'
+                : 'bg-[#EFEAE2] text-stone-700 hover:text-[#1C1A17] border border-[#D5CEBF]'
             }`}
           >
             Medical
@@ -264,10 +252,9 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
         </div>
 
         {/* 4. DISCOUNT BANNER */}
-        <div className="bg-[#FAF6F0] border border-[#EBE3D5] rounded-[20px] p-4 flex items-center justify-between gap-4 select-none">
+        <div className="bg-[#EFEAE2] border border-[#D5CEBF] rounded-[24px] p-4 flex items-center justify-between gap-4 select-none shadow-2xs">
           <div className="flex items-center gap-3 min-w-0">
-            {/* Custom Shield Paw Icon Container */}
-            <div className="w-10 h-10 rounded-xl bg-white border border-[#EBE3D5] flex items-center justify-center text-[#4A5D4E] shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-white border border-[#D5CEBF] flex items-center justify-center text-[#2D4536] shrink-0">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 <circle cx="12" cy="11.5" r="2" fill="currentColor" />
@@ -278,132 +265,384 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
               </svg>
             </div>
             <div className="flex-grow flex flex-col min-w-0">
-              <h4 className="text-xs md:text-sm font-bold text-[#1C1A17] leading-tight">Special discount for badge rescuers</h4>
-              <p className="text-[10px] md:text-xs text-stone-500 mt-0.5 leading-normal">Thank you for making a difference.</p>
+              <h4 className="text-xs sm:text-sm font-bold font-serif text-[#1C1A17] leading-tight">Special discount for badge rescuers</h4>
+              <p className="text-[10.5px] sm:text-xs text-stone-600 font-sans font-medium mt-0.5 leading-normal">Thank you for making a difference.</p>
             </div>
           </div>
-          {/* Percentage badge */}
-          <div className="w-9 h-9 rounded-full bg-[#D4DDD6] text-[#4A5D4E] font-bold text-sm flex items-center justify-center shrink-0 shadow-sm">
+          <div className="w-9 h-9 rounded-full bg-[#2D4536] text-white font-extrabold text-sm flex items-center justify-center shrink-0 shadow-xs">
             %
           </div>
         </div>
 
-        {/* 5. PRODUCT GRID */}
-        <section className="w-full">
+        {/* 5. SIDE SCROLLABLE CATEGORY SECTIONS (Food, Toys, Medical) */}
+        <section className="w-full flex flex-col gap-6">
           {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full select-none">
-              {[1, 2, 3, 4].map(i => (
-                <div key={i} className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-[24px] p-3 flex flex-col gap-3.5">
-                  <div className="aspect-square w-full rounded-2xl bg-stone-200/70 animate-pulse" />
-                  <div className="flex flex-col gap-2 px-0.5">
-                    <div className="h-4 w-3/4 bg-stone-200/80 rounded animate-pulse" />
-                    <div className="h-3 w-1/2 bg-stone-200/60 rounded animate-pulse" />
-                  </div>
-                  <div className="flex justify-between items-center mt-auto px-0.5 pt-1">
-                    <div className="h-5 w-16 bg-stone-200/80 rounded animate-pulse" />
-                    <div className="h-7 w-16 bg-stone-200/80 rounded-xl animate-pulse" />
+            <div className="flex flex-col gap-5 w-full">
+              {[1, 2].map((s) => (
+                <div key={s} className="flex flex-col gap-3">
+                  <div className="h-6 w-36 bg-stone-200/80 rounded animate-pulse" />
+                  <div className="flex gap-4 overflow-hidden">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="w-[200px] shrink-0 bg-[#EFEAE2] border border-[#D5CEBF] rounded-[24px] p-3 flex flex-col gap-3">
+                        <div className="aspect-square w-full rounded-2xl bg-stone-200/70 animate-pulse" />
+                        <div className="h-4 w-3/4 bg-stone-200/80 rounded animate-pulse" />
+                        <div className="h-3 w-1/2 bg-stone-200/60 rounded animate-pulse" />
+                      </div>
+                    ))}
                   </div>
                 </div>
               ))}
             </div>
-          ) : filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-              {filteredProducts.map((product) => {
-                const prodId = product._id || product.id || '';
-                const inCartQty = getCartQuantity(prodId);
-
-                return (
-                  <div 
-                    key={prodId}
-                    className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-[24px] p-3 flex flex-col gap-3.5 relative hover:shadow-md transition-all duration-300 group"
-                  >
-                    {/* 10% OFF Badge at top left */}
-                    {product.discountBadge && (
-                      <div className="absolute top-3.5 left-3.5 bg-[#2A3E31] text-[#FDFBF7] font-bold text-[9px] px-2 py-0.5 rounded-md select-none z-10">
-                        {product.discountBadge}
-                      </div>
-                    )}
-
-                    {/* Product Image Area */}
-                    <div className="aspect-square w-full rounded-2xl bg-[#FAF6F0] overflow-hidden relative select-none">
-                      <img
-                        src={product.imageUrl}
-                        alt={product.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        onError={(e) => {
-                          // Fallback to placeholder image if load fails
-                          e.currentTarget.src = '/sw.js'; // fallback target placeholder
-                        }}
-                      />
-                    </div>
-
-                    {/* Product Title and Details */}
-                    <div className="flex flex-col flex-grow min-w-0 px-0.5">
-                      <h3 className="font-serif text-sm md:text-base font-normal text-[#1C1A17] leading-tight truncate">{product.title}</h3>
-                      <p className="text-[10px] text-stone-400 font-medium leading-normal mt-0.5 line-clamp-2">{product.description}</p>
-                    </div>
-
-                    {/* Bottom Row: Prices and +/- Stepper */}
-                    <div className="flex items-center justify-between mt-auto px-0.5">
-                      <div className="flex flex-col leading-none">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-xs md:text-sm font-extrabold text-[#1C1A17] leading-none">
-                            ₹{product.price}
-                          </span>
-                          {product.originalPrice && (
-                            <span className="text-[10px] text-stone-400 line-through leading-none">
-                              ₹{product.originalPrice}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      
-                      {/* Quantity Stepper / Add Button */}
-                      {inCartQty === 0 ? (
-                        <button 
-                          onClick={() => handleAddToCart(product)}
-                          className="px-4 py-1.5 bg-[#2A3E31] hover:bg-[#1E2E24] active:scale-95 text-white font-bold rounded-xl text-[10px] md:text-xs transition-all duration-200 cursor-pointer shadow-sm"
-                        >
-                          Add
-                        </button>
-                      ) : (
-                        <div 
-                          className="flex items-center bg-[#2A3E31] rounded-xl overflow-hidden shadow-sm select-none"
-                          style={{ animation: 'scaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)' }}
-                        >
-                          <button
-                            onClick={() => handleUpdateQuantity(prodId, -1)}
-                            className="w-7 h-7 flex items-center justify-center text-white hover:bg-[#1E2E24] active:scale-90 transition-all cursor-pointer"
-                            aria-label="Decrease quantity"
-                          >
-                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
-                              <line x1="5" y1="12" x2="19" y2="12" />
-                            </svg>
-                          </button>
-                          <span className="w-6 text-center text-[11px] font-bold text-white tabular-nums">
-                            {inCartQty}
-                          </span>
-                          <button
-                            onClick={() => handleAddToCart(product)}
-                            className="w-7 h-7 flex items-center justify-center text-white hover:bg-[#1E2E24] active:scale-90 transition-all cursor-pointer"
-                            aria-label="Increase quantity"
-                          >
-                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
-                              <line x1="12" y1="5" x2="12" y2="19" />
-                              <line x1="5" y1="12" x2="19" y2="12" />
-                            </svg>
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
           ) : (
-            <div className="text-center py-12 select-none">
-              <p className="text-xs md:text-sm text-stone-400 font-medium">No products match your search query.</p>
-            </div>
+            <>
+              {/* FOOD SECTION */}
+              {(selectedCategory === 'all' || selectedCategory === 'food') && (
+                (() => {
+                  const foodProds = filteredProducts.filter(p => p.category === 'food' || selectedCategory === 'food');
+                  if (foodProds.length === 0 && selectedCategory === 'food') return null;
+                  return (
+                    <div className="flex flex-col gap-3 w-full">
+                      <div className="flex items-center justify-between w-full px-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-serif text-base sm:text-xl font-bold text-[#1C1A17] tracking-tight">
+                            Food And Nutrition
+                          </h3>
+                          <span className="text-[10px] font-bold bg-[#EAE4D8] text-[#2D4536] px-2 py-0.5 rounded-full">
+                            {foodProds.length} items
+                          </span>
+                        </div>
+                        {selectedCategory === 'all' && (
+                          <button
+                            onClick={() => setSelectedCategory('food')}
+                            className="text-xs text-[#C85341] font-bold hover:underline cursor-pointer flex items-center gap-1"
+                          >
+                            View All <span className="text-xs">→</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Side-Scrollable Track */}
+                      <div className="flex overflow-x-auto gap-3.5 w-full pb-3 pt-1 scrollbar-none no-scrollbar scrollbar-hide snap-x snap-mandatory px-0.5">
+                        {foodProds.map((product) => {
+                          const prodId = product._id || product.id || '';
+                          const inCartQty = getCartQuantity(prodId);
+
+                          return (
+                            <div
+                              key={prodId}
+                              className="w-[200px] xs:w-[220px] md:w-[230px] shrink-0 bg-[#EFEAE2] border border-[#D5CEBF] rounded-[24px] p-3 flex flex-col gap-3 relative hover:shadow-md transition-all duration-300 group snap-start select-none"
+                            >
+                              {product.discountBadge && (
+                                <div className="absolute top-3.5 left-3.5 bg-[#2D4536] text-white font-bold text-[9px] px-2 py-0.5 rounded-md select-none z-10">
+                                  {product.discountBadge}
+                                </div>
+                              )}
+
+                              <div className="aspect-square w-full rounded-2xl bg-[#F4EFE6] overflow-hidden relative select-none">
+                                <img
+                                  src={product.imageUrl}
+                                  alt={product.title}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                  onError={(e) => { e.currentTarget.src = '/real-pet-food.png'; }}
+                                />
+                              </div>
+
+                              <div className="flex flex-col flex-grow min-w-0 px-0.5">
+                                <h3 className="font-serif text-sm font-bold text-[#1C1A17] leading-tight truncate">
+                                  {product.title}
+                                </h3>
+                                <p className="text-[10.5px] text-stone-600 font-sans font-medium leading-normal mt-0.5 line-clamp-2">
+                                  {product.description}
+                                </p>
+                              </div>
+
+                              <div className="flex items-center justify-between mt-auto px-0.5 pt-1">
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs sm:text-sm font-extrabold text-[#1C1A17]">
+                                    ₹{product.price}
+                                  </span>
+                                  {product.originalPrice && (
+                                    <span className="text-[10px] text-stone-500 line-through">
+                                      ₹{product.originalPrice}
+                                    </span>
+                                  )}
+                                </div>
+
+                                {inCartQty === 0 ? (
+                                  <button
+                                    onClick={() => handleAddToCart(product)}
+                                    className="px-3.5 py-1.5 bg-[#2D4536] hover:bg-[#1F3325] active:scale-95 text-white font-bold rounded-xl text-[10px] sm:text-xs transition-all duration-200 cursor-pointer shadow-xs"
+                                  >
+                                    Add
+                                  </button>
+                                ) : (
+                                  <div className="flex items-center bg-[#2D4536] rounded-xl overflow-hidden shadow-xs">
+                                    <button
+                                      onClick={() => handleUpdateQuantity(prodId, -1)}
+                                      className="w-6 h-6 flex items-center justify-center text-white hover:bg-[#1F3325] active:scale-90 transition-all cursor-pointer"
+                                    >
+                                      <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="3">
+                                        <line x1="5" y1="12" x2="19" y2="12" />
+                                      </svg>
+                                    </button>
+                                    <span className="w-5 text-center text-[10px] font-bold text-white tabular-nums">
+                                      {inCartQty}
+                                    </span>
+                                    <button
+                                      onClick={() => handleAddToCart(product)}
+                                      className="w-6 h-6 flex items-center justify-center text-white hover:bg-[#1F3325] active:scale-90 transition-all cursor-pointer"
+                                    >
+                                      <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="3">
+                                        <line x1="12" y1="5" x2="12" y2="19" />
+                                        <line x1="5" y1="12" x2="19" y2="12" />
+                                      </svg>
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()
+              )}
+
+              {/* TOYS SECTION */}
+              {(selectedCategory === 'all' || selectedCategory === 'toys') && (
+                (() => {
+                  const toyProds = filteredProducts.filter(p => p.category === 'toys' || selectedCategory === 'toys');
+                  if (toyProds.length === 0 && selectedCategory === 'toys') return null;
+                  return (
+                    <div className="flex flex-col gap-3 w-full">
+                      <div className="flex items-center justify-between w-full px-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-serif text-base sm:text-xl font-bold text-[#1C1A17] tracking-tight">
+                            Toys And Play Gear
+                          </h3>
+                          <span className="text-[10px] font-bold bg-[#EAE4D8] text-[#2D4536] px-2 py-0.5 rounded-full">
+                            {toyProds.length} items
+                          </span>
+                        </div>
+                        {selectedCategory === 'all' && (
+                          <button
+                            onClick={() => setSelectedCategory('toys')}
+                            className="text-xs text-[#C85341] font-bold hover:underline cursor-pointer flex items-center gap-1"
+                          >
+                            View All <span className="text-xs">→</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Side-Scrollable Track */}
+                      <div className="flex overflow-x-auto gap-3.5 w-full pb-3 pt-1 scrollbar-none no-scrollbar scrollbar-hide snap-x snap-mandatory px-0.5">
+                        {toyProds.map((product) => {
+                          const prodId = product._id || product.id || '';
+                          const inCartQty = getCartQuantity(prodId);
+
+                          return (
+                            <div
+                              key={prodId}
+                              className="w-[200px] xs:w-[220px] md:w-[230px] shrink-0 bg-[#EFEAE2] border border-[#D5CEBF] rounded-[24px] p-3 flex flex-col gap-3 relative hover:shadow-md transition-all duration-300 group snap-start select-none"
+                            >
+                              {product.discountBadge && (
+                                <div className="absolute top-3.5 left-3.5 bg-[#2D4536] text-white font-bold text-[9px] px-2 py-0.5 rounded-md select-none z-10">
+                                  {product.discountBadge}
+                                </div>
+                              )}
+
+                              <div className="aspect-square w-full rounded-2xl bg-[#F4EFE6] overflow-hidden relative select-none">
+                                <img
+                                  src={product.imageUrl}
+                                  alt={product.title}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                  onError={(e) => { e.currentTarget.src = '/real-pet-toy.png'; }}
+                                />
+                              </div>
+
+                              <div className="flex flex-col flex-grow min-w-0 px-0.5">
+                                <h3 className="font-serif text-sm font-bold text-[#1C1A17] leading-tight truncate">
+                                  {product.title}
+                                </h3>
+                                <p className="text-[10.5px] text-stone-600 font-sans font-medium leading-normal mt-0.5 line-clamp-2">
+                                  {product.description}
+                                </p>
+                              </div>
+
+                              <div className="flex items-center justify-between mt-auto px-0.5 pt-1">
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs sm:text-sm font-extrabold text-[#1C1A17]">
+                                    ₹{product.price}
+                                  </span>
+                                  {product.originalPrice && (
+                                    <span className="text-[10px] text-stone-500 line-through">
+                                      ₹{product.originalPrice}
+                                    </span>
+                                  )}
+                                </div>
+
+                                {inCartQty === 0 ? (
+                                  <button
+                                    onClick={() => handleAddToCart(product)}
+                                    className="px-3.5 py-1.5 bg-[#2D4536] hover:bg-[#1F3325] active:scale-95 text-white font-bold rounded-xl text-[10px] sm:text-xs transition-all duration-200 cursor-pointer shadow-xs"
+                                  >
+                                    Add
+                                  </button>
+                                ) : (
+                                  <div className="flex items-center bg-[#2D4536] rounded-xl overflow-hidden shadow-xs">
+                                    <button
+                                      onClick={() => handleUpdateQuantity(prodId, -1)}
+                                      className="w-6 h-6 flex items-center justify-center text-white hover:bg-[#1F3325] active:scale-90 transition-all cursor-pointer"
+                                    >
+                                      <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="3">
+                                        <line x1="5" y1="12" x2="19" y2="12" />
+                                      </svg>
+                                    </button>
+                                    <span className="w-5 text-center text-[10px] font-bold text-white tabular-nums">
+                                      {inCartQty}
+                                    </span>
+                                    <button
+                                      onClick={() => handleAddToCart(product)}
+                                      className="w-6 h-6 flex items-center justify-center text-white hover:bg-[#1F3325] active:scale-90 transition-all cursor-pointer"
+                                    >
+                                      <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="3">
+                                        <line x1="12" y1="5" x2="12" y2="19" />
+                                        <line x1="5" y1="12" x2="19" y2="12" />
+                                      </svg>
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()
+              )}
+
+              {/* MEDICAL SECTION */}
+              {(selectedCategory === 'all' || selectedCategory === 'medical') && (
+                (() => {
+                  const medProds = filteredProducts.filter(p => p.category === 'medical' || selectedCategory === 'medical');
+                  if (medProds.length === 0 && selectedCategory === 'medical') return null;
+                  return (
+                    <div className="flex flex-col gap-3 w-full">
+                      <div className="flex items-center justify-between w-full px-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-serif text-base sm:text-xl font-bold text-[#1C1A17] tracking-tight">
+                            Medical And Health Care
+                          </h3>
+                          <span className="text-[10px] font-bold bg-[#EAE4D8] text-[#2D4536] px-2 py-0.5 rounded-full">
+                            {medProds.length} items
+                          </span>
+                        </div>
+                        {selectedCategory === 'all' && (
+                          <button
+                            onClick={() => setSelectedCategory('medical')}
+                            className="text-xs text-[#C85341] font-bold hover:underline cursor-pointer flex items-center gap-1"
+                          >
+                            View All <span className="text-xs">→</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Side-Scrollable Track */}
+                      <div className="flex overflow-x-auto gap-3.5 w-full pb-3 pt-1 scrollbar-none no-scrollbar scrollbar-hide snap-x snap-mandatory px-0.5">
+                        {medProds.map((product) => {
+                          const prodId = product._id || product.id || '';
+                          const inCartQty = getCartQuantity(prodId);
+
+                          return (
+                            <div
+                              key={prodId}
+                              className="w-[200px] xs:w-[220px] md:w-[230px] shrink-0 bg-[#EFEAE2] border border-[#D5CEBF] rounded-[24px] p-3 flex flex-col gap-3 relative hover:shadow-md transition-all duration-300 group snap-start select-none"
+                            >
+                              {product.discountBadge && (
+                                <div className="absolute top-3.5 left-3.5 bg-[#2D4536] text-white font-bold text-[9px] px-2 py-0.5 rounded-md select-none z-10">
+                                  {product.discountBadge}
+                                </div>
+                              )}
+
+                              <div className="aspect-square w-full rounded-2xl bg-[#F4EFE6] overflow-hidden relative select-none">
+                                <img
+                                  src={product.imageUrl}
+                                  alt={product.title}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                  onError={(e) => { e.currentTarget.src = '/real-pet-med.png'; }}
+                                />
+                              </div>
+
+                              <div className="flex flex-col flex-grow min-w-0 px-0.5">
+                                <h3 className="font-serif text-sm font-bold text-[#1C1A17] leading-tight truncate">
+                                  {product.title}
+                                </h3>
+                                <p className="text-[10.5px] text-stone-600 font-sans font-medium leading-normal mt-0.5 line-clamp-2">
+                                  {product.description}
+                                </p>
+                              </div>
+
+                              <div className="flex items-center justify-between mt-auto px-0.5 pt-1">
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs sm:text-sm font-extrabold text-[#1C1A17]">
+                                    ₹{product.price}
+                                  </span>
+                                  {product.originalPrice && (
+                                    <span className="text-[10px] text-stone-500 line-through">
+                                      ₹{product.originalPrice}
+                                    </span>
+                                  )}
+                                </div>
+
+                                {inCartQty === 0 ? (
+                                  <button
+                                    onClick={() => handleAddToCart(product)}
+                                    className="px-3.5 py-1.5 bg-[#2D4536] hover:bg-[#1F3325] active:scale-95 text-white font-bold rounded-xl text-[10px] sm:text-xs transition-all duration-200 cursor-pointer shadow-xs"
+                                  >
+                                    Add
+                                  </button>
+                                ) : (
+                                  <div className="flex items-center bg-[#2D4536] rounded-xl overflow-hidden shadow-xs">
+                                    <button
+                                      onClick={() => handleUpdateQuantity(prodId, -1)}
+                                      className="w-6 h-6 flex items-center justify-center text-white hover:bg-[#1F3325] active:scale-90 transition-all cursor-pointer"
+                                    >
+                                      <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="3">
+                                        <line x1="5" y1="12" x2="19" y2="12" />
+                                      </svg>
+                                    </button>
+                                    <span className="w-5 text-center text-[10px] font-bold text-white tabular-nums">
+                                      {inCartQty}
+                                    </span>
+                                    <button
+                                      onClick={() => handleAddToCart(product)}
+                                      className="w-6 h-6 flex items-center justify-center text-white hover:bg-[#1F3325] active:scale-90 transition-all cursor-pointer"
+                                    >
+                                      <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="3">
+                                        <line x1="12" y1="5" x2="12" y2="19" />
+                                        <line x1="5" y1="12" x2="19" y2="12" />
+                                      </svg>
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()
+              )}
+
+              {filteredProducts.length === 0 && (
+                <div className="text-center py-12 select-none">
+                  <p className="text-xs sm:text-sm text-stone-600 font-medium">No products match your search query.</p>
+                </div>
+              )}
+            </>
           )}
         </section>
 
@@ -423,4 +662,3 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
     </>
   );
 }
-

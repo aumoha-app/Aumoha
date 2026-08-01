@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { StethoscopeIcon, LeafIcon, UserIcon, UsersIcon } from './icons/PetIcons';
 import NeighborhoodRadar from './NeighborhoodRadar';
+import MarketplaceCategories from './MarketplaceCategories';
 
 interface MinimalHomeProps {
   userName?: string;
@@ -11,6 +12,7 @@ interface MinimalHomeProps {
   onExpertSupportClick: () => void;
   onPetServicesClick: () => void;
   onCommunityClick: () => void;
+  onMarketplaceClick?: () => void;
 }
 
 export default function MinimalHome({
@@ -19,7 +21,8 @@ export default function MinimalHome({
   onVetCareClick,
   onExpertSupportClick,
   onPetServicesClick,
-  onCommunityClick
+  onCommunityClick,
+  onMarketplaceClick
 }: MinimalHomeProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -47,7 +50,7 @@ export default function MinimalHome({
 
       {/* 2. SEARCH BAR */}
       <div className="relative z-10 w-full">
-        <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-stone-500">
+        <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-stone-600">
           <svg className="w-4 h-4 stroke-[2.2]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -58,7 +61,7 @@ export default function MinimalHome({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search care, experts, services..."
-          className="w-full pl-11 pr-4 py-3.5 bg-[#FAF7F2]/90 backdrop-blur-xs border-2 border-[#D5CEBF] focus:border-[#C85341] rounded-2xl text-xs sm:text-sm text-[#1C1A17] placeholder-stone-500 focus:outline-none transition-all font-sans font-medium shadow-2xs"
+          className="w-full pl-11 pr-4 py-3.5 bg-[#EFEAE2] border border-[#D5CEBF] focus:border-[#C85341] rounded-2xl text-xs sm:text-sm text-[#1C1A17] placeholder-stone-600 focus:outline-none transition-all font-sans font-medium shadow-2xs"
         />
       </div>
 
@@ -68,7 +71,7 @@ export default function MinimalHome({
         className="w-full relative z-10 py-2 sm:py-3 flex flex-row items-center justify-between gap-4 cursor-pointer group select-none min-h-[180px] sm:min-h-[210px]"
       >
         {/* Left Column: Text & Terracotta CTA Arrow */}
-        <div className="flex flex-col items-start max-w-[210px] xs:max-w-[250px] sm:max-w-[300px]">
+        <div className="flex flex-col items-start max-w-[310px] xs:max-w-[350px] sm:max-w-[400px]">
           <span className="text-[10.5px] sm:text-xs font-sans font-extrabold text-[#C85341] tracking-widest uppercase leading-none mb-2.5">
             SOS • EMERGENCY
           </span>
@@ -88,12 +91,16 @@ export default function MinimalHome({
           </div>
         </div>
 
-        {/* Right Column: Laying Dog Image (Bigger sizing & deep shadow) */}
-        <div className="flex items-center justify-end shrink-0">
+        {/* Right Column: Laying Dog with Solid #EFEAE2 Circle BG & 3D Pop-Out Effect */}
+        <div className="relative flex items-center justify-center shrink-0 w-48 xs:w-56 sm:w-68 md:w-76 h-[220px] sm:h-[260px]">
+          {/* Circle Background with #EFEAE2 Fill */}
+          <div className="absolute w-48 h-48 xs:w-56 xs:h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 rounded-full bg-[#EFEAE2] shadow-xs border border-[#D5CEBF] pointer-events-none z-0" />
+
+          {/* 3D Pop-out Laying Dog Image */}
           <img 
             src="/laying-dog.png" 
             alt="Laying Dog" 
-            className="w-48 xs:w-58 sm:w-69 md:w-80 h-auto max-h-[250px] sm:max-h-[270px] object-contain group-hover:scale-105 transition-transform duration-500 mix-blend-multiply drop-shadow-[0_14px_28px_rgba(20,15,10,0.5)]"
+            className="w-full h-auto max-h-[260px] sm:max-h-[300px] object-contain relative z-10 scale-125 group-hover:scale-130 transition-transform duration-500 drop-shadow-[0_10px_20px_rgba(30,20,10,0.25)]"
           />
         </div>
       </div>
@@ -108,7 +115,7 @@ export default function MinimalHome({
         {/* Tile 1: Vet Care */}
         <div
           onClick={onVetCareClick}
-          className="bg-[#F8F5EE] hover:bg-[#F3EEE4] border-2 border-[#D2CBBA] hover:border-[#2D4536] active:border-[#2D4536] rounded-2xl sm:rounded-[24px] p-3.5 sm:p-5 flex flex-row items-center gap-2.5 sm:gap-4 h-full min-h-[88px] sm:min-h-[108px] transition-all duration-200 cursor-pointer shadow-2xs group"
+          className="bg-[#EFEAE2] hover:bg-[#E6E0D6] border border-[#D5CEBF] rounded-2xl sm:rounded-[24px] p-3.5 sm:p-5 flex flex-row items-center gap-2.5 sm:gap-4 h-full min-h-[88px] sm:min-h-[108px] transition-all duration-200 cursor-pointer shadow-2xs group"
         >
           <div className="w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center text-[#2D4536] shrink-0 group-hover:scale-105 transition-transform">
             <StethoscopeIcon className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.8]" />
@@ -117,7 +124,7 @@ export default function MinimalHome({
             <span className="font-serif text-xs sm:text-base font-bold text-[#1C1A17] leading-tight">
               Vet Care
             </span>
-            <span className="text-[10.5px] sm:text-xs text-stone-600 font-sans font-medium mt-0.5 leading-snug">
+            <span className="text-[10.5px] sm:text-xs text-stone-700 font-sans font-medium mt-0.5 leading-snug">
               Medical help
             </span>
           </div>
@@ -126,7 +133,7 @@ export default function MinimalHome({
         {/* Tile 2: Expert Support */}
         <div
           onClick={onExpertSupportClick}
-          className="bg-[#F8F5EE] hover:bg-[#F3EEE4] border-2 border-[#D2CBBA] hover:border-[#2D4536] active:border-[#2D4536] rounded-2xl sm:rounded-[24px] p-3.5 sm:p-5 flex flex-row items-center gap-2.5 sm:gap-4 h-full min-h-[88px] sm:min-h-[108px] transition-all duration-200 cursor-pointer shadow-2xs group"
+          className="bg-[#EFEAE2] hover:bg-[#E6E0D6] border border-[#D5CEBF] rounded-2xl sm:rounded-[24px] p-3.5 sm:p-5 flex flex-row items-center gap-2.5 sm:gap-4 h-full min-h-[88px] sm:min-h-[108px] transition-all duration-200 cursor-pointer shadow-2xs group"
         >
           <div className="w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center text-[#2D4536] shrink-0 group-hover:scale-105 transition-transform">
             <LeafIcon className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.8]" />
@@ -135,7 +142,7 @@ export default function MinimalHome({
             <span className="font-serif text-xs sm:text-base font-bold text-[#1C1A17] leading-tight">
               Expert Support
             </span>
-            <span className="text-[10.5px] sm:text-xs text-stone-600 font-sans font-medium mt-0.5 leading-snug">
+            <span className="text-[10.5px] sm:text-xs text-stone-700 font-sans font-medium mt-0.5 leading-snug">
               Wellness & behaviour
             </span>
           </div>
@@ -144,7 +151,7 @@ export default function MinimalHome({
         {/* Tile 3: Pet Services */}
         <div
           onClick={onPetServicesClick}
-          className="bg-[#F8F5EE] hover:bg-[#F3EEE4] border-2 border-[#D2CBBA] hover:border-[#2D4536] active:border-[#2D4536] rounded-2xl sm:rounded-[24px] p-3.5 sm:p-5 flex flex-row items-center gap-2.5 sm:gap-4 h-full min-h-[88px] sm:min-h-[108px] transition-all duration-200 cursor-pointer shadow-2xs group"
+          className="bg-[#EFEAE2] hover:bg-[#E6E0D6] border border-[#D5CEBF] rounded-2xl sm:rounded-[24px] p-3.5 sm:p-5 flex flex-row items-center gap-2.5 sm:gap-4 h-full min-h-[88px] sm:min-h-[108px] transition-all duration-200 cursor-pointer shadow-2xs group"
         >
           <div className="w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center text-[#2D4536] shrink-0 group-hover:scale-105 transition-transform">
             <UserIcon className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.8]" />
@@ -153,7 +160,7 @@ export default function MinimalHome({
             <span className="font-serif text-xs sm:text-base font-bold text-[#1C1A17] leading-tight">
               Pet Services
             </span>
-            <span className="text-[10.5px] sm:text-xs text-stone-600 font-sans font-medium mt-0.5 leading-snug">
+            <span className="text-[10.5px] sm:text-xs text-stone-700 font-sans font-medium mt-0.5 leading-snug">
               Grooming, training & more
             </span>
           </div>
@@ -162,7 +169,7 @@ export default function MinimalHome({
         {/* Tile 4: Community */}
         <div
           onClick={onCommunityClick}
-          className="bg-[#F8F5EE] hover:bg-[#F3EEE4] border-2 border-[#2D4536] rounded-2xl sm:rounded-[24px] p-3.5 sm:p-5 flex flex-row items-center gap-2.5 sm:gap-4 h-full min-h-[88px] sm:min-h-[108px] transition-all duration-200 cursor-pointer shadow-2xs group"
+          className="bg-[#EFEAE2] hover:bg-[#E6E0D6] border border-[#D5CEBF] rounded-2xl sm:rounded-[24px] p-3.5 sm:p-5 flex flex-row items-center gap-2.5 sm:gap-4 h-full min-h-[88px] sm:min-h-[108px] transition-all duration-200 cursor-pointer shadow-2xs group"
         >
           <div className="w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center text-[#2D4536] shrink-0 group-hover:scale-105 transition-transform">
             <UsersIcon className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.8]" />
@@ -171,7 +178,7 @@ export default function MinimalHome({
             <span className="font-serif text-xs sm:text-base font-bold text-[#1C1A17] leading-tight">
               Community
             </span>
-            <span className="text-[10.5px] sm:text-xs text-stone-600 font-sans font-medium mt-0.5 leading-snug">
+            <span className="text-[10.5px] sm:text-xs text-stone-700 font-sans font-medium mt-0.5 leading-snug">
               Mohalla circles
             </span>
           </div>
@@ -180,6 +187,9 @@ export default function MinimalHome({
 
       {/* 6. MOHA CIRCLE NEIGHBORHOOD RADAR CARD */}
       <NeighborhoodRadar onEnterCircle={onCommunityClick} />
+
+      {/* 7. MARKETPLACE QUICK ACTIONS */}
+      <MarketplaceCategories onExploreMoreClick={onMarketplaceClick || (() => {})} />
     </div>
   );
 }
