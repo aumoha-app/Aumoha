@@ -7,7 +7,7 @@ interface HeaderProps {
 
 export default function Header({ deferredPrompt, onInstallClick }: HeaderProps) {
   return (
-    <header className="w-full max-w-2xl mx-auto px-4 pt-8 pb-4 flex justify-between items-center select-none">
+    <header className="w-full max-w-2xl mx-auto px-4 pt-8 pb-4 flex justify-between items-center select-none relative z-10">
       {/* Left Side: Brand Logo & Text */}
       <div className="flex items-center gap-3">
         <img 
@@ -16,8 +16,8 @@ export default function Header({ deferredPrompt, onInstallClick }: HeaderProps) 
           className="h-12 md:h-14 w-auto object-contain"
         />
         <div className="flex flex-col justify-center">
-          <span className="font-serif text-[24px] md:text-[28px] tracking-normal text-charcoal leading-none font-normal lowercase">aumoha</span>
-          <span className="text-[10px] md:text-xs text-clay font-semibold mt-1">Rescue • Protect • Care</span>
+          <span className="font-serif text-[26px] md:text-[30px] tracking-normal text-[#1C1A17] leading-none font-bold lowercase">aumoha</span>
+          <span className="text-[10.5px] md:text-xs text-[#C85341] font-extrabold mt-1 tracking-wider uppercase">Rescue • Protect • Care</span>
         </div>
       </div>
 

@@ -18,6 +18,7 @@ import BlogDetailView from './BlogDetailView';
 import MohallaImpact from './MohallaImpact';
 import { loadLeaflet } from '../lib/leafletLoader';
 import { CalendarIcon, SyringeIcon, LeafIcon, HouseIcon } from './icons/PetIcons';
+import { API_BASE } from '../lib/api';
 
 
 const formatTime = (dateStr: string) => {
@@ -114,6 +115,7 @@ interface MohallaCircleProps {
 }
 
 export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gurugram', setActiveTab, view }: MohallaCircleProps) {
+  const { token, user } = useAuth();
   const [activeView, setActiveView] = useState<'home' | 'members' | 'impact' | 'updates'>(view || 'home');
 
   useEffect(() => {
@@ -156,7 +158,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
     const isCurrentlyJoined = joinedActivities.includes(activityId);
     const action = isCurrentlyJoined ? 'leave' : 'join';
     try {
-      const res = await fetch(`http://localhost:5001/api/activities/${activityId}/${action}`, {
+      const res = await fetch(`${API_BASE}/activities/${activityId}/${action}`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`
@@ -194,7 +196,11 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
   const [deviceAddress, setDeviceAddress] = useState<string>('');
 
   useEffect(() => {
-    if (!navigator.geolocation) return;
+    const fallbackAddr = user?.address || userAddress || 'Saheed Nagar, Sector 45';
+    if (!navigator.geolocation) {
+      setSelectedLocation(fallbackAddr);
+      return;
+    }
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const lat = position.coords.latitude;
@@ -216,13 +222,16 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
           }
         } catch (err) {
           console.warn('Failed to reverse geocode device location:', err);
+          setSelectedLocation(fallbackAddr);
         }
       },
       (error) => {
-        console.warn('Browser geolocation access failed:', error);
-      }
+        console.warn('Browser geolocation access failed or denied:', error);
+        setSelectedLocation(fallbackAddr);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
-  }, []);
+  }, [user?.address, userAddress]);
 
   const getCoordinatesForLocation = (location: string): [number, number] => {
     const clean = (location || '').toLowerCase();
@@ -233,10 +242,11 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
   };
 
   useEffect(() => {
-    if (userAddress && !deviceAddress) {
-      setSelectedLocation(userAddress);
+    const fallbackAddr = user?.address || userAddress;
+    if (fallbackAddr && !deviceAddress) {
+      setSelectedLocation(fallbackAddr);
     }
-  }, [userAddress, deviceAddress]);
+  }, [user?.address, userAddress, deviceAddress]);
 
   // Navigation states for sub-screens
   const [selectedRequest, setSelectedRequest] = useState<CommunityUpdate | null>(null);
@@ -256,7 +266,6 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
 
 
 
-  const { token, user } = useAuth();
   const [dbUsers, setDbUsers] = useState<any[]>([]);
   const [dbSosReports, setDbSosReports] = useState<any[]>([]);
   const [resolvedSosCount, setResolvedSosCount] = useState<number>(0);
@@ -265,7 +274,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
   const refreshUpdates = async () => {
     if (!token) return;
     try {
-      const actRes = await fetch('http://localhost:5001/api/activities', {
+      const actRes = await fetch(`${API_BASE}/activities`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (actRes.ok) {
@@ -273,7 +282,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
         setDbActivities(actData.activities || []);
       }
 
-      const sosRes = await fetch('http://localhost:5001/api/sos/active', {
+      const sosRes = await fetch(`${API_BASE}/sos/active`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (sosRes.ok) {
@@ -281,7 +290,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
         setDbSosReports(sosData.reports || []);
       }
 
-      const resolvedRes = await fetch('http://localhost:5001/api/sos/resolved', {
+      const resolvedRes = await fetch(`${API_BASE}/sos/resolved`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (resolvedRes.ok) {
@@ -297,7 +306,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
     const fetchData = async () => {
       if (!token) return;
       try {
-        const userRes = await fetch('http://localhost:5001/api/users', {
+        const userRes = await fetch(`${API_BASE}/users`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (userRes.ok) {
@@ -305,7 +314,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
           setDbUsers(userData.users || []);
         }
 
-        const sosRes = await fetch('http://localhost:5001/api/sos/active', {
+        const sosRes = await fetch(`${API_BASE}/sos/active`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (sosRes.ok) {
@@ -313,7 +322,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
           setDbSosReports(sosData.reports || []);
         }
 
-        const resolvedRes = await fetch('http://localhost:5001/api/sos/resolved', {
+        const resolvedRes = await fetch(`${API_BASE}/sos/resolved`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (resolvedRes.ok) {
@@ -321,7 +330,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
           setResolvedSosCount(resolvedData.reports?.length || 0);
         }
 
-        const actRes = await fetch('http://localhost:5001/api/activities', {
+        const actRes = await fetch(`${API_BASE}/activities`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (actRes.ok) {
@@ -1017,7 +1026,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
     <div className="w-full flex flex-col gap-6 select-none animate-fadeIn">
 
       {/* TABS SELECTOR (Matches Header Style) */}
-      <div className="w-full border-b border-[#F5F2EC] flex select-none text-xs font-bold text-stone-400">
+      <div className="w-full border-b border-[#F5F2EC] flex select-none text-xs sm:text-sm font-extrabold text-stone-500">
         {[
           {
             id: 'home',
@@ -1067,8 +1076,8 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
             key={t.id}
             onClick={() => setActiveView(t.id as any)}
             className={`flex-1 pb-3 text-center transition-all flex items-center justify-center gap-1.5 ${activeView === t.id
-                ? 'text-[#3D5A45] border-b-2 border-[#3D5A45]'
-                : 'hover:text-charcoal border-b border-transparent'
+                ? 'text-[#3D5A45] border-b-2 border-[#3D5A45] font-black'
+                : 'hover:text-charcoal border-b border-transparent font-extrabold'
               }`}
           >
             {t.icon}

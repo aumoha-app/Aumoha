@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_BASE } from '../lib/api';
 
 export default function DonationSection() {
   const [selectedAmount, setSelectedAmount] = useState<number | null>(1000);
@@ -9,7 +10,7 @@ export default function DonationSection() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await fetch('http://localhost:5001/api/settings/checkout-phone');
+        const res = await fetch(`${API_BASE}/settings/checkout-phone`);
         if (res.ok) {
           const data = await res.json();
           if (data.status === 'success') {
@@ -56,14 +57,14 @@ export default function DonationSection() {
       
       {/* Inline Section Title */}
       <div className="flex items-center justify-between border-t border-[#F0EBE1] pt-4 mt-1">
-        <span className="text-[10px] md:text-xs uppercase tracking-widest text-[#B68A35] font-extrabold">
+        <span className="text-[11px] sm:text-xs uppercase tracking-widest text-[#B68A35] font-extrabold">
           Support Rescue Mission
         </span>
-        <span className="text-[9px] md:text-[10px] text-stone-400 font-bold">Direct street rescue funding</span>
+        <span className="text-[10px] sm:text-xs text-stone-500 font-bold">Direct street rescue funding</span>
       </div>
 
       {/* Encouraging Donation Mission Message */}
-      <p className="text-[11px] md:text-xs text-stone-800 font-semibold leading-relaxed bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl p-3 select-none">
+      <p className="text-xs sm:text-sm text-stone-700 font-medium leading-relaxed bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl p-3 select-none">
         Every contribution directly funds emergency medical aid, daily food bowls, and street rescues for vulnerable stray animals in your community.
       </p>
 
@@ -84,7 +85,7 @@ export default function DonationSection() {
               <span className="text-xs font-extrabold">
                 ₹{preset.value}
               </span>
-              <span className={`text-[8px] font-bold mt-0.5 ${isSelected ? 'text-white/80' : 'text-stone-400'}`}>
+              <span className={`text-[9.5px] sm:text-[10px] font-bold mt-0.5 ${isSelected ? 'text-white/90' : 'text-stone-500'}`}>
                 {preset.label}
               </span>
             </button>

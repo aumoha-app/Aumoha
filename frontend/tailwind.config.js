@@ -19,6 +19,7 @@ module.exports = {
       },
       fontFamily: {
         sans: ["var(--font-outfit)", "system-ui", "-apple-system", "sans-serif"],
+        serif: ["var(--font-playfair)", "Georgia", "serif"],
       },
       animation: {
         'float': 'float 4s ease-in-out infinite',

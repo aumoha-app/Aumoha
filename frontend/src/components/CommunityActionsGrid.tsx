@@ -48,10 +48,10 @@ export default function CommunityActionsGrid({
     <div className="w-full select-none my-1 flex flex-col gap-3">
       {/* Header Row matching brand section style */}
       <div className="flex items-center justify-between border-t border-[#F0EBE1] pt-3 mt-1 select-none">
-        <span className="text-[10px] md:text-xs uppercase tracking-widest text-[#B68A35] font-extrabold">
+        <span className="text-[11px] sm:text-xs uppercase tracking-widest text-[#B68A35] font-extrabold">
           Community Actions
         </span>
-        <span className="text-[9px] md:text-[10px] text-stone-400 font-bold">
+        <span className="text-[10px] sm:text-xs text-stone-500 font-bold">
           Get help, host & participate nearby
         </span>
       </div>
@@ -71,10 +71,10 @@ export default function CommunityActionsGrid({
 
             {/* Bottom Text Area */}
             <div className="flex flex-col items-center justify-end pb-0.5 sm:pb-1">
-              <h3 className="text-[10px] sm:text-sm md:text-base font-extrabold text-[#1C1A17] leading-tight max-w-[120px] sm:max-w-[150px]">
+              <h3 className="text-[11px] sm:text-sm md:text-base font-extrabold text-[#1C1A17] leading-tight max-w-[120px] sm:max-w-[150px]">
                 {card.title}
               </h3>
-              <p className="text-[8.5px] sm:text-[11px] md:text-xs text-stone-400 font-medium leading-tight mt-1 line-clamp-2">
+              <p className="text-[10px] sm:text-[11px] md:text-xs text-stone-500 font-semibold leading-tight mt-1 line-clamp-2">
                 {card.subtitle}
               </p>
             </div>

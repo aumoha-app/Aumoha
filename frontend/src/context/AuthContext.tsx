@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { auth, AuthUser } from '../lib/firebase';
 import { UserProfile } from '../types';
+import { API_BASE } from '../lib/api';
 
 interface AuthContextType {
   firebaseUser: AuthUser | null;
@@ -19,7 +20,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_BASE = 'http://localhost:5001/api';
+
 
 const getCachedProfile = (): UserProfile | null => {
   if (typeof window !== 'undefined') {

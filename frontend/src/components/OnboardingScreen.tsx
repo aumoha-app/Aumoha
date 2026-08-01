@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE } from '../lib/api';
 
 export default function OnboardingScreen() {
   const { firebaseUser, token, signOut, syncProfile } = useAuth();
@@ -69,7 +70,7 @@ export default function OnboardingScreen() {
         setAddress('');
         console.warn('Geolocation permission denied or failed:', error);
       },
-      { timeout: 4500 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
 
     return () => clearTimeout(timeoutId);
@@ -145,7 +146,7 @@ export default function OnboardingScreen() {
     }
 
     try {
-      const response = await fetch('http://localhost:5001/api/auth/profile', {
+      const response = await fetch(`${API_BASE}/auth/profile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

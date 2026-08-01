@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CircleMember } from '../types';
+import { API_BASE } from '../lib/api';
 
 interface MohallaImpactProps {
   computedMembers: CircleMember[];
@@ -20,7 +21,7 @@ export default function MohallaImpact({
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const res = await fetch('http://localhost:5001/api/settings/checkout-phone');
+        const res = await fetch(`${API_BASE}/settings/checkout-phone`);
         if (res.ok) {
           const data = await res.json();
           if (data.status === 'success') {
@@ -141,8 +142,8 @@ export default function MohallaImpact({
       <div className="bg-warmCard border border-warmBeige rounded-[28px] p-6 shadow-xs flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-bold text-charcoal">This Month</h3>
-            <span className="text-[9px] text-clay uppercase tracking-widest font-extrabold mt-0.5 block">{currentMonthYear}</span>
+            <h3 className="text-sm sm:text-base font-bold text-charcoal">This Month</h3>
+            <span className="text-[10px] sm:text-xs text-clay uppercase tracking-widest font-extrabold mt-0.5 block">{currentMonthYear}</span>
           </div>
         </div>
 
@@ -157,11 +158,11 @@ export default function MohallaImpact({
                 <path d="M16 3.13a4 4 0 0 1 0 7.75" />
               </svg>
             </span>
-            <span className="text-sm font-bold text-charcoal mt-1.5">
+            <span className="text-base sm:text-lg md:text-xl font-black text-charcoal mt-1.5">
               {nearbyHelpers.length}
             </span>
-            <span className="text-[9px] text-clay font-bold block mt-1">Helpers</span>
-            <span className="text-[7.5px] text-stone-400 font-semibold block leading-tight mt-0.5">registered</span>
+            <span className="text-[11px] sm:text-xs text-clay font-extrabold block mt-1">Helpers</span>
+            <span className="text-[10px] text-stone-500 font-semibold block leading-tight mt-0.5">registered</span>
           </div>
           
           {/* Active SOS Metric */}
@@ -173,9 +174,9 @@ export default function MohallaImpact({
                 <line x1="12" y1="17" x2="12.01" y2="17" />
               </svg>
             </span>
-            <span className="text-sm font-bold text-emergency mt-1.5">{activeSosCount}</span>
-            <span className="text-[9px] text-clay font-bold block mt-1">Emergencies</span>
-            <span className="text-[7.5px] text-stone-400 font-semibold block leading-tight mt-0.5">active SOS</span>
+            <span className="text-base sm:text-lg md:text-xl font-black text-emergency mt-1.5">{activeSosCount}</span>
+            <span className="text-[11px] sm:text-xs text-clay font-extrabold block mt-1">Emergencies</span>
+            <span className="text-[10px] text-stone-500 font-semibold block leading-tight mt-0.5">active SOS</span>
           </div>
 
           {/* Ongoing Care Metric */}
@@ -185,9 +186,9 @@ export default function MohallaImpact({
                 <circle cx="12" cy="12" r="4" /><path d="M16 8v0a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2M12 5v14M5 12h14" />
               </svg>
             </span>
-            <span className="text-sm font-bold text-terracotta mt-1.5">{ongoingCareCount}</span>
-            <span className="text-[9px] text-clay font-bold block mt-1">Ongoing Care</span>
-            <span className="text-[7.5px] text-stone-400 font-semibold block leading-tight mt-0.5">dispatched alerts</span>
+            <span className="text-base sm:text-lg md:text-xl font-black text-terracotta mt-1.5">{ongoingCareCount}</span>
+            <span className="text-[11px] sm:text-xs text-clay font-extrabold block mt-1">Ongoing Care</span>
+            <span className="text-[10px] text-stone-500 font-semibold block leading-tight mt-0.5">dispatched alerts</span>
           </div>
         </div>
 
@@ -198,13 +199,13 @@ export default function MohallaImpact({
               <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34M12 2a5 5 0 0 0-5 5v3c0 2.76 2.24 5 5 5s5-2.24 5-5V7a5 5 0 0 0-5-5z" />
             </svg>
             <div>
-              <span className="font-bold text-charcoal block text-[10px] leading-tight">You're making a difference!</span>
-              <span className="text-clay text-[10px] font-semibold leading-normal">Keep going, you're helping build a kinder Mohalla.</span>
+              <span className="font-extrabold text-charcoal block text-xs sm:text-sm leading-tight">You're making a difference!</span>
+              <span className="text-clay text-xs font-semibold leading-normal">Keep going, you're helping build a kinder Mohalla.</span>
             </div>
           </div>
           <button
             onClick={handleShareDashboardClick}
-            className="text-[10px] font-extrabold text-terracotta hover:text-[#c2502f] flex items-center gap-1 bg-[#FFFDFB] border border-warmBeige px-2.5 py-1.5 rounded-lg active:scale-95 transition-all shadow-xs cursor-pointer"
+            className="text-[11px] font-extrabold text-terracotta hover:text-[#c2502f] flex items-center gap-1 bg-[#FFFDFB] border border-warmBeige px-2.5 py-1.5 rounded-lg active:scale-95 transition-all shadow-xs cursor-pointer"
           >
             <svg className="w-3.5 h-3.5 text-current" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
               <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13" />
@@ -316,23 +317,23 @@ export default function MohallaImpact({
       </div>
 
       {/* FOOTER CALL TO ACTION */}
-      <div className="bg-[#FCFAF7] border border-[#EBE3D5] rounded-[24px] p-5 flex items-center justify-between gap-4 select-none">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-[#FAF2EE] border border-[#F5DFD8] flex items-center justify-center shrink-0">
+      <div className="bg-[#FCFAF7] border border-[#EBE3D5] rounded-[24px] p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 select-none">
+        <div className="flex items-center gap-3.5 min-w-0">
+          <div className="w-10 h-10 rounded-2xl bg-[#FAF2EE] border border-[#F5DFD8] flex items-center justify-center shrink-0 shadow-inner">
             <svg className="w-5 h-5 text-terracotta" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
               <path d="M12 22V12M12 12c-4.42 0-8-3.58-8-8 4.42 0 8 3.58 8 8zm0 0c4.42 0 8-3.58 8-8-4.42 0-8 3.58-8 8z" />
             </svg>
           </div>
-          <div>
-            <span className="font-bold text-terracotta block text-xs md:text-sm">Stronger together. Kinder together.</span>
-            <span className="text-stone-600 text-[10px] md:text-xs font-semibold leading-normal">Your actions today create a safer, happier tomorrow for animals.</span>
+          <div className="flex flex-col gap-0.5 min-w-0">
+            <span className="font-extrabold text-terracotta block text-xs sm:text-sm leading-tight">Stronger together. Kinder together.</span>
+            <span className="text-stone-600 text-xs font-semibold leading-relaxed">Your actions today create a safer, happier tomorrow for animals.</span>
           </div>
         </div>
         <button
           onClick={handleInviteClick}
-          className="px-4 py-2 bg-terracotta hover:bg-[#c2502f] active:scale-95 text-white text-[11px] font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-sm shrink-0 cursor-pointer"
+          className="w-full sm:w-auto px-4 py-2.5 bg-terracotta hover:bg-[#c2502f] active:scale-95 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-xs shrink-0 cursor-pointer"
         >
-          <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
             <circle cx="9" cy="7" r="4" />
             <path d="M23 21v-2a4 4 0 0 0-3-3.87" />

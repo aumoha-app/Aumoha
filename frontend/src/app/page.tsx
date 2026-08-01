@@ -18,9 +18,11 @@ import { BackendInfo, CommunityPost } from '../types';
 import { useAuth } from '../context/AuthContext';
 import AuthScreen from '../components/AuthScreen';
 import OnboardingScreen from '../components/OnboardingScreen';
+import MinimalHome from '../components/MinimalHome';
 import AdminDashboard from '../components/AdminDashboard';
 import DonationSection from '../components/DonationSection';
 import CommunityActionsGrid from '../components/CommunityActionsGrid';
+import { API_BASE } from '../lib/api';
 
 
 
@@ -115,7 +117,7 @@ export default function Home() {
     const checkBackend = async () => {
       try {
         setBackendStatus('connecting');
-        const res = await fetch('http://localhost:5001/api/info', { mode: 'cors' });
+        const res = await fetch(`${API_BASE}/info`, { mode: 'cors' });
         if (res.ok) {
           const data = await res.json();
           setBackendInfo(data);
@@ -151,7 +153,7 @@ export default function Home() {
     audio?: string
   ) => {
     try {
-      const response = await fetch('http://localhost:5001/api/sos', {
+      const response = await fetch(`${API_BASE}/sos`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -217,13 +219,23 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-warmBg flex flex-col font-sans text-charcoal">
+    <div className="min-h-screen bg-[#FAF7F2] flex flex-col font-sans text-charcoal relative overflow-hidden">
+      {/* Full-Screen Backdrop Layer for Home Screen */}
+      {activeTab === 'home' && (
+        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-60">
+          <img
+            src="/backdrop-sunlight.png"
+            alt="Full screen warm sunlight backdrop"
+            className="w-full h-full object-cover object-top opacity-70 mix-blend-multiply"
+          />
+        </div>
+      )}
       
       {/* GLOBAL TOP BRAND HEADER */}
       <Header deferredPrompt={deferredPrompt} onInstallClick={handleInstallClick} />
 
       {/* MAIN CONTENT AREA */}
-      <div className="flex-grow w-full max-w-2xl mx-auto px-4 py-4 pb-28">
+      <div className="flex-grow w-full max-w-2xl mx-auto px-4 py-4 pb-28 relative z-10">
         
         {!firebaseUser ? (
           <AuthScreen />
@@ -233,7 +245,18 @@ export default function Home() {
           <>
             {/* HOME TAB SCREEN */}
             {activeTab === 'home' && (
-              <main className="w-full max-w-2xl mx-auto bg-white rounded-3xl p-4 md:p-8 flex flex-col gap-6 shadow-sm transition-all duration-300">
+              <main className="w-full max-w-2xl mx-auto flex flex-col gap-6 transition-all duration-300">
+                <MinimalHome
+                  userName={user?.fullName || 'Ananya'}
+                  onSosClick={() => setActiveTab('report')}
+                  onVetCareClick={() => setActiveTab('vetconsult')}
+                  onExpertSupportClick={() => setActiveTab('expertsupport')}
+                  onPetServicesClick={() => setActiveTab('petcare')}
+                  onCommunityClick={() => setActiveTab('circle')}
+                />
+
+                {/* Commented out as requested by user */}
+                {/* 
                 <HeroSection />
                 <NavigationGrid 
                   onGroomingClick={() => setActiveTab('petcare')} 
@@ -248,6 +271,7 @@ export default function Home() {
                 <NeighborhoodRadar onEnterCircle={() => setActiveTab('circle')} />
                 <MarketplaceCategories onExploreMoreClick={() => setActiveTab('marketplace')} />
                 <DonationSection />
+                */}
               </main>
             )}
 

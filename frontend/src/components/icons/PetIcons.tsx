@@ -24,6 +24,7 @@ import {
   User,
   Syringe,
   Leaf,
+  Users,
   Bug
 } from 'lucide-react';
 
@@ -131,4 +132,8 @@ export function SyringeIcon({ className = "w-5 h-5", size }: IconProps) {
 
 export function LeafIcon({ className = "w-5 h-5", size }: IconProps) {
   return <Leaf className={className} size={size} />;
+}
+
+export function UsersIcon({ className = "w-5 h-5", size }: IconProps) {
+  return <Users className={className} size={size} />;
 }

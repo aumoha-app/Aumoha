@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE } from '../lib/api';
 
 // Interfaces matching backend models
 interface Slot {
@@ -322,7 +323,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
   // Check admin role
   useEffect(() => {
     if (token) {
-      fetch('http://localhost:5001/api/auth/admin-config', {
+      fetch(`${API_BASE}/auth/admin-config`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -347,7 +348,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
-      const res = await fetch('http://localhost:5001/api/vets', { headers });
+      const res = await fetch(`${API_BASE}/vets`, { headers });
       const data = await res.json();
       if (res.ok) {
         const allVets = data.vets || [];
@@ -364,7 +365,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
   const verifyAdminPass = async (pass: string) => {
     setAdminError(null);
     try {
-      const res = await fetch('http://localhost:5001/api/auth/verify-admin', {
+      const res = await fetch(`${API_BASE}/auth/verify-admin`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -471,7 +472,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
     }
 
     try {
-      const res = await fetch('http://localhost:5001/api/appointments', {
+      const res = await fetch(`${API_BASE}/appointments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -530,8 +531,8 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
     try {
       const method = isEditingExpert ? 'PUT' : 'POST';
       const endpoint = isEditingExpert 
-        ? `http://localhost:5001/api/vets/${isEditingExpert._id}` 
-        : 'http://localhost:5001/api/vets';
+        ? `${API_BASE}/vets/${isEditingExpert._id}` 
+        : `${API_BASE}/vets`;
 
       const res = await fetch(endpoint, {
         method,
@@ -580,7 +581,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
     if (!confirm) return;
 
     try {
-      const res = await fetch(`http://localhost:5001/api/vets/${id}`, {
+      const res = await fetch(`${API_BASE}/vets/${id}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -603,7 +604,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
     if (!confirm) return;
 
     try {
-      const res = await fetch(`http://localhost:5001/api/vets/${exp._id}`, {
+      const res = await fetch(`${API_BASE}/vets/${exp._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
