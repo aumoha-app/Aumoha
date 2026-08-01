@@ -277,8 +277,6 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
             %
           </div>
         </div>
-
-<<<<<<< HEAD
         {/* Error Banner */}
         {error && (
           <div className="bg-[#FDEDEC] border border-[#F5C2C2] text-[#C0392B] rounded-2xl p-4 flex justify-between items-center text-xs font-semibold my-2">
@@ -292,12 +290,8 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
           </div>
         )}
 
-        {/* 5. PRODUCT GRID */}
-        <section className="w-full">
-=======
         {/* 5. SIDE SCROLLABLE CATEGORY SECTIONS (Food, Toys, Medical) */}
         <section className="w-full flex flex-col gap-6">
->>>>>>> d289fe9971d404587d35e59f15c5463649cdc505
           {isLoading ? (
             <div className="flex flex-col gap-5 w-full">
               {[1, 2].map((s) => (
