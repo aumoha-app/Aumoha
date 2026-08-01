@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE } from '../lib/api';
+import AgoraCallModal from './AgoraCallModal';
+import CallSessionButton from './CallSessionButton';
 
 // Interfaces matching backend models
 interface Slot {
@@ -289,6 +291,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
 
   // Post booking confirmation state
   const [confirmedAppt, setConfirmedAppt] = useState<Appointment | null>(null);
+  const [showCall, setShowCall] = useState<boolean>(false);
 
   // Interactive Quiz Modal
   const [isQuizOpen, setIsQuizOpen] = useState(false);
@@ -1605,6 +1608,12 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
 
           {/* Action buttons */}
           <div className="flex flex-col gap-2.5 w-full mt-2">
+            {confirmedAppt.mode === 'tele-consult' && (
+              <CallSessionButton 
+                appointment={confirmedAppt} 
+                onJoinCall={() => setShowCall(true)} 
+              />
+            )}
             <button 
               onClick={() => {
                 setActiveTab('vetconsult');
@@ -1879,6 +1888,12 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
         </div>
       )}
 
+      {showCall && confirmedAppt && (
+        <AgoraCallModal 
+          appointmentId={confirmedAppt._id} 
+          onClose={() => setShowCall(false)} 
+        />
+      )}
     </div>
   );
 }

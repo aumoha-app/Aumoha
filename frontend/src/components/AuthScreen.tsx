@@ -16,13 +16,24 @@ export default function AuthScreen() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      setError('Please enter a valid email address (e.g. user@example.com).');
+      return;
+    }
+    if (!password || password.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       if (isLogin) {
-        await signIn(email, password);
+        await signIn(trimmedEmail, password);
       } else {
-        await signUp(email, password);
+        await signUp(trimmedEmail, password);
       }
     } catch (err: any) {
       setError(err.message || 'Authentication failed. Please check your credentials.');

@@ -2,10 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Header from '../components/Header';
-import HeroSection from '../components/HeroSection';
-import NavigationGrid from '../components/NavigationGrid';
 import NeighborhoodRadar from '../components/NeighborhoodRadar';
-import MarketplaceCategories from '../components/MarketplaceCategories';
 import Marketplace from '../components/Marketplace';
 import PetCareFeature from '../components/PetCareFeature';
 import EmergencyDispatch from '../components/EmergencyDispatch';
@@ -20,8 +17,6 @@ import AuthScreen from '../components/AuthScreen';
 import OnboardingScreen from '../components/OnboardingScreen';
 import MinimalHome from '../components/MinimalHome';
 import AdminDashboard from '../components/AdminDashboard';
-import DonationSection from '../components/DonationSection';
-import CommunityActionsGrid from '../components/CommunityActionsGrid';
 import { API_BASE } from '../lib/api';
 
 
@@ -260,24 +255,6 @@ export default function Home() {
                   onPetServicesClick={() => setActiveTab('petcare')}
                   onCommunityClick={() => setActiveTab('circle')}
                 />
-
-                {/* Commented out as requested by user */}
-                {/* 
-                <HeroSection />
-                <NavigationGrid 
-                  onGroomingClick={() => setActiveTab('petcare')} 
-                  onVetConsultationClick={() => setActiveTab('vetconsult')}
-                  onExpertSupportClick={() => setActiveTab('expertsupport')}
-                />
-                <CommunityActionsGrid
-                  onAskNeighborClick={() => setActiveTab('circle')}
-                  onStartActivityClick={() => setActiveTab('circle')}
-                  onJoinEventClick={() => setActiveTab('circle')}
-                />
-                <NeighborhoodRadar onEnterCircle={() => setActiveTab('circle')} />
-                <MarketplaceCategories onExploreMoreClick={() => setActiveTab('marketplace')} />
-                <DonationSection />
-                */}
               </main>
             )}
 

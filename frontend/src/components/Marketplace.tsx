@@ -15,6 +15,7 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
   
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -48,14 +49,17 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
   // Fetch products from MongoDB
   const fetchProducts = useCallback(async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const res = await fetch(`${API_BASE}/products`);
       if (res.ok) {
         const data = await res.json();
         setProducts(data.products || []);
+      } else {
+        setError('Failed to load marketplace products from backend.');
       }
     } catch (err) {
-      console.warn('Failed to fetch products from MongoDB:', err);
+      setError('Network error fetching products. Please check connection.');
     } finally {
       setIsLoading(false);
     }
@@ -287,6 +291,19 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
             %
           </div>
         </div>
+
+        {/* Error Banner */}
+        {error && (
+          <div className="bg-[#FDEDEC] border border-[#F5C2C2] text-[#C0392B] rounded-2xl p-4 flex justify-between items-center text-xs font-semibold my-2">
+            <span>{error}</span>
+            <button
+              onClick={fetchProducts}
+              className="px-3 py-1.5 bg-[#C0392B] text-white rounded-xl text-[11px] font-bold hover:bg-[#A93226] transition-all cursor-pointer"
+            >
+              Retry
+            </button>
+          </div>
+        )}
 
         {/* 5. PRODUCT GRID */}
         <section className="w-full">
