@@ -219,13 +219,23 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-warmBg flex flex-col font-sans text-charcoal">
+    <div className="min-h-screen bg-[#FAF7F2] flex flex-col font-sans text-charcoal relative overflow-hidden">
+      {/* Full-Screen Backdrop Layer for Home Screen */}
+      {activeTab === 'home' && (
+        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-60">
+          <img
+            src="/backdrop-sunlight.png"
+            alt="Full screen warm sunlight backdrop"
+            className="w-full h-full object-cover object-top opacity-70 mix-blend-multiply"
+          />
+        </div>
+      )}
       
       {/* GLOBAL TOP BRAND HEADER */}
       <Header deferredPrompt={deferredPrompt} onInstallClick={handleInstallClick} />
 
       {/* MAIN CONTENT AREA */}
-      <div className="flex-grow w-full max-w-2xl mx-auto px-4 py-4 pb-28">
+      <div className="flex-grow w-full max-w-2xl mx-auto px-4 py-4 pb-28 relative z-10">
         
         {!firebaseUser ? (
           <AuthScreen />
@@ -235,7 +245,7 @@ export default function Home() {
           <>
             {/* HOME TAB SCREEN */}
             {activeTab === 'home' && (
-              <main className="w-full max-w-2xl mx-auto bg-[#F4F0EA] rounded-[32px] p-4 sm:p-6 md:p-8 flex flex-col gap-6 shadow-xs transition-all duration-300">
+              <main className="w-full max-w-2xl mx-auto flex flex-col gap-6 transition-all duration-300">
                 <MinimalHome
                   userName={user?.fullName || 'Ananya'}
                   onSosClick={() => setActiveTab('report')}

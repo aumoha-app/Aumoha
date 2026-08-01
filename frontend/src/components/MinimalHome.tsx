@@ -46,7 +46,7 @@ export default function MinimalHome({
       </div>
 
       {/* 2. SEARCH BAR */}
-      <div className="relative w-full">
+      <div className="relative z-10 w-full">
         <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-stone-500">
           <svg className="w-4 h-4 stroke-[2.2]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8" />
@@ -58,33 +58,24 @@ export default function MinimalHome({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search care, experts, services..."
-          className="w-full pl-11 pr-4 py-3.5 bg-[#FAF7F2] border-2 border-[#D5CEBF] focus:border-[#C85341] rounded-2xl text-xs sm:text-sm text-[#1C1A17] placeholder-stone-500 focus:outline-none transition-all font-sans font-medium shadow-2xs"
+          className="w-full pl-11 pr-4 py-3.5 bg-[#FAF7F2]/90 backdrop-blur-xs border-2 border-[#D5CEBF] focus:border-[#C85341] rounded-2xl text-xs sm:text-sm text-[#1C1A17] placeholder-stone-500 focus:outline-none transition-all font-sans font-medium shadow-2xs"
         />
       </div>
 
-      {/* 3. SOS • EMERGENCY BANNER CARD */}
+      {/* 3. SOS • EMERGENCY SECTION */}
       <div 
         onClick={onSosClick}
-        className="w-full rounded-[28px] border-2 border-[#D5CEBF] overflow-hidden relative p-6 sm:p-8 min-h-[220px] sm:min-h-[240px] flex flex-col justify-between shadow-2xs hover:shadow-md transition-all duration-300 cursor-pointer group bg-[#EAE6DF]"
+        className="w-full relative z-10 py-2 sm:py-3 flex flex-row items-center justify-between gap-4 cursor-pointer group select-none min-h-[180px] sm:min-h-[210px]"
       >
-        {/* Background Image without white overlay */}
-        <div className="absolute inset-0 z-0">
-          <img 
-            src="/sunlit_dog_banner.png" 
-            alt="Dog in warm sunlight" 
-            className="w-full h-full object-cover object-right-center group-hover:scale-105 transition-transform duration-700"
-          />
-        </div>
-
-        {/* Banner Content */}
-        <div className="relative z-10 flex flex-col items-start max-w-[240px] sm:max-w-[280px]">
-          <span className="text-[10.5px] sm:text-xs font-sans font-extrabold text-[#C85341] tracking-widest uppercase mb-3 leading-none">
+        {/* Left Column: Text & Terracotta CTA Arrow */}
+        <div className="flex flex-col items-start max-w-[210px] xs:max-w-[250px] sm:max-w-[300px]">
+          <span className="text-[10.5px] sm:text-xs font-sans font-extrabold text-[#C85341] tracking-widest uppercase leading-none mb-2.5">
             SOS • EMERGENCY
           </span>
           <h3 className="font-serif text-2xl sm:text-3xl md:text-4xl text-[#1C1A17] font-semibold leading-[1.15] mb-2">
             Need help<br />right now?
           </h3>
-          <p className="text-xs sm:text-sm text-stone-800 font-semibold leading-relaxed mb-6">
+          <p className="text-xs sm:text-sm text-stone-700 font-medium leading-relaxed mb-4">
             Report an animal<br />in need.
           </p>
 
@@ -95,6 +86,15 @@ export default function MinimalHome({
               <polyline points="12 5 19 12 12 19" />
             </svg>
           </div>
+        </div>
+
+        {/* Right Column: Laying Dog Image (Bigger sizing) */}
+        <div className="flex items-center justify-end shrink-0">
+          <img 
+            src="/laying-dog.png" 
+            alt="Laying Dog" 
+            className="w-44 xs:w-52 sm:w-64 md:w-76 h-auto max-h-[210px] sm:max-h-[250px] object-contain group-hover:scale-105 transition-transform duration-500 mix-blend-multiply opacity-90"
+          />
         </div>
       </div>
 
