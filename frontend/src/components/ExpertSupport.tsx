@@ -405,7 +405,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
     photo: '/expert_animal_behaviourist.png',
     specialisation: 'Canine Behaviour Modification & Anxiety',
     category: 'Animal Behaviourist',
-    specialtyTags: ['Aggression', 'Separation Anxiety', 'Phobias'],
+    specialtyTags: ['Aggression', 'Separation Anxiety', 'Phobias', 'Fear Desensitization'],
     experience: 11,
     fee: 900,
     bio: 'Positive-reinforcement animal psychologist specializing in severe aggression, rescue dog trauma, and reactivity.',
@@ -414,6 +414,41 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
     isOnline: true,
     availableSlots: [
       { _id: 's8', date: 'Today', time: '05:00 PM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp_behav_2',
+    name: 'Dr. Shalini Deshmukh',
+    photo: '/expert_behaviourist.png',
+    specialisation: 'Desensitization & Confidence Building',
+    category: 'Behaviourist',
+    specialtyTags: ['Fear Desensitization', 'Socialization', 'Hyperactivity'],
+    experience: 9,
+    fee: 850,
+    bio: 'Specialist in fear desensitization, sound phobias, and feline/canine anxiety reduction through reward-based therapy.',
+    rating: 4.8,
+    reviewCount: 175,
+    isOnline: true,
+    availableSlots: [
+      { _id: 's8b', date: 'Today', time: '02:00 PM', isBooked: false },
+      { _id: 's8c', date: 'Tomorrow', time: '11:30 AM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp_well_1',
+    name: 'Dr. Aarav Patel',
+    photo: '/expert_wellness.png',
+    specialisation: 'Senior Care Guidance & Palliative Therapy',
+    category: 'Wellness & Palliative',
+    specialtyTags: ['Hospice Setup', 'Pain Relief', 'Senior Wellness'],
+    experience: 12,
+    fee: 780,
+    bio: 'Compassionate senior pet care specialist focused on pain management, hospice setup, and quality-of-life optimization.',
+    rating: 4.9,
+    reviewCount: 210,
+    isOnline: true,
+    availableSlots: [
+      { _id: 's8d', date: 'Today', time: '04:00 PM', isBooked: false }
     ]
   },
   {
@@ -586,7 +621,11 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
   // Category Listing experts list
   const activeCategoryConfig = CATEGORY_CONFIGS[selectedCategoryKey];
   const listedExperts = experts.filter(exp => {
-    const isThisCategory = exp.category === selectedCategoryKey;
+    const isThisCategory = 
+      exp.category === selectedCategoryKey ||
+      (selectedCategoryKey.includes('Behaviour') && exp.category.includes('Behaviour')) ||
+      (selectedCategoryKey.includes('Wellness') && exp.category.includes('Wellness')) ||
+      (selectedCategoryKey.includes('Reiki') && exp.category.includes('Reiki'));
     if (!isThisCategory) return false;
     
     if (listingSubFilter) {
@@ -943,7 +982,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                   </div>
 
                   {/* Right side high-quality transparent image of the pet */}
-                  <div className="absolute right-0 bottom-0 w-[120px] h-[120px] md:w-[115px] md:h-[115px] pointer-events-none select-none z-0">
+                  <div className="absolute right-0 bottom-0 w-[100px] h-[100px] xs:w-[120px] xs:h-[120px] md:w-[115px] md:h-[115px] max-w-[45%] pointer-events-none select-none z-0">
                     <img 
                       src={conf.image} 
                       alt={displayTitle} 
@@ -1092,13 +1131,13 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3.5">
-                      {/* Avatar with resilient photo & initials fallback */}
-                      <div className="w-13 h-13 md:w-14 md:h-14 rounded-full overflow-hidden bg-[#E8F0EA] border border-[#2D4536]/20 relative shrink-0 flex items-center justify-center">
+                      {/* Avatar with responsive photo & initials fallback */}
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl sm:rounded-full overflow-hidden bg-[#E8F0EA] border border-[#2D4536]/20 relative shrink-0 flex items-center justify-center shadow-xs">
                         {photoUrl ? (
                           <img 
                             src={photoUrl} 
                             alt={exp.name} 
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover rounded-2xl sm:rounded-full"
                             onError={(e) => {
                               (e.target as HTMLElement).style.display = 'none';
                               const fallbackEl = (e.target as HTMLElement).nextElementSibling as HTMLElement;
@@ -1107,7 +1146,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                           />
                         ) : null}
                         <div 
-                          className={`w-full h-full bg-gradient-to-br from-[#E8F0EA] to-[#D4E4D7] flex items-center justify-center text-[#2D4536] font-extrabold text-base ${
+                          className={`w-full h-full bg-gradient-to-br from-[#E8F0EA] to-[#D4E4D7] flex items-center justify-center text-[#2D4536] font-extrabold text-sm sm:text-base ${
                             photoUrl ? 'hidden' : 'flex'
                           }`}
                         >
