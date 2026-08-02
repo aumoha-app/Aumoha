@@ -152,130 +152,130 @@ export default function MohallaImpact({
   };
 
   return (
-    <div className="w-full flex flex-col gap-6 animate-scaleIn select-none font-serif text-base">
+    <div className="w-full flex flex-col gap-4 sm:gap-5 animate-scaleIn select-none font-serif text-sm">
       
       {/* STATS TILES CARD */}
-      <div className="bg-[#F5F2EC] border border-[#EBE3D5] rounded-2xl sm:rounded-[24px] p-3.5 xs:p-4.5 sm:p-6 shadow-xs flex flex-col gap-3.5 sm:gap-4">
+      <div className="bg-[#F5F2EC] border border-[#EBE3D5] rounded-2xl sm:rounded-[24px] p-4 sm:p-5 shadow-xs flex flex-col gap-3.5">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-serif text-base xs:text-lg sm:text-xl font-bold text-[#1C1A17] tracking-tight">This Month</h3>
-            <span className="font-serif text-[10px] xs:text-xs text-[#2D4536] uppercase tracking-wider font-bold mt-0.5 block">{currentMonthYear}</span>
+            <h3 className="font-serif text-base sm:text-lg font-bold text-[#1C1A17] tracking-tight">This Month</h3>
+            <span className="font-serif text-[10px] text-[#2D4536] uppercase tracking-wider font-bold mt-0.5 block">{currentMonthYear}</span>
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 xs:gap-3 sm:gap-4 text-center mt-1 select-none">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 text-center mt-0.5 select-none">
           {/* Members Metric */}
           <div className="flex flex-col items-center">
-            <span className="mb-1 flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-[#EFEBE3] border border-[#EBE3D5] text-[#2D4536] shadow-2xs">
-              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-[#2D4536]" />
+            <span className="mb-1 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#EFEBE3] border border-[#EBE3D5] text-[#2D4536] shadow-2xs">
+              <Users className="w-4 h-4 text-[#2D4536]" />
             </span>
-            <span className="font-serif text-2xl xs:text-3xl sm:text-4xl font-extrabold text-[#2D4536] mt-1 leading-none">
+            <span className="font-serif text-2xl sm:text-3xl font-extrabold text-[#2D4536] mt-0.5 leading-none">
               {nearbyHelpers.length}
             </span>
-            <span className="font-serif text-xs xs:text-sm sm:text-base text-[#2D4536] font-bold block mt-1 leading-tight">Helpers</span>
-            <span className="font-serif text-[10px] sm:text-xs text-stone-600 font-medium block leading-tight mt-0.5">registered</span>
+            <span className="font-serif text-xs sm:text-sm text-[#2D4536] font-bold block mt-1 leading-tight">Helpers</span>
+            <span className="font-serif text-[10px] text-stone-600 font-medium block leading-tight mt-0.5">registered</span>
           </div>
           
           {/* Active SOS Metric */}
           <div className="flex flex-col items-center">
-            <span className="mb-1 flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-[#EFEBE3] border border-[#EBE3D5] text-[#2D4536] shadow-2xs">
-              <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-[#2D4536]" />
+            <span className="mb-1 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#EFEBE3] border border-[#EBE3D5] text-[#2D4536] shadow-2xs">
+              <AlertTriangle className="w-4 h-4 text-[#2D4536]" />
             </span>
-            <span className="font-serif text-2xl xs:text-3xl sm:text-4xl font-extrabold text-[#2D4536] mt-1 leading-none">{activeSosCount}</span>
-            <span className="font-serif text-xs xs:text-sm sm:text-base text-[#2D4536] font-bold block mt-1 leading-tight">Emergencies</span>
-            <span className="font-serif text-[10px] sm:text-xs text-stone-600 font-medium block leading-tight mt-0.5">active SOS</span>
+            <span className="font-serif text-2xl sm:text-3xl font-extrabold text-[#2D4536] mt-0.5 leading-none">{activeSosCount}</span>
+            <span className="font-serif text-xs sm:text-sm text-[#2D4536] font-bold block mt-1 leading-tight">Emergencies</span>
+            <span className="font-serif text-[10px] text-stone-600 font-medium block leading-tight mt-0.5">active SOS</span>
           </div>
 
           {/* Ongoing Care Metric */}
           <div className="flex flex-col items-center">
-            <span className="mb-1 flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-[#EFEBE3] border border-[#EBE3D5] text-[#2D4536] shadow-2xs">
-              <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-[#2D4536]" />
+            <span className="mb-1 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#EFEBE3] border border-[#EBE3D5] text-[#2D4536] shadow-2xs">
+              <Activity className="w-4 h-4 text-[#2D4536]" />
             </span>
-            <span className="font-serif text-2xl xs:text-3xl sm:text-4xl font-extrabold text-[#2D4536] mt-1 leading-none">{ongoingCareCount}</span>
-            <span className="font-serif text-xs xs:text-sm sm:text-base text-[#2D4536] font-bold block mt-1 leading-tight">Ongoing Care</span>
-            <span className="font-serif text-[10px] sm:text-xs text-stone-600 font-medium block leading-tight mt-0.5">dispatched alerts</span>
+            <span className="font-serif text-2xl sm:text-3xl font-extrabold text-[#2D4536] mt-0.5 leading-none">{ongoingCareCount}</span>
+            <span className="font-serif text-xs sm:text-sm text-[#2D4536] font-bold block mt-1 leading-tight">Ongoing Care</span>
+            <span className="font-serif text-[10px] text-stone-600 font-medium block leading-tight mt-0.5">dispatched</span>
           </div>
         </div>
 
         {/* Motivational message banner */}
-        <div className="bg-[#EFEBE3] border border-[#EBE3D5] rounded-xl sm:rounded-2xl p-3 sm:p-4 flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2.5 sm:gap-3 mt-1">
+        <div className="bg-[#EFEBE3] border border-[#EBE3D5] rounded-xl sm:rounded-2xl p-3 sm:p-3.5 flex flex-row items-center justify-between gap-3 mt-0.5">
           <div className="flex items-center gap-2.5 min-w-0">
-            <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-[#2D4536] shrink-0" />
+            <Trophy className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-[#2D4536] shrink-0" />
             <div className="flex flex-col min-w-0">
-              <span className="font-serif font-bold text-[#1C1A17] text-xs xs:text-sm sm:text-base leading-tight truncate">You're making a difference!</span>
-              <span className="font-serif text-stone-600 text-[11px] xs:text-xs sm:text-sm font-medium leading-snug truncate mt-0.5">Keep going, you're helping build a kinder Mohalla.</span>
+              <span className="font-serif font-bold text-[#1C1A17] text-xs sm:text-sm leading-tight truncate">You're making a difference!</span>
+              <span className="font-serif text-stone-600 text-[10px] sm:text-xs font-medium leading-snug truncate mt-0.5">Keep going, you're helping build a kinder Mohalla.</span>
             </div>
           </div>
           <button
             onClick={handleShareDashboardClick}
-            className="font-serif text-xs sm:text-sm font-bold text-[#2D4536] hover:text-[#1F3325] flex items-center gap-1.5 bg-[#F5F2EC] border border-[#EBE3D5] px-3 py-1.5 rounded-xl active:scale-95 transition-all shadow-2xs cursor-pointer shrink-0 self-end xs:self-center"
+            className="font-serif text-xs font-bold text-[#2D4536] hover:text-[#1F3325] flex items-center gap-1.5 bg-[#F5F2EC] border border-[#EBE3D5] px-3 py-1.5 rounded-xl active:scale-95 transition-all shadow-2xs cursor-pointer shrink-0"
           >
-            <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-current" />
+            <Share2 className="w-3.5 h-3.5 text-current" />
             Share
           </button>
         </div>
       </div>
 
       {/* DONATE CARD PANEL */}
-      <div className="bg-[#F5F2EC] border border-[#EBE3D5] rounded-2xl sm:rounded-[24px] p-4 xs:p-5 sm:p-6 shadow-xs flex flex-col gap-4.5 sm:gap-5">
-        <div className="flex items-start gap-3 sm:gap-4">
-          {/* Header Icon with dark forest green theme bg */}
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-[#EFEBE3] border border-[#EBE3D5] flex items-center justify-center text-[#2D4536] shrink-0 shadow-2xs">
-            <Heart className="w-5 h-5 sm:w-6 sm:h-6 fill-current text-[#2D4536]" />
+      <div className="bg-[#F5F2EC] border border-[#EBE3D5] rounded-2xl sm:rounded-[24px] p-4 sm:p-5 shadow-xs flex flex-col gap-4">
+        <div className="flex items-start gap-3">
+          {/* Header Icon */}
+          <div className="w-10 h-10 rounded-2xl bg-[#EFEBE3] border border-[#EBE3D5] flex items-center justify-center text-[#2D4536] shrink-0 shadow-2xs">
+            <Heart className="w-5 h-5 fill-current text-[#2D4536]" />
           </div>
           <div className="flex-grow min-w-0">
             <h4 className="font-serif text-base sm:text-lg font-bold text-[#1C1A17] leading-snug">Donate to Amoha Circle</h4>
             <p className="font-serif text-xs sm:text-sm text-stone-600 font-medium leading-relaxed mt-1">
-              Your donations directly support animal welfare in our community. Contributions fund our vital network of rescuers, feeders, and volunteers to cover immediate costs.
+              Your donations directly support animal welfare in our community. Contributions fund our vital network of rescuers, feeders, and volunteers.
             </p>
           </div>
         </div>
 
-        {/* Structured List of supported actions (Grid format for visual clarity) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 px-0.5">
-          <div className="flex items-start gap-2.5 sm:gap-3">
+        {/* Structured List of supported actions */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 px-0.5">
+          <div className="flex items-start gap-2.5">
             <div className="w-7 h-7 rounded-full bg-[#EFEBE3] border border-[#EBE3D5] flex items-center justify-center shrink-0 mt-0.5">
               <Stethoscope className="w-3.5 h-3.5 text-[#2D4536]" />
             </div>
             <div className="flex flex-col">
-              <span className="font-serif text-xs xs:text-sm sm:text-base font-bold text-[#1C1A17]">Medical Treatments</span>
-              <span className="font-serif text-[11px] xs:text-xs sm:text-sm text-stone-600 font-medium leading-snug">Critical medicines, vaccines, and paravet aid.</span>
+              <span className="font-serif text-xs sm:text-sm font-bold text-[#1C1A17]">Medical Treatments</span>
+              <span className="font-serif text-[11px] sm:text-xs text-stone-600 font-medium leading-snug">Critical medicines, vaccines, and paravet aid.</span>
             </div>
           </div>
-          <div className="flex items-start gap-2.5 sm:gap-3">
+          <div className="flex items-start gap-2.5">
             <div className="w-7 h-7 rounded-full bg-[#EFEBE3] border border-[#EBE3D5] flex items-center justify-center shrink-0 mt-0.5">
               <Truck className="w-3.5 h-3.5 text-[#2D4536]" />
             </div>
             <div className="flex flex-col">
-              <span className="font-serif text-xs xs:text-sm sm:text-base font-bold text-[#1C1A17]">Rescue Transports</span>
-              <span className="font-serif text-[11px] xs:text-xs sm:text-sm text-stone-600 font-medium leading-snug">Ambulances and logistics to veterinary hospitals.</span>
+              <span className="font-serif text-xs sm:text-sm font-bold text-[#1C1A17]">Rescue Transports</span>
+              <span className="font-serif text-[11px] sm:text-xs text-stone-600 font-medium leading-snug">Ambulances and logistics to veterinary hospitals.</span>
             </div>
           </div>
-          <div className="flex items-start gap-2.5 sm:gap-3">
+          <div className="flex items-start gap-2.5">
             <div className="w-7 h-7 rounded-full bg-[#EFEBE3] border border-[#EBE3D5] flex items-center justify-center shrink-0 mt-0.5">
               <Utensils className="w-3.5 h-3.5 text-[#2D4536]" />
             </div>
             <div className="flex flex-col">
-              <span className="font-serif text-xs xs:text-sm sm:text-base font-bold text-[#1C1A17]">Nutritious Feeding Drives</span>
-              <span className="font-serif text-[11px] xs:text-xs sm:text-sm text-stone-600 font-medium leading-snug">Daily feeding logs for community stray packs.</span>
+              <span className="font-serif text-xs sm:text-sm font-bold text-[#1C1A17]">Nutritious Feeding Drives</span>
+              <span className="font-serif text-[11px] sm:text-xs text-stone-600 font-medium leading-snug">Daily feeding logs for community stray packs.</span>
             </div>
           </div>
-          <div className="flex items-start gap-2.5 sm:gap-3">
+          <div className="flex items-start gap-2.5">
             <div className="w-7 h-7 rounded-full bg-[#EFEBE3] border border-[#EBE3D5] flex items-center justify-center shrink-0 mt-0.5">
               <Home className="w-3.5 h-3.5 text-[#2D4536]" />
             </div>
             <div className="flex flex-col">
-              <span className="font-serif text-xs xs:text-sm sm:text-base font-bold text-[#1C1A17]">Temporary Care Support</span>
-              <span className="font-serif text-[11px] xs:text-xs sm:text-sm text-stone-600 font-medium leading-snug">Safe foster spaces for dogs and cats in recovery.</span>
+              <span className="font-serif text-xs sm:text-sm font-bold text-[#1C1A17]">Temporary Care Support</span>
+              <span className="font-serif text-[11px] sm:text-xs text-stone-600 font-medium leading-snug">Safe foster spaces for dogs and cats in recovery.</span>
             </div>
           </div>
         </div>
 
         {/* WhatsApp Donate CTA Button */}
-        <div className="flex flex-col gap-3 mt-1 items-center">
+        <div className="flex flex-col gap-3.5 mt-0.5 items-center">
           <button
             onClick={handleWhatsAppClick}
-            className="w-full py-3.5 bg-[#2D4536] hover:bg-[#1F3325] text-white rounded-2xl flex items-center justify-center gap-2.5 font-serif text-xs sm:text-sm font-bold transition-all duration-300 shadow-2xs hover:shadow-xs active:scale-[0.98] select-none cursor-pointer tracking-wider"
+            className="w-full py-3 bg-[#2D4536] hover:bg-[#1F3325] text-white rounded-2xl flex items-center justify-center gap-2 font-serif text-xs sm:text-sm font-bold transition-all duration-300 shadow-2xs hover:shadow-xs active:scale-[0.98] select-none cursor-pointer tracking-wider"
           >
             <MessageCircle className="w-4 h-4 fill-current text-white" />
             Contact on WhatsApp to Donate
@@ -283,13 +283,13 @@ export default function MohallaImpact({
         </div>
 
         {/* Informational note about online payments */}
-        <div className="bg-[#EFEBE3] border border-[#EBE3D5] rounded-2xl p-3.5 sm:p-4 flex items-start gap-3 font-serif">
-          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#F5F2EC] border border-[#EBE3D5] flex items-center justify-center shrink-0 mt-0.5">
-            <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#2D4536]" />
+        <div className="bg-[#EFEBE3] border border-[#EBE3D5] rounded-2xl p-3.5 flex items-start gap-2.5 font-serif">
+          <div className="w-7 h-7 rounded-xl bg-[#F5F2EC] border border-[#EBE3D5] flex items-center justify-center shrink-0 mt-0.5">
+            <Calendar className="w-3.5 h-3.5 text-[#2D4536]" />
           </div>
           <div className="flex flex-col gap-0.5 min-w-0">
             <span className="font-serif font-bold text-[#1C1A17] text-xs sm:text-sm leading-tight">Online Tracking & Payments Coming Soon</span>
-            <span className="font-serif text-[11px] xs:text-xs sm:text-sm font-medium text-stone-600 leading-relaxed block mt-0.5">
+            <span className="font-serif text-[11px] sm:text-xs font-medium text-stone-600 leading-relaxed block mt-0.5">
               Secure payment integrations and live donation-to-rescue mapping logs will be added in our next release. For now, WhatsApp allows our volunteers to share direct receipts and updates on cases.
             </span>
           </div>
@@ -297,14 +297,14 @@ export default function MohallaImpact({
       </div>
 
       {/* FOOTER CALL TO ACTION */}
-      <div className="bg-[#F5F2EC] border border-[#EBE3D5] rounded-2xl sm:rounded-[24px] p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 select-none">
-        <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-[#EFEBE3] border border-[#EBE3D5] flex items-center justify-center shrink-0 shadow-inner">
-            <Sprout className="w-4 h-4 sm:w-5 sm:h-5 text-[#2D4536]" />
+      <div className="bg-[#F5F2EC] border border-[#EBE3D5] rounded-2xl sm:rounded-[24px] p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 select-none">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-9 h-9 rounded-2xl bg-[#EFEBE3] border border-[#EBE3D5] flex items-center justify-center shrink-0 shadow-inner">
+            <Sprout className="w-4 h-4 text-[#2D4536]" />
           </div>
           <div className="flex flex-col gap-0.5 min-w-0">
-            <span className="font-serif font-bold text-[#2D4536] block text-xs xs:text-sm sm:text-base leading-tight">Stronger together. Kinder together.</span>
-            <span className="font-serif text-stone-600 text-[11px] xs:text-xs sm:text-sm font-medium leading-relaxed">Your actions today create a safer, happier tomorrow for animals.</span>
+            <span className="font-serif font-bold text-[#2D4536] block text-xs sm:text-sm leading-tight">Stronger together. Kinder together.</span>
+            <span className="font-serif text-stone-600 text-[11px] sm:text-xs font-medium leading-relaxed">Your actions today create a safer, happier tomorrow for animals.</span>
           </div>
         </div>
         <button
