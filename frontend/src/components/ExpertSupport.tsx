@@ -688,18 +688,16 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
 
         {/* Gated Admin panel button */}
         {isAdminUser && (
-          <button
+          <button 
+            type="button"
             onClick={() => {
-              if (currentView === 'admin') {
-                setCurrentView('home');
-              } else {
-                setCurrentView('admin');
-              }
+              setAdminSubTab('experts');
+              setCurrentView('admin');
             }}
-            className={`px-3 py-1.5 rounded-xl border text-[10px] font-extrabold flex items-center gap-1.5 transition-all ${
+            className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all shrink-0 cursor-pointer shadow-2xs ${
               currentView === 'admin'
-                ? 'bg-terracotta border-terracotta text-white shadow-sm'
-                : 'border-warmBeige hover:bg-[#FCFAF7] text-terracotta bg-white'
+                ? 'bg-[#2D4536] border-[#2D4536] text-white shadow-sm'
+                : 'border-warmBeige hover:bg-[#FCFAF7] text-[#2D4536] bg-white'
             }`}
           >
             🛡️ Admin Panel
@@ -719,7 +717,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                 placeholder="Search experts or services..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white border border-[#F0EBE1] rounded-2xl pl-10 pr-4 py-2.5 text-xs font-semibold focus:outline-none focus:border-terracotta/40 shadow-sm"
+                className="w-full bg-white border border-[#F0EBE1] rounded-2xl pl-10 pr-4 py-2.5 text-xs font-semibold focus:outline-none focus:border-[#2D4536]/40 shadow-sm"
               />
               <svg className="absolute left-3.5 top-3.5 w-4 h-4 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <circle cx="11" cy="11" r="8" />
@@ -729,7 +727,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
             
             <button 
               onClick={() => handleStartQuiz()}
-              className="px-4 bg-[#FAF2EE] hover:bg-[#F5DFD8] border border-[#F5DFD8] text-terracotta text-[10px] font-extrabold rounded-2xl flex items-center gap-1.5 shadow-sm transition-all"
+              className="px-4 bg-[#E8F0EA] hover:bg-[#D4E4D7] border border-[#2D4536]/30 text-[#2D4536] text-[10px] font-extrabold rounded-2xl flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
             >
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <circle cx="12" cy="12" r="10" />
@@ -747,7 +745,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                 onClick={() => setHomeGroup(grp)}
                 className={`px-4 py-2 border rounded-full text-xs font-bold shrink-0 transition-all cursor-pointer active:scale-95 shadow-xs flex items-center gap-1.5 ${
                   homeGroup === grp 
-                    ? 'bg-terracotta border-terracotta text-white shadow-sm' 
+                    ? 'bg-[#2D4536] border-[#2D4536] text-white shadow-sm' 
                     : 'bg-white border-[#F0EBE1] text-stone-600 hover:border-stone-300 hover:bg-stone-50'
                 }`}
               >
@@ -773,12 +771,12 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                 >
                   <div className="flex flex-col gap-2.5 z-10 w-[55%]">
                     {/* Circle icon wrapper */}
-                    <div className="w-9 h-9 rounded-full bg-[#FAF2EE] border border-[#F5DFD8] flex items-center justify-center text-terracotta shadow-sm">
+                    <div className="w-9 h-9 rounded-full bg-[#E8F0EA] border border-[#2D4536]/20 flex items-center justify-center text-[#2D4536] shadow-sm">
                       {conf.icon}
                     </div>
                     <div>
                       {/* Title and Description */}
-                      <h4 className="text-xs font-bold text-charcoal leading-tight group-hover:text-terracotta transition-colors">
+                      <h4 className="text-xs font-bold font-serif text-base leading-tight group-hover:text-[#2D4536] transition-colors">
                         {displayTitle}
                       </h4>
                       <p className="text-[10px] text-stone-500 font-semibold leading-relaxed mt-1">
@@ -788,14 +786,14 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                   </div>
 
                   {/* Circular Chevron icon */}
-                  <div className="w-7 h-7 rounded-full bg-white border border-[#F5DFD8] flex items-center justify-center text-terracotta shadow-sm group-hover:bg-[#FAF2EE] z-10 transition-all mt-3">
+                  <div className="w-7 h-7 rounded-full bg-white border border-[#2D4536]/20 flex items-center justify-center text-[#2D4536] shadow-sm group-hover:bg-[#E8F0EA] z-10 transition-all mt-3">
                     <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                       <polyline points="9 18 15 12 9 6" />
                     </svg>
                   </div>
 
                   {/* Right side high-quality transparent image of the pet */}
-                  <div className="absolute right-0 bottom-0 w-[105px] h-[105px] md:w-[115px] md:h-[115px] pointer-events-none select-none z-0">
+                  <div className="absolute right-0 bottom-0 w-[150px] h-[150px] md:w-[115px] md:h-[115px] pointer-events-none select-none z-0">
                     <img 
                       src={conf.image} 
                       alt={displayTitle} 
@@ -812,19 +810,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
             )}
           </div>
 
-          {/* FIND MY EXPERT QUIZ BANNER */}
-          <div className="bg-[#FAF2EE] border border-[#F5DFD8] rounded-[28px] p-5 flex flex-col sm:flex-row items-center justify-between gap-4 mt-3 shadow-sm">
-            <div className="text-left flex flex-col gap-1 max-w-sm">
-              <h4 className="font-serif font-extrabold text-sm text-terracotta">Not sure who to book?</h4>
-              <p className="text-[10px] text-stone-600 font-semibold leading-relaxed">Answer a few simple questions about your pet's behavioral or health concerns, and we'll instantly match you with the right specialist.</p>
-            </div>
-            <button
-              onClick={() => handleStartQuiz()}
-              className="px-5 py-2.5 bg-terracotta hover:bg-[#c2502f] text-white text-[10px] font-extrabold rounded-xl transition-all shadow-sm shrink-0 active:scale-95 flex items-center gap-1.5"
-            >
-              Find My Expert <span>→</span>
-            </button>
-          </div>
+
 
         </div>
       )}
@@ -851,13 +837,13 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                     onClick={() => handleQuizAnswer('petType', 'dog')}
                     className="p-3 border border-[#F0EBE1] hover:border-terracotta rounded-xl text-xs font-bold text-center bg-[#FCFAF7] hover:bg-white"
                   >
-                    🐶 Dog
+                    Dog
                   </button>
                   <button 
                     onClick={() => handleQuizAnswer('petType', 'cat')}
                     className="p-3 border border-[#F0EBE1] hover:border-terracotta rounded-xl text-xs font-bold text-center bg-[#FCFAF7] hover:bg-white"
                   >
-                    🐱 Cat
+                    Cat
                   </button>
                 </div>
               </div>
@@ -1203,7 +1189,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                               : 'bg-[#FAF8F5] border-[#F0EBE1] text-stone-600 hover:border-stone-300'
                           }`}
                         >
-                          🐶 {pet.name}
+                          {pet.name}
                         </button>
                       ))}
                       {(!user?.pets || user.pets.length === 0) && (
