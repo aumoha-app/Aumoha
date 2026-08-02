@@ -94,6 +94,7 @@ export const fallbackVets: any[] = [
     rating: 4.9,
     reviewCount: 128,
     isOnline: true,
+    email: 'vet1@aumoha.com',
     availableSlots: [
       { _id: 'slot1', date: 'Today', time: '9:00 AM', isBooked: false },
       { _id: 'slot2', date: 'Today', time: '11:00 AM', isBooked: false },
@@ -116,6 +117,7 @@ export const fallbackVets: any[] = [
     rating: 4.6,
     reviewCount: 96,
     isOnline: true,
+    email: 'vet2@aumoha.com',
     availableSlots: [
       { _id: 'slot7', date: 'Today', time: '10:30 AM', isBooked: false },
       { _id: 'slot8', date: 'Today', time: '1:00 PM', isBooked: false },
@@ -137,7 +139,9 @@ export const fallbackVets: any[] = [
     rating: 4.6,
     reviewCount: 110,
     isOnline: false,
+    email: 'vet3@aumoha.com',
     availableSlots: [
+
       { _id: 'slot12', date: 'Tomorrow', time: '9:30 AM', isBooked: false },
       { _id: 'slot13', date: 'Tomorrow', time: '12:00 PM', isBooked: false },
       { _id: 'slot14', date: 'Tomorrow', time: '3:00 PM', isBooked: false },
@@ -177,6 +181,7 @@ export const fallbackVets: any[] = [
     rating: 4.8,
     reviewCount: 52,
     isOnline: true,
+    email: 'expert1@aumoha.com',
     availableSlots: [
       { _id: 'slot_e1', date: 'Today', time: '10:00 AM', isBooked: false },
       { _id: 'slot_e2', date: 'Today', time: '3:00 PM', isBooked: false },
