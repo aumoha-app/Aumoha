@@ -217,12 +217,26 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
   }; const [deviceCoords, setDeviceCoords] = useState<[number, number] | null>(null);
   const [deviceAddress, setDeviceAddress] = useState<string>('');
 
+  const getCoordinatesForLocation = (location: string): [number, number] => {
+    const clean = (location || '').toLowerCase();
+    if (deviceAddress && clean.includes(deviceAddress.split(',')[0].toLowerCase())) {
+      if (deviceCoords) return deviceCoords;
+    }
+    return getCoordinatesForLocationShared(location, deviceCoords || undefined);
+  };
+
+  // When user.address changes, immediately set it as selectedLocation
+  // so the map re-centers, then try to refine with browser GPS
   useEffect(() => {
     const fallbackAddr = user?.address || userAddress || 'Saheed Nagar, Sector 45';
-    if (!navigator.geolocation) {
+    // Always set fallback immediately so map doesn't stay stale
+    if (!deviceAddress) {
       setSelectedLocation(fallbackAddr);
-      return;
     }
+
+    // Try to refine with browser GPS
+    if (typeof window === 'undefined' || !navigator.geolocation) return;
+
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const lat = position.coords.latitude;
@@ -236,39 +250,22 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
             const data = await res.json();
             if (data.display_name) {
               const shortAddr = data.address.neighbourhood || data.address.suburb || data.address.road || data.display_name.split(',')[0];
-              const cityStr = data.address.city || data.address.town || data.address.state_district || 'Gurugram';
-              const fullAddr = `${shortAddr}, ${cityStr}`;
+              const cityStr = data.address.city || data.address.town || data.address.state_district || '';
+              const fullAddr = cityStr ? `${shortAddr}, ${cityStr}` : shortAddr;
               setDeviceAddress(fullAddr);
               setSelectedLocation(fullAddr);
             }
           }
         } catch (err) {
           console.warn('Failed to reverse geocode device location:', err);
-          setSelectedLocation(fallbackAddr);
         }
       },
-      (error) => {
-        console.warn('Browser geolocation access failed or denied:', error);
-        setSelectedLocation(fallbackAddr);
+      () => {
+        // GPS denied — fallback already set above
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 60000 }
     );
   }, [user?.address, userAddress]);
-
-  const getCoordinatesForLocation = (location: string): [number, number] => {
-    const clean = (location || '').toLowerCase();
-    if (deviceAddress && clean.includes(deviceAddress.split(',')[0].toLowerCase())) {
-      if (deviceCoords) return deviceCoords;
-    }
-    return getCoordinatesForLocationShared(location, deviceCoords || undefined);
-  };
-
-  useEffect(() => {
-    const fallbackAddr = user?.address || userAddress;
-    if (fallbackAddr && !deviceAddress) {
-      setSelectedLocation(fallbackAddr);
-    }
-  }, [user?.address, userAddress, deviceAddress]);
 
   // Navigation states for sub-screens
   const [selectedRequest, setSelectedRequest] = useState<CommunityUpdate | null>(null);
@@ -711,19 +708,21 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
               distance: u.distance
             }));
 
-          const rescuerPins = computedMembers.map(m => {
-            const mCoords = m.lat && m.lng ? [m.lat, m.lng] : getCoordinatesForLocationShared(m.address, centerCoords);
-            return {
-              id: m.id,
-              name: m.fullName || 'Rescuer',
-              avatar: m.profilePic,
-              role: m.role || 'rescuer',
-              lat: mCoords[0],
-              lng: mCoords[1],
-              distance: m.distance,
-              badge: m.badge
-            };
-          });
+          const rescuerPins = computedMembers
+            .filter(m => m.role === 'rescuer')
+            .map(m => {
+              const mCoords = m.lat && m.lng ? [m.lat, m.lng] : getCoordinatesForLocationShared(m.location || '', centerCoords);
+              return {
+                id: m.id,
+                name: m.name || 'Rescuer',
+                avatar: m.avatar,
+                role: m.role || 'rescuer',
+                lat: mCoords[0],
+                lng: mCoords[1],
+                distance: m.distance,
+                badge: m.badge
+              };
+            });
 
           const homePins = [...activeReportsPins, ...rescuerPins];
           loadLeafletMap(L, 'home-map', centerCoords, homePins, homeMapRef);

@@ -62,18 +62,20 @@ export default function SupportRequestDetail({
         lng: detailRequestCoords[1], 
         distance: selectedRequest.distance 
       },
-      ...computedMembers.map(m => {
-        const mCoords = m.lat && m.lng ? [m.lat, m.lng] : getCoordinatesForLocation(m.address || selectedLocation);
-        return {
-          name: m.fullName || 'Rescuer',
-          avatar: m.profilePic,
-          role: m.role || 'rescuer',
-          lat: mCoords[0],
-          lng: mCoords[1],
-          distance: m.distance,
-          badge: m.badge
-        };
-      })
+      ...computedMembers
+        .filter(m => m.role === 'rescuer')
+        .map(m => {
+          const mCoords = m.lat && m.lng ? [m.lat, m.lng] : getCoordinatesForLocation(m.location || selectedLocation);
+          return {
+            name: m.name || 'Rescuer',
+            avatar: m.avatar,
+            role: m.role || 'rescuer',
+            lat: mCoords[0],
+            lng: mCoords[1],
+            distance: m.distance,
+            badge: m.badge
+          };
+        })
     ];
 
     const loadLeafletMap = (L: any, mapId: string, center: [number, number], pins: any[]) => {
