@@ -903,7 +903,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                 Consult and Care
               </span>
               <h2 className="font-serif text-xl md:text-2xl text-[#1C1A17] leading-[1.15] font-semibold tracking-tight">
-                Expert Support and<br /> Specialist Advice
+                Expert Support and Specialist Advice
               </h2>
               <p className="max-w-[260px] text-[11px] md:text-xs text-stone-500 font-medium leading-relaxed">
                 Verified behaviorists, dietitians, trainers and therapists for every pet need.
@@ -1850,7 +1850,6 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
       {currentView === 'admin' && (
         <div className="w-full flex flex-col gap-5 animate-fadeIn">
           {!isAdminAuthenticated ? (
-            /* Passcode gated panel form */
             <div className="bg-white border border-[#F0EBE1] p-5 rounded-[28px] shadow-sm flex flex-col gap-4 text-center max-w-sm mx-auto my-6">
               <div className="text-3xl">🔐</div>
               <div>
@@ -1869,13 +1868,12 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
 
               <button 
                 onClick={() => verifyAdminPass(adminPassword)}
-                className="w-full py-2.5 bg-terracotta hover:bg-[#c2502f] text-white text-xs font-bold rounded-2xl shadow-sm"
+                className="w-full py-2.5 bg-[#2D4536] hover:bg-[#1E2E24] text-white text-xs font-bold rounded-2xl shadow-sm"
               >
                 Authenticate Settings
               </button>
             </div>
           ) : (
-            /* Registry directory panel view */
             <div className="flex flex-col gap-5 w-full">
               
               <div className="flex items-center justify-between border-b border-stone-100 pb-3">
@@ -2096,7 +2094,9 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
             </div>
           )}
         </div>
-      </div>
+      )}
+    </div>
+  </div>
 
       {showCall && confirmedAppt && (
         <AgoraCallModal 
