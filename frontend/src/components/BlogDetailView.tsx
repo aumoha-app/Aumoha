@@ -182,103 +182,111 @@ export default function BlogDetailView({
       </div>
 
       {/* Dynamic CTA Footer Section */}
-      {selectedBlog.category === 'event' && (
-        <div className="mt-2 border-t border-[#F0EBE1] pt-5 flex flex-col gap-3">
-          <div className={`rounded-2xl p-4 border flex items-center justify-between transition-all duration-300 ${
-            isJoined 
-              ? 'bg-gradient-to-r from-[#F0F7F2] to-[#E8F3EB] border-[#C8E2CF] text-[#2E7D32]' 
-              : 'bg-[#FCFAF8] border-[#EBE5DA] text-stone-600'
-          }`}>
-            <div className="flex flex-col">
-              <span className="text-[9px] font-extrabold uppercase tracking-wider text-stone-400">Event Participation</span>
-              <span className={`text-xs font-bold mt-0.5 ${isJoined ? 'text-[#2E7D32]' : 'text-stone-700'}`}>
-                {isJoined ? 'You are registered for this event!' : 'Join other animal lovers in this community event.'}
-              </span>
-            </div>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-3xs shrink-0 select-none ${isJoined ? 'bg-white text-[#2E7D32]' : 'bg-stone-100 text-stone-400'}`}>
-              {isJoined ? (
-                <svg className="w-4 h-4 text-[#2E7D32]" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                </svg>
-              ) : (
-                <span className="text-sm">🐾</span>
-              )}
-            </div>
-          </div>
+      {(() => {
+        const category = selectedBlog.category || 'event';
+        let badgeHeader = 'Community Support';
+        let notJoinedText = 'Offer support or volunteer for this community initiative.';
+        let joinedText = 'You have offered support for this activity!';
+        let categoryIcon = '🤝';
+        let buttonNotJoinedLabel = 'Offer Support / Join';
+        let buttonJoinedLabel = 'Cancel Support';
+        let joineesHeader = 'Registered Participants';
 
-          <button
-            onClick={() => toggleJoinActivity(selectedBlog.id, selectedBlog.title)}
-            className={`w-full py-3 rounded-xl text-xs font-bold transition-all active:scale-98 cursor-pointer ${
+        if (category === 'feeding') {
+          badgeHeader = 'Feeding Drive Support';
+          notJoinedText = 'Want to volunteer to help with feeding or donate supplies?';
+          joinedText = 'You have registered to help with this feeding drive!';
+          categoryIcon = '🥣';
+          buttonNotJoinedLabel = 'Offer Feeding Help';
+          buttonJoinedLabel = 'Cancel Feeding Support';
+          joineesHeader = 'Registered Helpers & Feeders';
+        } else if (category === 'event') {
+          badgeHeader = 'Event Participation';
+          notJoinedText = 'Join other animal lovers in this community event.';
+          joinedText = 'You are registered for this event!';
+          categoryIcon = '🐾';
+          buttonNotJoinedLabel = 'Register / Join Event';
+          buttonJoinedLabel = 'Cancel Registration';
+          joineesHeader = 'Registered Attendants';
+        }
+
+        return (
+          <div className="mt-2 border-t border-[#F0EBE1] pt-5 flex flex-col gap-3">
+            <div className={`rounded-2xl p-4 border flex items-center justify-between transition-all duration-300 ${
               isJoined 
-                ? 'bg-stone-50 border border-stone-200 hover:bg-stone-100 text-stone-600 font-extrabold shadow-sm' 
-                : 'bg-terracotta hover:bg-[#c2502f] text-white font-extrabold shadow-[0_4px_14px_rgba(217,93,57,0.2)] hover:shadow-[0_6px_20px_rgba(217,93,57,0.3)]'
-            }`}
-          >
-            {isJoined ? 'Cancel Registration' : 'Register / Join Event'}
-          </button>
-
-          {/* Registered Joinees List */}
-          {selectedBlog.joinees && selectedBlog.joinees.length > 0 && (
-            <div className="mt-2 bg-[#FCFAF8] border border-[#EBE5DA] rounded-2xl p-4 flex flex-col gap-3">
-              <span className="text-[9px] text-stone-400 font-extrabold uppercase tracking-wider">
-                Registered Attendants ({selectedBlog.joinees.length})
-              </span>
-              <div className="flex flex-wrap gap-2">
-                {selectedBlog.joinees.map((joinee, idx) => (
-                  <div 
-                    key={idx} 
-                    className="flex items-center gap-2 bg-white border border-[#EBE5DA] pl-2 pr-3 py-1 rounded-full shadow-3xs"
-                    title={`${joinee.userName} (${joinee.userEmail})`}
-                  >
-                    <div className="w-5 h-5 rounded-full bg-cream border border-[#EBE5DA] flex items-center justify-center overflow-hidden shrink-0">
-                      {joinee.avatar && joinee.avatar.startsWith('http') ? (
-                        <img src={joinee.avatar} alt={joinee.userName} className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-[10px]">👤</span>
-                      )}
-                    </div>
-                    <span className="text-xs text-charcoal font-bold">{joinee.userName}</span>
-                    
-                    {joinee.userPhone && (
-                      <a
-                        href={`tel:${joinee.userPhone}`}
-                        className="ml-1 p-1 bg-[#FAF2EE] text-terracotta hover:bg-terracotta hover:text-white border border-[#F5DFD8] hover:border-terracotta rounded-full transition-all flex items-center justify-center cursor-pointer"
-                        title={`Call ${joinee.userName} at ${joinee.userPhone}`}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.8" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.387a12.035 12.035 0 01-7.147-7.147c-.157-.441.009-.928.387-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
-                        </svg>
-                      </a>
-                    )}
-                  </div>
-                ))}
+                ? 'bg-gradient-to-r from-[#F0F7F2] to-[#E8F3EB] border-[#C8E2CF] text-[#2E7D32]' 
+                : 'bg-[#FCFAF8] border-[#EBE5DA] text-stone-600'
+            }`}>
+              <div className="flex flex-col">
+                <span className="text-[9px] font-extrabold uppercase tracking-wider text-stone-400">{badgeHeader}</span>
+                <span className={`text-xs font-bold mt-0.5 ${isJoined ? 'text-[#2E7D32]' : 'text-stone-700'}`}>
+                  {isJoined ? joinedText : notJoinedText}
+                </span>
+              </div>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-3xs shrink-0 select-none ${isJoined ? 'bg-white text-[#2E7D32]' : 'bg-stone-100 text-stone-400'}`}>
+                {isJoined ? (
+                  <svg className="w-4 h-4 text-[#2E7D32]" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                ) : (
+                  <span className="text-sm">{categoryIcon}</span>
+                )}
               </div>
             </div>
-          )}
-        </div>
-      )}
 
-      {selectedBlog.category === 'feeding' && (
-        <div className="mt-2 border-t border-[#F0EBE1] pt-5 flex flex-col gap-3">
-          <div className="bg-[#FCFAF7] rounded-2xl p-4 border border-[#EBE3D5]/60 flex items-center justify-between">
-            <div className="flex flex-col">
-              <span className="text-[9px] text-clay font-extrabold uppercase tracking-wider">Feeding Drive Support</span>
-              <span className="text-xs text-charcoal font-semibold mt-0.5">
-                Want to volunteer to help with feeding or donate supplies?
-              </span>
-            </div>
-            <span className="text-xl">🥣</span>
+            <button
+              onClick={() => toggleJoinActivity(selectedBlog.id, selectedBlog.title)}
+              className={`w-full py-3.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all active:scale-98 cursor-pointer ${
+                isJoined 
+                  ? 'bg-stone-50 border border-stone-200 hover:bg-stone-100 text-stone-600 shadow-sm' 
+                  : 'bg-terracotta hover:bg-[#c2502f] text-white shadow-[0_4px_14px_rgba(217,93,57,0.2)] hover:shadow-[0_6px_20px_rgba(217,93,57,0.3)]'
+              }`}
+            >
+              {isJoined ? buttonJoinedLabel : buttonNotJoinedLabel}
+            </button>
+
+            {/* Registered Joinees / Participants List */}
+            {selectedBlog.joinees && selectedBlog.joinees.length > 0 && (
+              <div className="mt-2 bg-[#FCFAF8] border border-[#EBE5DA] rounded-2xl p-4 flex flex-col gap-3">
+                <span className="text-[9px] text-stone-400 font-extrabold uppercase tracking-wider">
+                  {joineesHeader} ({selectedBlog.joinees.length})
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {selectedBlog.joinees.map((joinee, idx) => (
+                    <div 
+                      key={idx} 
+                      className="flex items-center gap-2 bg-white border border-[#EBE5DA] pl-2 pr-3 py-1 rounded-full shadow-3xs"
+                      title={`${joinee.userName} (${joinee.userEmail})`}
+                    >
+                      <div className="w-5 h-5 rounded-full bg-cream border border-[#EBE5DA] flex items-center justify-center overflow-hidden shrink-0">
+                        {joinee.avatar && joinee.avatar.startsWith('http') ? (
+                          <img src={joinee.avatar} alt={joinee.userName} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-[10px]">👤</span>
+                        )}
+                      </div>
+                      <span className="text-xs text-charcoal font-bold">{joinee.userName}</span>
+                      
+                      {joinee.userPhone && (
+                        <a
+                          href={`tel:${joinee.userPhone}`}
+                          className="ml-1 p-1 bg-[#FAF2EE] text-terracotta hover:bg-terracotta hover:text-white border border-[#F5DFD8] hover:border-terracotta rounded-full transition-all flex items-center justify-center cursor-pointer"
+                          title={`Call ${joinee.userName} at ${joinee.userPhone}`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.8" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.387a12.035 12.035 0 01-7.147-7.147c-.157-.441.009-.928.387-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                          </svg>
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-          
-          <button
-            onClick={() => alert('Support request shared with the feeding coordinator!')}
-            className="w-full py-3 bg-terracotta hover:bg-[#c2502f] text-white text-xs font-extrabold rounded-xl shadow-[0_4px_14px_rgba(217,93,57,0.2)] hover:shadow-[0_6px_20px_rgba(217,93,57,0.3)] transition-all duration-200 cursor-pointer"
-          >
-            Offer Feeding Help
-          </button>
-        </div>
-      )}
+        );
+      })()}
 
     </main>
   );
