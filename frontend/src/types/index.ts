@@ -32,6 +32,7 @@ export interface UserProfile {
   address: string;
   profilePic?: string;
   role?: 'rescuer' | 'normal' | 'admin';
+  rescueCount?: number;
   pets?: Pet[];
   createdAt?: string;
   updatedAt?: string;

@@ -825,6 +825,48 @@ app.post('/api/auth/profile', authMiddleware, async (req: Request, res: Response
 });
 
 /**
+ * POST /api/auth/increment-rescue
+ * Increments the rescueCount for the logged-in user when they offer help / respond to an emergency rescue
+ */
+app.post('/api/auth/increment-rescue', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userUid = req.user?.uid;
+    if (!userUid) {
+      return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      let cachedUser = fallbackUsers.find(u => u.firebaseUid === userUid);
+      if (cachedUser) {
+        cachedUser.rescueCount = (cachedUser.rescueCount || 0) + 1;
+        cachedUser.updatedAt = new Date().toISOString();
+        userCache.set(userUid, cachedUser);
+        return res.json({ status: 'success', rescueCount: cachedUser.rescueCount, user: cachedUser });
+      }
+    }
+
+    const updatedUser = await User.findOneAndUpdate(
+      { firebaseUid: userUid },
+      { $inc: { rescueCount: 1 } },
+      { new: true }
+    );
+
+    if (updatedUser) {
+      userCache.set(userUid, updatedUser);
+    }
+
+    return res.json({
+      status: 'success',
+      rescueCount: updatedUser?.rescueCount || 1,
+      user: updatedUser
+    });
+  } catch (error) {
+    console.error('Error incrementing rescue count:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
  * POST /api/auth/profile/pets
  * Adds a new pet to the user's profile, or updates an existing pet if _id is provided
  */

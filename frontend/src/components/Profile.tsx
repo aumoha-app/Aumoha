@@ -679,8 +679,22 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
                     </div>
                   </div>
 
-                  {/* Address (Spans Full Width on MD screens) */}
-                  <div className="flex items-start gap-2.5 md:col-span-2">
+                  {/* Rescues Completed Count */}
+                  <div className="flex items-start gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-[#FAF6F0] border border-[#EBE3D5] flex items-center justify-center text-[#4A5D4E] shrink-0">
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        <path d="m9 12 2 2 4-4" />
+                      </svg>
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[9px] font-bold text-stone-400 uppercase tracking-wider leading-none">Rescues Completed</span>
+                      <p className="text-xs text-[#1C1A17] font-medium truncate mt-0.5">{user.rescueCount || 0} Rescues</p>
+                    </div>
+                  </div>
+
+                  {/* Address */}
+                  <div className="flex items-start gap-2.5">
                     <div className="w-8 h-8 rounded-lg bg-[#FAF6F0] border border-[#EBE3D5] flex items-center justify-center text-[#4A5D4E] shrink-0">
                       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />

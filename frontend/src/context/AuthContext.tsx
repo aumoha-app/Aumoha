@@ -16,6 +16,7 @@ interface AuthContextType {
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   syncProfile: (localData?: UserProfile) => Promise<void>;
+  incrementRescueCount: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -269,6 +270,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const incrementRescueCount = async () => {
+    if (user) {
+      const updatedUser: UserProfile = {
+        ...user,
+        rescueCount: (user.rescueCount || 0) + 1
+      };
+      setUser(updatedUser);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('aumoha_profile_data', JSON.stringify(updatedUser));
+      }
+      if (token) {
+        try {
+          await fetch(`${API_BASE}/auth/increment-rescue`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+          });
+        } catch (err) {
+          console.warn('Failed to sync rescue count to server:', err);
+        }
+      }
+    }
+  };
+
   const signOut = async () => {
     setLoading(true);
     handleCacheClear();
@@ -294,6 +321,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signUp,
         signOut,
         syncProfile,
+        incrementRescueCount,
       }}
     >
       {children}
