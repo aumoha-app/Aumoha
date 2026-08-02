@@ -247,6 +247,11 @@ export default function EmergencyDispatch({
       setPhotoError('Emergency photo is required to submit a distress alert.');
       return;
     }
+
+    if (!sosReason || !sosReason.trim()) {
+      setPhotoError('Please describe the emergency or animal condition before submitting.');
+      return;
+    }
     setPhotoError(null);
 
     let photoBase64 = '';

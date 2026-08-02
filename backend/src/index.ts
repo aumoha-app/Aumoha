@@ -12,6 +12,7 @@ import Settings from './models/settingsModel';
 import Vet from './models/vetModel';
 import Appointment from './models/appointmentModel';
 import ActivityPost from './models/activityModel';
+import CallSession from './models/callSessionModel';
 import { sendEmail, generateBookingEmailHtml, generateDonationEmailHtml } from './lib/emailService';
 import { v2 as cloudinary } from 'cloudinary';
 
@@ -415,6 +416,7 @@ export const fallbackVets: any[] = [
 ];
 
 export const fallbackAppointments: any[] = [];
+export const fallbackCallSessions: any[] = [];
 export const fallbackUsers: any[] = [
   {
     _id: 'user_r1',
@@ -2423,6 +2425,303 @@ app.get('/api/appointments', authMiddleware, async (req: Request, res: Response)
   } catch (error) {
     console.error('Error in GET /api/appointments:', error);
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * POST /api/appointments/:id/call/request
+ * Request a voice/video call session for a confirmed appointment (Status: requested)
+ */
+/**
+ * POST /api/appointments/:id/call/request
+ * Request/initialize a voice/video call session for a confirmed appointment (Status: ready directly)
+ */
+app.post('/api/appointments/:id/call/request', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { callType } = req.body; // 'audio' | 'video'
+
+    let appt: any = null;
+    if (mongoose.connection.readyState !== 1) {
+      appt = fallbackAppointments.find((a: any) => a._id === id || a.bookingId === id);
+    } else {
+      appt = await Appointment.findById(id) || await Appointment.findOne({ bookingId: id });
+    }
+
+    if (!appt) {
+      return res.status(404).json({ status: 'error', message: 'Appointment not found' });
+    }
+
+    // Check if an active non-ended call session already exists for this appointment
+    if (mongoose.connection.readyState !== 1) {
+      let session = fallbackCallSessions.find((s: any) => s.bookingId === appt.bookingId && s.status !== 'ended' && s.status !== 'cancelled');
+      if (session) {
+        if (session.status === 'requested') session.status = 'ready';
+        return res.json({ status: 'success', session });
+      }
+      session = {
+        _id: `cs_${Date.now()}`,
+        bookingId: appt.bookingId,
+        userEmail: appt.userEmail,
+        expertOrVetId: appt.vetId,
+        callType: callType || 'video',
+        status: 'ready',
+        agoraChannelName: appt._id.toString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      fallbackCallSessions.push(session);
+      return res.json({ status: 'success', session });
+    } else {
+      let session = await CallSession.findOne({ 
+        bookingId: appt.bookingId, 
+        status: { $nin: ['ended', 'cancelled'] } 
+      });
+      if (session) {
+        if (session.status === 'requested') {
+          session.status = 'ready';
+          await session.save();
+        }
+        return res.json({ status: 'success', session });
+      }
+
+      session = await CallSession.create({
+        bookingId: appt.bookingId,
+        userEmail: appt.userEmail,
+        expertOrVetId: appt.vetId,
+        callType: callType || 'video',
+        status: 'ready',
+        agoraChannelName: appt._id.toString()
+      });
+      return res.json({ status: 'success', session });
+    }
+  } catch (error) {
+    console.error('Error requesting call session:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * GET /api/appointments/:id/call
+ * Get active call session status for an appointment
+ */
+app.get('/api/appointments/:id/call', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    if (mongoose.connection.readyState !== 1) {
+      const session = fallbackCallSessions.find(
+        (s: any) => (s.agoraChannelName === id || s.bookingId === id) && s.status !== 'ended' && s.status !== 'cancelled'
+      );
+      return res.json({ status: 'success', session: session || null });
+    }
+
+    const session = await CallSession.findOne({
+      $or: [{ agoraChannelName: id }, { bookingId: id }],
+      status: { $nin: ['ended', 'cancelled'] }
+    });
+    return res.json({ status: 'success', session: session || null });
+  } catch (error) {
+    console.error('Error fetching call session:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * PUT /api/appointments/:id/call/join
+ * Update session status to ongoing when user or expert enters the channel
+ */
+app.put('/api/appointments/:id/call/join', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    if (mongoose.connection.readyState !== 1) {
+      const session = fallbackCallSessions.find(
+        (s: any) => (s.agoraChannelName === id || s.bookingId === id) && (s.status === 'ready' || s.status === 'ongoing' || s.status === 'requested')
+      );
+      if (session) {
+        session.status = 'ongoing';
+        session.updatedAt = new Date().toISOString();
+      }
+      return res.json({ status: 'success', session: session || null });
+    }
+
+    const session = await CallSession.findOneAndUpdate(
+      { $or: [{ agoraChannelName: id }, { bookingId: id }], status: { $ne: 'ended' } },
+      { status: 'ongoing' },
+      { new: true }
+    );
+    return res.json({ status: 'success', session: session || null });
+  } catch (error) {
+    console.error('Error updating join state:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * PUT /api/appointments/:id/call/end
+ * End the call session and record end time
+ */
+app.put('/api/appointments/:id/call/end', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const now = new Date();
+    if (mongoose.connection.readyState !== 1) {
+      const session = fallbackCallSessions.find(
+        (s: any) => (s.agoraChannelName === id || s.bookingId === id) && s.status !== 'ended'
+      );
+      if (session) {
+        session.status = 'ended';
+        session.endedAt = now.toISOString();
+        session.updatedAt = now.toISOString();
+      }
+      return res.json({ status: 'success', session: session || null });
+    }
+
+    const session = await CallSession.findOneAndUpdate(
+      { $or: [{ agoraChannelName: id }, { bookingId: id }], status: { $ne: 'ended' } },
+      { status: 'ended', endedAt: now },
+      { new: true }
+    );
+    return res.json({ status: 'success', session: session || null });
+  } catch (error) {
+    console.error('Error ending call session:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * ADMIN: GET /api/admin/calls
+ * List all call sessions for admin review
+ */
+app.get('/api/admin/calls', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    if (mongoose.connection.readyState !== 1) {
+      return res.json({ status: 'success', sessions: fallbackCallSessions });
+    }
+
+    const sessions = await CallSession.find().sort({ createdAt: -1 });
+    return res.json({ status: 'success', sessions });
+  } catch (error) {
+    console.error('Error fetching admin calls:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * ADMIN: PUT /api/admin/calls/:id/connect
+ * Admin approves call and unlocks channel (status: ready)
+ */
+app.put('/api/admin/calls/:id/connect', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    if (mongoose.connection.readyState !== 1) {
+      const session = fallbackCallSessions.find((s: any) => s._id === id || s.agoraChannelName === id || s.bookingId === id);
+      if (!session) {
+        return res.status(404).json({ status: 'error', message: 'Call session not found' });
+      }
+      session.status = 'ready';
+      session.updatedAt = new Date().toISOString();
+      return res.json({ status: 'success', session });
+    }
+
+    const session = await CallSession.findOneAndUpdate(
+      { $or: [{ _id: mongoose.Types.ObjectId.isValid(id) ? id : null }, { agoraChannelName: id }, { bookingId: id }] },
+      { status: 'ready' },
+      { new: true }
+    );
+    if (!session) {
+      return res.status(404).json({ status: 'error', message: 'Call session not found' });
+    }
+    return res.json({ status: 'success', session });
+  } catch (error) {
+    console.error('Error connecting call session:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * ADMIN: PUT /api/admin/calls/:id/end
+ * Admin force-ends a call session
+ */
+app.put('/api/admin/calls/:id/end', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const now = new Date();
+    if (mongoose.connection.readyState !== 1) {
+      const session = fallbackCallSessions.find((s: any) => s._id === id || s.agoraChannelName === id || s.bookingId === id);
+      if (session) {
+        session.status = 'ended';
+        session.endedAt = now.toISOString();
+        session.updatedAt = now.toISOString();
+      }
+      return res.json({ status: 'success', session: session || null });
+    }
+
+    const session = await CallSession.findOneAndUpdate(
+      { $or: [{ _id: mongoose.Types.ObjectId.isValid(id) ? id : null }, { agoraChannelName: id }, { bookingId: id }] },
+      { status: 'ended', endedAt: now },
+      { new: true }
+    );
+    return res.json({ status: 'success', session: session || null });
+  } catch (error) {
+    console.error('Error force ending call session:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * GET /api/appointments/:id/token
+ * Generate dynamic Agora token (Auto-enables ready session if needed)
+ */
+app.get('/api/appointments/:id/token', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const appId = process.env.AGORA_APP_ID;
+    const appCertificate = process.env.AGORA_APP_CERTIFICATE;
+
+    if (!appId) {
+      return res.status(500).json({ status: 'error', message: 'AGORA_APP_ID is not configured on the backend' });
+    }
+
+    // Verify or auto-create call session
+    let channelName = id;
+    if (mongoose.connection.readyState !== 1) {
+      let session = fallbackCallSessions.find((s: any) => s.agoraChannelName === id || s.bookingId === id);
+      if (session) {
+        if (session.status !== 'ended') session.status = 'ongoing';
+        channelName = session.agoraChannelName;
+      }
+    } else {
+      let session = await CallSession.findOne({ $or: [{ agoraChannelName: id }, { bookingId: id }] });
+      if (session && session.status !== 'ended') {
+        session.status = 'ongoing';
+        await session.save();
+        channelName = session.agoraChannelName;
+      }
+    }
+
+    if (!appCertificate) {
+      return res.json({ status: 'success', token: null });
+    }
+
+    const { RtcTokenBuilder, RtcRole } = require('agora-token');
+    
+    const expirationInSeconds = 3600; // 1 hour
+    const currentTimestamp = Math.floor(Date.now() / 1000);
+    const privilegeExpiredTs = currentTimestamp + expirationInSeconds;
+
+    const token = RtcTokenBuilder.buildTokenWithUid(
+      appId,
+      appCertificate,
+      channelName,
+      0, // uid = 0 allows any user to join
+      RtcRole.PUBLISHER,
+      privilegeExpiredTs
+    );
+
+    return res.json({ status: 'success', token });
+  } catch (error) {
+    console.error('Error generating Agora token:', error);
+    return res.status(500).json({ status: 'error', message: 'Failed to generate token' });
   }
 });
 

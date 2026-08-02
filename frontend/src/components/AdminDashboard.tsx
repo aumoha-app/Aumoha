@@ -59,9 +59,63 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // TAB NAVIGATION & SOS STATES
-  const [currentTab, setCurrentTab] = useState<'products' | 'sos' | 'settings' | 'community'>('sos');
+  const [currentTab, setCurrentTab] = useState<'products' | 'sos' | 'settings' | 'community' | 'calls'>('sos');
   const [sosReports, setSosReports] = useState<SosReport[]>([]);
   const [isSosLoading, setIsSosLoading] = useState(false);
+
+  // Call Sessions States
+  const [callSessions, setCallSessions] = useState<any[]>([]);
+
+  const fetchCallSessions = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/admin/calls`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Admin-Password': adminPassword
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCallSessions(data.sessions || []);
+      }
+    } catch (err) {
+      console.error('Error fetching call sessions:', err);
+    }
+  };
+
+  const handleConnectCall = async (sessionId: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/admin/calls/${sessionId}/connect`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Admin-Password': adminPassword
+        }
+      });
+      if (res.ok) {
+        fetchCallSessions();
+      }
+    } catch (err) {
+      console.error('Error connecting call:', err);
+    }
+  };
+
+  const handleForceEndCall = async (sessionId: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/admin/calls/${sessionId}/end`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Admin-Password': adminPassword
+        }
+      });
+      if (res.ok) {
+        fetchCallSessions();
+      }
+    } catch (err) {
+      console.error('Error ending call:', err);
+    }
+  };
 
   // Community Activities States
   const [activities, setActivities] = useState<any[]>([]);
@@ -161,6 +215,16 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
       verifyPasswordDirectly(cachedPass);
     }
   }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchCallSessions();
+      const interval = setInterval(() => {
+        fetchCallSessions();
+      }, 4000);
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated, adminPassword, token]);
 
   const handleAuthSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -738,11 +802,95 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
             </span>
           )}
         </button>
+        <button
+          onClick={() => setCurrentTab('calls')}
+          className={`px-5 py-2.5 text-xs font-bold transition-all border-b-2 cursor-pointer flex items-center gap-1.5 ${
+            currentTab === 'calls'
+              ? 'border-emerald-600 text-emerald-700'
+              : 'border-transparent text-stone-400 hover:text-emerald-700'
+          }`}
+        >
+          <span>📞 Active Calls</span>
+          {callSessions.filter(s => s.status === 'requested').length > 0 && (
+            <span className="bg-amber-500 text-white text-[8px] px-1.5 py-0.5 rounded-full font-extrabold animate-pulse">
+              {callSessions.filter(s => s.status === 'requested').length}
+            </span>
+          )}
+        </button>
       </div>
 
       {errorMessage && (
         <div className="bg-[#FDEDEC] border border-[#F5C2C2] text-[#C0392B] rounded-xl px-4 py-3 text-xs leading-relaxed font-semibold">
           {errorMessage}
+        </div>
+      )}
+
+      {currentTab === 'calls' && (
+        <div className="space-y-4 animate-fadeIn p-2">
+          <div className="flex justify-between items-center bg-white p-4 rounded-2xl border border-stone-200 shadow-sm">
+            <div>
+              <h3 className="text-sm font-extrabold text-stone-800">Tele-Consultation Call Sessions</h3>
+              <p className="text-xs text-stone-500">Connect requested client calls to enable video/voice room access for doctor and pet parent.</p>
+            </div>
+            <button
+              onClick={fetchCallSessions}
+              className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 rounded-xl text-xs font-bold text-stone-700 transition-all cursor-pointer"
+            >
+              🔄 Refresh
+            </button>
+          </div>
+
+          {callSessions.length === 0 ? (
+            <div className="text-center py-12 bg-stone-50 rounded-2xl border border-dashed border-stone-200">
+              <p className="text-xs font-bold text-stone-400">No active or past call sessions found.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {callSessions.map((session) => (
+                <div key={session._id} className="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm flex flex-col justify-between gap-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="text-[10px] font-mono text-stone-400">BOOKING: {session.bookingId}</span>
+                      <h4 className="text-xs font-extrabold text-stone-800 mt-0.5">User: {session.userEmail}</h4>
+                      <p className="text-xs text-stone-600 font-medium">Doctor/Expert ID: {session.expertOrVetId}</p>
+                    </div>
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase ${
+                      session.status === 'requested' ? 'bg-amber-100 text-amber-800 animate-pulse' :
+                      session.status === 'ready' ? 'bg-blue-100 text-blue-800' :
+                      session.status === 'ongoing' ? 'bg-emerald-100 text-emerald-800' :
+                      'bg-stone-100 text-stone-600'
+                    }`}>
+                      {session.status}
+                    </span>
+                  </div>
+
+                  <div className="text-[11px] text-stone-500 flex justify-between border-t border-stone-100 pt-3">
+                    <span>Type: <strong className="capitalize">{session.callType || 'video'}</strong></span>
+                    <span>Requested: {new Date(session.createdAt).toLocaleTimeString()}</span>
+                  </div>
+
+                  <div className="flex gap-2 pt-1">
+                    {session.status === 'requested' && (
+                      <button
+                        onClick={() => handleConnectCall(session._id)}
+                        className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition-all cursor-pointer"
+                      >
+                        ⚡ Connect Call Room
+                      </button>
+                    )}
+                    {(session.status === 'ready' || session.status === 'ongoing') && (
+                      <button
+                        onClick={() => handleForceEndCall(session._id)}
+                        className="flex-1 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition-all cursor-pointer"
+                      >
+                        ⛔ Force End Call
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

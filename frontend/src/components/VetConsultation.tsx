@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { DogIcon, LockIcon } from './icons/PetIcons';
 import { API_BASE } from '../lib/api';
+import AgoraCallModal from './AgoraCallModal';
+import CallSessionButton from './CallSessionButton';
 
 // Define Interface types
 interface Slot {
@@ -78,6 +80,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
 
   // Post-booking confirmed screen state
   const [confirmedAppt, setConfirmedAppt] = useState<Appointment | null>(null);
+  const [activeCallAppt, setActiveCallAppt] = useState<Appointment | null>(null);
 
   // Appointments List states
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -1293,6 +1296,12 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
 
           {/* Action CTAs */}
           <div className="flex flex-col gap-2.5 w-full mt-2">
+            {confirmedAppt.mode === 'tele-consult' && (
+              <CallSessionButton 
+                appointment={confirmedAppt} 
+                onJoinCall={(appt) => setActiveCallAppt(appt)} 
+              />
+            )}
             <button 
               onClick={() => {
                 setSubTab('my-appts');
@@ -1452,6 +1461,13 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                         Cancel
                       </button>
                     </div>
+                  )}
+                  {appt.status === 'confirmed' && appt.mode === 'tele-consult' && (
+                    <CallSessionButton 
+                      appointment={appt} 
+                      onJoinCall={(a) => setActiveCallAppt(a)} 
+                      className="mt-2"
+                    />
                   )}
                 </div>
               ))}
@@ -1852,6 +1868,12 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
         </div>
       )}
 
+      {activeCallAppt && (
+        <AgoraCallModal 
+          appointmentId={activeCallAppt._id} 
+          onClose={() => setActiveCallAppt(null)} 
+        />
+      )}
     </div>
   );
 }
