@@ -101,11 +101,12 @@ export default function SupportRequestDetail({
 
       // Draw search radius ring
       L.circle(center, {
-        color: '#81C784',
-        fillColor: '#C8E6C9',
-        fillOpacity: 0.2,
+        color: '#2D4536',
+        fillColor: '#3D5A45',
+        fillOpacity: 0.08,
         radius: 1200,
-        weight: 1.5
+        weight: 1,
+        opacity: 0.55
       }).addTo(map);
 
       const getPinColor = (role: string) => {
