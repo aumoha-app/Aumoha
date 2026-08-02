@@ -13,11 +13,11 @@ export default function Header({ deferredPrompt, onInstallClick }: HeaderProps) 
         <img 
           src="/icon.png" 
           alt="Aumoha Logo" 
-          className="h-14 sm:h-16 md:h-18 w-auto object-contain mix-blend-multiply transition-all"
+          className="h-14 sm:h-16 md:h-18 w-auto object-contain mix-blend-multiply transition-all brightness-80 contrast-130 saturate-70"
         />
         <div className="flex flex-col justify-center">
-          <span className="font-[family-name:var(--font-cormorant)] text-[28px] sm:text-[32px] md:text-[36px] tracking-tight text-[#1C1A17] leading-none font-bold capitalize">Aumoha</span>
-          <span className="text-[9px] md:text-[10px] text-[#2D4536] font-extrabold mt-1 tracking-[0.16em] uppercase">Rescue • Protect • Care</span>
+          <span className="font-[family-name:var(--font-cormorant)] text-[28px] sm:text-[32px] md:text-[36px] tracking-tight text-[#4D3A33] leading-none font-bold capitalize">Aumoha</span>
+          <span className="text-[9px] md:text-[10px] text-[#1C1A17] font-extrabold tracking-[0.16em] uppercase">Rescue • Protect • Care</span>
         </div>
       </div>
 

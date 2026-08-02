@@ -871,36 +871,62 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
   };
 
   return (
-    <div className="w-full flex flex-col gap-6 animate-scaleIn font-sans text-charcoal bg-[#FAF8F5] rounded-3xl p-4 md:p-6 shadow-sm min-h-[80vh]">
-      
-      {/* HEADER BAR WITH NAVIGATION BACK ACTION & ADMIN PORTAL CONTROLS */}
-      <div className="flex items-center justify-between pb-3 border-b border-warmBeige/40 select-none">
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => {
-              if (currentView === 'listing') {
-                setCurrentView('home');
-              } else if (currentView === 'wizard') {
-                setCurrentView('listing');
-              } else if (currentView === 'confirmed' || currentView === 'admin') {
-                setCurrentView('home');
-              } else {
-                setActiveTab('home');
-              }
-            }} 
-            className="w-10 h-10 rounded-full border border-warmBeige bg-white flex items-center justify-center hover:bg-warmBg transition-colors"
-          >
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-stone-600">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-          </button>
-          <div>
-            <span className="text-[10px] text-stone-400 font-extrabold uppercase tracking-widest block">Consult & Care</span>
-            <h1 className="text-sm font-serif font-extrabold text-charcoal">Expert Support</h1>
-          </div>
-        </div>
+    <>
+      <div className="w-full max-w-2xl mx-auto bg-white rounded-[28px] overflow-hidden shadow-sm transition-all duration-300 font-sans text-charcoal flex flex-col min-h-[80vh]">
+      {/* Full-Bleed Hero Banner covering complete top */}
+      <div className="relative">
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#F5F2EC] via-[#EDE9E1] to-[#E8E3DA]">
+          <div className="flex items-stretch min-h-[210px] md:min-h-[240px]">
+            {/* Left: Text Content */}
+            <div className="flex-1 flex flex-col justify-center gap-3 px-5 md:px-8 py-6 z-10">
+              {/* Back button */}
+              <button 
+                onClick={() => {
+                  if (currentView === 'listing') {
+                    setCurrentView('home');
+                  } else if (currentView === 'wizard') {
+                    setCurrentView('listing');
+                  } else if (currentView === 'confirmed' || currentView === 'admin') {
+                    setCurrentView('home');
+                  } else {
+                    setActiveTab('home');
+                  }
+                }} 
+                className="w-9 h-9 rounded-full border border-[#2D4536]/15 bg-white/70 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-colors cursor-pointer mb-1"
+              >
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-stone-600">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
 
+              <span className="text-[10px] font-extrabold text-[#2D4536] uppercase tracking-[0.2em] select-none">
+                Consult and Care
+              </span>
+              <h2 className="font-serif text-xl md:text-2xl text-[#1C1A17] leading-[1.15] font-semibold tracking-tight">
+                Expert Support and<br /> Specialist Advice
+              </h2>
+              <p className="max-w-[260px] text-[11px] md:text-xs text-stone-500 font-medium leading-relaxed">
+                Verified behaviorists, dietitians, trainers and therapists for every pet need.
+              </p>
+            </div>
+
+            {/* Right: Hero Image */}
+            <div className="w-[40%] md:w-[36%] relative shrink-0 flex items-end justify-end overflow-hidden">
+              <img
+                src="/expert_support_hero.png"
+                alt="Expert Support Hero"
+                className="w-full h-full object-contain object-right-bottom scale-[1.15] translate-x-2 translate-y-2"
+              />
+            </div>
+          </div>
+
+          {/* Bottom fade into white content area */}
+          <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-white to-transparent" />
+        </div>
       </div>
+
+      {/* Main Content Area with Horizontal Padding */}
+      <div className="px-4 md:px-8 pt-2 pb-8 flex flex-col gap-6">
 
       {/* ==================== SCREEN 1: EXPERT SUPPORT HOME ==================== */}
       {currentView === 'home' && (
@@ -982,7 +1008,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                   </div>
 
                   {/* Right side high-quality transparent image of the pet */}
-                  <div className="absolute right-0 bottom-0 w-[100px] h-[100px] xs:w-[120px] xs:h-[120px] md:w-[115px] md:h-[115px] max-w-[45%] pointer-events-none select-none z-0">
+                  <div className="absolute right-0 bottom-0 w-[120px] h-[120px] xs:w-[130px] xs:h-[130px] md:w-[125px] md:h-[125px] max-w-[50%] pointer-events-none select-none z-0">
                     <img 
                       src={conf.image} 
                       alt={displayTitle} 
@@ -2060,18 +2086,17 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
 
                     <button 
                       type="submit"
-                      className="w-full py-3 bg-terracotta hover:bg-[#c2502f] text-white text-xs font-bold rounded-2xl shadow-md mt-2"
+                      className="w-full py-3 bg-[#2D4536] hover:bg-[#1E2E24] text-white text-xs font-bold rounded-2xl shadow-md mt-2"
                     >
                       Save Specialist Profile
                     </button>
                   </form>
                 </div>
               )}
-
             </div>
           )}
         </div>
-      )}
+      </div>
 
       {showCall && confirmedAppt && (
         <AgoraCallModal 
@@ -2079,6 +2104,6 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
           onClose={() => setShowCall(false)} 
         />
       )}
-    </div>
+    </>
   );
 }
