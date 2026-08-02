@@ -698,7 +698,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
         if (!isMounted) return;
 
         if (activeView === 'home') {
-          // Load Home Map (Screen 1)
+          // Load Home Map (Screen 1) with both Emergency Reports & Rescuers/Members
           const activeReportsPins = computedUpdates
             .filter(u => u.category === 'help' && u.status === 'active')
             .map(u => ({
@@ -711,7 +711,21 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
               distance: u.distance
             }));
 
-          const homePins = [...activeReportsPins];
+          const rescuerPins = computedMembers.map(m => {
+            const mCoords = m.lat && m.lng ? [m.lat, m.lng] : getCoordinatesForLocationShared(m.address, centerCoords);
+            return {
+              id: m.id,
+              name: m.fullName || 'Rescuer',
+              avatar: m.profilePic,
+              role: m.role || 'rescuer',
+              lat: mCoords[0],
+              lng: mCoords[1],
+              distance: m.distance,
+              badge: m.badge
+            };
+          });
+
+          const homePins = [...activeReportsPins, ...rescuerPins];
           loadLeafletMap(L, 'home-map', centerCoords, homePins, homeMapRef);
         }
       } catch (err) {
