@@ -46,35 +46,23 @@ export const getCoordinatesForLocation = (location: string, baseCoords?: [number
     }
   }
 
-  // Bhubaneswar, Odisha landmarks (correct coordinates)
+  // Rourkela & Sundargarh, Odisha landmarks
+  if (clean.includes('koel nagar')) return [22.2587, 84.8980];
+  if (clean.includes('chhend')) return [22.2562, 84.8510];
+  if (clean.includes('civil township')) return [22.2356, 84.8480];
+  if (clean.includes('panposh')) return [22.2230, 84.8150];
+  if (clean.includes('uditnagar') || clean.includes('udit nagar')) return [22.2270, 84.8450];
+  if (clean.includes('basanti colony')) return [22.2380, 84.8420];
+  if (clean.includes('bondamunda')) return [22.2610, 84.9540];
+  if (clean.includes('sundargarh') || clean.includes('rourkela')) return [22.2519, 84.8826];
+
+  // Bhubaneswar, Odisha landmarks
   if (clean.includes('saheed nagar')) return [20.2882, 85.8440];
   if (clean.includes('vss nagar')) return [20.3012, 85.8491];
   if (clean.includes('acharya vihar')) return [20.2937, 85.8340];
   if (clean.includes('jaydev vihar')) return [20.2974, 85.8229];
   if (clean.includes('master canteen')) return [20.2642, 85.8400];
-
-  // City-level fallbacks
-  if (clean.includes('bhubaneswar') || clean.includes('bhubaneshwar') || clean.includes('odisha')) {
-    const bhubBase: [number, number] = [20.2882, 85.8440];
-    let hash = 0;
-    for (let i = 0; i < clean.length; i++) {
-      hash = clean.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const latOffset = ((hash % 100) / 5000);
-    const lngOffset = (((hash >> 4) % 100) / 5000);
-    return [bhubBase[0] + latOffset, bhubBase[1] + lngOffset];
-  }
-
-  if (clean.includes('rourkela')) {
-    const rourBase: [number, number] = [22.2519, 84.8826];
-    let hash = 0;
-    for (let i = 0; i < clean.length; i++) {
-      hash = clean.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const latOffset = ((hash % 100) / 5000);
-    const lngOffset = (((hash >> 4) % 100) / 5000);
-    return [rourBase[0] + latOffset, rourBase[1] + lngOffset];
-  }
+  if (clean.includes('bhubaneswar') || clean.includes('bhubaneshwar')) return [20.2882, 85.8440];
 
   // Gurugram, Haryana landmarks
   if (clean.includes('sector 45')) return [28.4595, 77.0266];
@@ -82,8 +70,8 @@ export const getCoordinatesForLocation = (location: string, baseCoords?: [number
   if (clean.includes('downtown')) return [28.4625, 77.0306];
   if (clean.includes('market')) return [28.4715, 77.0356];
 
-  // Default to dynamic offset based on location string hash
-  const actualBase = baseCoords || [28.4595, 77.0266];
+  // Default to dynamic offset based on location string hash (Rourkela as primary fallback)
+  const actualBase = baseCoords || [22.2519, 84.8826];
   let hash = 0;
   for (let i = 0; i < clean.length; i++) {
     hash = clean.charCodeAt(i) + ((hash << 5) - hash);

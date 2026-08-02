@@ -228,7 +228,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
   // When user.address changes, immediately set it as selectedLocation
   // so the map re-centers, then try to refine with browser GPS
   useEffect(() => {
-    const fallbackAddr = user?.address || userAddress || 'Saheed Nagar, Sector 45';
+    const fallbackAddr = user?.address || userAddress || 'Koel Nagar, Sundargarh';
     // Always set fallback immediately so map doesn't stay stale
     if (!deviceAddress) {
       setSelectedLocation(fallbackAddr);
@@ -708,22 +708,15 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
               distance: u.distance
             }));
 
-          // Show all community members on the map (exclude current user who is the center dot)
-          const currentUserEmail = user?.email;
-          const memberPins = computedMembers
-            .filter(m => {
-              // Skip current user (already shown as center dot)
-              const memberUser = dbUsers.find(u => u._id === m.id);
-              if (memberUser && currentUserEmail && memberUser.email === currentUserEmail) return false;
-              return true;
-            })
+          const rescuerPins = computedMembers
+            .filter(m => m.role === 'rescuer')
             .map(m => {
               const mCoords = m.lat && m.lng ? [m.lat, m.lng] : getCoordinatesForLocationShared(m.location || '', centerCoords);
               return {
                 id: m.id,
-                name: m.name || 'Member',
+                name: m.name || 'Rescuer',
                 avatar: m.avatar,
-                role: m.role === 'normal' ? 'volunteer' : (m.role || 'volunteer'),
+                role: m.role || 'rescuer',
                 lat: mCoords[0],
                 lng: mCoords[1],
                 distance: m.distance,
@@ -731,7 +724,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
               };
             });
 
-          const homePins = [...activeReportsPins, ...memberPins];
+          const homePins = [...activeReportsPins, ...rescuerPins];
           loadLeafletMap(L, 'home-map', centerCoords, homePins, homeMapRef);
         }
       } catch (err) {
