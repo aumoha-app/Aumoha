@@ -901,10 +901,6 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                   <polyline points="15 18 9 12 15 6" />
                 </svg>
               </button>
-
-              <span className="text-[10px] font-extrabold text-[#2D4536] uppercase tracking-[0.2em] select-none">
-                Consult and Care
-              </span>
               <h2 className="font-serif text-xl md:text-2xl text-[#1C1A17] leading-[1.15] font-semibold tracking-tight">
                 Expert Support and Specialist Advice
               </h2>
@@ -915,6 +911,8 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
 
             {/* Right: Hero Image */}
             <div className="w-[50%] md:w-[38%] relative shrink-0 flex items-end justify-end overflow-hidden">
+              {/* Top smudge overlay specifically over image */}
+              <div className="absolute top-0 left-0 right-0 h-14 bg-gradient-to-b from-[#FAF8F5] via-[#FAF8F5]/70 to-transparent z-10 pointer-events-none" />
               <img
                 src="/expert_care_pet_hero.png"
                 alt="Expert Support Pet Hero"
