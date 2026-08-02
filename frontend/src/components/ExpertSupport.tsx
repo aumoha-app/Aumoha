@@ -910,13 +910,13 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
             </div>
 
             {/* Right: Hero Image */}
-            <div className="w-[50%] md:w-[38%] relative shrink-0 flex items-end justify-end overflow-hidden">
+            <div className="w-[45%] md:w-[35%] relative shrink-0 flex items-end justify-end overflow-hidden">
               {/* Top smudge overlay specifically over image */}
               <div className="absolute top-0 left-0 right-0 h-14 bg-gradient-to-b from-[#FAF8F5] via-[#FAF8F5]/70 to-transparent z-10 pointer-events-none" />
               <img
                 src="/expert_care_pet_hero.png"
                 alt="Expert Support Pet Hero"
-                className="w-full h-full object-contain object-right-bottom scale-[1.12] translate-x-1 translate-y-1"
+                className="w-full h-full object-contain object-right-bottom translate-y-0.5"
               />
             </div>
           </div>
@@ -951,9 +951,9 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
             
             <button 
               onClick={() => handleStartQuiz()}
-              className="px-4 bg-[#1C1A17] hover:bg-stone-800 text-white text-[11px] font-extrabold rounded-2xl flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              className="px-4 bg-[#1C1A17] hover:bg-stone-800 text-white text-[11px] font-extrabold rounded-2xl flex items-center gap-1.5 shadow-sm transition-all cursor-pointer active:scale-95"
             >
-              Quiz
+              ✨ Quiz
             </button>
           </div>
 
@@ -987,33 +987,33 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                     setListingSubFilter(null);
                     setCurrentView('listing');
                   }}
-                  className="bg-white border border-[#F0EBE1] rounded-[28px] p-5 cursor-pointer shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden flex flex-col justify-between min-h-[145px] hover:scale-[1.01] group"
+                  className="bg-white border border-[#F0EBE1] rounded-[24px] p-5 cursor-pointer shadow-xs hover:shadow-md transition-all duration-300 relative overflow-hidden flex flex-col justify-between h-[160px] hover:scale-[1.02] group"
                 >
-                  <div className="flex flex-col gap-1 z-10 w-[55%]">
+                  <div className="flex flex-col gap-1 z-10 w-[58%]">
                     <div>
                       {/* Title and Description */}
-                      <h4 className="text-xs font-bold font-serif text-base leading-tight group-hover:text-[#2D4536] transition-colors">
+                      <h4 className="text-xs font-bold font-serif text-charcoal leading-tight group-hover:text-[#2D4536] transition-colors">
                         {displayTitle}
                       </h4>
-                      <p className="text-[10px] text-stone-500 font-semibold leading-relaxed mt-1">
+                      <p className="text-[10px] text-stone-500 font-semibold leading-relaxed mt-1 line-clamp-2">
                         {conf.desc}
                       </p>
                     </div>
                   </div>
 
                   {/* Circular Chevron icon */}
-                  <div className="w-7 h-7 rounded-full bg-white border border-[#2D4536]/20 flex items-center justify-center text-[#2D4536] shadow-sm group-hover:bg-[#E8F0EA] z-10 transition-all mt-3">
+                  <div className="w-7 h-7 rounded-full bg-white border border-[#2D4536]/20 flex items-center justify-center text-[#2D4536] shadow-xs group-hover:bg-[#E8F0EA] z-10 transition-all mt-auto">
                     <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                       <polyline points="9 18 15 12 9 6" />
                     </svg>
                   </div>
 
                   {/* Right side high-quality transparent image of the pet */}
-                  <div className="absolute right-0 bottom-0 w-[120px] h-[120px] xs:w-[130px] xs:h-[130px] md:w-[125px] md:h-[125px] max-w-[50%] pointer-events-none select-none z-0">
+                  <div className="absolute right-0 bottom-0 w-28 h-28 xs:w-32 xs:h-32 md:w-28 md:h-28 max-w-[48%] pointer-events-none select-none z-0 overflow-hidden flex items-end justify-end">
                     <img 
                       src={conf.image} 
                       alt={displayTitle} 
-                      className="w-full h-full object-contain object-right-bottom transition-transform duration-300 group-hover:scale-[1.05]"
+                      className="w-full h-full object-contain object-right-bottom transition-transform duration-300 group-hover:scale-105"
                     />
                   </div>
                 </div>
@@ -1159,12 +1159,12 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3.5">
                       {/* Avatar with responsive photo & initials fallback */}
-                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl sm:rounded-full overflow-hidden bg-[#E8F0EA] border border-[#2D4536]/20 relative shrink-0 flex items-center justify-center shadow-xs">
+                      <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl overflow-hidden bg-[#E8F0EA] border border-[#2D4536]/20 relative shrink-0 flex items-center justify-center shadow-xs">
                         {photoUrl ? (
                           <img 
                             src={photoUrl} 
                             alt={exp.name} 
-                            className="w-full h-full object-cover rounded-2xl sm:rounded-full"
+                            className={`w-full h-full ${photoUrl.includes('expert_') || photoUrl.includes('.png') ? 'object-contain p-1' : 'object-cover'} rounded-2xl`}
                             onError={(e) => {
                               (e.target as HTMLElement).style.display = 'none';
                               const fallbackEl = (e.target as HTMLElement).nextElementSibling as HTMLElement;
