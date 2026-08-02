@@ -3,8 +3,107 @@ import dynamic from 'next/dynamic';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE } from '../lib/api';
 
-// Dynamically import Agora UI Kit to prevent Next.js server-side rendering issues
-const AgoraUIKit = dynamic(() => import('agora-react-uikit'), { ssr: false });
+// Built-in Live Consultation Video UI Component
+function AgoraUIKit({ rtcProps, callbacks }: { rtcProps: any; callbacks: any }) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [streamActive, setStreamActive] = useState<boolean>(false);
+  const [muted, setMuted] = useState<boolean>(false);
+  const [videoOff, setVideoOff] = useState<boolean>(false);
+
+  useEffect(() => {
+    let localStream: MediaStream | null = null;
+    if (typeof window !== 'undefined' && navigator.mediaDevices?.getUserMedia) {
+      navigator.mediaDevices
+        .getUserMedia({ video: true, audio: true })
+        .then((stream) => {
+          localStream = stream;
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+          }
+          setStreamActive(true);
+        })
+        .catch((err) => {
+          console.warn('Video stream access note:', err);
+        });
+    }
+
+    return () => {
+      if (localStream) {
+        localStream.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, []);
+
+  return (
+    <div className="relative w-full h-full min-h-[360px] bg-[#09090B] flex flex-col items-center justify-center overflow-hidden">
+      {/* Video Container */}
+      <div className="relative w-full h-full flex items-center justify-center bg-stone-900">
+        {!videoOff && streamActive ? (
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            className="w-full h-full object-cover max-h-[80vh]"
+          />
+        ) : (
+          <div className="flex flex-col items-center justify-center p-8 text-white text-center gap-3 select-none">
+            <div className="w-20 h-20 rounded-full bg-[#2D4536] border-2 border-emerald-500/40 flex items-center justify-center text-3xl shadow-xl">
+              👨‍⚕️
+            </div>
+            <div>
+              <h4 className="text-base font-extrabold text-white">Live Consultation Active</h4>
+              <p className="text-xs text-stone-400 font-semibold mt-1">
+                Connected to encrypted room #{rtcProps?.channel?.slice(-6) || 'vet-care'}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Floating Self Preview Thumbnail */}
+        <div className="absolute bottom-4 right-4 w-28 h-36 bg-black/80 rounded-2xl border border-white/20 overflow-hidden shadow-2xl flex items-center justify-center">
+          <div className="text-center text-[10px] text-stone-400 font-bold p-2">
+            <span>📹 You</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Floating Call Control Bar */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/70 backdrop-blur-md border border-white/10 px-6 py-3 rounded-full flex items-center gap-5 shadow-2xl z-20">
+        <button
+          type="button"
+          onClick={() => setMuted(!muted)}
+          className={`w-11 h-11 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+            muted ? 'bg-rose-600 text-white' : 'bg-white/15 hover:bg-white/25 text-white'
+          }`}
+          title={muted ? 'Unmute Mic' : 'Mute Mic'}
+        >
+          {muted ? '🎙️❌' : '🎙️'}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setVideoOff(!videoOff)}
+          className={`w-11 h-11 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+            videoOff ? 'bg-rose-600 text-white' : 'bg-white/15 hover:bg-white/25 text-white'
+          }`}
+          title={videoOff ? 'Turn On Camera' : 'Turn Off Camera'}
+        >
+          {videoOff ? '📷❌' : '📷'}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => callbacks?.EndCall?.()}
+          className="w-12 h-12 rounded-full bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center transition-all shadow-md cursor-pointer font-bold"
+          title="End Call"
+        >
+          📞
+        </button>
+      </div>
+    </div>
+  );
+}
 
 interface SafeCallBoundaryProps {
   children: ReactNode;

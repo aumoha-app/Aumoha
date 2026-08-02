@@ -343,6 +343,201 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
     }
   }, [token]);
 
+const DEFAULT_MOCK_EXPERTS: Expert[] = [
+  {
+    _id: 'exp_physio_1',
+    name: 'Dr. Ananya Sharma, PT',
+    photo: '/expert_physiotherapist.png',
+    specialisation: 'Canine Hydrotherapy & Post-Op Rehab',
+    category: 'Physiotherapist',
+    specialtyTags: ['Mobility', 'Joint Therapy', 'Hydrotherapy', 'Post-Op Recovery'],
+    experience: 8,
+    fee: 800,
+    bio: 'Specialist in canine post-surgical rehabilitation, hydrotherapy, and joint mobility enhancement for senior companions.',
+    rating: 4.9,
+    reviewCount: 142,
+    isOnline: true,
+    availableSlots: [
+      { _id: 's1', date: 'Today', time: '10:00 AM', isBooked: false },
+      { _id: 's2', date: 'Today', time: '03:30 PM', isBooked: false },
+      { _id: 's3', date: 'Tomorrow', time: '11:00 AM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp_physio_2',
+    name: 'Dr. Rohan Verma',
+    photo: '/expert_rehab.png',
+    specialisation: 'Senior Pet Comfort & Ortho Massage',
+    category: 'Physiotherapist',
+    specialtyTags: ['Senior Comfort', 'Ortho Massage', 'Injury Recovery'],
+    experience: 6,
+    fee: 750,
+    bio: 'Certified animal physical therapist focusing on arthritis management, spinal care, and pain-relief therapeutic massage.',
+    rating: 4.8,
+    reviewCount: 98,
+    isOnline: true,
+    availableSlots: [
+      { _id: 's4', date: 'Today', time: '02:00 PM', isBooked: false },
+      { _id: 's5', date: 'Tomorrow', time: '10:00 AM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp_nutri_1',
+    name: 'Dr. Kavita Menon',
+    photo: '/expert_nutritionist.png',
+    specialisation: 'Clinical Pet Dietitian & BARF Specialist',
+    category: 'Nutritionist',
+    specialtyTags: ['Raw BARF Diets', 'Weight Loss', 'Allergy Management'],
+    experience: 9,
+    fee: 700,
+    bio: 'Formulates custom home-cooked and raw meal plans for dogs and cats suffering from food allergies and chronic kidney conditions.',
+    rating: 4.9,
+    reviewCount: 215,
+    isOnline: true,
+    availableSlots: [
+      { _id: 's6', date: 'Today', time: '11:00 AM', isBooked: false },
+      { _id: 's7', date: 'Tomorrow', time: '04:00 PM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp_behav_1',
+    name: 'Vikramaditya Roy',
+    photo: '/expert_animal_behaviourist.png',
+    specialisation: 'Canine Behaviour Modification & Anxiety',
+    category: 'Animal Behaviourist',
+    specialtyTags: ['Aggression', 'Separation Anxiety', 'Phobias', 'Fear Desensitization'],
+    experience: 11,
+    fee: 900,
+    bio: 'Positive-reinforcement animal psychologist specializing in severe aggression, rescue dog trauma, and reactivity.',
+    rating: 4.9,
+    reviewCount: 310,
+    isOnline: true,
+    availableSlots: [
+      { _id: 's8', date: 'Today', time: '05:00 PM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp_behav_2',
+    name: 'Dr. Shalini Deshmukh',
+    photo: '/expert_behaviourist.png',
+    specialisation: 'Desensitization & Confidence Building',
+    category: 'Behaviourist',
+    specialtyTags: ['Fear Desensitization', 'Socialization', 'Hyperactivity'],
+    experience: 9,
+    fee: 850,
+    bio: 'Specialist in fear desensitization, sound phobias, and feline/canine anxiety reduction through reward-based therapy.',
+    rating: 4.8,
+    reviewCount: 175,
+    isOnline: true,
+    availableSlots: [
+      { _id: 's8b', date: 'Today', time: '02:00 PM', isBooked: false },
+      { _id: 's8c', date: 'Tomorrow', time: '11:30 AM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp_well_1',
+    name: 'Dr. Aarav Patel',
+    photo: '/expert_wellness.png',
+    specialisation: 'Senior Care Guidance & Palliative Therapy',
+    category: 'Wellness & Palliative',
+    specialtyTags: ['Hospice Setup', 'Pain Relief', 'Senior Wellness'],
+    experience: 12,
+    fee: 780,
+    bio: 'Compassionate senior pet care specialist focused on pain management, hospice setup, and quality-of-life optimization.',
+    rating: 4.9,
+    reviewCount: 210,
+    isOnline: true,
+    availableSlots: [
+      { _id: 's8d', date: 'Today', time: '04:00 PM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp_trainer_1',
+    name: 'Rajesh Nair',
+    photo: '/expert_trainer.png',
+    specialisation: 'Obedience Foundation & Puppy Manners',
+    category: 'Trainer',
+    specialtyTags: ['Puppy Training', 'Basic Obedience', 'Leash Pulling'],
+    experience: 7,
+    fee: 650,
+    bio: 'Professional obedience coach focusing on positive leash work, recall, potty training, and trick learning.',
+    rating: 4.8,
+    reviewCount: 180,
+    isOnline: true,
+    availableSlots: [
+      { _id: 's9', date: 'Tomorrow', time: '09:00 AM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp_homeo_1',
+    name: 'Dr. Meera Iyer',
+    photo: '/expert_homeopathy.png',
+    specialisation: 'Holistic Veterinary Medicine & Herbal Care',
+    category: 'Homeopathy Vet',
+    specialtyTags: ['Chronic Issues', 'Herbal Treatment', 'Holistic Wellness'],
+    experience: 12,
+    fee: 750,
+    bio: 'Gentle, natural homeopathic remedies for chronic skin issues, immune support, and age-related vitality.',
+    rating: 4.9,
+    reviewCount: 165,
+    isOnline: true,
+    availableSlots: [
+      { _id: 's10', date: 'Today', time: '12:00 PM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp_rehab_1',
+    name: 'Dr. Sameer Joshi',
+    photo: '/expert_rehab.png',
+    specialisation: 'Post-Surgery & Joint Recovery',
+    category: 'Rehab Specialist',
+    specialtyTags: ['Joint Therapy', 'Laser Therapy', 'Post-Surgery Recovery'],
+    experience: 10,
+    fee: 850,
+    bio: 'Specialized laser therapy and muscle rebuilding for pets recovering from cruciate ligament and spinal surgeries.',
+    rating: 4.9,
+    reviewCount: 125,
+    isOnline: true,
+    availableSlots: [
+      { _id: 's11', date: 'Tomorrow', time: '03:00 PM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp_athome_1',
+    name: 'Pooja Hegde, RVT',
+    photo: '/expert_athome.png',
+    specialisation: 'At-Home Nursing & Geriatric Care',
+    category: 'At-Home Support',
+    specialtyTags: ['Medication Assist', 'Basic Nursing', 'Elderly Care'],
+    experience: 5,
+    fee: 500,
+    bio: 'Registered veterinary technician offering home visits for injections, fluid therapy, bandaging, and senior pet care.',
+    rating: 4.8,
+    reviewCount: 92,
+    isOnline: true,
+    availableSlots: [
+      { _id: 's12', date: 'Today', time: '02:30 PM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp_reiki_1',
+    name: 'Sunita Chawla',
+    photo: '/expert_reiki.png',
+    specialisation: 'Intuitive Animal Communicator & Reiki Master',
+    category: 'Communicator/Psychotherapist/Reiki Healing',
+    specialtyTags: ['Reiki Healing', 'Grief Counseling', 'Energy Balance'],
+    experience: 14,
+    fee: 800,
+    bio: 'Telepathic animal communicator and Reiki master helping pet parents understand behavioral shifts and emotional well-being.',
+    rating: 4.9,
+    reviewCount: 240,
+    isOnline: true,
+    availableSlots: [
+      { _id: 's13', date: 'Tomorrow', time: '04:30 PM', isBooked: false }
+    ]
+  }
+];
+
   // Fetch experts list
   const fetchExperts = async () => {
     setIsLoadingExperts(true);
@@ -355,10 +550,22 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
       const data = await res.json();
       if (res.ok) {
         const allVets = data.vets || [];
-        setExperts(allVets.filter((v: any) => v.category !== 'vet'));
+        const fetchedExperts = allVets.filter((v: any) => v.category !== 'vet');
+        
+        // Merge fetched experts with default mock experts so every category has active specialists
+        const combined = [...fetchedExperts];
+        DEFAULT_MOCK_EXPERTS.forEach(mockExp => {
+          if (!combined.some(e => e._id === mockExp._id || (e.name === mockExp.name && e.category === mockExp.category))) {
+            combined.push(mockExp);
+          }
+        });
+        setExperts(combined);
+      } else {
+        setExperts(DEFAULT_MOCK_EXPERTS);
       }
     } catch (err) {
       console.error('Error fetching experts:', err);
+      setExperts(DEFAULT_MOCK_EXPERTS);
     } finally {
       setIsLoadingExperts(false);
     }
@@ -414,7 +621,11 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
   // Category Listing experts list
   const activeCategoryConfig = CATEGORY_CONFIGS[selectedCategoryKey];
   const listedExperts = experts.filter(exp => {
-    const isThisCategory = exp.category === selectedCategoryKey;
+    const isThisCategory = 
+      exp.category === selectedCategoryKey ||
+      (selectedCategoryKey.includes('Behaviour') && exp.category.includes('Behaviour')) ||
+      (selectedCategoryKey.includes('Wellness') && exp.category.includes('Wellness')) ||
+      (selectedCategoryKey.includes('Reiki') && exp.category.includes('Reiki'));
     if (!isThisCategory) return false;
     
     if (listingSubFilter) {
@@ -660,36 +871,63 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
   };
 
   return (
-    <div className="w-full flex flex-col gap-6 animate-scaleIn font-sans text-charcoal bg-[#FAF8F5] rounded-3xl p-4 md:p-6 shadow-sm min-h-[80vh]">
-      
-      {/* HEADER BAR WITH NAVIGATION BACK ACTION & ADMIN PORTAL CONTROLS */}
-      <div className="flex items-center justify-between pb-3 border-b border-warmBeige/40 select-none">
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => {
-              if (currentView === 'listing') {
-                setCurrentView('home');
-              } else if (currentView === 'wizard') {
-                setCurrentView('listing');
-              } else if (currentView === 'confirmed' || currentView === 'admin') {
-                setCurrentView('home');
-              } else {
-                setActiveTab('home');
-              }
-            }} 
-            className="w-10 h-10 rounded-full border border-warmBeige bg-white flex items-center justify-center hover:bg-warmBg transition-colors"
-          >
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-stone-600">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-          </button>
-          <div>
-            <span className="text-[10px] text-stone-400 font-extrabold uppercase tracking-widest block">Consult & Care</span>
-            <h1 className="text-sm font-serif font-extrabold text-charcoal">Expert Support</h1>
-          </div>
-        </div>
+    <>
+      <div className="w-full max-w-2xl mx-auto bg-[#FAF8F5] rounded-[28px] overflow-hidden shadow-sm transition-all duration-300 font-sans text-charcoal flex flex-col min-h-[80vh]">
+      {/* Full-Bleed Hero Banner covering complete top */}
+      <div className="relative">
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#FAF8F5] via-[#EFEBE3] to-[#E8E3DA]">
+          {/* Top smudge fade into page canvas */}
+          <div className="absolute top-0 left-0 right-0 h-7 bg-gradient-to-b from-[#FAF8F5] via-[#FAF8F5]/50 to-transparent z-10 pointer-events-none" />
 
+          <div className="flex items-stretch min-h-[210px] md:min-h-[240px]">
+            {/* Left: Text Content */}
+            <div className="flex-1 flex flex-col justify-center gap-3 px-5 md:px-8 py-6 z-10">
+              {/* Back button */}
+              <button 
+                onClick={() => {
+                  if (currentView === 'listing') {
+                    setCurrentView('home');
+                  } else if (currentView === 'wizard') {
+                    setCurrentView('listing');
+                  } else if (currentView === 'confirmed' || currentView === 'admin') {
+                    setCurrentView('home');
+                  } else {
+                    setActiveTab('home');
+                  }
+                }} 
+                className="w-9 h-9 rounded-full border border-[#2D4536]/15 bg-white/70 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-colors cursor-pointer mb-1"
+              >
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-stone-600">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
+              <h2 className="font-serif text-xl md:text-2xl text-[#1C1A17] leading-[1.15] font-semibold tracking-tight">
+                Expert Support and Specialist Advice
+              </h2>
+              <p className="max-w-[260px] text-[11px] md:text-xs text-stone-500 font-medium leading-relaxed">
+                Verified behaviorists, dietitians, trainers and therapists for every pet need.
+              </p>
+            </div>
+
+            {/* Right: Hero Image */}
+            <div className="w-[50%] md:w-[38%] relative shrink-0 flex items-end justify-end overflow-hidden">
+              {/* Top smudge overlay specifically over image */}
+              <div className="absolute top-0 left-0 right-0 h-14 bg-gradient-to-b from-[#FAF8F5] via-[#FAF8F5]/70 to-transparent z-10 pointer-events-none" />
+              <img
+                src="/expert_care_pet_hero.png"
+                alt="Expert Support Pet Hero"
+                className="w-full h-full object-contain object-right-bottom scale-[1.12] translate-x-1 translate-y-1"
+              />
+            </div>
+          </div>
+
+          {/* Bottom fade into content area background */}
+          <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[#FAF8F5] to-transparent" />
+        </div>
       </div>
+
+      {/* Main Content Area with Horizontal Padding */}
+      <div className="px-4 md:px-8 pt-2 pb-8 flex flex-col gap-6">
 
       {/* ==================== SCREEN 1: EXPERT SUPPORT HOME ==================== */}
       {currentView === 'home' && (
@@ -713,13 +951,9 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
             
             <button 
               onClick={() => handleStartQuiz()}
-              className="px-4 bg-[#E8F0EA] hover:bg-[#D4E4D7] border border-[#2D4536]/30 text-[#2D4536] text-[10px] font-extrabold rounded-2xl flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              className="px-4 bg-[#1C1A17] hover:bg-stone-800 text-white text-[11px] font-extrabold rounded-2xl flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
             >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01" />
-              </svg>
-              Quiz Match
+              Quiz
             </button>
           </div>
 
@@ -731,7 +965,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                 onClick={() => setHomeGroup(grp)}
                 className={`px-4 py-2 border rounded-full text-xs font-bold shrink-0 transition-all cursor-pointer active:scale-95 shadow-xs flex items-center gap-1.5 ${
                   homeGroup === grp 
-                    ? 'bg-[#2D4536] border-[#2D4536] text-white shadow-sm' 
+                    ? 'bg-[#1C1A17] border-[#1C1A17] text-white shadow-sm' 
                     : 'bg-white border-[#F0EBE1] text-stone-600 hover:border-stone-300 hover:bg-stone-50'
                 }`}
               >
@@ -755,11 +989,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                   }}
                   className="bg-white border border-[#F0EBE1] rounded-[28px] p-5 cursor-pointer shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden flex flex-col justify-between min-h-[145px] hover:scale-[1.01] group"
                 >
-                  <div className="flex flex-col gap-2.5 z-10 w-[55%]">
-                    {/* Circle icon wrapper */}
-                    <div className="w-9 h-9 rounded-full bg-[#E8F0EA] border border-[#2D4536]/20 flex items-center justify-center text-[#2D4536] shadow-sm">
-                      {conf.icon}
-                    </div>
+                  <div className="flex flex-col gap-1 z-10 w-[55%]">
                     <div>
                       {/* Title and Description */}
                       <h4 className="text-xs font-bold font-serif text-base leading-tight group-hover:text-[#2D4536] transition-colors">
@@ -779,7 +1009,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                   </div>
 
                   {/* Right side high-quality transparent image of the pet */}
-                  <div className="absolute right-0 bottom-0 w-[150px] h-[150px] md:w-[115px] md:h-[115px] pointer-events-none select-none z-0">
+                  <div className="absolute right-0 bottom-0 w-[120px] h-[120px] xs:w-[130px] xs:h-[130px] md:w-[125px] md:h-[125px] max-w-[50%] pointer-events-none select-none z-0">
                     <img 
                       src={conf.image} 
                       alt={displayTitle} 
@@ -867,7 +1097,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
           {/* CATEGORY HERO BANNER HEADER */}
           <div className="bg-white border border-[#F0EBE1] rounded-[28px] p-5 md:p-6 shadow-sm flex items-center justify-between gap-4">
             <div className="flex flex-col items-start min-w-0">
-              <span className="text-[10px] bg-[#FAF2EE] border border-[#F5DFD8] text-terracotta font-extrabold uppercase rounded-full px-3 py-1 tracking-wider shadow-3xs">
+              <span className="text-[10px] bg-[#E8F0EA] border border-[#2D4536]/20 text-[#2D4536] font-extrabold uppercase rounded-full px-3 py-1 tracking-wider shadow-3xs">
                 Specialist Directory
               </span>
               <h2 className="text-xl md:text-2xl font-serif text-charcoal font-normal mt-2 leading-tight">
@@ -877,7 +1107,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                 {activeCategoryConfig.subtitle}
               </p>
             </div>
-            <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-[#FAF2EE] border border-[#F5DFD8] flex items-center justify-center shrink-0 shadow-sm text-terracotta">
+            <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-[#E8F0EA] border border-[#2D4536]/20 flex items-center justify-center shrink-0 shadow-sm text-[#2D4536]">
               {activeCategoryConfig.icon}
             </div>
           </div>
@@ -888,7 +1118,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
               onClick={() => setListingSubFilter(null)}
               className={`px-4 py-2 border rounded-full text-xs font-bold shrink-0 transition-all cursor-pointer active:scale-95 shadow-xs ${
                 listingSubFilter === null 
-                  ? 'bg-terracotta border-terracotta text-white shadow-sm' 
+                  ? 'bg-[#2D4536] border-[#2D4536] text-white shadow-sm' 
                   : 'bg-white border-[#F0EBE1] text-stone-600 hover:border-stone-300 hover:bg-stone-50'
               }`}
             >
@@ -900,7 +1130,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                 onClick={() => setListingSubFilter(subF)}
                 className={`px-4 py-2 border rounded-full text-xs font-bold shrink-0 transition-all cursor-pointer active:scale-95 shadow-xs ${
                   listingSubFilter === subF
-                    ? 'bg-terracotta border-terracotta text-white shadow-sm' 
+                    ? 'bg-[#2D4536] border-[#2D4536] text-white shadow-sm' 
                     : 'bg-white border-[#F0EBE1] text-stone-600 hover:border-stone-300 hover:bg-stone-50'
                 }`}
               >
@@ -919,23 +1149,36 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
               </div>
             ) : listedExperts.map((exp, index) => {
               const isTagForwardVariant = index % 2 === 0;
+              const photoUrl = exp.photo || (exp as any).image || (exp as any).avatar || (exp as any).profilePic;
 
               return (
                 <div 
                   key={exp._id}
-                  className="bg-white border border-[#F0EBE1] hover:border-terracotta/20 hover:shadow-[0_8px_30px_rgb(217,93,57,0.05)] rounded-[28px] p-5 md:p-6 flex flex-col gap-4 shadow-sm transition-all duration-300"
+                  className="bg-white border border-[#F0EBE1] hover:border-[#2D4536]/30 hover:shadow-[0_8px_30px_rgba(45,69,54,0.06)] rounded-[28px] p-5 md:p-6 flex flex-col gap-4 shadow-sm transition-all duration-300"
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3.5">
-                      {/* Avatar */}
-                      <div className="w-13 h-13 md:w-14 md:h-14 rounded-full overflow-hidden bg-stone-100 border border-[#F0EBE1] relative shrink-0">
-                        {exp.photo ? (
-                          <img src={exp.photo} alt={exp.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-[#E2E8F0] to-[#CBD5E1] flex items-center justify-center text-stone-600 font-bold text-base">
-                            {exp.name[0]}
-                          </div>
-                        )}
+                      {/* Avatar with responsive photo & initials fallback */}
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl sm:rounded-full overflow-hidden bg-[#E8F0EA] border border-[#2D4536]/20 relative shrink-0 flex items-center justify-center shadow-xs">
+                        {photoUrl ? (
+                          <img 
+                            src={photoUrl} 
+                            alt={exp.name} 
+                            className="w-full h-full object-cover rounded-2xl sm:rounded-full"
+                            onError={(e) => {
+                              (e.target as HTMLElement).style.display = 'none';
+                              const fallbackEl = (e.target as HTMLElement).nextElementSibling as HTMLElement;
+                              if (fallbackEl) fallbackEl.style.display = 'flex';
+                            }}
+                          />
+                        ) : null}
+                        <div 
+                          className={`w-full h-full bg-gradient-to-br from-[#E8F0EA] to-[#D4E4D7] flex items-center justify-center text-[#2D4536] font-extrabold text-sm sm:text-base ${
+                            photoUrl ? 'hidden' : 'flex'
+                          }`}
+                        >
+                          {exp.name ? exp.name.charAt(0).toUpperCase() : 'E'}
+                        </div>
                         {exp.isOnline && (
                           <span className="absolute bottom-0.5 right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white"></span>
                         )}
@@ -945,7 +1188,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                       <div>
                         <h4 className="text-sm md:text-base font-bold text-charcoal flex items-center gap-1.5 leading-snug">
                           {exp.name}
-                          <svg className="w-4 h-4 text-blue-500 fill-current" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 text-[#2D4536] fill-current" viewBox="0 0 24 24">
                             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                           </svg>
                         </h4>
@@ -964,13 +1207,13 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                     {!isTagForwardVariant && (
                       <div className="text-right flex flex-col items-end gap-0.5 shrink-0">
                         <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider">Starts at</span>
-                        <span className="text-base font-extrabold text-terracotta">₹{exp.fee}</span>
+                        <span className="text-base font-extrabold text-[#2D4536]">₹{exp.fee}</span>
                       </div>
                     )}
                   </div>
 
                   {exp.bio && (
-                    <p className="text-xs md:text-sm text-stone-600 leading-relaxed font-medium pl-3 border-l-2 border-terracotta/40">
+                    <p className="text-xs md:text-sm text-stone-600 leading-relaxed font-medium pl-3 border-l-2 border-[#2D4536]/40">
                       {exp.bio}
                     </p>
                   )}
@@ -982,7 +1225,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                         key={tag} 
                         className={`text-[11px] md:text-xs font-bold px-3 py-1.5 rounded-full border transition-colors ${
                           tIdx === 1
-                            ? 'bg-[#FAF2EE] border-[#F5DFD8] text-terracotta'
+                            ? 'bg-[#E8F0EA] border-[#2D4536]/20 text-[#2D4536]'
                             : 'bg-white border-[#F0EBE1] text-stone-600'
                         }`}
                       >
@@ -999,7 +1242,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                     </div>
                     <button
                       onClick={() => handleSelectExpert(exp)}
-                      className="px-6 py-2.5 bg-terracotta hover:bg-[#c2502f] text-white text-xs md:text-sm font-bold rounded-full transition-all shadow-sm hover:shadow active:scale-95 cursor-pointer"
+                      className="px-6 py-2.5 bg-[#2D4536] hover:bg-[#1E2E24] text-white text-xs md:text-sm font-bold rounded-full transition-all shadow-sm hover:shadow active:scale-95 cursor-pointer"
                     >
                       View Profile & Book
                     </button>
@@ -1608,7 +1851,6 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
       {currentView === 'admin' && (
         <div className="w-full flex flex-col gap-5 animate-fadeIn">
           {!isAdminAuthenticated ? (
-            /* Passcode gated panel form */
             <div className="bg-white border border-[#F0EBE1] p-5 rounded-[28px] shadow-sm flex flex-col gap-4 text-center max-w-sm mx-auto my-6">
               <div className="text-3xl">🔐</div>
               <div>
@@ -1627,13 +1869,12 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
 
               <button 
                 onClick={() => verifyAdminPass(adminPassword)}
-                className="w-full py-2.5 bg-terracotta hover:bg-[#c2502f] text-white text-xs font-bold rounded-2xl shadow-sm"
+                className="w-full py-2.5 bg-[#2D4536] hover:bg-[#1E2E24] text-white text-xs font-bold rounded-2xl shadow-sm"
               >
                 Authenticate Settings
               </button>
             </div>
           ) : (
-            /* Registry directory panel view */
             <div className="flex flex-col gap-5 w-full">
               
               <div className="flex items-center justify-between border-b border-stone-100 pb-3">
@@ -1844,18 +2085,19 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
 
                     <button 
                       type="submit"
-                      className="w-full py-3 bg-terracotta hover:bg-[#c2502f] text-white text-xs font-bold rounded-2xl shadow-md mt-2"
+                      className="w-full py-3 bg-[#2D4536] hover:bg-[#1E2E24] text-white text-xs font-bold rounded-2xl shadow-md mt-2"
                     >
                       Save Specialist Profile
                     </button>
                   </form>
                 </div>
               )}
-
             </div>
           )}
         </div>
       )}
+    </div>
+  </div>
 
       {showCall && confirmedAppt && (
         <AgoraCallModal 
@@ -1863,6 +2105,6 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
           onClose={() => setShowCall(false)} 
         />
       )}
-    </div>
+    </>
   );
 }

@@ -285,12 +285,6 @@ export default function MohallaUpdates({
             </div>
           )}
 
-          {/* Time Badge Overlay on Image Top-Right */}
-          <div className="absolute top-2.5 right-2.5 z-10">
-            <span className="text-[10px] sm:text-xs font-bold text-stone-700 whitespace-nowrap bg-white/95 px-2.5 py-1 rounded-lg border border-white/80 shadow-xs backdrop-blur-xs">
-              {displayTime || 'Upcoming'}
-            </span>
-          </div>
         </div>
 
         {/* Info Box (Full width Title, Actions, Location & Description) */}
@@ -344,6 +338,19 @@ export default function MohallaUpdates({
               </div>
             )}
           </div>
+
+          {/* Time Badge below Title */}
+          {(displayTime || post.time) && (
+            <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-stone-600 font-semibold mt-0.5">
+              <svg className="w-3.5 h-3.5 text-[#2D4536] shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              <span className="bg-white border border-[#EBE3D5] text-stone-800 text-[10px] sm:text-[11px] font-bold px-2.5 py-0.5 rounded-md shadow-3xs">
+                {displayTime || post.time}
+              </span>
+            </div>
+          )}
 
           {/* Location Subtitle with Pin Icon */}
           <div className="flex items-start gap-1 text-[11px] sm:text-xs text-stone-600 font-semibold mt-0.5">
@@ -454,10 +461,10 @@ export default function MohallaUpdates({
 
       {/* --- START COMMUNITY ACTIVITY MODAL --- */}
       {showActivityModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-end md:items-center justify-center px-4 transition-all">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-end md:items-center justify-center px-4 pb-24 md:pb-0 transition-all">
           <form
             onSubmit={handleCreateActivity}
-            className="bg-white w-full max-w-lg rounded-t-[32px] md:rounded-[32px] p-6 shadow-2xl flex flex-col gap-5 max-h-[90vh] overflow-y-auto animate-scaleIn select-none"
+            className="bg-white w-full max-w-lg rounded-2xl md:rounded-[32px] p-6 shadow-2xl flex flex-col gap-5 max-h-[80vh] overflow-y-auto animate-scaleIn select-none pb-8"
           >
             {/* Header */}
             <div className="flex justify-between items-center border-b border-[#F0EBE1] pb-3.5">
@@ -532,7 +539,7 @@ export default function MohallaUpdates({
                         onClick={() => setActivityCategory(cat.id as any)}
                         className={`py-2 px-1.5 border rounded-xl font-bold flex flex-col items-center justify-center gap-1 active:scale-95 transition-all text-[10px] ${
                           isSelected
-                            ? 'bg-terracotta border-terracotta text-white shadow-xs'
+                            ? 'bg-[#2D4536] border-[#2D4536] text-white shadow-xs'
                             : 'bg-white border-[#F0EBE1] text-stone-500 hover:border-stone-300'
                         }`}
                       >
@@ -591,10 +598,10 @@ export default function MohallaUpdates({
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between">
                   <label className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">
-                    Add Photo / Banner <span className="text-rose-500 font-extrabold">*</span>
+                    Add Photo / Banner <span className="text-stone-400 font-extrabold">*</span>
                   </label>
-                  <span className="text-[10px] font-extrabold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 uppercase">
-                    Mandatory
+                  <span className="text-[10px] font-extrabold text-stone-500 bg-stone-100 px-2 py-0.5 rounded border border-stone-200 uppercase">
+                    Required
                   </span>
                 </div>
                 
@@ -643,23 +650,23 @@ export default function MohallaUpdates({
                 ) : (
                   <div 
                     onClick={() => activityFileInputRef.current?.click()}
-                    className="w-full bg-[#FFF9F9] hover:bg-[#FFF2F2] border-2 border-dashed border-rose-300 rounded-2xl p-4 flex flex-col items-center justify-center gap-1.5 cursor-pointer hover:border-rose-400 transition-all select-none group"
+                    className="w-full bg-[#FCFAF7] hover:bg-[#F5F2EC] border-2 border-dashed border-[#2D4536]/30 rounded-2xl p-4 flex flex-col items-center justify-center gap-1.5 cursor-pointer hover:border-[#2D4536]/50 transition-all select-none group"
                   >
-                    <div className="p-2 bg-rose-100/80 rounded-full text-rose-600 group-hover:scale-105 transition-transform duration-200">
+                    <div className="p-2 bg-[#E8F0EA] rounded-full text-[#2D4536] group-hover:scale-105 transition-transform duration-200">
                       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
                         <circle cx="12" cy="13" r="4" />
                       </svg>
                     </div>
-                    <span className="text-[10px] font-extrabold text-rose-600">Upload Photo or Banner (Required)</span>
+                    <span className="text-[10px] font-extrabold text-[#2D4536]">Upload Photo or Banner</span>
                     <span className="text-[9px] text-stone-400 font-semibold">Click to select an image from your device</span>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex gap-3 mt-2">
+            {/* Sticky Actions Footer */}
+            <div className="sticky bottom-0 bg-white pt-3 pb-1 border-t border-[#F0EBE1] flex gap-3 mt-2 z-10">
               <button
                 type="button"
                 onClick={() => {
@@ -672,13 +679,13 @@ export default function MohallaUpdates({
                   setEditingActivityId(null);
                   setShowActivityModal(false);
                 }}
-                className="flex-1 py-3 bg-[#FCFAF7] border border-[#F0EBE1] hover:border-stone-300 text-stone-600 font-bold rounded-2xl text-xs active:scale-95 transition-all"
+                className="flex-1 py-3 bg-[#FCFAF7] border border-[#F0EBE1] hover:border-stone-300 text-stone-600 font-bold rounded-2xl text-xs active:scale-95 transition-all cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="flex-1 py-3 bg-terracotta hover:bg-[#c2502f] text-white font-bold rounded-2xl text-xs active:scale-95 transition-all shadow-md shadow-terracotta/15"
+                className="flex-1 py-3 bg-[#2D4536] hover:bg-[#1E2E24] text-white font-bold rounded-2xl text-xs active:scale-95 transition-all shadow-md shadow-[#2D4536]/15 cursor-pointer"
               >
                 {editingActivityId ? 'Save Changes' : 'Launch Activity'}
               </button>

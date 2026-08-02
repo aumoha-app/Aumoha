@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Outfit, Geist_Mono, Playfair_Display } from "next/font/google";
+import { Outfit, Geist_Mono, Playfair_Display, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import PWARegistration from "../components/PWARegistration";
 import { AuthProvider } from "../context/AuthContext";
@@ -14,6 +14,12 @@ const playfair = Playfair_Display({
   subsets: ["latin"],
 });
 
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
@@ -24,9 +30,9 @@ export const metadata: Metadata = {
   description: "Aumoha Animal Welfare & Community Rescue Network.",
   manifest: "/manifest.json",
   icons: [
-    { rel: "icon", url: "/logo.png", type: "image/png" },
-    { rel: "shortcut icon", url: "/logo.png", type: "image/png" },
-    { rel: "apple-touch-icon", url: "/logo.png", type: "image/png" },
+    { rel: "icon", url: "/icon.png", type: "image/png" },
+    { rel: "shortcut icon", url: "/icon.png", type: "image/png" },
+    { rel: "apple-touch-icon", url: "/icon.png", type: "image/png" },
   ],
   appleWebApp: {
     capable: true,
@@ -48,7 +54,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${outfit.variable} ${playfair.variable} ${geistMono.variable}`}>
+    <html lang="en" className={`${outfit.variable} ${playfair.variable} ${cormorant.variable} ${geistMono.variable}`}>
       <body>
         <PWARegistration />
         <AuthProvider>

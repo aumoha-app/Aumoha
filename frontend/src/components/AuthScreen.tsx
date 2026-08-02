@@ -60,9 +60,9 @@ export default function AuthScreen() {
       {/* Brand Header */}
       <div className="flex flex-col items-center text-center gap-2 mt-2">
         <img 
-          src="/logo.png" 
+          src="/icon.png" 
           alt="Aumoha Logo" 
-          className="h-16 w-auto object-contain select-none"
+          className="h-20 md:h-24 w-auto object-contain select-none mix-blend-multiply transition-all"
         />
         <h1 className="font-serif text-2xl md:text-3xl text-[#1C1A17] font-normal tracking-tight mt-1">Aumoha</h1>
         <p className="text-xs text-stone-500 max-w-[280px]">Your decentralized hub for local animal rescues and emergency response.</p>
