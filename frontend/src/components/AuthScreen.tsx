@@ -62,7 +62,7 @@ export default function AuthScreen() {
         <img 
           src="/logo.png" 
           alt="Aumoha Logo" 
-          className="h-16 w-auto object-contain select-none"
+          className="h-16 w-auto object-contain select-none mix-blend-multiply"
         />
         <h1 className="font-serif text-2xl md:text-3xl text-[#1C1A17] font-normal tracking-tight mt-1">Aumoha</h1>
         <p className="text-xs text-stone-500 max-w-[280px]">Your decentralized hub for local animal rescues and emergency response.</p>
