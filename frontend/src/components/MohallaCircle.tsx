@@ -708,15 +708,22 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
               distance: u.distance
             }));
 
-          const rescuerPins = computedMembers
-            .filter(m => m.role === 'rescuer')
+          // Show all community members on the map (exclude current user who is the center dot)
+          const currentUserEmail = user?.email;
+          const memberPins = computedMembers
+            .filter(m => {
+              // Skip current user (already shown as center dot)
+              const memberUser = dbUsers.find(u => u._id === m.id);
+              if (memberUser && currentUserEmail && memberUser.email === currentUserEmail) return false;
+              return true;
+            })
             .map(m => {
               const mCoords = m.lat && m.lng ? [m.lat, m.lng] : getCoordinatesForLocationShared(m.location || '', centerCoords);
               return {
                 id: m.id,
-                name: m.name || 'Rescuer',
+                name: m.name || 'Member',
                 avatar: m.avatar,
-                role: m.role || 'rescuer',
+                role: m.role === 'normal' ? 'volunteer' : (m.role || 'volunteer'),
                 lat: mCoords[0],
                 lng: mCoords[1],
                 distance: m.distance,
@@ -724,7 +731,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
               };
             });
 
-          const homePins = [...activeReportsPins, ...rescuerPins];
+          const homePins = [...activeReportsPins, ...memberPins];
           loadLeafletMap(L, 'home-map', centerCoords, homePins, homeMapRef);
         }
       } catch (err) {

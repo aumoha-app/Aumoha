@@ -63,13 +63,12 @@ export default function SupportRequestDetail({
         distance: selectedRequest.distance 
       },
       ...computedMembers
-        .filter(m => m.role === 'rescuer')
         .map(m => {
           const mCoords = m.lat && m.lng ? [m.lat, m.lng] : getCoordinatesForLocation(m.location || selectedLocation);
           return {
-            name: m.name || 'Rescuer',
+            name: m.name || 'Member',
             avatar: m.avatar,
-            role: m.role || 'rescuer',
+            role: m.role === 'normal' ? 'volunteer' : (m.role || 'volunteer'),
             lat: mCoords[0],
             lng: mCoords[1],
             distance: m.distance,
