@@ -913,12 +913,6 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
             </div>
           )}
 
-          {/* Time Badge Overlay on Image Top-Right */}
-          <div className="absolute top-2.5 right-2.5 z-10">
-            <span className="text-[10px] sm:text-xs font-bold text-stone-700 whitespace-nowrap bg-white/95 px-2.5 py-1 rounded-lg border border-white/80 shadow-xs backdrop-blur-xs">
-              {isActivity ? (displayTime || post.time || 'Upcoming') : (post.distance || 'Nearby')}
-            </span>
-          </div>
         </div>
 
         {/* Info Box (Full width Title & Location subtitle at top) */}
@@ -926,6 +920,19 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
           <h4 className="font-serif text-base sm:text-lg font-bold text-charcoal leading-snug group-hover:text-[#3D5A45] transition-colors line-clamp-2 w-full">
             {(post.title || '').replace(/&/g, 'and')}
           </h4>
+
+          {/* Time Badge below Title */}
+          {(isActivity ? (displayTime || post.time) : post.distance) && (
+            <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-stone-600 font-semibold mt-0.5">
+              <svg className="w-3.5 h-3.5 text-[#3D5A45] shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              <span className="bg-white border border-[#EBE3D5] text-stone-800 text-[10px] sm:text-[11px] font-bold px-2.5 py-0.5 rounded-md shadow-3xs">
+                {isActivity ? (displayTime || post.time || 'Upcoming') : (post.distance || 'Nearby')}
+              </span>
+            </div>
+          )}
           <div className="flex items-start gap-1 text-[11px] text-stone-600 font-semibold mt-0.5">
             <svg className="w-3 h-3 text-[#3D5A45] shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="10" r="3" />
@@ -1002,7 +1009,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
             id: 'home',
             label: 'Home',
             icon: (
-              <svg className="w-4 h-4 text-current" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 text-current" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                 <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                 <polyline points="9 22 9 12 15 12 15 22" />
               </svg>
@@ -1012,7 +1019,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
             id: 'members',
             label: 'Network',
             icon: (
-              <svg className="w-4 h-4 text-current" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 text-current" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                 <circle cx="9" cy="7" r="4" />
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
@@ -1024,7 +1031,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
             id: 'updates',
             label: 'Updates',
             icon: (
-              <svg className="w-4 h-4 text-current" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 text-current" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                 <rect x="3" y="4" width="18" height="16" rx="2" />
                 <line x1="7" y1="8" x2="17" y2="8" />
                 <line x1="7" y1="12" x2="17" y2="12" />
@@ -1036,7 +1043,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
             id: 'impact',
             label: 'Impact',
             icon: (
-              <svg className="w-4 h-4 text-current" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 text-current" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                 <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
               </svg>
             )
@@ -1045,9 +1052,9 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
           <button
             key={t.id}
             onClick={() => setActiveView(t.id as any)}
-            className={`flex-1 pb-3 text-center transition-all flex items-center justify-center gap-1.5 cursor-pointer ${activeView === t.id
-                ? 'text-[#2D4536] border-b-2 border-[#2D4536] font-extrabold text-sm sm:text-base'
-                : 'text-stone-700 hover:text-stone-900 border-b-2 border-transparent font-bold text-sm sm:text-base opacity-85 hover:opacity-100'
+            className={`flex-1 pb-2 text-center transition-all flex items-center justify-center gap-1.5 cursor-pointer ${activeView === t.id
+                ? 'text-[#2D4536] border-b-2 border-[#2D4536] font-extrabold text-xs sm:text-sm'
+                : 'text-stone-700 hover:text-stone-900 border-b-2 border-transparent font-bold text-xs sm:text-sm opacity-85 hover:opacity-100'
               }`}
           >
             {t.icon}

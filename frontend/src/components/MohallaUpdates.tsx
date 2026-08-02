@@ -285,12 +285,6 @@ export default function MohallaUpdates({
             </div>
           )}
 
-          {/* Time Badge Overlay on Image Top-Right */}
-          <div className="absolute top-2.5 right-2.5 z-10">
-            <span className="text-[10px] sm:text-xs font-bold text-stone-700 whitespace-nowrap bg-white/95 px-2.5 py-1 rounded-lg border border-white/80 shadow-xs backdrop-blur-xs">
-              {displayTime || 'Upcoming'}
-            </span>
-          </div>
         </div>
 
         {/* Info Box (Full width Title, Actions, Location & Description) */}
@@ -344,6 +338,19 @@ export default function MohallaUpdates({
               </div>
             )}
           </div>
+
+          {/* Time Badge below Title */}
+          {(displayTime || post.time) && (
+            <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-stone-600 font-semibold mt-0.5">
+              <svg className="w-3.5 h-3.5 text-[#2D4536] shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              <span className="bg-white border border-[#EBE3D5] text-stone-800 text-[10px] sm:text-[11px] font-bold px-2.5 py-0.5 rounded-md shadow-3xs">
+                {displayTime || post.time}
+              </span>
+            </div>
+          )}
 
           {/* Location Subtitle with Pin Icon */}
           <div className="flex items-start gap-1 text-[11px] sm:text-xs text-stone-600 font-semibold mt-0.5">
