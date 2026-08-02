@@ -597,9 +597,16 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
   return (
     <div className="w-full flex flex-col gap-5 sm:gap-6 animate-fadeIn select-none font-sans text-[#1C1A17] pb-4">
       
-      {/* 1. TOP HEADER NAV WITH BACK BUTTON */}
-      <div className="flex items-center justify-between w-full pb-3 border-b border-[#D8D0C0] select-none">
-        <div className="flex items-center gap-3">
+      {/* 1. SEAMLESS HERO HEADER CONTAINER */}
+      <div className="relative rounded-[28px] sm:rounded-[36px] overflow-hidden border border-[#D5CEBF] shadow-xs w-full bg-[#EFEAE2]">
+        <img 
+          src="/VetCareHero.png" 
+          alt="Vet Care" 
+          className="w-full h-auto object-cover block"
+        />
+
+        {/* Back Button Floating on Top Left */}
+        <div className="absolute top-4 left-4 sm:top-5 sm:left-5 z-10 select-none">
           <button 
             onClick={() => {
               if (currentView !== 'home') {
@@ -608,266 +615,247 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                 setActiveTab('home');
               }
             }} 
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-[#D5CEBF] bg-[#EFEAE2] flex items-center justify-center hover:bg-[#E6E0D6] transition-colors shadow-2xs"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-white/80 bg-[#F5F2EC]/90 backdrop-blur-md flex items-center justify-center hover:bg-white transition-all shadow-2xs cursor-pointer active:scale-95"
           >
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-stone-700">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-stone-800">
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </button>
-          <div>
-            <h1 className="text-sm font-serif font-bold text-[#1C1A17]">Consult & Care</h1>
-            <span className="text-[10.5px] text-stone-600 font-medium block mt-0.5">Expert care for every pet need</span>
-          </div>
         </div>
 
-        {/* Gated Admin Panel Button */}
+        {/* Gated Admin Panel Button Top Right */}
         {isAdminUser && (
-          <button 
-            onClick={() => {
-              setSubTab('admin');
-              setCurrentView('home');
-            }}
-            className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl border text-[10.5px] font-extrabold flex items-center gap-1.5 transition-all ${
-              subTab === 'admin' 
-                ? 'bg-[#C85341] border-[#C85341] text-white shadow-xs' 
-                : 'border-[#D5CEBF] bg-[#EFEAE2] hover:bg-[#E6E0D6] text-[#C85341]'
-            }`}
-          >
-            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-            </svg>
-            Admin Panel
-          </button>
+          <div className="absolute top-4 right-4 sm:top-5 sm:right-5 z-10 select-none">
+            <button 
+              onClick={() => {
+                setSubTab('admin');
+                setCurrentView('home');
+              }}
+              className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl border text-[10.5px] font-extrabold flex items-center gap-1.5 transition-all backdrop-blur-md cursor-pointer ${
+                subTab === 'admin' 
+                  ? 'bg-[#C85341] border-[#C85341] text-white shadow-xs' 
+                  : 'border-[#D5CEBF] bg-[#F5F2EC]/85 hover:bg-white text-[#C85341]'
+              }`}
+            >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+              Admin Panel
+            </button>
+          </div>
         )}
       </div>
 
-      {/* 2. SUB-TABS SELECTOR FOR FLOW STATES */}
+      {/* 2. SEARCH BAR */}
       {currentView === 'home' && subTab !== 'admin' && (
-        <div className="grid grid-cols-3 bg-[#EFEAE2] border border-[#D5CEBF] p-1 rounded-2xl w-full select-none shadow-2xs gap-1">
-          <button 
-            onClick={() => { setSubTab('book'); setSelectedSpecialty(null); }}
-            className={`py-2 sm:py-2.5 px-1.5 rounded-xl text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1 sm:gap-1.5 transition-all active:scale-95 whitespace-nowrap ${
-              subTab === 'book' ? 'bg-white shadow-xs text-[#C85341] border border-[#D5CEBF]/40' : 'text-stone-600 hover:text-stone-800'
-            }`}
-          >
-            <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-              <line x1="16" y1="2" x2="16" y2="6" />
-              <line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="3" y1="10" x2="21" y2="10" />
+        <div className="flex gap-2 w-full mt-0.5">
+          <div className="relative flex-grow">
+            <input 
+              type="text"
+              placeholder="Search vets, clinics, specialities..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-[#EFEAE2] border border-[#D5CEBF] focus:border-[#2D4536] rounded-2xl pl-9 xs:pl-10 pr-3 xs:pr-4 py-2.5 xs:py-3 text-xs sm:text-sm text-[#1C1A17] placeholder-stone-600 outline-none transition-all font-sans font-medium shadow-2xs"
+            />
+            <svg className="absolute left-3 xs:left-3.5 top-3 xs:top-3.5 w-3.5 xs:w-4 h-3.5 xs:h-4 text-stone-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
-            <span>Book</span>
-          </button>
+          </div>
           
           <button 
-            onClick={() => { setSubTab('tele'); setSelectedSpecialty(null); }}
-            className={`py-2 sm:py-2.5 px-1.5 rounded-xl text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1 sm:gap-1.5 transition-all active:scale-95 whitespace-nowrap ${
-              subTab === 'tele' ? 'bg-white shadow-xs text-[#C85341] border border-[#D5CEBF]/40' : 'text-stone-600 hover:text-stone-800'
-            }`}
+            type="button"
+            onClick={() => setCurrentView('directory')}
+            className="w-10 xs:w-11 h-10 xs:h-11 bg-[#EFEAE2] border border-[#D5CEBF] hover:bg-[#E6E0D6] active:scale-95 transition-all rounded-2xl flex items-center justify-center shadow-2xs shrink-0 cursor-pointer"
           >
-            <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
-              <line x1="12" y1="18" x2="12.01" y2="18" />
+            <svg className="w-4 h-4 text-stone-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="4" y1="21" x2="4" y2="14" />
+              <line x1="4" y1="10" x2="4" y2="3" />
+              <line x1="12" y1="21" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12" y2="3" />
+              <line x1="20" y1="21" x2="20" y2="16" />
+              <line x1="20" y1="12" x2="20" y2="3" />
+              <line x1="1" y1="14" x2="7" y2="14" />
+              <line x1="9" y1="8" x2="15" y2="8" />
+              <line x1="17" y1="16" x2="23" y2="16" />
             </svg>
-            <span className="hidden xs:inline sm:inline">Tele-consult</span>
-            <span className="xs:hidden sm:hidden">Tele</span>
-          </button>
-
-          <button 
-            onClick={() => setSubTab('my-appts')}
-            className={`py-2 sm:py-2.5 px-1.5 rounded-xl text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1 sm:gap-1.5 transition-all active:scale-95 whitespace-nowrap ${
-              subTab === 'my-appts' ? 'bg-white shadow-xs text-[#C85341] border border-[#D5CEBF]/40' : 'text-stone-600 hover:text-stone-800'
-            }`}
-          >
-            <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-              <line x1="16" y1="13" x2="8" y2="13" />
-              <line x1="16" y1="17" x2="8" y2="17" />
-            </svg>
-            <span className="hidden sm:inline">My Appointments</span>
-            <span className="sm:hidden">Appointments</span>
           </button>
         </div>
       )}
 
-      {/* ==================== SCREEN 1: CONSULT & CARE HOME ==================== */}
-      {currentView === 'home' && subTab !== 'my-appts' && subTab !== 'admin' && (
-        <div className="flex flex-col gap-5 sm:gap-6 w-full animate-fadeIn">
-          
-          {/* SEARCH BAR */}
-          <div className="flex gap-2 w-full">
-            <div className="relative flex-grow">
-              <input 
-                type="text"
-                placeholder="Search for specialisations, vets..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#EFEAE2] border border-[#D5CEBF] focus:border-[#C85341] rounded-2xl pl-10 pr-4 py-3 text-xs sm:text-sm text-[#1C1A17] placeholder-stone-600 outline-none transition-all font-sans font-medium shadow-2xs"
-              />
-              <svg className="absolute left-3.5 top-3.5 w-4 h-4 text-stone-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-            </div>
-            
-            {/* Search Filter Icon */}
-            <button 
-              type="button"
-              onClick={() => setCurrentView('directory')}
-              className="w-11 h-11 bg-[#EFEAE2] border border-[#D5CEBF] hover:bg-[#E6E0D6] active:scale-95 transition-all rounded-2xl flex items-center justify-center shadow-2xs shrink-0"
+      {/* 3. CATEGORY FILTER PILLS RAIL */}
+      {currentView === 'home' && subTab !== 'admin' && (
+        <div className="flex items-center gap-1.5 xs:gap-2 overflow-x-auto pb-1 scrollbar-hide select-none w-full">
+          <button
+            onClick={() => setSelectedSpecialty(null)}
+            className={`px-3 xs:px-4 py-1.5 xs:py-2 rounded-full text-[11px] xs:text-xs font-bold transition-all shrink-0 cursor-pointer shadow-2xs ${
+              selectedSpecialty === null
+                ? 'bg-[#2D4536] text-white'
+                : 'bg-[#EFEAE2] border border-[#D5CEBF] text-[#1C1A17] hover:bg-[#E6E0D6]'
+            }`}
+          >
+            All
+          </button>
+          {['General Practice', 'Skin', 'Dental', 'Surgery', 'Cardiology'].map(specName => (
+            <button
+              key={specName}
+              onClick={() => setSelectedSpecialty(selectedSpecialty === specName ? null : specName)}
+              className={`px-3 xs:px-4 py-1.5 xs:py-2 rounded-full text-[11px] xs:text-xs font-semibold transition-all shrink-0 cursor-pointer shadow-2xs ${
+                selectedSpecialty === specName
+                  ? 'bg-[#2D4536] text-white font-bold'
+                  : 'bg-[#EFEAE2] border border-[#D5CEBF] text-[#1C1A17] hover:bg-[#E6E0D6]'
+              }`}
             >
-              <svg className="w-4 h-4 text-stone-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="4" y1="21" x2="4" y2="14" />
-                <line x1="4" y1="10" x2="4" y2="3" />
-                <line x1="12" y1="21" x2="12" y2="12" />
-                <line x1="12" y1="8" x2="12" y2="3" />
-                <line x1="20" y1="21" x2="20" y2="16" />
-                <line x1="20" y1="12" x2="20" y2="3" />
-                <line x1="1" y1="14" x2="7" y2="14" />
-                <line x1="9" y1="8" x2="15" y2="8" />
-                <line x1="17" y1="16" x2="23" y2="16" />
-              </svg>
+              {specName}
             </button>
+          ))}
+        </div>
+      )}
+
+      {/* 4. SECTION TITLE HEADER: Available near you */}
+      {currentView === 'home' && subTab !== 'admin' && (
+        <div className="flex items-end justify-between px-0.5 xs:px-1 mt-0.5 select-none gap-2">
+          <div>
+            <h2 className="font-serif text-lg xs:text-xl sm:text-2xl font-bold text-[#1C1A17] tracking-tight">Available near you</h2>
+            <p className="text-[11px] xs:text-xs text-stone-500 font-medium mt-0.5">Verified professionals in your area</p>
           </div>
+          <button 
+            onClick={() => setCurrentView('directory')}
+            className="text-[11px] xs:text-xs text-stone-600 hover:text-stone-900 font-medium flex items-center gap-1 cursor-pointer transition-colors shrink-0 max-w-[130px] xs:max-w-none truncate"
+          >
+            <span className="text-[#2D4536]">📍</span>
+            <span className="truncate">Rourkela, Sector 4</span>
+            <span className="text-xs shrink-0">›</span>
+          </button>
+        </div>
+      )}
 
-          {/* HERO BANNER MATCHING USER SPECIFICATION */}
-          <div className="relative bg-[#EFEAE2] border border-[#D5CEBF] rounded-2xl sm:rounded-[32px] p-5 sm:p-7 md:p-8 shadow-2xs flex flex-row items-center justify-between gap-4 overflow-hidden">
-            {/* Left Column: Text Content */}
-            <div className="flex flex-col items-start max-w-[62%] sm:max-w-lg z-10 select-none pl-1 sm:pl-2">
-              <span className="text-[10.5px] sm:text-xs font-sans font-extrabold text-[#C85341] tracking-widest uppercase mb-1.5 sm:mb-2 block">
-                VET CARE
-              </span>
-              <h1 className="font-serif text-lg xs:text-xl sm:text-3xl md:text-4xl font-bold leading-[1.18] text-[#1C1A17] tracking-tight mb-2 sm:mb-3">
-                Find the right<br />care for your<br />companion.
-              </h1>
-              <p className="text-[11px] sm:text-sm text-stone-700 font-medium leading-relaxed mb-3.5 sm:mb-5">
-                Expert medical care,<br className="xs:hidden" /> when they need it.
-              </p>
-              <button 
-                onClick={() => setCurrentView('directory')}
-                className="px-4 py-2 sm:px-5 sm:py-2.5 bg-[#2D4536] hover:bg-[#1F3325] active:scale-95 text-white text-[11px] sm:text-xs font-bold rounded-xl sm:rounded-2xl transition-all shadow-2xs flex items-center gap-1.5"
-              >
-                <span>Find Vets</span>
-                <span className="text-xs sm:text-sm">→</span>
-              </button>
-            </div>
+      {/* 5. VET DOCTOR CARDS (RESPONSIVE MOBILE DESIGN) */}
+      {currentView === 'home' && subTab !== 'admin' && (
+        <div className="flex flex-col gap-3.5 xs:gap-4.5 w-full select-none">
+          {(computedVets.length > 0 ? computedVets : [
+            {
+              _id: 'vet-1',
+              name: 'Dr. Rohit Nanda',
+              specialisation: 'Dermatology & Oncology',
+              experience: 12,
+              fee: 600,
+              bio: 'Gentle healing. For a longer, healthier life.',
+              rating: 4.6,
+              reviewCount: 96,
+              photo: '/warden-1.png',
+              availableSlots: [
+                { _id: 's1', date: 'Today', time: '10:30 AM', isBooked: false },
+                { _id: 's2', date: 'Today', time: '1:00 PM', isBooked: false },
+                { _id: 's3', date: 'Today', time: '3:30 PM', isBooked: false }
+              ]
+            },
+            {
+              _id: 'vet-2',
+              name: 'Dr. Ananya Patra',
+              specialisation: 'Small Animal & Surgery',
+              experience: 8,
+              fee: 400,
+              bio: 'Compassion in every consultation.',
+              rating: 4.8,
+              reviewCount: 128,
+              photo: '/warden-2.png',
+              availableSlots: [
+                { _id: 's4', date: 'Today', time: '9:00 AM', isBooked: false },
+                { _id: 's5', date: 'Today', time: '11:00 AM', isBooked: false },
+                { _id: 's6', date: 'Today', time: '4:30 PM', isBooked: false }
+              ]
+            }
+          ]).map((vet: any, vetIndex: number) => (
+            <div 
+              key={vet._id || vetIndex}
+              className="bg-[#F5F2EC] border border-[#EBE3D5] rounded-2xl sm:rounded-[24px] overflow-hidden shadow-xs flex flex-col"
+            >
+              {/* Upper Details Row */}
+              <div className="flex flex-row items-stretch min-h-[135px] xs:min-h-[145px] sm:min-h-[160px]">
+                {/* Left Side Portrait Photo */}
+                <div className="w-24 xs:w-32 sm:w-40 md:w-44 bg-[#EAE4D8] relative shrink-0 overflow-hidden">
+                  <img 
+                    src={vet.photo || (vetIndex === 0 ? '/warden-1.png' : '/warden-2.png')} 
+                    alt={vet.name} 
+                    className="w-full h-full object-cover object-top" 
+                  />
+                </div>
 
-            {/* Right Column: New Golden Retriever Studio Cutout */}
-            <div className="relative flex items-center justify-center shrink-0 w-32 xs:w-40 sm:w-60 md:w-72 h-[140px] xs:h-[170px] sm:h-[220px] z-10 pr-1 sm:pr-2">
-              <div className="absolute w-28 h-28 xs:w-36 xs:h-36 sm:w-52 sm:h-52 rounded-full bg-white/80 shadow-xs border border-white/90 pointer-events-none z-0" />
-              <img 
-                src="/vet-hero-dog-transparent.png" 
-                alt="Vet Care Golden Companion" 
-                className="w-full h-auto max-h-[145px] xs:max-h-[175px] sm:max-h-[250px] object-contain relative z-10 scale-110 sm:scale-120 hover:scale-125 transition-transform duration-500 drop-shadow-[0_10px_20px_rgba(30,20,10,0.2)]" 
-                onError={(e) => { e.currentTarget.src = '/laying-dog.png'; }}
-              />
-            </div>
-          </div>
-
-          {/* BROWSE BY SPECIALISATION GRID */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between px-1">
-              <h3 className="font-serif text-sm sm:text-lg text-[#1C1A17] font-bold tracking-tight">Browse by Specialisation</h3>
-              <button 
-                onClick={() => { setSelectedSpecialty(null); setCurrentView('directory'); }}
-                className="text-xs text-[#C85341] font-bold hover:underline flex items-center gap-0.5"
-              >
-                View all <span className="text-xs font-bold">→</span>
-              </button>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-3.5 w-full">
-              {specialisations.map(spec => (
-                <div 
-                  key={spec.id}
-                  onClick={() => {
-                    setSelectedSpecialty(spec.id);
-                    setCurrentView('directory');
-                  }}
-                  className="bg-[#EFEAE2] hover:bg-[#E6E0D6] border border-[#D5CEBF] rounded-2xl sm:rounded-[24px] p-3.5 sm:p-4 flex flex-col items-start justify-between cursor-pointer hover:shadow-md transition-all group min-h-[105px] sm:min-h-[115px] relative overflow-hidden"
-                >
-                  <div className="flex flex-col gap-2">
-                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center bg-[#EAE4D8] border border-[#D5CEBF] text-[#2D4536] transition-transform group-hover:scale-105">
-                      {spec.icon}
+                {/* Right Side Doctor Information */}
+                <div className="p-2.5 xs:p-3.5 sm:p-4.5 flex flex-col justify-between flex-grow min-w-0">
+                  <div className="flex flex-col gap-0.5 xs:gap-1">
+                    {/* Header Row: Doctor Name + VET badge + Heart icon */}
+                    <div className="flex items-center justify-between gap-1.5">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <h4 className="font-serif text-sm xs:text-base sm:text-lg font-bold text-[#1C1A17] truncate">{vet.name}</h4>
+                        <span className="bg-stone-200 text-stone-600 px-1.5 py-0.5 rounded-full text-[8px] xs:text-[9px] font-extrabold uppercase shrink-0">VET</span>
+                      </div>
+                      <button className="text-stone-400 hover:text-rose-500 transition-colors p-0.5 xs:p-1 cursor-pointer shrink-0">
+                        <svg className="w-3.5 xs:w-4 h-3.5 xs:h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                      </button>
                     </div>
-                    <div>
-                      <span className="font-serif text-xs sm:text-sm font-bold block text-[#1C1A17] group-hover:text-[#C85341] transition-colors leading-tight">
-                        {spec.name}
-                      </span>
-                      <span className="text-[10px] sm:text-[11px] text-stone-600 font-sans font-medium block leading-normal mt-0.5">
-                        {spec.desc}
-                      </span>
+
+                    {/* Specialization */}
+                    <span className="text-[11px] xs:text-xs text-stone-600 font-medium leading-tight truncate">{vet.specialisation}</span>
+
+                    {/* Rating & Experience */}
+                    <div className="flex flex-wrap items-center gap-1 text-[10.5px] xs:text-xs text-stone-600 font-medium mt-0.5">
+                      <span className="text-amber-500 font-bold">★ {vet.rating || 4.6}</span>
+                      <span className="text-stone-500 text-[10px] xs:text-[11px]">({vet.reviewCount || 96})</span>
+                      <span className="text-stone-300">|</span>
+                      <span className="text-[10.5px] xs:text-xs">{vet.experience || 10} yrs exp</span>
                     </div>
+
+                    {/* Quote */}
+                    <p className="text-[10.5px] xs:text-xs italic text-stone-600 font-serif leading-snug mt-0.5 line-clamp-1">
+                      "{vet.bio || (vetIndex === 0 ? 'Gentle healing. For a longer, healthier life.' : 'Compassion in every consultation.')}"
+                    </p>
+                  </div>
+
+                  {/* Price Tag */}
+                  <div className="text-right mt-1">
+                    <span className="font-serif text-sm xs:text-base sm:text-lg font-bold text-[#1C1A17]">₹{vet.fee || (vetIndex === 0 ? 600 : 400)}</span>
+                    <span className="text-[9.5px] xs:text-[10px] text-stone-500 font-medium block">In-clinic</span>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
 
-          {/* TOP RATED VETS LIST */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between px-1">
-              <h3 className="text-xs font-extrabold text-stone-400 uppercase tracking-wider">Top Rated Vets</h3>
-              <button 
-                onClick={() => { setSelectedSpecialty(null); setCurrentView('directory'); }}
-                className="text-[10px] font-extrabold text-terracotta hover:underline flex items-center gap-0.5"
-              >
-                View all <span className="text-xs font-extrabold mt-0.5">›</span>
-              </button>
-            </div>
+              {/* Lower Slot Bar */}
+              <div className="p-2.5 xs:p-3 bg-[#EFEBE3] border-t border-[#EBE3D5] flex items-center justify-between gap-1.5 xs:gap-2.5 select-none">
+                <span className="text-[11px] xs:text-xs font-bold text-[#1C1A17] pl-0.5 xs:pl-1 shrink-0">Today</span>
 
-            <div className="flex flex-col gap-3.5 w-full">
-              {isLoadingVets ? (
-                <div className="w-full text-center py-6 text-xs text-stone-500 font-semibold">Loading vets list...</div>
-              ) : computedVets.slice(0, 3).map(vet => (
-                <div 
-                  key={vet._id}
-                  onClick={() => {
-                    // Pre-fill doctor directory filter
-                    setSearchQuery(vet.name);
-                    setSelectedSpecialty(null);
-                    setCurrentView('directory');
-                  }}
-                  className="bg-white border border-[#F0EBE1] hover:border-terracotta/20 hover:shadow-[0_8px_30px_rgb(217,93,57,0.04)] rounded-[24px] p-4 flex items-center justify-between cursor-pointer transition-all"
-                >
-                  <div className="flex items-center gap-3">
-                    {/* High-quality Doctor Profile Avatar */}
-                    <div className="w-12 h-12 rounded-full overflow-hidden bg-stone-100 border border-[#F0EBE1] relative shrink-0">
-                      {vet.photo ? (
-                        <img src={vet.photo} alt={vet.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-[#E2E8F0] to-[#CBD5E1] flex items-center justify-center text-stone-600 font-bold text-sm">
-                          {vet.name.split(' ').map(n => n[0]).join('').replace('Dr.', '')}
-                        </div>
-                      )}
-                      {vet.isOnline && (
-                        <span className="absolute bottom-0.5 right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border border-white"></span>
-                      )}
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-bold text-charcoal">{vet.name}</h4>
-                      <span className="text-[10px] text-stone-500 block font-semibold mt-0.5">{vet.specialisation}</span>
-                      <span className="text-[9.5px] text-stone-400 block font-semibold mt-0.5">{vet.experience} yrs experience</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1 bg-[#FCFAF7] border border-[#EBE3D5] rounded-xl px-2.5 py-1 shrink-0 shadow-sm">
-                      <span className="text-amber-500 text-[10px]">★</span>
-                      <span className="text-[10px] font-extrabold text-charcoal">{vet.rating}</span>
-                      <span className="text-[9px] text-stone-400 font-bold">({vet.reviewCount})</span>
-                    </div>
-                    <div className="w-7 h-7 rounded-full bg-[#FCFAF7] border border-stone-200 flex items-center justify-center text-stone-400 group-hover:bg-[#FAF2EE] group-hover:text-terracotta transition-colors">
-                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <polyline points="9 18 15 12 9 6" />
-                      </svg>
-                    </div>
-                  </div>
+                <div className="flex items-center gap-1.5 xs:gap-2 overflow-x-auto scrollbar-hide">
+                  {(vet.availableSlots && vet.availableSlots.length > 0 ? vet.availableSlots : [
+                    { _id: 's1', time: vetIndex === 0 ? '10:30 AM' : '9:00 AM' },
+                    { _id: 's2', time: vetIndex === 0 ? '1:00 PM' : '11:00 AM' },
+                    { _id: 's3', time: vetIndex === 0 ? '3:30 PM' : '4:30 PM' }
+                  ]).slice(0, 3).map((slot: any, slotIdx: number) => (
+                    <button
+                      key={slot._id || slotIdx}
+                      onClick={() => handleStartBooking(vet, slot)}
+                      className={`px-2.5 xs:px-3.5 py-1 xs:py-1.5 rounded-full text-[10.5px] xs:text-xs font-bold transition-all shrink-0 cursor-pointer active:scale-95 ${
+                        slotIdx === 1
+                          ? 'bg-[#2D4536] text-white shadow-2xs'
+                          : 'bg-[#F5F2EC] border border-[#EBE3D5] text-[#1C1A17] hover:bg-[#EAE4D8]'
+                      }`}
+                    >
+                      {slot.time}
+                    </button>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
 
+                <button
+                  onClick={() => setIsViewingAllSlotsVet(vet)}
+                  className="text-[10.5px] xs:text-xs font-bold text-stone-600 hover:text-stone-900 shrink-0 cursor-pointer pr-0.5 xs:pr-1 whitespace-nowrap"
+                >
+                  View all →
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
@@ -940,7 +928,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
             ) : computedVets.map(vet => (
               <div 
                 key={vet._id}
-                className="bg-white border border-[#F0EBE1] rounded-[24px] p-4 flex flex-col gap-3.5 shadow-sm"
+                className="bg-[#EFEAE2] border border-[#D5CEBF] rounded-[24px] p-4 flex flex-col gap-3.5 shadow-sm"
               >
                 {/* Vet Header card section */}
                 <div className="flex justify-between items-start">

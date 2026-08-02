@@ -458,21 +458,21 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
 
 
 
-  // Role style mappings (color palette: elegant, HSL tailored matching screenshots)
+  // Role style mappings (matching dark green theme)
   const getRoleColors = (role: MemberRole) => {
     switch (role) {
       case 'feeder':
-        return { bg: 'bg-[#FAF2EE]', text: 'text-terracotta', border: 'border-[#F5DFD8]', label: 'Feeder', icon: '🥣' };
+        return { bg: 'bg-[#E5E0D4]', text: 'text-[#2D4536]', border: 'border-[#D3CCBE]', label: 'Feeder' };
       case 'rescuer':
-        return { bg: 'bg-[#FAF2EE]', text: 'text-terracotta', border: 'border-[#F5DFD8]', label: 'Rescuer', icon: '🛡️' };
+        return { bg: 'bg-[#E5E0D4]', text: 'text-[#2D4536]', border: 'border-[#D3CCBE]', label: 'Rescuer' };
       case 'volunteer':
-        return { bg: 'bg-[#FCFAF7]', text: 'text-clay', border: 'border-[#EBE3D5]', label: 'Volunteer', icon: '❤️' };
+        return { bg: 'bg-[#E5E0D4]', text: 'text-[#2D4536]', border: 'border-[#D3CCBE]', label: 'Volunteer' };
       case 'paravet':
-        return { bg: 'bg-[#FAF2EE]', text: 'text-terracotta', border: 'border-[#F5DFD8]', label: 'Paravet', icon: '🩺' };
+        return { bg: 'bg-[#E5E0D4]', text: 'text-[#2D4536]', border: 'border-[#D3CCBE]', label: 'Paravet' };
       case 'adopter':
-        return { bg: 'bg-[#FCFAF7]', text: 'text-clay', border: 'border-[#EBE3D5]', label: 'Foster Home', icon: '🏠' };
+        return { bg: 'bg-[#E5E0D4]', text: 'text-[#2D4536]', border: 'border-[#D3CCBE]', label: 'Foster Home' };
       default:
-        return { bg: 'bg-[#F5F2EC]', text: 'text-stone-500', border: 'border-[#EBE3D5]', label: 'Member', icon: '👤' };
+        return { bg: 'bg-[#E5E0D4]', text: 'text-[#2D4536]', border: 'border-[#D3CCBE]', label: 'Member' };
     }
   };
 
@@ -531,29 +531,29 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
     const map = L.map(mapId, { zoomControl: false }).setView(center, 14);
     setInstanceRef.current = map;
 
-    // CartoDB Positron clean light cream style map layer
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    // CartoDB Voyager warm style map layer
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; OpenStreetMap &copy; CARTO'
     }).addTo(map);
 
-    // User node center dot (White circle with dark green center dot)
+    // User node center dot (White circle with dark forest green center dot)
     const greenDotIcon = L.divIcon({
       className: 'custom-center-icon',
-      html: `<div class="w-6 h-6 bg-white rounded-full border-2 border-[#3D5A45] shadow-md flex items-center justify-center">
-               <div class="w-3 h-3 bg-[#3D5A45] rounded-full"></div>
+      html: `<div class="w-6 h-6 bg-white rounded-full border-2 border-[#2D4536] shadow-md flex items-center justify-center">
+               <div class="w-3 h-3 bg-[#2D4536] rounded-full"></div>
              </div>`,
       iconSize: [24, 24],
       iconAnchor: [12, 12]
     });
     L.marker(center, { icon: greenDotIcon }).addTo(map);
 
-    // Draw search radius ring (e.g. 1.2 km soft green outline/fill)
+    // Draw search radius ring (Forest green outline & soft green tint)
     L.circle(center, {
-      color: '#81C784',
-      fillColor: '#C8E6C9',
-      fillOpacity: 0.2,
+      color: '#2D4536',
+      fillColor: '#3D5A45',
+      fillOpacity: 0.12,
       radius: 1200,
-      weight: 1.5
+      weight: 2
     }).addTo(map);
 
     const getPinColor = (role: string) => {
@@ -868,66 +868,15 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
     }
   };
 
-  const renderSimpleActivityCard = (post: any) => {
+  const renderNearbyActivityCard = (post: any) => {
     const isSos = post.category === 'help';
-    const isRescuer = post.authorRole === 'rescuer';
-    const isAdopter = post.authorRole === 'adopter';
-    const isParavet = post.authorRole === 'paravet';
-
     const parts = (post.description || '').split(/\n\n🕒 Scheduled: |\\n\\n🕒 Scheduled: /);
     const displayDesc = parts[0] || '';
     const displayTime = parts[1] || '';
     const isActivity = post.category !== 'help';
 
-    let avatarIcon = null;
-
-    if (post.avatar && post.avatar.startsWith('http')) {
-      avatarIcon = <img src={post.avatar} alt={post.author} className="w-full h-full object-cover" />;
-    } else if (isSos) {
-      avatarIcon = (
-        <div className="w-full h-full bg-[#FCECE9] flex items-center justify-center text-[#C85341] shrink-0">
-          <svg className="w-5 h-5 text-current" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-            <path d="M11 5L6 9H2v6h4l5 4V5zm8 7c0-2.21-1.29-4.13-3-5.06v10.12c1.71-.93 3-2.85 3-5.06z" />
-          </svg>
-        </div>
-      );
-    } else if (isRescuer) {
-      avatarIcon = (
-        <div className="w-full h-full bg-[#E8F5E9] flex items-center justify-center text-xl overflow-hidden relative">
-          🧑
-        </div>
-      );
-    } else if (isAdopter) {
-      avatarIcon = (
-        <div className="w-full h-full bg-[#FFF8E1] flex items-center justify-center text-[#B68A35] shrink-0">
-          <svg className="w-5 h-5 text-current" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-            <path d="M12 17v0c-1.5-1.5-2.5-2.5-2.5-3.5 0-1.1.9-2 2-2s2 .9 2 2c0 1-1 2-2 3.5z" />
-          </svg>
-        </div>
-      );
-    } else if (isParavet) {
-      avatarIcon = (
-        <div className="w-full h-full bg-[#F3E5F5] flex items-center justify-center text-[#7B1FA2] shrink-0">
-          <svg className="w-5 h-5 text-current" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-            <rect x="3" y="3" width="18" height="18" rx="5" />
-            <path d="M12 8v8M8 12h8" />
-          </svg>
-        </div>
-      );
-    } else {
-      avatarIcon = (
-        <div className="w-full h-full bg-[#F5F2EC] flex items-center justify-center text-xl overflow-hidden relative">
-          👥
-        </div>
-      );
-    }
-
-    let infoColor = 'text-clay';
-    if (post.category === 'help') infoColor = 'text-emergency';
-    else if (post.category === 'feeding') infoColor = 'text-terracotta';
-    else if (post.category === 'event') infoColor = 'text-terracotta';
-    else if (post.category === 'awareness') infoColor = 'text-clay';
+    let categoryBadgeText = post.category ? post.category.charAt(0).toUpperCase() + post.category.slice(1) : 'Activity';
+    if (isSos) categoryBadgeText = 'Emergency';
 
     return (
       <div
@@ -940,29 +889,50 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
             setUpdateFilter(post.category);
           }
         }}
-        className="bg-white border border-[#F0EBE1] hover:border-stone-300 rounded-[20px] p-3.5 flex items-center justify-between gap-3 hover:shadow-xs transition-all duration-300 cursor-pointer select-none"
+        className="w-64 sm:w-72 shrink-0 snap-start bg-[#F5F2EC] hover:bg-[#EFEBE3] border border-[#EBE3D5] hover:border-stone-300 rounded-2xl sm:rounded-[24px] p-3.5 shadow-xs hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col justify-start gap-2 group select-none"
       >
-        <div className="flex flex-col min-w-0">
-          <span className="text-sm font-bold text-charcoal tracking-tight leading-snug line-clamp-1">
-            {post.title}
-          </span>
-          <span className="text-[11px] text-stone-400 font-semibold mt-0.5 leading-none line-clamp-1">
-            {isSos ? post.description : displayDesc}
-          </span>
-        </div>
+        {/* Photo Box */}
+        <div className="w-full h-36 rounded-xl md:rounded-2xl overflow-hidden bg-white/70 border border-[#EBE3D5] flex items-center justify-center relative shrink-0">
+          {post.image ? (
+            <img
+              src={post.image}
+              alt={post.title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center bg-[#F7F4EE] border border-[#EBE3D5] text-stone-400 p-3 text-center gap-1.5">
+              <div className="w-9 h-9 rounded-full bg-[#EFEBE4] flex items-center justify-center text-stone-400">
+                <svg className="w-5 h-5 stroke-[1.8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <rect x="3" y="3" width="18" height="18" rx="3" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <path d="M21 15l-5-5L5 21" />
+                  <line x1="3" y1="3" x2="21" y2="21" stroke="#C23B22" strokeWidth="2" />
+                </svg>
+              </div>
+              <span className="text-[11px] font-bold text-stone-500">Photo not found</span>
+            </div>
+          )}
 
-        <div className="flex items-center gap-2 shrink-0">
-          <div className="flex flex-col items-end text-right">
-            <span className={`text-[11px] font-bold ${infoColor} leading-none`}>
-              {isActivity ? (displayTime || post.time) : post.distance}
-            </span>
-            <span className="text-[10px] text-stone-400 font-semibold mt-1 leading-none">
-              {isActivity ? (post.category.charAt(0).toUpperCase() + post.category.slice(1)) : post.time}
+          {/* Time Badge Overlay on Image Top-Right */}
+          <div className="absolute top-2.5 right-2.5 z-10">
+            <span className="text-[10px] sm:text-xs font-bold text-stone-700 whitespace-nowrap bg-white/95 px-2.5 py-1 rounded-lg border border-white/80 shadow-xs backdrop-blur-xs">
+              {isActivity ? (displayTime || post.time || 'Upcoming') : (post.distance || 'Nearby')}
             </span>
           </div>
-          <svg className="w-4 h-4 text-stone-400 stroke-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
+        </div>
+
+        {/* Info Box (Full width Title & Location subtitle at top) */}
+        <div className="pt-1 flex flex-col gap-1 min-w-0">
+          <h4 className="font-serif text-base sm:text-lg font-bold text-charcoal leading-snug group-hover:text-[#3D5A45] transition-colors line-clamp-2 w-full">
+            {(post.title || '').replace(/&/g, 'and')}
+          </h4>
+          <div className="flex items-start gap-1 text-[11px] text-stone-600 font-semibold mt-0.5">
+            <svg className="w-3 h-3 text-[#3D5A45] shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="10" r="3" />
+              <path d="M12 21.7C12 21.7 4 14 4 10a8 8 0 0 1 16 0c0 4-8 11.7-8 11.7z" />
+            </svg>
+            <span className="line-clamp-2 leading-tight">{(post.location || 'Sector 45, Gurugram').replace(/\[.*?\]/g, '').trim()}</span>
+          </div>
         </div>
       </div>
     );
@@ -1026,7 +996,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
     <div className="w-full flex flex-col gap-6 select-none animate-fadeIn">
 
       {/* TABS SELECTOR (Matches Header Style) */}
-      <div className="w-full border-b border-[#F5F2EC] flex select-none text-xs sm:text-sm font-extrabold text-stone-500">
+      <div className="w-full flex select-none text-xs sm:text-sm font-extrabold text-stone-500">
         {[
           {
             id: 'home',
@@ -1075,9 +1045,9 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
           <button
             key={t.id}
             onClick={() => setActiveView(t.id as any)}
-            className={`flex-1 pb-3 text-center transition-all flex items-center justify-center gap-1.5 ${activeView === t.id
-                ? 'text-[#3D5A45] border-b-2 border-[#3D5A45] font-black'
-                : 'hover:text-charcoal border-b border-transparent font-extrabold'
+            className={`flex-1 pb-3 text-center transition-all flex items-center justify-center gap-1.5 cursor-pointer ${activeView === t.id
+                ? 'text-[#2D4536] border-b-2 border-[#2D4536] font-extrabold text-sm sm:text-base'
+                : 'text-stone-700 hover:text-stone-900 border-b-2 border-transparent font-bold text-sm sm:text-base opacity-85 hover:opacity-100'
               }`}
           >
             {t.icon}
@@ -1088,7 +1058,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
 
       {/* TOP HEADER TITLE BLOCK (Screen 1 Custom) */}
       {activeView === 'home' && (
-        <div className="w-full flex items-center justify-between border-b border-[#F0EBE1] pb-5 select-none">
+        <div className="w-full flex items-center justify-between select-none">
           {/* Location Selector (Styled exactly like mockup) */}
           <div className="flex items-center gap-2 select-none">
             <div className="w-8 h-8 flex items-center justify-center shrink-0">
@@ -1121,103 +1091,126 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
       {activeView === 'home' && (
         <div className="w-full flex flex-col gap-6 animate-scaleIn">
 
-          {/* RADIUS MAP CARD */}
-          <div className="bg-white border border-[#F0EBE1] rounded-[28px] p-4.5 shadow-sm flex flex-col gap-3">
-            {/* Map Element */}
-            <div id="home-map" className="h-64 w-full rounded-2xl bg-stone-50 border border-[#F0EBE1] overflow-hidden z-10" />
-          </div>
+          {/* RADIUS MAP CARD (Clean borderless map) */}
+          <div id="home-map" className="h-64 sm:h-72 w-full rounded-2xl sm:rounded-[24px] bg-[#EFEBE4] overflow-hidden shadow-xs z-10 [&_.leaflet-tile-pane]:sepia-[0.18] [&_.leaflet-tile-pane]:brightness-[0.98] [&_.leaflet-tile-pane]:contrast-[0.97]" />
 
 
-          {/* NEARBY ACTIVITY FEED LIST */}
-          <div className="flex flex-col gap-3">
+          {/* NEARBY ACTIVITY FEED LIST (Horizontally Scrollable) */}
+          <div className="flex flex-col gap-3 select-none">
             <div className="flex items-center justify-between px-1">
-              <h3 className="text-sm font-bold text-charcoal">Nearby Activity</h3>
-              <button
-                onClick={() => setActiveView('updates')}
-                className="text-xs font-bold text-[#B68A35] flex items-center gap-0.5 hover:underline"
-              >
-                View all <span>›</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <h3 className="font-serif text-base font-bold text-charcoal">Nearby Activity</h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setActiveView('updates')}
+                  className="text-xs font-bold text-[#B68A35] flex items-center gap-0.5 hover:underline cursor-pointer"
+                >
+                  View all <span>›</span>
+                </button>
+              </div>
             </div>
 
-            <div className="flex flex-col gap-3">
+            {/* Horizontal Scroll Cards Row */}
+            <div
+              id="nearby-activity-scroll-container"
+              className="flex gap-3.5 overflow-x-auto pb-2 pt-1 scrollbar-hide snap-x snap-mandatory select-none"
+            >
               {computedUpdates
                 .filter(u => u.category !== 'help' || u.status === 'active')
                 .slice(0, 5)
-                .map(renderSimpleActivityCard)}
+                .map(renderNearbyActivityCard)}
             </div>
+
+
           </div>
 
-          {/* QUICK ACTIONS GRID */}
+          {/* QUICK ACTIONS GRID (2x2 Grid Structure for both Mobile & Desktop) */}
           <div className="flex flex-col gap-3">
-            <h3 className="text-sm font-bold text-charcoal px-1">Quick Actions</h3>
-            <div className="grid grid-cols-4 gap-3 select-none">
+            <h3 className="font-serif text-base font-bold text-charcoal px-1">Quick Actions</h3>
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 select-none">
+              {/* Card 1: Report Issue */}
               <button
                 onClick={() => setActiveTab?.('report')}
-                className="bg-[#FFF5F5] border border-[#FFE8E8] hover:scale-[1.02] transition-all rounded-[24px] p-3.5 flex flex-col items-center justify-between text-center min-h-[135px] shadow-xs group active:scale-98"
+                className="bg-[#F5F2EC] hover:bg-[#EFEBE3] border border-[#EBE3D5] hover:border-stone-300 transition-all rounded-2xl sm:rounded-[24px] p-3.5 sm:p-5 flex items-center gap-3 sm:gap-4 text-left shadow-xs group active:scale-98 cursor-pointer"
               >
-                <div className="w-10 h-10 flex items-center justify-center shrink-0">
-                  <svg className="w-8 h-8 text-[#C85341]" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shrink-0 text-[#2D4536]">
+                  <svg className="w-6 h-6 sm:w-7 sm:h-7 text-[#2D4536]" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
                     <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
                     <line x1="12" y1="9" x2="12" y2="13" />
                     <line x1="12" y1="17" x2="12.01" y2="17" />
                   </svg>
                 </div>
-                <div className="flex flex-col gap-1 mt-auto">
-                  <span className="text-[11px] font-bold text-charcoal leading-tight">Report Issue</span>
-                  <span className="text-[8px] text-stone-400 font-semibold leading-tight">Cruelty or emergency</span>
+                <div className="flex flex-col min-w-0">
+                  <span className="font-serif text-xs sm:text-lg font-bold text-charcoal leading-snug group-hover:text-[#2D4536] transition-colors truncate">
+                    Report Issue
+                  </span>
+                  <span className="text-[10px] sm:text-xs text-stone-500 font-semibold mt-0.5 leading-tight line-clamp-2">
+                    Cruelty, injury or emergency
+                  </span>
                 </div>
               </button>
 
+              {/* Card 2: Ask Neighbor Support */}
               <button
                 onClick={() => {
                   setActiveView('members');
                 }}
-                className="bg-[#FFFBF2] border border-[#FDF0D5] hover:scale-[1.02] transition-all rounded-[24px] p-3.5 flex flex-col items-center justify-between text-center min-h-[135px] shadow-xs group active:scale-98"
+                className="bg-[#F5F2EC] hover:bg-[#EFEBE3] border border-[#EBE3D5] hover:border-stone-300 transition-all rounded-2xl sm:rounded-[24px] p-3.5 sm:p-5 flex items-center gap-3 sm:gap-4 text-left shadow-xs group active:scale-98 cursor-pointer"
               >
-                <div className="w-10 h-10 flex items-center justify-center shrink-0">
-                  <svg className="w-8 h-8 text-[#B68A35]" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shrink-0 text-[#2D4536]">
+                  <svg className="w-6 h-6 sm:w-7 sm:h-7 text-[#2D4536]" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                     <circle cx="9" cy="7" r="4" />
                     <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
                     <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                   </svg>
                 </div>
-                <div className="flex flex-col gap-1 mt-auto">
-                  <span className="text-[11px] font-bold text-charcoal leading-tight">Ask Neighbor Support</span>
-                  <span className="text-[8px] text-stone-400 font-semibold leading-tight">Get help nearby</span>
+                <div className="flex flex-col min-w-0">
+                  <span className="font-serif text-xs sm:text-lg font-bold text-charcoal leading-snug group-hover:text-[#2D4536] transition-colors truncate">
+                    Ask Neighbor Support
+                  </span>
+                  <span className="text-[10px] sm:text-xs text-stone-500 font-semibold mt-0.5 leading-tight line-clamp-2">
+                    Get help nearby
+                  </span>
                 </div>
               </button>
 
+              {/* Card 3: Start Activity */}
               <button
                 onClick={() => {
                   setActiveView('updates');
                   setStartActivityOnUpdates(true);
                 }}
-                className="bg-[#F4F9F5] border border-[#E5F2E8] hover:scale-[1.02] transition-all rounded-[24px] p-3.5 flex flex-col items-center justify-between text-center min-h-[135px] shadow-xs group active:scale-98"
+                className="bg-[#F5F2EC] hover:bg-[#EFEBE3] border border-[#EBE3D5] hover:border-stone-300 transition-all rounded-2xl sm:rounded-[24px] p-3.5 sm:p-5 flex items-center gap-3 sm:gap-4 text-left shadow-xs group active:scale-98 cursor-pointer"
               >
-                <div className="w-10 h-10 flex items-center justify-center shrink-0">
-                  <svg className="w-8 h-8 text-[#3D5A45]" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shrink-0 text-[#2D4536]">
+                  <svg className="w-6 h-6 sm:w-7 sm:h-7 text-[#2D4536]" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10" />
                     <line x1="12" y1="8" x2="12" y2="16" />
                     <line x1="8" y1="12" x2="16" y2="12" />
                   </svg>
                 </div>
-                <div className="flex flex-col gap-1 mt-auto">
-                  <span className="text-[11px] font-bold text-charcoal leading-tight">Start Activity</span>
-                  <span className="text-[8px] text-stone-400 font-semibold leading-tight">Feeding, rescue or awareness</span>
+                <div className="flex flex-col min-w-0">
+                  <span className="font-serif text-xs sm:text-lg font-bold text-charcoal leading-snug group-hover:text-[#2D4536] transition-colors truncate">
+                    Start Activity
+                  </span>
+                  <span className="text-[10px] sm:text-xs text-stone-500 font-semibold mt-0.5 leading-tight line-clamp-2">
+                    Feeding, rescue or awareness
+                  </span>
                 </div>
               </button>
 
+              {/* Card 4: Join Event */}
               <button
                 onClick={() => {
                   setActiveView('updates');
                   setUpdateFilter('event');
                 }}
-                className="bg-[#FAF7FD] border border-[#F1EBFA] hover:scale-[1.02] transition-all rounded-[24px] p-3.5 flex flex-col items-center justify-between text-center min-h-[135px] shadow-xs group active:scale-98"
+                className="bg-[#F5F2EC] hover:bg-[#EFEBE3] border border-[#EBE3D5] hover:border-stone-300 transition-all rounded-2xl sm:rounded-[24px] p-3.5 sm:p-5 flex items-center gap-3 sm:gap-4 text-left shadow-xs group active:scale-98 cursor-pointer"
               >
-                <div className="w-10 h-10 flex items-center justify-center shrink-0">
-                  <svg className="w-8 h-8 text-[#7B1FA2]" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shrink-0 text-[#2D4536]">
+                  <svg className="w-6 h-6 sm:w-7 sm:h-7 text-[#2D4536]" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                     <line x1="16" y1="2" x2="16" y2="6" />
                     <line x1="8" y1="2" x2="8" y2="6" />
@@ -1225,9 +1218,13 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
                     <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01" />
                   </svg>
                 </div>
-                <div className="flex flex-col gap-1 mt-auto">
-                  <span className="text-[11px] font-bold text-charcoal leading-tight">Join Event</span>
-                  <span className="text-[8px] text-stone-400 font-semibold leading-tight">Community events</span>
+                <div className="flex flex-col min-w-0">
+                  <span className="font-serif text-xs sm:text-lg font-bold text-charcoal leading-snug group-hover:text-[#2D4536] transition-colors truncate">
+                    Join Event
+                  </span>
+                  <span className="text-[10px] sm:text-xs text-stone-500 font-semibold mt-0.5 leading-tight line-clamp-2">
+                    Community events
+                  </span>
                 </div>
               </button>
             </div>

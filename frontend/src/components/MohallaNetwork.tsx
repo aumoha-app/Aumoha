@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { LayoutGrid, Shield, Utensils, Stethoscope, Home, Heart, Search, PhoneCall } from 'lucide-react';
 import { CircleMember, MemberRole } from '../types';
 
 interface MohallaNetworkProps {
@@ -28,19 +29,19 @@ export default function MohallaNetwork({ computedMembers, dbSosReports, resolved
   const getRoleColors = (role: MemberRole) => {
     switch (role) {
       case 'feeder':
-        return { bg: 'bg-[#FAF2EE]', text: 'text-terracotta', border: 'border-[#F5DFD8]', label: 'Feeder', icon: '🥣' };
+        return { bg: 'bg-[#E5E0D4]', text: 'text-[#2D4536]', border: 'border-[#D3CCBE]', label: 'Feeder' };
       case 'rescuer':
-        return { bg: 'bg-[#FAF2EE]', text: 'text-terracotta', border: 'border-[#F5DFD8]', label: 'Rescuer', icon: '🛡️' };
+        return { bg: 'bg-[#E5E0D4]', text: 'text-[#2D4536]', border: 'border-[#D3CCBE]', label: 'Rescuer' };
       case 'volunteer':
-        return { bg: 'bg-[#FCFAF7]', text: 'text-clay', border: 'border-[#EBE3D5]', label: 'Volunteer', icon: '❤️' };
+        return { bg: 'bg-[#E5E0D4]', text: 'text-[#2D4536]', border: 'border-[#D3CCBE]', label: 'Volunteer' };
       case 'paravet':
-        return { bg: 'bg-[#FAF2EE]', text: 'text-terracotta', border: 'border-[#F5DFD8]', label: 'Paravet', icon: '🩺' };
+        return { bg: 'bg-[#E5E0D4]', text: 'text-[#2D4536]', border: 'border-[#D3CCBE]', label: 'Paravet' };
       case 'adopter':
-        return { bg: 'bg-[#FCFAF7]', text: 'text-clay', border: 'border-[#EBE3D5]', label: 'Foster Home', icon: '🏠' };
+        return { bg: 'bg-[#E5E0D4]', text: 'text-[#2D4536]', border: 'border-[#D3CCBE]', label: 'Foster Home' };
       case 'official':
-        return { bg: 'bg-[#FAF2EE]', text: 'text-terracotta', border: 'border-[#F5DFD8]', label: 'Official', icon: '✦' };
+        return { bg: 'bg-[#E5E0D4]', text: 'text-[#2D4536]', border: 'border-[#D3CCBE]', label: 'Official' };
       default:
-        return { bg: 'bg-[#F5F2EC]', text: 'text-stone-500', border: 'border-[#EBE3D5]', label: 'Member', icon: '👤' };
+        return { bg: 'bg-[#E5E0D4]', text: 'text-[#2D4536]', border: 'border-[#D3CCBE]', label: 'Member' };
     }
   };
 
@@ -58,45 +59,17 @@ export default function MohallaNetwork({ computedMembers, dbSosReports, resolved
 
     switch (id) {
       case 'all':
-        return (
-          <svg className={`w-3.5 h-3.5 ${colorClass}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-            <rect x="3" y="3" width="7" height="7" rx="1.5" />
-            <rect x="14" y="3" width="7" height="7" rx="1.5" />
-            <rect x="3" y="14" width="7" height="7" rx="1.5" />
-            <rect x="14" y="14" width="7" height="7" rx="1.5" />
-          </svg>
-        );
+        return <LayoutGrid className={`w-3.5 h-3.5 ${colorClass}`} />;
       case 'rescuer':
-        return (
-          <svg className={`w-3.5 h-3.5 ${colorClass}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-          </svg>
-        );
+        return <Shield className={`w-3.5 h-3.5 ${colorClass}`} />;
       case 'feeder':
-        return (
-          <svg className={`w-3.5 h-3.5 ${colorClass}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-            <path d="M12 2v4M12 18h.01M3 20h18M5 10a7 7 0 0 0 14 0H5z" />
-          </svg>
-        );
+        return <Utensils className={`w-3.5 h-3.5 ${colorClass}`} />;
       case 'paravet':
-        return (
-          <svg className={`w-3.5 h-3.5 ${colorClass}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-            <path d="M4.82 17.22a3 3 0 1 1-3-3m0 0v-4a7 7 0 0 1 14 0v4m0-4V6a2 2 0 0 1 2-2h2m-6 13.22a3 3 0 1 1 3-3" />
-          </svg>
-        );
+        return <Stethoscope className={`w-3.5 h-3.5 ${colorClass}`} />;
       case 'adopter':
-        return (
-          <svg className={`w-3.5 h-3.5 ${colorClass}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-            <polyline points="9 22 9 12 15 12 15 22" />
-          </svg>
-        );
+        return <Home className={`w-3.5 h-3.5 ${colorClass}`} />;
       case 'volunteer':
-        return (
-          <svg className={`w-3.5 h-3.5 ${colorClass}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-          </svg>
-        );
+        return <Heart className={`w-3.5 h-3.5 ${colorClass}`} />;
       default:
         return null;
     }
@@ -119,47 +92,47 @@ export default function MohallaNetwork({ computedMembers, dbSosReports, resolved
   const activeSosCount = dbSosReports.filter(r => r.status === 'active').length;
 
   return (
-    <div className="w-full flex flex-col gap-6 animate-scaleIn select-none">
+    <div className="w-full flex flex-col gap-5 animate-scaleIn select-none">
       {/* HEADER SECTION */}
       <div className="flex flex-col gap-1 px-1">
-        <h2 className="text-xl font-bold text-charcoal">Mohalla Circle Network</h2>
-        <p className="text-xs text-stone-500 font-medium leading-relaxed">
+        <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Mohalla Circle Network</h2>
+        <p className="text-xs sm:text-sm text-stone-500 font-medium leading-relaxed">
           Find and coordinate with verified helpers, rescuers, paravets, and feeders in your local community.
         </p>
       </div>
 
-      {/* STATS STRIP CARD */}
-      <div className="bg-white border border-[#F0EBE1] rounded-[24px] p-5 shadow-xs flex items-center justify-between text-center divide-x divide-stone-100">
-        <div className="flex-grow flex flex-col items-center">
-          <span className="text-[10px] uppercase tracking-wider font-extrabold text-stone-400">Total Members</span>
-          <span className="text-2xl font-bold text-terracotta mt-1">
+      {/* STATS STRIP CARD (#F5F2EC Box Color with clean spacing) */}
+      <div className="bg-[#F5F2EC] border border-[#EBE3D5] rounded-[24px] p-4 sm:p-5 shadow-xs flex items-center justify-between text-center divide-x divide-[#EBE3D5]">
+        <div className="flex-1 px-1 flex flex-col items-center">
+          <span className="text-[10px] sm:text-xs uppercase tracking-wider font-bold text-stone-500">Total Members</span>
+          <span className="font-serif text-2xl sm:text-3xl font-extrabold text-terracotta mt-1">
             {computedMembers.filter(m => m.role !== 'normal' && m.role as string !== 'member').length}
           </span>
         </div>
-        <div className="flex-grow flex flex-col items-center">
-          <span className="text-[10px] uppercase tracking-wider font-extrabold text-stone-400">Resolved SOS</span>
-          <span className="text-2xl font-bold text-clay mt-1">
+        <div className="flex-1 px-1 flex flex-col items-center">
+          <span className="text-[10px] sm:text-xs uppercase tracking-wider font-bold text-stone-500">Resolved SOS</span>
+          <span className="font-serif text-2xl sm:text-3xl font-extrabold text-clay mt-1">
             {resolvedSosCount}
           </span>
         </div>
-        <div className="flex-grow flex flex-col items-center">
-          <span className="text-[10px] uppercase tracking-wider font-extrabold text-stone-400">Active SOS</span>
-          <span className="text-2xl font-bold text-emergency mt-1">{activeSosCount}</span>
+        <div className="flex-1 px-1 flex flex-col items-center">
+          <span className="text-[10px] sm:text-xs uppercase tracking-wider font-bold text-stone-500">Active SOS</span>
+          <span className="font-serif text-2xl sm:text-3xl font-extrabold text-emergency mt-1">{activeSosCount}</span>
         </div>
       </div>
 
       {/* ROLE FILTER TABS / PILLS */}
-      <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-thin">
+      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
         {rolesList.map(r => {
           const isActive = memberFilter === r.id;
           return (
             <button
               key={r.id}
               onClick={() => setMemberFilter(r.id)}
-              className={`px-3 py-1.5 text-xs font-bold rounded-full border transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 text-xs sm:text-sm font-semibold rounded-full border transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
                 isActive
-                  ? 'bg-[#3D5A45] border-[#3D5A45] text-white shadow-sm'
-                  : 'bg-white border-[#F0EBE1] text-stone-500 hover:bg-stone-50'
+                  ? 'bg-[#3D5A45] border-[#3D5A45] text-white shadow-xs'
+                  : 'bg-[#F5F2EC] border-[#EBE3D5] text-stone-600 hover:bg-[#EFEBE3]'
               }`}
             >
               {getFilterIcon(r.id, isActive)}
@@ -169,47 +142,44 @@ export default function MohallaNetwork({ computedMembers, dbSosReports, resolved
         })}
       </div>
 
-      {/* SEARCH BAR */}
+      {/* SEARCH BAR (#F5F2EC Box Color) */}
       <div className="relative w-full">
         <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-          <svg className="w-4 h-4 text-stone-400" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
+          <Search className="w-4 h-4 text-stone-400" />
         </span>
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={`Search ${memberFilter === 'all' ? 'members' : memberFilter + 's'} by name or location...`}
-          className="w-full pl-10 pr-4 py-3 bg-[#FDFBF8] border border-[#F0EBE1] rounded-2xl text-xs font-bold text-charcoal placeholder-stone-400 focus:outline-none focus:border-terracotta/40 transition-colors shadow-inner"
+          className="w-full pl-10 pr-4 py-2.5 bg-[#F5F2EC] border border-[#EBE3D5] rounded-2xl text-xs sm:text-sm font-semibold text-charcoal placeholder-stone-400 focus:outline-none focus:border-[#3D5A45]/50 transition-colors shadow-inner"
         />
       </div>
 
       {/* LIST OF MEMBERS */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between px-1">
-          <h3 className="text-xs font-extrabold text-stone-400 uppercase tracking-wider">
+          <h3 className="font-serif text-sm sm:text-base font-bold text-charcoal tracking-wide">
             Verified {memberFilter === 'all' ? 'Circle Members' : `${rolesList.find(rl => rl.id === memberFilter)?.label}`} ({searchedMembers.length})
           </h3>
         </div>
 
         {searchedMembers.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 gap-3.5">
             {searchedMembers.map(member => {
               const roleDetails = getRoleColors(member.role);
               return (
                 <div
                   key={member.id}
-                  className="bg-white border border-[#F0EBE1] rounded-[24px] p-5 flex items-center justify-between hover:shadow-md hover:border-[#3D5A45]/30 transition-all duration-300 relative group"
+                  className="bg-[#F5F2EC] hover:bg-[#EFEBE3] border border-[#EBE3D5] rounded-[24px] p-4 sm:p-5 flex items-center justify-between hover:shadow-md hover:border-stone-300 transition-all duration-300 relative group cursor-pointer"
                 >
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3.5">
                     {/* Avatar with dynamic ring */}
-                    <div className="w-14 h-14 rounded-full overflow-hidden bg-gradient-to-br from-[#3D5A45]/5 to-[#B68A35]/5 border-2 border-[#EBE3D5] flex items-center justify-center shadow-inner relative shrink-0">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden bg-white/80 border-2 border-white/60 flex items-center justify-center shadow-inner relative shrink-0">
                       {member.avatar && member.avatar.startsWith('http') ? (
                         <img src={member.avatar} alt={member.name} className="w-full h-full object-cover" />
                       ) : (
-                        <span className="text-2xl">{roleDetails.icon}</span>
+                        <span className="font-serif text-base sm:text-lg font-bold text-[#2D4536]">{member.name.charAt(0)}</span>
                       )}
                       {/* Active/Online indicator dot */}
                       <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white animate-pulse"></span>
@@ -218,18 +188,20 @@ export default function MohallaNetwork({ computedMembers, dbSosReports, resolved
                     {/* Name and Info */}
                     <div className="flex flex-col gap-0.5">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-bold text-charcoal">{member.name}</span>
-                        <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded border ${roleDetails.bg} ${roleDetails.text} ${roleDetails.border}`}>
-                          {roleDetails.icon} {roleDetails.label}
+                        <span className="font-serif text-base font-bold text-charcoal">{member.name}</span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${roleDetails.bg} ${roleDetails.text} ${roleDetails.border}`}>
+                          {roleDetails.label}
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-1.5 text-[10px] text-stone-500 font-bold">
-                        <span>{member.location || 'Saheed Nagar'}</span>
+                      <div className="flex items-center gap-1 text-xs text-stone-600 font-semibold max-w-[220px] sm:max-w-md">
+                        <span className="line-clamp-2 leading-snug">
+                          {(member.location || 'Saheed Nagar').replace(/\[.*?\]/g, '').trim()}
+                        </span>
                       </div>
 
                       {member.joinedTime && (
-                        <span className="text-[9px] text-stone-400 font-semibold mt-1">
+                        <span className="text-[11px] text-stone-400 font-medium mt-0.5">
                           Active helper for {member.joinedTime} days
                         </span>
                       )}
@@ -239,22 +211,20 @@ export default function MohallaNetwork({ computedMembers, dbSosReports, resolved
                   {/* Dispatch / Contact CTA */}
                   <button
                     onClick={() => alert(`Calling rescue responder ${member.name}...`)}
-                    className="p-3 bg-[#FAF2EE] text-terracotta hover:bg-terracotta hover:text-white rounded-full transition-all duration-200 shadow-xs shrink-0 active:scale-95 border border-[#F5DFD8]"
+                    className="p-3 bg-white/80 text-[#2D4536] hover:bg-[#2D4536] hover:text-white rounded-full transition-all duration-200 shadow-xs shrink-0 active:scale-95 border border-white/60 cursor-pointer"
                     aria-label={`Call ${member.name}`}
                   >
-                    <svg className="w-4 h-4 text-current" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                    </svg>
+                    <PhoneCall className="w-4 h-4 text-current" />
                   </button>
                 </div>
               );
             })}
           </div>
         ) : (
-          <div className="bg-[#FDFBF8] border border-[#F0EBE1] rounded-3xl p-8 text-center flex flex-col items-center justify-center gap-2 shadow-xs">
+          <div className="bg-[#F5F2EC] border border-[#EBE3D5] rounded-3xl p-8 text-center flex flex-col items-center justify-center gap-2 shadow-xs">
             <span className="text-3xl">👥</span>
-            <h4 className="text-sm font-bold text-charcoal">No members found</h4>
-            <p className="text-xs text-stone-400 font-semibold max-w-xs">
+            <h4 className="font-serif text-base font-bold text-charcoal">No members found</h4>
+            <p className="text-xs sm:text-sm text-stone-500 max-w-xs">
               No verified members match your search or filters. Try adjusting the search query or coordinates.
             </p>
           </div>

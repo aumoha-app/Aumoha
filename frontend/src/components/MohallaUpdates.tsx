@@ -71,6 +71,10 @@ export default function MohallaUpdates({
       alert('Please fill out all required fields (Category, Title, Location/Venue, Time, and Description).');
       return;
     }
+    if (!activityPhotoPreview) {
+      alert('Photo is mandatory! Please select and upload a photo or banner.');
+      return;
+    }
 
     try {
       const response = await fetch(`${API_BASE}/activities`, {
@@ -164,17 +168,17 @@ export default function MohallaUpdates({
   const getRoleColors = (role: MemberRole) => {
     switch (role) {
       case 'feeder':
-        return { bg: 'bg-[#FAF2EE]', text: 'text-terracotta', border: 'border-[#F5DFD8]', label: 'Feeder' };
+        return { bg: 'bg-[#E5E0D4]', text: 'text-[#2D4536]', border: 'border-[#D3CCBE]', label: 'Feeder' };
       case 'rescuer':
-        return { bg: 'bg-[#FAF2EE]', text: 'text-terracotta', border: 'border-[#F5DFD8]', label: 'Rescuer' };
+        return { bg: 'bg-[#E5E0D4]', text: 'text-[#2D4536]', border: 'border-[#D3CCBE]', label: 'Rescuer' };
       case 'volunteer':
-        return { bg: 'bg-[#FCFAF7]', text: 'text-clay', border: 'border-[#EBE3D5]', label: 'Volunteer' };
+        return { bg: 'bg-[#E5E0D4]', text: 'text-[#2D4536]', border: 'border-[#D3CCBE]', label: 'Volunteer' };
       case 'paravet':
-        return { bg: 'bg-[#FAF2EE]', text: 'text-terracotta', border: 'border-[#F5DFD8]', label: 'Paravet' };
+        return { bg: 'bg-[#E5E0D4]', text: 'text-[#2D4536]', border: 'border-[#D3CCBE]', label: 'Paravet' };
       case 'adopter':
-        return { bg: 'bg-[#FCFAF7]', text: 'text-clay', border: 'border-[#EBE3D5]', label: 'Foster Home' };
+        return { bg: 'bg-[#E5E0D4]', text: 'text-[#2D4536]', border: 'border-[#D3CCBE]', label: 'Foster Home' };
       default:
-        return { bg: 'bg-[#F5F2EC]', text: 'text-stone-500', border: 'border-[#EBE3D5]', label: 'Member' };
+        return { bg: 'bg-[#E5E0D4]', text: 'text-[#2D4536]', border: 'border-[#D3CCBE]', label: 'Member' };
     }
   };
 
@@ -182,38 +186,38 @@ export default function MohallaUpdates({
     switch (role) {
       case 'feeder':
         return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-terracotta`}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-[#2D4536]`}>
             <path d="M12 2v4M12 18h.01M3 20h18M5 10a7 7 0 0 0 14 0H5z" />
           </svg>
         );
       case 'rescuer':
         return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-terracotta`}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-[#2D4536]`}>
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
           </svg>
         );
       case 'volunteer':
         return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-clay`}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-[#2D4536]`}>
             <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
           </svg>
         );
       case 'paravet':
         return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-terracotta`}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-[#2D4536]`}>
             <path d="M4.82 17.22a3 3 0 1 1-3-3m0 0v-4a7 7 0 0 1 14 0v4m0-4V6a2 2 0 0 1 2-2h2m-6 13.22a3 3 0 1 1 3-3" />
           </svg>
         );
       case 'adopter':
         return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-clay`}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-[#2D4536]`}>
             <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
             <polyline points="9 22 9 12 15 12 15 22" />
           </svg>
         );
       default:
         return (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-stone-500`}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-[#2D4536]`}>
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
           </svg>
@@ -231,118 +235,138 @@ export default function MohallaUpdates({
       <div
         key={post.id}
         onClick={() => setSelectedRequest(post)}
-        className="bg-white border border-[#F0EBE1] rounded-[24px] p-5 flex flex-col gap-4 hover:shadow-md transition-all duration-300 group cursor-pointer"
+        className="w-full bg-[#F5F2EC] hover:bg-[#EFEBE3] border border-[#EBE3D5] hover:border-stone-300 rounded-2xl sm:rounded-[24px] p-3.5 sm:p-4.5 shadow-xs hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col justify-start gap-2.5 group select-none"
       >
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-cream border border-[#F0EBE1] flex items-center justify-center shadow-inner shrink-0 overflow-hidden">
+        {/* Author Header (1 line space above photo WITH DP) */}
+        <div className="flex items-center justify-between px-0.5">
+          <div className="flex items-center gap-2.5 min-w-0">
+            {/* Avatar DP Circle */}
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/90 border border-[#EBE3D5] flex items-center justify-center shadow-xs shrink-0 overflow-hidden">
               {post.avatar && post.avatar.startsWith('http') ? (
                 <img src={post.avatar} alt={post.author} className="w-full h-full object-cover" />
               ) : post.avatar === '🚨' ? (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-emergency animate-pulse">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-[#2D4536] animate-pulse">
                   <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                   <line x1="12" y1="9" x2="12" y2="13" />
                   <line x1="12" y1="17" x2="12.01" y2="17" />
                 </svg>
               ) : (
-                renderRoleIcon(post.authorRole, 'w-5 h-5')
+                <span className="font-serif text-xs font-bold text-[#2D4536]">{(post.author || 'U').charAt(0)}</span>
               )}
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-charcoal">{post.author}</span>
-                <span className={`px-2 py-0.5 rounded text-[8px] font-extrabold uppercase leading-none ${roleInfo.bg} ${roleInfo.text} border ${roleInfo.border}`}>
-                  {roleInfo.label}
-                </span>
-              </div>
-              <span className="text-[10px] text-stone-400 font-semibold">{post.time}</span>
-            </div>
+
+            <span className="font-serif text-sm font-bold text-charcoal truncate">{post.author}</span>
+            <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider leading-none ${roleInfo.bg} ${roleInfo.text} border ${roleInfo.border} shrink-0`}>
+              {roleInfo.label}
+            </span>
           </div>
-          {currentUser && (
-            post.author === currentUser.fullName ||
-            post.author === 'You' ||
-            (post.contactPhone && post.contactPhone === currentUser.phone) ||
-            post.userEmail === currentUser.email
-          ) && (
-            <div className="flex items-center gap-0.5 shrink-0">
-              {!post.id.startsWith('sos_') && !post.id.startsWith('fallback_') && post.category !== 'help' && (
+          <span className="text-xs text-stone-400 font-medium shrink-0 ml-2">{post.time}</span>
+        </div>
+
+        {/* Top Photo Box */}
+        <div className="w-full h-44 sm:h-52 rounded-xl md:rounded-2xl overflow-hidden bg-white/70 border border-[#EBE3D5] flex items-center justify-center relative shrink-0">
+          {post.image ? (
+            <img
+              src={post.image}
+              alt={post.title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center bg-[#EFEBE3] border border-[#EBE3D5] text-stone-400 p-3 text-center gap-1.5">
+              <div className="w-10 h-10 rounded-full bg-[#E5E0D4] flex items-center justify-center text-stone-400">
+                <svg className="w-5 h-5 stroke-[1.8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <rect x="3" y="3" width="18" height="18" rx="3" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <path d="M21 15l-5-5L5 21" />
+                  <line x1="3" y1="3" x2="21" y2="21" stroke="#2D4536" strokeWidth="2" />
+                </svg>
+              </div>
+              <span className="text-[11px] font-bold text-stone-500">No photo</span>
+            </div>
+          )}
+
+          {/* Time Badge Overlay on Image Top-Right */}
+          <div className="absolute top-2.5 right-2.5 z-10">
+            <span className="text-[10px] sm:text-xs font-bold text-stone-700 whitespace-nowrap bg-white/95 px-2.5 py-1 rounded-lg border border-white/80 shadow-xs backdrop-blur-xs">
+              {displayTime || 'Upcoming'}
+            </span>
+          </div>
+        </div>
+
+        {/* Info Box (Full width Title, Actions, Location & Description) */}
+        <div className="pt-0.5 flex flex-col gap-1.5 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <h4 className="font-serif text-base sm:text-lg font-bold text-charcoal leading-snug group-hover:text-[#2D4536] transition-colors line-clamp-2 w-full">
+              {(post.title || '').replace(/&/g, 'and')}
+            </h4>
+
+            {currentUser && (
+              post.author === currentUser.fullName ||
+              post.author === 'You' ||
+              (post.contactPhone && post.contactPhone === currentUser.phone) ||
+              post.userEmail === currentUser.email
+            ) && (
+              <div className="flex items-center gap-0.5 shrink-0">
+                {!post.id.startsWith('sos_') && !post.id.startsWith('fallback_') && post.category !== 'help' && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditPost(post.id);
+                    }}
+                    className="text-stone-500 hover:text-[#2D4536] p-1.5 hover:bg-stone-200/50 rounded-lg transition-all active:scale-90"
+                    title="Edit Post"
+                  >
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z" />
+                    </svg>
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleEditPost(post.id);
+                    if (window.confirm('Are you sure you want to delete this post?')) {
+                      handleDeletePost(post.id, post.category);
+                    }
                   }}
-                  className="text-stone-400 hover:text-stone-700 p-1.5 hover:bg-stone-50 rounded-lg transition-all active:scale-90"
-                  title="Edit Post"
+                  className="text-stone-500 hover:text-[#C85341] p-1.5 hover:bg-rose-100/50 rounded-lg transition-all active:scale-90"
+                  title="Delete Post"
                 >
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z" />
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    <line x1="10" y1="11" x2="10" y2="17" />
+                    <line x1="14" y1="11" x2="14" y2="17" />
                   </svg>
                 </button>
-              )}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (window.confirm('Are you sure you want to delete this post?')) {
-                    handleDeletePost(post.id, post.category);
-                  }
-                }}
-                className="text-[#C85341] hover:text-[#B04535] p-1.5 hover:bg-rose-50 rounded-lg transition-all active:scale-90"
-                title="Delete Post"
-              >
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="3 6 5 6 21 6" />
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                  <line x1="10" y1="11" x2="10" y2="17" />
-                  <line x1="14" y1="11" x2="14" y2="17" />
-                </svg>
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Content */}
-        <div className="flex gap-4 items-start">
-          <div className="flex-1">
-            <h4 className="text-sm font-bold text-charcoal leading-snug group-hover:text-[#3D5A45] transition-colors">{post.title}</h4>
-            <p className="text-xs text-stone-600 font-medium leading-relaxed mt-1 text-ellipsis overflow-hidden line-clamp-3 whitespace-pre-line">
-              {displayDesc}
-            </p>
-          </div>
-          {post.image && (
-            <div className="w-20 h-20 rounded-xl overflow-hidden bg-stone-100 border border-[#F0EBE1] shrink-0 relative">
-              <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
-            </div>
-          )}
-        </div>
-
-        {/* Meta / Actions Footer */}
-        <div className="flex items-center border-t border-[#F5F2EC] pt-3 text-[11px] text-stone-500 font-bold select-none justify-between">
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1 bg-[#FCFAF7] px-2 py-1 rounded-lg">
-              <svg className="w-3 h-3 text-clay shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="10" r="3" />
-                <path d="M12 21.7C12 21.7 4 14 4 10a8 8 0 0 1 16 0c0 4-8 11.7-8 11.7z" />
-              </svg>
-              {post.location}
-            </span>
-            {displayTime && (
-              <span className="flex items-center gap-1 bg-[#FAF2EE] text-terracotta border border-[#F5DFD8] px-2 py-1 rounded-lg">
-                <ClockIcon className="w-3 h-3 text-terracotta" />
-                {displayTime}
-              </span>
+              </div>
             )}
           </div>
+
+          {/* Location Subtitle with Pin Icon */}
+          <div className="flex items-start gap-1 text-[11px] sm:text-xs text-stone-600 font-semibold mt-0.5">
+            <svg className="w-3.5 h-3.5 text-[#2D4536] shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="10" r="3" />
+              <path d="M12 21.7C12 21.7 4 14 4 10a8 8 0 0 1 16 0c0 4-8 11.7-8 11.7z" />
+            </svg>
+            <span className="line-clamp-2 leading-tight">{(post.location || 'Sector 45, Gurugram').replace(/\[.*?\]/g, '').trim()}</span>
+          </div>
+
+          {/* Description text snippet */}
+          {displayDesc && (
+            <p className="text-xs sm:text-sm text-stone-600 font-medium leading-relaxed mt-1 text-ellipsis overflow-hidden line-clamp-2 whitespace-pre-line">
+              {displayDesc}
+            </p>
+          )}
         </div>
       </div>
     );
   };
 
   return (
-    <div className="w-full flex flex-col gap-6 animate-scaleIn">
+    <div className="w-full flex flex-col gap-5 animate-scaleIn">
       {/* UPDATES CATEGORIES ROW FILTERS */}
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide select-none w-full justify-between">
         {[
@@ -358,7 +382,7 @@ export default function MohallaUpdates({
 
           if (cat.id === 'all') {
             svgIcon = (
-              <svg className={`w-3.5 h-3.5 ${colorClass || 'text-stone-500'}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+              <svg className={`w-3.5 h-3.5 ${colorClass || 'text-[#2D4536]'}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                 <rect x="3" y="3" width="7" height="7" rx="1.5" />
                 <rect x="14" y="3" width="7" height="7" rx="1.5" />
                 <rect x="3" y="14" width="7" height="7" rx="1.5" />
@@ -367,7 +391,7 @@ export default function MohallaUpdates({
             );
           } else if (cat.id === 'help') {
             svgIcon = (
-              <svg className={`w-3.5 h-3.5 ${colorClass || 'text-emergency'}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+              <svg className={`w-3.5 h-3.5 ${colorClass || 'text-[#2D4536]'}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                 <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
                 <line x1="12" y1="9" x2="12" y2="13" />
                 <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -375,14 +399,14 @@ export default function MohallaUpdates({
             );
           } else if (cat.id === 'feeding') {
             svgIcon = (
-              <svg className={`w-3.5 h-3.5 ${colorClass || 'text-terracotta'}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+              <svg className={`w-3.5 h-3.5 ${colorClass || 'text-[#2D4536]'}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                 <path d="M3 18c0-3 3-5 9-5s9 2 9 5H3z" />
                 <path d="M12 6v3M9 7v2M15 7v2" />
               </svg>
             );
           } else if (cat.id === 'event') {
             svgIcon = (
-              <svg className={`w-3.5 h-3.5 ${colorClass || 'text-terracotta'}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+              <svg className={`w-3.5 h-3.5 ${colorClass || 'text-[#2D4536]'}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                 <line x1="16" y1="2" x2="16" y2="6" />
                 <line x1="8" y1="2" x2="8" y2="6" />
@@ -391,14 +415,14 @@ export default function MohallaUpdates({
             );
           } else if (cat.id === 'awareness') {
             svgIcon = (
-              <svg className={`w-3.5 h-3.5 ${colorClass || 'text-clay'}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+              <svg className={`w-3.5 h-3.5 ${colorClass || 'text-[#2D4536]'}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                 <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
                 <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
               </svg>
             );
           } else {
             svgIcon = (
-              <svg className={`w-3.5 h-3.5 ${colorClass || 'text-stone-600'}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+              <svg className={`w-3.5 h-3.5 ${colorClass || 'text-[#2D4536]'}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
@@ -409,9 +433,9 @@ export default function MohallaUpdates({
             <button
               key={cat.id}
               onClick={() => setUpdateFilter(cat.id)}
-              className={`px-4 py-2 border rounded-full text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm shrink-0 active:scale-95 ${isSelected
-                ? 'bg-terracotta text-white border-terracotta'
-                : 'bg-white border-[#F0EBE1] text-stone-600 hover:border-stone-300'
+              className={`px-3.5 py-1.5 border rounded-full text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition-all shadow-xs shrink-0 active:scale-95 cursor-pointer ${isSelected
+                ? 'bg-[#2D4536] text-white border-[#2D4536]'
+                : 'bg-[#F5F2EC] border-[#EBE3D5] text-stone-600 hover:bg-[#EFEBE3]'
               }`}
             >
               {svgIcon}
@@ -565,7 +589,14 @@ export default function MohallaUpdates({
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Add Photo / Banner <span className="text-stone-400 font-normal">(optional)</span></label>
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">
+                    Add Photo / Banner <span className="text-rose-500 font-extrabold">*</span>
+                  </label>
+                  <span className="text-[10px] font-extrabold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 uppercase">
+                    Mandatory
+                  </span>
+                </div>
                 
                 <input 
                   type="file" 
@@ -588,7 +619,7 @@ export default function MohallaUpdates({
                           {activityPhoto?.name || 'attached_photo.jpg'}
                         </span>
                         <span className="text-[8px] text-[#4A5D4E] font-bold mt-0.5">
-                          Ready to upload
+                          Photo Attached ✓
                         </span>
                       </div>
                     </div>
@@ -612,15 +643,16 @@ export default function MohallaUpdates({
                 ) : (
                   <div 
                     onClick={() => activityFileInputRef.current?.click()}
-                    className="w-full bg-[#FDFBF9] hover:bg-[#F9F6F0] border-2 border-dashed border-[#EBE3D5] rounded-2xl p-4 flex flex-col items-center justify-center gap-1.5 cursor-pointer hover:border-stone-400 transition-all select-none group"
+                    className="w-full bg-[#FFF9F9] hover:bg-[#FFF2F2] border-2 border-dashed border-rose-300 rounded-2xl p-4 flex flex-col items-center justify-center gap-1.5 cursor-pointer hover:border-rose-400 transition-all select-none group"
                   >
-                    <div className="p-2 bg-[#F5F2EC] rounded-full text-stone-500 group-hover:scale-105 transition-transform duration-200">
+                    <div className="p-2 bg-rose-100/80 rounded-full text-rose-600 group-hover:scale-105 transition-transform duration-200">
                       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
                         <circle cx="12" cy="13" r="4" />
                       </svg>
                     </div>
-                    <span className="text-[10px] font-bold text-stone-500">Upload Banner or Photo</span>
+                    <span className="text-[10px] font-extrabold text-rose-600">Upload Photo or Banner (Required)</span>
+                    <span className="text-[9px] text-stone-400 font-semibold">Click to select an image from your device</span>
                   </div>
                 )}
               </div>
@@ -766,7 +798,7 @@ function DraggableFAB({ onTrigger }: DraggableFABProps) {
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      className={`w-14 h-14 rounded-full bg-terracotta hover:bg-[#c2502f] text-white flex items-center justify-center shadow-lg cursor-grab active:cursor-grabbing transition-all select-none hover:scale-105 active:scale-95 ${
+      className={`w-14 h-14 rounded-full bg-[#2D4536] hover:bg-[#1E3024] text-white flex items-center justify-center shadow-lg cursor-grab active:cursor-grabbing transition-all select-none hover:scale-105 active:scale-95 ${
         isDragging ? 'shadow-2xl scale-105' : 'shadow-md'
       }`}
     >

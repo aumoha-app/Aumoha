@@ -12,7 +12,7 @@ export default function OnboardingScreen() {
   const [profilePic, setProfilePic] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [role, setRole] = useState<'rescuer' | 'normal' | ''>('');
+  const [role, setRole] = useState<'normal' | 'feeder' | 'rescuer' | 'volunteer' | 'paravet' | 'adopter' | ''>('');
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -304,17 +304,21 @@ export default function OnboardingScreen() {
             <select
               id="role"
               value={role}
-              onChange={(e) => setRole(e.target.value as 'rescuer' | 'normal')}
+              onChange={(e) => setRole(e.target.value as any)}
               required
               className="w-full bg-[#F5F3EF] rounded-xl py-2.5 px-3 text-xs text-[#1C1A17] border border-transparent focus:border-[#4A5D4E] focus:bg-white outline-none transition-all font-medium cursor-pointer"
             >
               <option value="" disabled>Select your role</option>
-              <option value="normal">Normal</option>
-              <option value="rescuer">Rescuer</option>
+              <option value="normal">Normal Member / Pet Parent</option>
+              <option value="feeder">Feeder / Community Caretaker</option>
+              <option value="rescuer">Rescuer / Welfare Activist</option>
+              <option value="volunteer">Volunteer</option>
+              <option value="paravet">Paravet / First Aid Provider</option>
+              <option value="adopter">Foster / Adopter</option>
             </select>
-            {role === 'rescuer' && (
+            {(role === 'rescuer' || role === 'feeder' || role === 'paravet') && (
               <p className="text-[10.5px] text-[#A25F2A] font-semibold bg-[#FDF6F0] border border-[#F5E1D2] rounded-xl p-3 mt-1.5 leading-relaxed animate-fadeIn">
-                ✨ It is a good work, you will save stray animals and for that your phone number will get public.
+                ✨ Thank you for serving your community! Your profile will be listed in Mohalla Circle so nearby neighbors can reach out for emergency assistance.
               </p>
             )}
           </div>

@@ -155,9 +155,14 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
       <main className="w-full max-w-3xl md:max-w-4xl mx-auto flex flex-col gap-5 transition-all duration-300 font-sans">
         
         {/* 1. HEADER: Title & Shopping Cart Icon */}
-        <header className="flex items-center justify-between w-full select-none px-1">
-          <div className="flex items-center gap-2">
-            <h1 className="font-serif text-2xl sm:text-3xl md:text-4xl text-[#1C1A17] font-bold tracking-tight">Marketplace</h1>
+        <header className="flex items-center justify-between w-full select-none px-1 pt-1">
+          <div className="flex flex-col gap-1">
+            <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-[#1C1A17] tracking-tight leading-none">
+              Marketplace
+            </h1>
+            <span className="text-xs sm:text-sm text-stone-600 font-medium">
+              Curated care essentials for your companions
+            </span>
           </div>
           
           <button 
@@ -199,10 +204,10 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
         </div>
 
         {/* 3. CATEGORY RAIL */}
-        <div className="flex items-center justify-between w-full select-none mt-1 pb-2 gap-2 overflow-x-auto scrollbar-none no-scrollbar scrollbar-hide">
+        <div className="grid grid-cols-4 gap-2.5 w-full select-none mt-0.5 pb-1">
           <button
             onClick={() => setSelectedCategory('all')}
-            className={`flex items-center justify-center px-5 py-2 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer shrink-0 ${
+            className={`w-full flex items-center justify-center py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer active:scale-95 ${
               selectedCategory === 'all'
                 ? 'bg-[#2D4536] text-white shadow-xs'
                 : 'bg-[#EFEAE2] text-stone-700 hover:text-[#1C1A17] border border-[#D5CEBF]'
@@ -211,11 +216,9 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
             All
           </button>
 
-          <div className="w-[1px] h-4 bg-[#D5CEBF] shrink-0" />
-
           <button
             onClick={() => setSelectedCategory('food')}
-            className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer shrink-0 ${
+            className={`w-full flex items-center justify-center py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer active:scale-95 ${
               selectedCategory === 'food'
                 ? 'bg-[#2D4536] text-white shadow-xs'
                 : 'bg-[#EFEAE2] text-stone-700 hover:text-[#1C1A17] border border-[#D5CEBF]'
@@ -224,11 +227,9 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
             Food
           </button>
 
-          <div className="w-[1px] h-4 bg-[#D5CEBF] shrink-0" />
-
           <button
             onClick={() => setSelectedCategory('toys')}
-            className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer shrink-0 ${
+            className={`w-full flex items-center justify-center py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer active:scale-95 ${
               selectedCategory === 'toys'
                 ? 'bg-[#2D4536] text-white shadow-xs'
                 : 'bg-[#EFEAE2] text-stone-700 hover:text-[#1C1A17] border border-[#D5CEBF]'
@@ -237,11 +238,9 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
             Toys
           </button>
 
-          <div className="w-[1px] h-4 bg-[#D5CEBF] shrink-0" />
-
           <button
             onClick={() => setSelectedCategory('medical')}
-            className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all duration-200 cursor-pointer shrink-0 ${
+            className={`w-full flex items-center justify-center py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer active:scale-95 ${
               selectedCategory === 'medical'
                 ? 'bg-[#2D4536] text-white shadow-xs'
                 : 'bg-[#EFEAE2] text-stone-700 hover:text-[#1C1A17] border border-[#D5CEBF]'

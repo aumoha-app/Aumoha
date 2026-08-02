@@ -441,7 +441,7 @@ export default function EmergencyDispatch({
 
   if (sosSent) {
     return (
-      <main className="w-full max-w-2xl mx-auto bg-white border border-warmBeige/40 rounded-3xl p-6 md:p-8 shadow-sm flex flex-col gap-6 relative overflow-hidden transition-all duration-300">
+      <main className="w-full max-w-2xl mx-auto bg-[#F5F2EC] border border-[#EBE3D5] rounded-3xl p-6 md:p-8 shadow-xs flex flex-col gap-6 relative overflow-hidden transition-all duration-300">
         
         {/* Header Row: Title & Call 1962 Pill Button */}
         <div className="flex items-start justify-between gap-4 w-full relative z-10 select-none">
@@ -470,7 +470,7 @@ export default function EmergencyDispatch({
   }
 
   return (
-    <main className="w-full max-w-2xl mx-auto bg-white border border-warmBeige/40 rounded-3xl p-6 md:p-8 shadow-sm flex flex-col gap-6 relative overflow-hidden transition-all duration-300">
+    <main className="w-full max-w-2xl mx-auto bg-[#F5F2EC] border border-[#EBE3D5] rounded-3xl p-6 md:p-8 shadow-xs flex flex-col gap-6 relative overflow-hidden transition-all duration-300">
 
       {/* Header Row: Back Button, Title & Call 1962 Pill Button */}
       <div className="flex items-start justify-between gap-4 w-full relative z-10 select-none">
@@ -532,8 +532,8 @@ export default function EmergencyDispatch({
               onClick={() => handleCategorySelect('Accident', 'Medical')}
               className={`rounded-[16px] p-2 flex flex-col items-center text-center gap-1.5 cursor-pointer transition-all border ${
                 activeCategory === 'Accident'
-                  ? 'bg-[#FDF2F2] border-[#F8B4B4] shadow-sm'
-                  : 'bg-white border-stone-200 hover:border-[#F8B4B4]/60'
+                  ? 'bg-[#EAE4D8] border-[#9B1C1C] text-[#9B1C1C] shadow-2xs'
+                  : 'bg-[#EFEBE3] border-[#EBE3D5] hover:border-[#9B1C1C]/60'
               }`}
             >
               <svg viewBox="0 0 24 24" width="24" height="24" className="md:w-7 md:h-7 shrink-0" fill="none" stroke="#D95D39" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -544,7 +544,7 @@ export default function EmergencyDispatch({
               </svg>
               <div>
                 <h4 className="text-[10px] md:text-xs font-bold text-charcoal leading-tight">Accident</h4>
-                <p className="text-[8px] md:text-[10px] text-stone-400 font-semibold leading-normal mt-0.5">Hit by vehicle</p>
+                <p className="text-[8px] md:text-[10px] text-stone-600 font-semibold leading-normal mt-0.5">Hit by vehicle</p>
               </div>
             </div>
 
@@ -553,8 +553,8 @@ export default function EmergencyDispatch({
               onClick={() => handleCategorySelect('Injury', 'Medical')}
               className={`rounded-[16px] p-2 flex flex-col items-center text-center gap-1.5 cursor-pointer transition-all border ${
                 activeCategory === 'Injury'
-                  ? 'bg-[#FDF2F2] border-[#F8B4B4] shadow-sm'
-                  : 'bg-white border-stone-200 hover:border-[#BBF7D0]/60'
+                  ? 'bg-[#EAE4D8] border-[#9B1C1C] text-[#9B1C1C] shadow-2xs'
+                  : 'bg-[#EFEBE3] border-[#EBE3D5] hover:border-[#2D4536]/60'
               }`}
             >
               <svg viewBox="0 0 24 24" width="24" height="24" className="md:w-7 md:h-7 shrink-0" fill="none" stroke="#059669" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -563,7 +563,7 @@ export default function EmergencyDispatch({
               </svg>
               <div>
                 <h4 className="text-[10px] md:text-xs font-bold text-charcoal leading-tight">Injury</h4>
-                <p className="text-[8px] md:text-[10px] text-stone-400 font-semibold leading-normal mt-0.5">Wounded animal</p>
+                <p className="text-[8px] md:text-[10px] text-stone-600 font-semibold leading-normal mt-0.5">Wounded animal</p>
               </div>
             </div>
 
@@ -572,8 +572,8 @@ export default function EmergencyDispatch({
               onClick={() => handleCategorySelect('Abuse', 'Safety')}
               className={`rounded-[16px] p-2 flex flex-col items-center text-center gap-1.5 cursor-pointer transition-all border ${
                 activeCategory === 'Abuse'
-                  ? 'bg-[#FDF2F2] border-[#F8B4B4] shadow-sm'
-                  : 'bg-white border-stone-200 hover:border-[#F8B4B4]/60'
+                  ? 'bg-[#EAE4D8] border-[#9B1C1C] text-[#9B1C1C] shadow-2xs'
+                  : 'bg-[#EFEBE3] border-[#EBE3D5] hover:border-[#9B1C1C]/60'
               }`}
             >
               <svg viewBox="0 0 24 24" width="24" height="24" className="md:w-7 md:h-7 shrink-0" fill="none" stroke="#DC2626" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -583,7 +583,7 @@ export default function EmergencyDispatch({
               </svg>
               <div>
                 <h4 className="text-[10px] md:text-xs font-bold text-charcoal leading-tight">Abuse</h4>
-                <p className="text-[8px] md:text-[10px] text-stone-400 font-semibold leading-normal mt-0.5">Cruelty or harm</p>
+                <p className="text-[8px] md:text-[10px] text-stone-600 font-semibold leading-normal mt-0.5">Cruelty or harm</p>
               </div>
             </div>
 
@@ -592,8 +592,8 @@ export default function EmergencyDispatch({
               onClick={() => handleCategorySelect('Sick Animal', 'Medical')}
               className={`rounded-[16px] p-2 flex flex-col items-center text-center gap-1.5 cursor-pointer transition-all border ${
                 activeCategory === 'Sick Animal'
-                  ? 'bg-[#FDF2F2] border-[#F8B4B4] shadow-sm'
-                  : 'bg-white border-stone-200 hover:border-[#C4B5FD]/60'
+                  ? 'bg-[#EAE4D8] border-[#9B1C1C] text-[#9B1C1C] shadow-2xs'
+                  : 'bg-[#EFEBE3] border-[#EBE3D5] hover:border-[#9B1C1C]/60'
               }`}
             >
               <svg viewBox="0 0 24 24" width="24" height="24" className="md:w-7 md:h-7 shrink-0" fill="none" stroke="#8B5CF6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -601,7 +601,7 @@ export default function EmergencyDispatch({
               </svg>
               <div>
                 <h4 className="text-[10px] md:text-xs font-bold text-charcoal leading-tight">Sick Animal</h4>
-                <p className="text-[8px] md:text-[10px] text-stone-400 font-semibold leading-normal mt-0.5">Unwell or weak</p>
+                <p className="text-[8px] md:text-[10px] text-stone-600 font-semibold leading-normal mt-0.5">Unwell or weak</p>
               </div>
             </div>
 
@@ -610,8 +610,8 @@ export default function EmergencyDispatch({
               onClick={() => handleCategorySelect('Abandoned', 'Safety')}
               className={`rounded-[16px] p-2 flex flex-col items-center text-center gap-1.5 cursor-pointer transition-all border ${
                 activeCategory === 'Abandoned'
-                  ? 'bg-[#FDF2F2] border-[#F8B4B4] shadow-sm'
-                  : 'bg-white border-stone-200 hover:border-[#FCD34D]/60'
+                  ? 'bg-[#EAE4D8] border-[#9B1C1C] text-[#9B1C1C] shadow-2xs'
+                  : 'bg-[#EFEBE3] border-[#EBE3D5] hover:border-[#9B1C1C]/60'
               }`}
             >
               <svg viewBox="0 0 24 24" width="24" height="24" className="md:w-7 md:h-7 shrink-0" fill="none" stroke="#B45309" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -621,7 +621,7 @@ export default function EmergencyDispatch({
               </svg>
               <div>
                 <h4 className="text-[10px] md:text-xs font-bold text-charcoal leading-tight">Abandoned</h4>
-                <p className="text-[8px] md:text-[10px] text-stone-400 font-semibold leading-normal mt-0.5">Left alone</p>
+                <p className="text-[8px] md:text-[10px] text-stone-600 font-semibold leading-normal mt-0.5">Left alone</p>
               </div>
             </div>
 
@@ -630,8 +630,8 @@ export default function EmergencyDispatch({
               onClick={() => handleCategorySelect('Stray', 'General')}
               className={`rounded-[16px] p-2 flex flex-col items-center text-center gap-1.5 cursor-pointer transition-all border ${
                 activeCategory === 'Stray'
-                  ? 'bg-[#FDF2F2] border-[#F8B4B4] shadow-sm'
-                  : 'bg-white border-stone-200 hover:border-[#F97316]/60'
+                  ? 'bg-[#EAE4D8] border-[#9B1C1C] text-[#9B1C1C] shadow-2xs'
+                  : 'bg-[#EFEBE3] border-[#EBE3D5] hover:border-[#2D4536]/60'
               }`}
             >
               <svg viewBox="0 0 24 24" width="24" height="24" className="md:w-7 md:h-7 shrink-0" fill="none" stroke="#EA580C" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -640,7 +640,7 @@ export default function EmergencyDispatch({
               </svg>
               <div>
                 <h4 className="text-[10px] md:text-xs font-bold text-charcoal leading-tight">Stray</h4>
-                <p className="text-[8px] md:text-[10px] text-stone-400 font-semibold leading-normal mt-0.5">No owner</p>
+                <p className="text-[8px] md:text-[10px] text-stone-600 font-semibold leading-normal mt-0.5">No owner</p>
               </div>
             </div>
 
@@ -649,8 +649,8 @@ export default function EmergencyDispatch({
               onClick={() => handleCategorySelect('Lost Animal', 'General')}
               className={`rounded-[16px] p-2 flex flex-col items-center text-center gap-1.5 cursor-pointer transition-all border ${
                 activeCategory === 'Lost Animal'
-                  ? 'bg-[#FDF2F2] border-[#F8B4B4] shadow-sm'
-                  : 'bg-white border-stone-200 hover:border-stone-400/60'
+                  ? 'bg-[#EAE4D8] border-[#9B1C1C] text-[#9B1C1C] shadow-2xs'
+                  : 'bg-[#EFEBE3] border-[#EBE3D5] hover:border-[#2D4536]/60'
               }`}
             >
               <svg viewBox="0 0 24 24" width="24" height="24" className="md:w-7 md:h-7 shrink-0" fill="none" stroke="#6B7280" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -659,7 +659,7 @@ export default function EmergencyDispatch({
               </svg>
               <div>
                 <h4 className="text-[10px] md:text-xs font-bold text-charcoal leading-tight">Lost Animal</h4>
-                <p className="text-[8px] md:text-[10px] text-stone-400 font-semibold leading-normal mt-0.5">Missing pet</p>
+                <p className="text-[8px] md:text-[10px] text-stone-600 font-semibold leading-normal mt-0.5">Missing pet</p>
               </div>
             </div>
 
@@ -668,8 +668,8 @@ export default function EmergencyDispatch({
               onClick={() => handleCategorySelect('Other', 'General')}
               className={`rounded-[16px] p-2 flex flex-col items-center text-center gap-1.5 cursor-pointer transition-all border ${
                 activeCategory === 'Other'
-                  ? 'bg-[#FDF2F2] border-[#F8B4B4] shadow-sm'
-                  : 'bg-white border-stone-200 hover:border-stone-400/60'
+                  ? 'bg-[#EAE4D8] border-[#9B1C1C] text-[#9B1C1C] shadow-2xs'
+                  : 'bg-[#EFEBE3] border-[#EBE3D5] hover:border-[#2D4536]/60'
               }`}
             >
               <svg viewBox="0 0 24 24" width="24" height="24" className="md:w-7 md:h-7 shrink-0" fill="none" stroke="#4B5563" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -679,7 +679,7 @@ export default function EmergencyDispatch({
               </svg>
               <div>
                 <h4 className="text-[10px] md:text-xs font-bold text-charcoal leading-tight">Other</h4>
-                <p className="text-[8px] md:text-[10px] text-stone-400 font-semibold leading-normal mt-0.5">Something else</p>
+                <p className="text-[8px] md:text-[10px] text-stone-600 font-semibold leading-normal mt-0.5">Something else</p>
               </div>
             </div>
 
@@ -696,23 +696,23 @@ export default function EmergencyDispatch({
               onClick={() => setLocationMode('current')}
               className={`rounded-2xl p-4 flex items-center justify-between cursor-pointer border transition-all ${
                 locationMode === 'current'
-                  ? 'bg-[#F1F5F2] border-[#C2D6C6]'
-                  : 'bg-white border-stone-200'
+                  ? 'bg-[#EAE4D8] border-[#2D4536]'
+                  : 'bg-[#EFEBE3] border-[#EBE3D5]'
               }`}
             >
               <div className="flex items-center gap-3">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#047857" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-emerald-700">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2D4536" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-[#2D4536]">
                   <path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z" />
-                  <circle cx="12" cy="10" r="3" fill="#047857" />
+                  <circle cx="12" cy="10" r="3" fill="#2D4536" />
                 </svg>
                 <div className="flex flex-col">
                   <span className="text-xs font-bold text-charcoal leading-tight">Use Current Location</span>
-                  <span className="text-[10px] text-stone-500 font-semibold mt-0.5">{locationMode === 'current' ? locationText : 'Santi Nagar, Rourkela'}</span>
+                  <span className="text-[10px] text-stone-600 font-semibold mt-0.5">{locationMode === 'current' ? locationText : 'Santi Nagar, Rourkela'}</span>
                 </div>
               </div>
               
               {/* Radar target icon */}
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#047857" strokeWidth="2" className="text-emerald-700">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2D4536" strokeWidth="2" className="text-[#2D4536]">
                 <circle cx="12" cy="12" r="10" />
                 <circle cx="12" cy="12" r="6" />
                 <line x1="12" y1="1" x2="12" y2="23" />
@@ -725,8 +725,8 @@ export default function EmergencyDispatch({
               onClick={() => setLocationMode('manual')}
               className={`rounded-2xl p-4 flex flex-col cursor-pointer border transition-all ${
                 locationMode === 'manual'
-                  ? 'bg-[#F1F5F2] border-[#C2D6C6]'
-                  : 'bg-white border-stone-200'
+                  ? 'bg-[#EAE4D8] border-[#2D4536]'
+                  : 'bg-[#EFEBE3] border-[#EBE3D5]'
               }`}
             >
               <div className="flex items-center justify-between w-full">
@@ -772,19 +772,19 @@ export default function EmergencyDispatch({
           />
 
           {photoSelected ? (
-            <div className="w-full bg-[#FCFAF7] border border-[#EBE3D5] rounded-2xl p-4 flex items-center justify-between gap-4 shadow-sm select-none">
+            <div className="w-full bg-[#EFEBE3] border border-[#EBE3D5] rounded-2xl p-4 flex items-center justify-between gap-4 shadow-2xs select-none">
               <div className="flex items-center gap-3.5">
                 <img 
                   src={photoPreviewUrl} 
                   alt="Attached preview" 
-                  className="w-14 h-14 object-cover rounded-xl border border-[#EBE3D5] shadow-sm"
+                  className="w-14 h-14 object-cover rounded-xl border border-[#EBE3D5] shadow-2xs"
                 />
                 <div className="flex flex-col min-w-0">
                   <span className="text-xs font-bold text-charcoal truncate">
                     {photoFile?.name || 'attached_image.jpg'}
                   </span>
-                  <span className="text-[9px] text-[#4A5D4E] font-bold flex items-center gap-1 mt-0.5">
-                    <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="3" className="text-emerald-600">
+                  <span className="text-[9px] text-[#2D4536] font-bold flex items-center gap-1 mt-0.5">
+                    <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="3" className="text-[#2D4536]">
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                     Ready for upload ({( (photoFile?.size || 0) / 1024 / 1024 ).toFixed(2)} MB)
@@ -800,7 +800,7 @@ export default function EmergencyDispatch({
                   setPhotoPreviewUrl('');
                   if (fileInputRef.current) fileInputRef.current.value = '';
                 }}
-                className="p-2 bg-rose-50 hover:bg-rose-100/80 text-rose-600 rounded-xl transition-all cursor-pointer active:scale-95 shadow-sm flex items-center justify-center shrink-0"
+                className="p-2 bg-rose-50 hover:bg-rose-100/80 text-rose-600 rounded-xl transition-all cursor-pointer active:scale-95 shadow-2xs flex items-center justify-center shrink-0"
                 title="Remove photo"
               >
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -812,11 +812,11 @@ export default function EmergencyDispatch({
           ) : (
             <div 
               onClick={handlePhotoClick}
-              className={`w-full bg-[#FDFBF9] hover:bg-[#F9F6F0] border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center gap-2.5 cursor-pointer transition-all select-none group ${
+              className={`w-full bg-[#EFEBE3] hover:bg-[#EAE4D8] border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center gap-2.5 cursor-pointer transition-all select-none group ${
                 photoError ? 'border-rose-400 bg-rose-50/30' : 'border-[#EBE3D5] hover:border-stone-400'
               }`}
             >
-              <div className="p-3 bg-[#F5F2EC] rounded-full text-stone-500 group-hover:scale-105 transition-transform duration-200">
+              <div className="p-3 bg-[#EAE4D8] rounded-full text-[#2D4536] group-hover:scale-105 transition-transform duration-200">
                 <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
                   <circle cx="12" cy="13" r="4" />
@@ -824,7 +824,7 @@ export default function EmergencyDispatch({
               </div>
               <div className="flex flex-col items-center text-center">
                 <span className="text-xs font-bold text-charcoal">Upload Emergency Photo</span>
-                <span className="text-[10px] text-stone-400 font-semibold mt-0.5">JPEG, PNG up to 10MB</span>
+                <span className="text-[10px] text-stone-600 font-semibold mt-0.5">JPEG, PNG up to 10MB</span>
               </div>
             </div>
           )}
@@ -839,13 +839,13 @@ export default function EmergencyDispatch({
 
         {/* Section 4: Voice Note Recorder */}
         <div className="flex flex-col gap-2.5">
-          <label className="text-xs md:text-sm font-bold text-charcoal select-none">4. Voice Note <span className="text-stone-400 font-normal">(optional)</span></label>
+          <label className="text-xs md:text-sm font-bold text-charcoal select-none">4. Voice Note <span className="text-stone-500 font-normal">(optional)</span></label>
           
           {audioPlayUrl ? (
-            <div className="w-full bg-[#FCFAF7] border border-[#EBE3D5] rounded-2xl p-4 flex flex-col gap-3 shadow-sm select-none">
+            <div className="w-full bg-[#EFEBE3] border border-[#EBE3D5] rounded-2xl p-4 flex flex-col gap-3 shadow-2xs select-none">
               <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-2.5">
-                  <div className="p-2 bg-[#F5F2EC] rounded-xl text-[#4A5D4E]">
+                  <div className="p-2 bg-[#EAE4D8] rounded-xl text-[#2D4536]">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
                       <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
@@ -853,7 +853,7 @@ export default function EmergencyDispatch({
                   </div>
                   <div className="flex flex-col min-w-0">
                     <span className="text-xs font-bold text-charcoal">Voice Note Recording</span>
-                    <span className="text-[9px] text-[#4A5D4E] font-bold flex items-center gap-1 mt-0.5">
+                    <span className="text-[9px] text-[#2D4536] font-bold flex items-center gap-1 mt-0.5">
                       ✓ Saved & Ready to submit
                     </span>
                   </div>
@@ -865,7 +865,7 @@ export default function EmergencyDispatch({
                     setAudioBlob(null);
                     setAudioPlayUrl('');
                   }}
-                  className="p-2 bg-rose-50 hover:bg-rose-100/80 text-rose-600 rounded-xl transition-all cursor-pointer active:scale-95 shadow-sm flex items-center justify-center shrink-0"
+                  className="p-2 bg-rose-50 hover:bg-rose-100/80 text-rose-600 rounded-xl transition-all cursor-pointer active:scale-95 shadow-2xs flex items-center justify-center shrink-0"
                   title="Discard recording"
                 >
                   <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -875,12 +875,12 @@ export default function EmergencyDispatch({
                 </button>
               </div>
 
-              <div className="w-full bg-white border border-[#F0EBE1] rounded-xl p-2 shadow-inner">
+              <div className="w-full bg-[#EAE4D8] border border-[#EBE3D5] rounded-xl p-2 shadow-inner">
                 <audio src={audioPlayUrl} controls className="w-full h-8 rounded-lg scale-90" />
               </div>
             </div>
           ) : (
-            <div className="w-full bg-[#FDFBF9] border border-[#EBE3D5] rounded-2xl p-5 flex items-center justify-between gap-4 select-none relative overflow-hidden">
+            <div className="w-full bg-[#EFEBE3] border border-[#EBE3D5] rounded-2xl p-5 flex items-center justify-between gap-4 select-none relative overflow-hidden">
               {/* Animated visual wave lines during recording */}
               <div className="flex items-center gap-1 text-[#4A5D4E] min-w-[40px] opacity-40">
                 <div className={`w-[3px] h-3 bg-current rounded-full transition-all duration-300 ${isRecording ? 'animate-bounce [animation-delay:0.1s]' : ''}`} />

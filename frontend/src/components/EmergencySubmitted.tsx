@@ -209,33 +209,33 @@ export default function EmergencySubmitted({
       </div>
 
       {/* 3. Safety Guidelines (While Waiting) */}
-      <div className="w-full bg-[#FCFAF7] border border-warmBeige rounded-2xl p-4.5 flex flex-col gap-3 select-none mt-2">
-        <span className="text-[10px] uppercase tracking-widest text-[#B68A35] font-extrabold border-b border-warmBeige/40 pb-2 flex items-center gap-1.5">
-          <ClipboardIcon className="w-3.5 h-3.5 text-[#B68A35]" /> Safety Guidelines (While Waiting)
+      <div className="w-full bg-[#EFEBE3] border border-[#EBE3D5] rounded-2xl p-4.5 flex flex-col gap-3 select-none mt-2">
+        <span className="text-[10px] uppercase tracking-widest text-[#2D4536] font-extrabold border-b border-[#EBE3D5] pb-2 flex items-center gap-1.5">
+          <ClipboardIcon className="w-3.5 h-3.5 text-[#2D4536]" /> Safety Guidelines (While Waiting)
         </span>
         
         <ul className="flex flex-col gap-2.5 text-stone-600 text-[11px] leading-relaxed">
           <li className="flex items-start gap-2">
-            <span className="text-[#B68A35] font-bold text-xs mt-0.5">•</span>
+            <span className="text-[#2D4536] font-bold text-xs mt-0.5">•</span>
             <span><strong>Stay Nearby:</strong> Keep a safe distance but remain near the animal so responders can spot you easily.</span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="text-[#B68A35] font-bold text-xs mt-0.5">•</span>
+            <span className="text-[#2D4536] font-bold text-xs mt-0.5">•</span>
             <span><strong>Minimize Movement:</strong> Avoid moving an injured animal to prevent worsening pain or bone fractures.</span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="text-[#B68A35] font-bold text-xs mt-0.5">•</span>
+            <span className="text-[#2D4536] font-bold text-xs mt-0.5">•</span>
             <span><strong>Offer Solitude:</strong> Keep traffic, other street animals, and onlookers away to reduce stress on the patient.</span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="text-[#B68A35] font-bold text-xs mt-0.5">•</span>
+            <span className="text-[#2D4536] font-bold text-xs mt-0.5">•</span>
             <span><strong>Fresh Water:</strong> You may offer a clean bowl of water if the animal is fully conscious and willing.</span>
           </li>
         </ul>
       </div>
 
       {/* 4. Case Summary Details */}
-      <div className="w-full flex justify-between bg-stone-50 border border-stone-200/50 rounded-xl p-3 text-xs text-stone-500 select-none">
+      <div className="w-full flex justify-between bg-[#EAE4D8] border border-[#EBE3D5] rounded-xl p-3 text-xs text-stone-600 select-none">
         <div className="flex flex-col gap-0.5">
           <span className="text-[9px] uppercase font-bold text-stone-400">Distress Category</span>
           <span className="font-bold text-charcoal">{category}</span>
@@ -285,16 +285,16 @@ export default function EmergencySubmitted({
       </span>
 
       {/* 4.5. Rescuers Contact Directory */}
-      <div className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl p-4.5 flex flex-col gap-3 select-none">
-        <span className="text-[10px] uppercase tracking-widest text-[#4A5D4E] font-extrabold border-b border-[#F0EBE1] pb-2 flex items-center justify-between">
+      <div className="w-full bg-[#EFEBE3] border border-[#EBE3D5] rounded-2xl p-4.5 flex flex-col gap-3 select-none">
+        <span className="text-[10px] uppercase tracking-widest text-[#2D4536] font-extrabold border-b border-[#EBE3D5] pb-2 flex items-center justify-between">
           <span className="flex items-center gap-1.5">
-            <ShieldIcon className="w-3.5 h-3.5 text-[#4A5D4E]" /> Contact Rescuers
+            <ShieldIcon className="w-3.5 h-3.5 text-[#2D4536]" /> Contact Rescuers
           </span>
-          {loading && <span className="text-[9px] text-[#4A5D4E] lowercase animate-pulse font-normal">Loading rescuers...</span>}
+          {loading && <span className="text-[9px] text-[#2D4536] lowercase animate-pulse font-normal">Loading rescuers...</span>}
         </span>
 
         {rescuers.length === 0 ? (
-          <p className="text-[11px] text-stone-400 font-medium py-2 text-center">
+          <p className="text-[11px] text-stone-600 font-medium py-2 text-center">
             {loading ? 'Searching for active rescuers...' : 'No active rescuers found.'}
           </p>
         ) : (
@@ -303,7 +303,7 @@ export default function EmergencySubmitted({
               {paginatedRescuers.map((rescuer, idx) => {
                 const isNearby = getKeywordMatches(location, rescuer.address || '') > 0;
                 return (
-                  <div key={idx} className="bg-white border border-[#F0EBE1] rounded-xl p-3 flex items-center justify-between gap-3 shadow-sm hover:border-stone-300 transition-colors">
+                  <div key={idx} className="bg-[#EAE4D8] border border-[#EBE3D5] rounded-xl p-3 flex items-center justify-between gap-3 shadow-2xs hover:border-stone-400 transition-colors">
                     <div className="flex items-center gap-2.5 min-w-0">
                       {/* Avatar */}
                       <div className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br from-terracotta to-clay flex items-center justify-center text-[#FDFBF7] text-xs font-serif shadow-sm shrink-0">
