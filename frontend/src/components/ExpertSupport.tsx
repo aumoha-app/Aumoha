@@ -343,6 +343,166 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
     }
   }, [token]);
 
+const DEFAULT_MOCK_EXPERTS: Expert[] = [
+  {
+    _id: 'exp_physio_1',
+    name: 'Dr. Ananya Sharma, PT',
+    photo: '/expert_physiotherapist.png',
+    specialisation: 'Canine Hydrotherapy & Post-Op Rehab',
+    category: 'Physiotherapist',
+    specialtyTags: ['Mobility', 'Joint Therapy', 'Hydrotherapy', 'Post-Op Recovery'],
+    experience: 8,
+    fee: 800,
+    bio: 'Specialist in canine post-surgical rehabilitation, hydrotherapy, and joint mobility enhancement for senior companions.',
+    rating: 4.9,
+    reviewCount: 142,
+    isOnline: true,
+    availableSlots: [
+      { _id: 's1', date: 'Today', time: '10:00 AM', isBooked: false },
+      { _id: 's2', date: 'Today', time: '03:30 PM', isBooked: false },
+      { _id: 's3', date: 'Tomorrow', time: '11:00 AM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp_physio_2',
+    name: 'Dr. Rohan Verma',
+    photo: '/expert_rehab.png',
+    specialisation: 'Senior Pet Comfort & Ortho Massage',
+    category: 'Physiotherapist',
+    specialtyTags: ['Senior Comfort', 'Ortho Massage', 'Injury Recovery'],
+    experience: 6,
+    fee: 750,
+    bio: 'Certified animal physical therapist focusing on arthritis management, spinal care, and pain-relief therapeutic massage.',
+    rating: 4.8,
+    reviewCount: 98,
+    isOnline: true,
+    availableSlots: [
+      { _id: 's4', date: 'Today', time: '02:00 PM', isBooked: false },
+      { _id: 's5', date: 'Tomorrow', time: '10:00 AM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp_nutri_1',
+    name: 'Dr. Kavita Menon',
+    photo: '/expert_nutritionist.png',
+    specialisation: 'Clinical Pet Dietitian & BARF Specialist',
+    category: 'Nutritionist',
+    specialtyTags: ['Raw BARF Diets', 'Weight Loss', 'Allergy Management'],
+    experience: 9,
+    fee: 700,
+    bio: 'Formulates custom home-cooked and raw meal plans for dogs and cats suffering from food allergies and chronic kidney conditions.',
+    rating: 4.9,
+    reviewCount: 215,
+    isOnline: true,
+    availableSlots: [
+      { _id: 's6', date: 'Today', time: '11:00 AM', isBooked: false },
+      { _id: 's7', date: 'Tomorrow', time: '04:00 PM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp_behav_1',
+    name: 'Vikramaditya Roy',
+    photo: '/expert_animal_behaviourist.png',
+    specialisation: 'Canine Behaviour Modification & Anxiety',
+    category: 'Animal Behaviourist',
+    specialtyTags: ['Aggression', 'Separation Anxiety', 'Phobias'],
+    experience: 11,
+    fee: 900,
+    bio: 'Positive-reinforcement animal psychologist specializing in severe aggression, rescue dog trauma, and reactivity.',
+    rating: 4.9,
+    reviewCount: 310,
+    isOnline: true,
+    availableSlots: [
+      { _id: 's8', date: 'Today', time: '05:00 PM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp_trainer_1',
+    name: 'Rajesh Nair',
+    photo: '/expert_trainer.png',
+    specialisation: 'Obedience Foundation & Puppy Manners',
+    category: 'Trainer',
+    specialtyTags: ['Puppy Training', 'Basic Obedience', 'Leash Pulling'],
+    experience: 7,
+    fee: 650,
+    bio: 'Professional obedience coach focusing on positive leash work, recall, potty training, and trick learning.',
+    rating: 4.8,
+    reviewCount: 180,
+    isOnline: true,
+    availableSlots: [
+      { _id: 's9', date: 'Tomorrow', time: '09:00 AM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp_homeo_1',
+    name: 'Dr. Meera Iyer',
+    photo: '/expert_homeopathy.png',
+    specialisation: 'Holistic Veterinary Medicine & Herbal Care',
+    category: 'Homeopathy Vet',
+    specialtyTags: ['Chronic Issues', 'Herbal Treatment', 'Holistic Wellness'],
+    experience: 12,
+    fee: 750,
+    bio: 'Gentle, natural homeopathic remedies for chronic skin issues, immune support, and age-related vitality.',
+    rating: 4.9,
+    reviewCount: 165,
+    isOnline: true,
+    availableSlots: [
+      { _id: 's10', date: 'Today', time: '12:00 PM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp_rehab_1',
+    name: 'Dr. Sameer Joshi',
+    photo: '/expert_rehab.png',
+    specialisation: 'Post-Surgery & Joint Recovery',
+    category: 'Rehab Specialist',
+    specialtyTags: ['Joint Therapy', 'Laser Therapy', 'Post-Surgery Recovery'],
+    experience: 10,
+    fee: 850,
+    bio: 'Specialized laser therapy and muscle rebuilding for pets recovering from cruciate ligament and spinal surgeries.',
+    rating: 4.9,
+    reviewCount: 125,
+    isOnline: true,
+    availableSlots: [
+      { _id: 's11', date: 'Tomorrow', time: '03:00 PM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp_athome_1',
+    name: 'Pooja Hegde, RVT',
+    photo: '/expert_athome.png',
+    specialisation: 'At-Home Nursing & Geriatric Care',
+    category: 'At-Home Support',
+    specialtyTags: ['Medication Assist', 'Basic Nursing', 'Elderly Care'],
+    experience: 5,
+    fee: 500,
+    bio: 'Registered veterinary technician offering home visits for injections, fluid therapy, bandaging, and senior pet care.',
+    rating: 4.8,
+    reviewCount: 92,
+    isOnline: true,
+    availableSlots: [
+      { _id: 's12', date: 'Today', time: '02:30 PM', isBooked: false }
+    ]
+  },
+  {
+    _id: 'exp_reiki_1',
+    name: 'Sunita Chawla',
+    photo: '/expert_reiki.png',
+    specialisation: 'Intuitive Animal Communicator & Reiki Master',
+    category: 'Communicator/Psychotherapist/Reiki Healing',
+    specialtyTags: ['Reiki Healing', 'Grief Counseling', 'Energy Balance'],
+    experience: 14,
+    fee: 800,
+    bio: 'Telepathic animal communicator and Reiki master helping pet parents understand behavioral shifts and emotional well-being.',
+    rating: 4.9,
+    reviewCount: 240,
+    isOnline: true,
+    availableSlots: [
+      { _id: 's13', date: 'Tomorrow', time: '04:30 PM', isBooked: false }
+    ]
+  }
+];
+
   // Fetch experts list
   const fetchExperts = async () => {
     setIsLoadingExperts(true);
@@ -355,10 +515,22 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
       const data = await res.json();
       if (res.ok) {
         const allVets = data.vets || [];
-        setExperts(allVets.filter((v: any) => v.category !== 'vet'));
+        const fetchedExperts = allVets.filter((v: any) => v.category !== 'vet');
+        
+        // Merge fetched experts with default mock experts so every category has active specialists
+        const combined = [...fetchedExperts];
+        DEFAULT_MOCK_EXPERTS.forEach(mockExp => {
+          if (!combined.some(e => e._id === mockExp._id || (e.name === mockExp.name && e.category === mockExp.category))) {
+            combined.push(mockExp);
+          }
+        });
+        setExperts(combined);
+      } else {
+        setExperts(DEFAULT_MOCK_EXPERTS);
       }
     } catch (err) {
       console.error('Error fetching experts:', err);
+      setExperts(DEFAULT_MOCK_EXPERTS);
     } finally {
       setIsLoadingExperts(false);
     }
