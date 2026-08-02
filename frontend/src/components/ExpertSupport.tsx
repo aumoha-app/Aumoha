@@ -911,11 +911,11 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
             </div>
 
             {/* Right: Hero Image */}
-            <div className="w-[40%] md:w-[36%] relative shrink-0 flex items-end justify-end overflow-hidden">
+            <div className="w-[42%] md:w-[38%] relative shrink-0 flex items-end justify-end overflow-hidden">
               <img
-                src="/expert_support_hero.png"
-                alt="Expert Support Hero"
-                className="w-full h-full object-contain object-right-bottom scale-[1.15] translate-x-2 translate-y-2"
+                src="/expert_advice_hero.png"
+                alt="Expert Support & Advice Hero"
+                className="w-full h-full object-cover object-right-bottom scale-[1.05]"
               />
             </div>
           </div>
