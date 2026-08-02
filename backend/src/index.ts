@@ -663,7 +663,8 @@ app.get('/api/auth/me', authMiddleware, async (req: Request, res: Response) => {
     }
 
     if (mongoose.connection.readyState !== 1) {
-      const cachedUser = fallbackUsers.find(u => u.firebaseUid === userUid);
+      const userEmail = req.user?.email;
+      const cachedUser = fallbackUsers.find(u => u.firebaseUid === userUid || (userEmail && u.email?.toLowerCase() === userEmail?.toLowerCase()));
       if (!cachedUser) {
         return res.status(200).json({
           status: 'success',
@@ -671,6 +672,7 @@ app.get('/api/auth/me', authMiddleware, async (req: Request, res: Response) => {
           message: 'Auth token verified, profile details required'
         });
       }
+      cachedUser.firebaseUid = userUid;
       userCache.set(userUid, cachedUser);
       return res.json({
         status: 'success',
@@ -679,14 +681,27 @@ app.get('/api/auth/me', authMiddleware, async (req: Request, res: Response) => {
       });
     }
 
-    // 2. Fetch from MongoDB Atlas on cache miss
-    const dbUser = await User.findOne({ firebaseUid: userUid });
+    // 2. Fetch from MongoDB Atlas on cache miss (check both firebaseUid and email)
+    const userEmail = req.user?.email;
+    let dbUser = await User.findOne({
+      $or: [
+        { firebaseUid: userUid },
+        ...(userEmail ? [{ email: userEmail }] : [])
+      ]
+    });
+
     if (!dbUser) {
       return res.status(200).json({
         status: 'success',
         isNewUser: true,
         message: 'Auth token verified, profile details required'
       });
+    }
+
+    // Automatically link firebaseUid if matched via email
+    if (dbUser.firebaseUid !== userUid) {
+      dbUser.firebaseUid = userUid;
+      await dbUser.save();
     }
 
     // Silently default role if missing (for existing users)

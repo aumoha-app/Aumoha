@@ -396,7 +396,7 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
 
   if (!user) {
     return (
-      <main className="w-full max-w-2xl mx-auto bg-white rounded-3xl p-4 md:p-8 flex flex-col gap-6 shadow-sm select-none animate-fadeIn">
+      <main className="w-full max-w-2xl mx-auto bg-[#F5F2EC] border border-[#EBE3D5] rounded-3xl p-4 md:p-8 flex flex-col gap-6 shadow-sm select-none animate-fadeIn">
         {/* Header Skeleton */}
         <div className="flex justify-between items-center w-full">
           <div className="flex flex-col gap-2">
@@ -449,7 +449,7 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
   }
 
   return (
-    <main className="w-full max-w-2xl mx-auto bg-white rounded-3xl p-4 md:p-8 flex flex-col gap-6 shadow-sm transition-all duration-300">
+    <main className="w-full max-w-2xl mx-auto bg-[#F5F2EC] border border-[#EBE3D5] rounded-3xl p-4 md:p-8 flex flex-col gap-6 shadow-sm transition-all duration-300">
 
       {/* 1. HEADER: Title, Edit & Logout Buttons */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full select-none px-1">
