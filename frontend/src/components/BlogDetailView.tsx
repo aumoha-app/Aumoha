@@ -50,7 +50,7 @@ export default function BlogDetailView({
 
   const roleInfo = getRoleColors(selectedBlog.authorRole);
   const catInfo = getCategoryDetails(selectedBlog.category);
-  const isJoined = joinedActivities.includes(selectedBlog.id);
+  const isJoined = joinedActivities.map(String).includes(String(selectedBlog.id));
 
   // Parse structured scheduled time from the description if it exists
   const descParts = (selectedBlog.description || '').split(/\n\n🕒 Scheduled: |\\n\\n🕒 Scheduled: /);
