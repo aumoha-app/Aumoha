@@ -686,23 +686,6 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
           </div>
         </div>
 
-        {/* Gated Admin panel button */}
-        {isAdminUser && (
-          <button 
-            type="button"
-            onClick={() => {
-              setAdminSubTab('experts');
-              setCurrentView('admin');
-            }}
-            className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all shrink-0 cursor-pointer shadow-2xs ${
-              currentView === 'admin'
-                ? 'bg-[#2D4536] border-[#2D4536] text-white shadow-sm'
-                : 'border-warmBeige hover:bg-[#FCFAF7] text-[#2D4536] bg-white'
-            }`}
-          >
-            🛡️ Admin Panel
-          </button>
-        )}
       </div>
 
       {/* ==================== SCREEN 1: EXPERT SUPPORT HOME ==================== */}
