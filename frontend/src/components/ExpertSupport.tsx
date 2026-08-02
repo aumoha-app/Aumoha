@@ -875,7 +875,10 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
       <div className="w-full max-w-2xl mx-auto bg-[#FAF8F5] rounded-[28px] overflow-hidden shadow-sm transition-all duration-300 font-sans text-charcoal flex flex-col min-h-[80vh]">
       {/* Full-Bleed Hero Banner covering complete top */}
       <div className="relative">
-        <div className="relative overflow-hidden bg-gradient-to-br from-[#F5F2EC] via-[#EDE9E1] to-[#E8E3DA]">
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#FAF8F5] via-[#EFEBE3] to-[#E8E3DA]">
+          {/* Top smudge fade into page canvas */}
+          <div className="absolute top-0 left-0 right-0 h-7 bg-gradient-to-b from-[#FAF8F5] via-[#FAF8F5]/50 to-transparent z-10 pointer-events-none" />
+
           <div className="flex items-stretch min-h-[210px] md:min-h-[240px]">
             {/* Left: Text Content */}
             <div className="flex-1 flex flex-col justify-center gap-3 px-5 md:px-8 py-6 z-10">
@@ -911,7 +914,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
             </div>
 
             {/* Right: Hero Image */}
-            <div className="w-[42%] md:w-[38%] relative shrink-0 flex items-end justify-end overflow-hidden">
+            <div className="w-[50%] md:w-[38%] relative shrink-0 flex items-end justify-end overflow-hidden">
               <img
                 src="/expert_care_pet_hero.png"
                 alt="Expert Support Pet Hero"
@@ -950,7 +953,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
             
             <button 
               onClick={() => handleStartQuiz()}
-              className="px-4 bg-[#E8F0EA] hover:bg-[#D4E4D7] border border-[#2D4536]/30 text-[#2D4536] text-[10px] font-extrabold rounded-2xl flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              className="px-4 bg-[#1C1A17] hover:bg-stone-800 text-white text-[11px] font-extrabold rounded-2xl flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
             >
               Quiz
             </button>
@@ -964,7 +967,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                 onClick={() => setHomeGroup(grp)}
                 className={`px-4 py-2 border rounded-full text-xs font-bold shrink-0 transition-all cursor-pointer active:scale-95 shadow-xs flex items-center gap-1.5 ${
                   homeGroup === grp 
-                    ? 'bg-[#2D4536] border-[#2D4536] text-white shadow-sm' 
+                    ? 'bg-[#1C1A17] border-[#1C1A17] text-white shadow-sm' 
                     : 'bg-white border-[#F0EBE1] text-stone-600 hover:border-stone-300 hover:bg-stone-50'
                 }`}
               >
