@@ -19,6 +19,8 @@ export default function BottomNav({ activeTab: propActiveTab, setActiveTab }: Bo
   else if (pathname === '/sos' || pathname === '/report') currentTab = 'report';
   else if (pathname === '/circle') currentTab = 'circle';
   else if (pathname === '/profile') currentTab = 'profile';
+  else if (pathname === '/provider') currentTab = 'profile'; // providers use profile tab
+
   else if (pathname === '/pet-care') currentTab = 'petcare';
   else if (pathname === '/admin') currentTab = 'admin';
   else if (pathname === '/vet-consult') currentTab = 'vetconsult';

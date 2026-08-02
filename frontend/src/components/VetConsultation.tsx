@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { DogIcon, LockIcon } from './icons/PetIcons';
 import { API_BASE } from '../lib/api';
+import { processRazorpayPayment } from '../lib/razorpay';
 import AgoraCallModal from './AgoraCallModal';
 import CallSessionButton from './CallSessionButton';
+
 
 // Define Interface types
 interface Slot {
@@ -1230,13 +1232,38 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
             </table>
           </div>
 
-          {/* Confirm Appointment CTA */}
-          <button 
-            onClick={handleConfirmAppointment}
-            className="w-full py-3.5 bg-[#2D4536] hover:bg-[#1E2E24] text-white text-xs font-extrabold rounded-2xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
-          >
-            Confirm Appointment <span>→</span>
-          </button>
+          {/* Confirm & Pay Buttons */}
+          <div className="flex flex-col gap-2.5">
+            <button 
+              onClick={() => {
+                if (!selectedVet || !selectedSlot) return;
+                processRazorpayPayment({
+                  amount: selectedVet.fee,
+                  receipt: `receipt_vet_${Date.now()}`,
+                  name: `Vet Consultation - ${selectedVet.name}`,
+                  description: `Consultation fee for ${newPetInput ? customPetName : selectedPetName}`,
+                  prefill: {
+                    name: user?.fullName || '',
+                    email: user?.email || '',
+                    contact: user?.phone || '',
+                  },
+                  onSuccess: () => {
+                    handleConfirmAppointment();
+                  }
+                });
+              }}
+              className="w-full py-3.5 bg-[#072654] hover:bg-[#0c3570] text-white text-xs font-extrabold rounded-2xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              💳 Pay ₹{selectedVet.fee} Online (Razorpay) <span>→</span>
+            </button>
+            
+            <button 
+              onClick={handleConfirmAppointment}
+              className="w-full py-2.5 bg-white border border-[#EBE3D5] hover:bg-stone-50 text-stone-600 text-xs font-bold rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              Pay at Clinic / Book Direct
+            </button>
+          </div>
 
         </div>
       )}

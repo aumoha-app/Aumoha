@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE } from '../lib/api';
+import { processRazorpayPayment } from '../lib/razorpay';
 import AgoraCallModal from './AgoraCallModal';
 import CallSessionButton from './CallSessionButton';
+
 
 // Interfaces matching backend models
 interface Slot {
@@ -1680,13 +1682,38 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                   </div>
                 </div>
 
-                <div className="px-4 pb-4">
+                <div className="px-4 pb-4 flex flex-col gap-2">
+                  <button
+                    onClick={() => {
+                      if (!selectedSlot || !(newPetInput ? customPetName : selectedPetName).trim()) return;
+                      const petName = newPetInput ? customPetName : selectedPetName;
+                      processRazorpayPayment({
+                        amount: selectedExpert.fee,
+                        receipt: `receipt_exp_${Date.now()}`,
+                        name: `Specialist Consult - ${selectedExpert.name}`,
+                        description: `Session fee for ${petName} (${selectedExpert.specialisation})`,
+                        prefill: {
+                          name: user?.fullName || '',
+                          email: user?.email || '',
+                          contact: user?.phone || '',
+                        },
+                        onSuccess: () => {
+                          handleConfirmBooking();
+                        }
+                      });
+                    }}
+                    disabled={!selectedSlot || !(newPetInput ? customPetName : selectedPetName).trim()}
+                    className="w-full py-3 bg-[#072654] hover:bg-[#0c3570] disabled:bg-stone-200 disabled:text-stone-400 disabled:cursor-not-allowed text-white text-xs font-extrabold rounded-2xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    💳 Pay ₹{selectedExpert.fee} Online (Razorpay) <span>→</span>
+                  </button>
+                  
                   <button
                     onClick={handleConfirmBooking}
                     disabled={!selectedSlot || !(newPetInput ? customPetName : selectedPetName).trim()}
-                    className="w-full py-3.5 bg-terracotta hover:bg-[#c2502f] disabled:bg-stone-200 disabled:text-stone-400 disabled:cursor-not-allowed text-white text-[13px] font-bold rounded-2xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                    className="w-full py-2.5 bg-white border border-[#EBE3D5] hover:bg-stone-50 disabled:bg-stone-200 disabled:text-stone-400 disabled:cursor-not-allowed text-stone-600 text-xs font-bold rounded-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    Confirm Booking <span className="text-base">→</span>
+                    Confirm Booking (Pay Later)
                   </button>
                 </div>
               </div>

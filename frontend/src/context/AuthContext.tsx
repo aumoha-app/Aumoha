@@ -10,6 +10,8 @@ interface AuthContextType {
   user: UserProfile | null;
   token: string | null;
   loading: boolean;
+  isProvider: boolean;
+  vetProfile: any | null;
   isNewUser: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
@@ -54,6 +56,8 @@ const getIsLoggedIn = (): boolean => {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(() => getCachedProfile());
   const [token, setToken] = useState<string | null>(() => getCachedToken());
+  const [isProvider, setIsProvider] = useState(false);
+  const [vetProfile, setVetProfile] = useState<any | null>(null);
   const [firebaseUser, setFirebaseUser] = useState<AuthUser | null>(() => {
     const cachedProfile = getCachedProfile();
     const cachedToken = getCachedToken();
@@ -138,6 +142,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             localStorage.setItem('aumoha_profile_data', JSON.stringify(data.user));
             localStorage.setItem('aumoha_is_logged_in', 'true');
           }
+          // Check if this user is a vet/expert provider (non-blocking)
+          checkProviderStatus(idToken || '');
         }
       } else {
         console.error('Failed to sync profile from MongoDB backend');
@@ -152,6 +158,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         console.warn('Profile sync failed. Operating on cached local data:', error.message || error);
       }
+    }
+  };
+
+  // Check if this user is a vet/expert by calling /api/provider/me
+  const checkProviderStatus = async (idToken: string) => {
+    if (!idToken) return;
+    try {
+      const res = await fetch(`${API_BASE}/provider/me`, {
+        headers: { Authorization: `Bearer ${idToken}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.status === 'success' && data.provider) {
+          setIsProvider(true);
+          setVetProfile(data.provider);
+        } else {
+          setIsProvider(false);
+          setVetProfile(null);
+        }
+      } else {
+        setIsProvider(false);
+        setVetProfile(null);
+      }
+    } catch {
+      setIsProvider(false);
+      setVetProfile(null);
     }
   };
 
@@ -316,6 +348,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         token,
         loading,
         isNewUser,
+        isProvider,
+        vetProfile,
         signIn,
         signInWithGoogle,
         signUp,

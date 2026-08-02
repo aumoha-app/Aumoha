@@ -15,12 +15,24 @@ import ActivityPost from './models/activityModel';
 import CallSession from './models/callSessionModel';
 import { sendEmail, generateBookingEmailHtml, generateDonationEmailHtml } from './lib/emailService';
 import { v2 as cloudinary } from 'cloudinary';
+import Razorpay from 'razorpay';
+import crypto from 'crypto';
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5001;
+
+// Initialize Razorpay SDK
+const razorpayKeyId = process.env.RAZORPAY_KEY_ID || 'rzp_test_TKxpLxhMCofQDL';
+const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET || 'MPAWug6Bpo3GMoME6SLmC11b';
+
+const razorpay = new Razorpay({
+  key_id: razorpayKeyId,
+  key_secret: razorpayKeySecret,
+});
+
 
 // Initialize Firebase Admin (Supports service account cert or public certificate key verification)
 const projectId = process.env.FIREBASE_PROJECT_ID || 'aumoha-2a158';
@@ -637,10 +649,111 @@ app.get('/api/info', (req: Request, res: Response) => {
       'Add to Home Screen',
       'Push notification ready structure',
       'MongoDB Integration',
-      'Firebase Authentication'
+      'Firebase Authentication',
+      'Razorpay Payment Gateway'
     ]
   });
 });
+
+/**
+ * POST /api/create-order
+ * Creates a Razorpay payment order
+ */
+app.post('/api/create-order', async (req: Request, res: Response) => {
+  try {
+    const { amount, currency = 'INR', receipt, notes } = req.body;
+
+    if (amount === undefined || amount === null) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Amount is required'
+      });
+    }
+
+    // Frontend always sends amount in Rupees (e.g. 400 for ₹400). Convert to paise.
+    const numericAmount = Number(amount);
+    const amountInPaise = Math.round(numericAmount * 100);
+
+    if (amountInPaise < 100) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Minimum order amount must be at least ₹1 (100 paise)'
+      });
+    }
+
+    const options = {
+      amount: amountInPaise,
+      currency: (currency || 'INR').toUpperCase(),
+      receipt: receipt || `receipt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      notes: notes || { app: 'Aumoha PWA' }
+    };
+
+    console.log(`💳 Creating Razorpay Order: Amount = ${amountInPaise} paise (${currency})`);
+    const order = await razorpay.orders.create(options);
+
+    return res.status(200).json({
+      status: 'success',
+      order_id: order.id,
+      amount: order.amount,
+      currency: order.currency,
+      key_id: razorpayKeyId
+    });
+  } catch (error: any) {
+    console.error('❌ Razorpay Order Creation Error:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: error?.description || error?.message || 'Failed to create Razorpay order'
+    });
+  }
+});
+
+/**
+ * POST /api/verify-payment
+ * Verifies Razorpay payment signature using HMAC-SHA256
+ */
+app.post('/api/verify-payment', async (req: Request, res: Response) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Missing required Razorpay verification fields (razorpay_order_id, razorpay_payment_id, razorpay_signature)'
+      });
+    }
+
+    const bodyData = razorpay_order_id + '|' + razorpay_payment_id;
+    const expectedSignature = crypto
+      .createHmac('sha256', razorpayKeySecret)
+      .update(bodyData.toString())
+      .digest('hex');
+
+    const isSignatureValid = expectedSignature === razorpay_signature;
+
+    if (isSignatureValid) {
+      console.log(`✅ Razorpay Payment Verified Successfully: Order ID ${razorpay_order_id}, Payment ID ${razorpay_payment_id}`);
+      return res.status(200).json({
+        status: 'success',
+        message: 'Payment verified successfully',
+        order_id: razorpay_order_id,
+        payment_id: razorpay_payment_id
+      });
+    } else {
+      console.error(`❌ Razorpay Signature Verification Failed for Order ${razorpay_order_id}`);
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid payment signature verification failed'
+      });
+    }
+  } catch (error: any) {
+    console.error('❌ Razorpay Verification Error:', error);
+    return res.status(500).json({
+      status: 'error',
+      message: error?.message || 'Payment verification failed'
+    });
+  }
+});
+
 
 /**
  * GET /api/auth/me
@@ -3221,7 +3334,150 @@ app.post('/api/donations', authMiddleware, async (req: Request, res: Response) =
   }
 });
 
+
+// ==================== PROVIDER (VET/EXPERT) SELF-SERVICE ENDPOINTS ====================
+
+/**
+ * GET /api/provider/me
+ * Returns the vet/expert profile for the authenticated user (matched by email),
+ * plus all appointments where they are the provider.
+ */
+app.get('/api/provider/me', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userEmail = req.user?.email;
+    if (!userEmail) {
+      return res.status(401).json({ status: 'error', message: 'Authentication required' });
+    }
+
+    // Look up vet/expert by email
+    let vetProfile: any = null;
+    if (mongoose.connection.readyState === 1) {
+      vetProfile = await Vet.findOne({ email: { $regex: new RegExp(`^${userEmail}$`, 'i') } }).lean();
+    } else {
+      // Fallback: check in-memory
+      const { fallbackVets } = await import('./index') as any;
+      vetProfile = fallbackVets?.find((v: any) => v.email?.toLowerCase() === userEmail.toLowerCase()) || null;
+    }
+
+    if (!vetProfile) {
+      return res.status(404).json({ status: 'error', message: 'No provider profile found for this account' });
+    }
+
+    // Fetch all appointments for this vet
+    let appointments: any[] = [];
+    if (mongoose.connection.readyState === 1) {
+      appointments = await Appointment.find({ vetId: String(vetProfile._id) })
+        .sort({ createdAt: -1 })
+        .lean();
+    }
+
+    // Compute earnings summary
+    const confirmedAppts = appointments.filter((a: any) => a.status === 'confirmed');
+    const totalEarnings = confirmedAppts.reduce((sum: number, a: any) => sum + (a.fee || 0), 0);
+    const upcomingAppts = appointments.filter((a: any) => a.status !== 'cancelled');
+
+    return res.json({
+      status: 'success',
+      provider: vetProfile,
+      appointments,
+      summary: {
+        total: appointments.length,
+        confirmed: confirmedAppts.length,
+        upcoming: upcomingAppts.length,
+        totalEarnings
+      }
+    });
+  } catch (error) {
+    console.error('Error in GET /api/provider/me:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * PUT /api/provider/slots
+ * Allows the authenticated vet/expert to update their available slots.
+ * Body: { slots: [{ date: string, time: string }] }
+ */
+app.put('/api/provider/slots', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userEmail = req.user?.email;
+    if (!userEmail) {
+      return res.status(401).json({ status: 'error', message: 'Authentication required' });
+    }
+
+    const { slots } = req.body;
+    if (!Array.isArray(slots)) {
+      return res.status(400).json({ status: 'error', message: '`slots` must be an array of { date, time } objects' });
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({ status: 'error', message: 'Database unavailable. Cannot update slots offline.' });
+    }
+
+    const vet = await Vet.findOne({ email: { $regex: new RegExp(`^${userEmail}$`, 'i') } });
+    if (!vet) {
+      return res.status(404).json({ status: 'error', message: 'Provider profile not found' });
+    }
+
+    // Build slot objects, preserving booking status for existing slots
+    const newSlots = slots.map((s: any, idx: number) => ({
+      _id: new mongoose.Types.ObjectId(),
+      date: String(s.date || '').trim(),
+      time: String(s.time || '').trim(),
+      isBooked: false,
+      bookedBy: null
+    })).filter((s: any) => s.date && s.time);
+
+    vet.availableSlots = newSlots as any;
+    await vet.save();
+
+    return res.json({ status: 'success', message: 'Slots updated successfully', slots: vet.availableSlots });
+  } catch (error) {
+    console.error('Error in PUT /api/provider/slots:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * PUT /api/provider/availability
+ * Toggles the vet/expert's isOnline status.
+ * Body: { isOnline: boolean }
+ */
+app.put('/api/provider/availability', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userEmail = req.user?.email;
+    if (!userEmail) {
+      return res.status(401).json({ status: 'error', message: 'Authentication required' });
+    }
+
+    const { isOnline } = req.body;
+    if (typeof isOnline !== 'boolean') {
+      return res.status(400).json({ status: 'error', message: '`isOnline` must be a boolean' });
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({ status: 'error', message: 'Database unavailable.' });
+    }
+
+    const vet = await Vet.findOneAndUpdate(
+      { email: { $regex: new RegExp(`^${userEmail}$`, 'i') } },
+      { $set: { isOnline } },
+      { new: true }
+    );
+
+    if (!vet) {
+      return res.status(404).json({ status: 'error', message: 'Provider profile not found' });
+    }
+
+    return res.json({ status: 'success', isOnline: vet.isOnline });
+  } catch (error) {
+    console.error('Error in PUT /api/provider/availability:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
 // Start server
+
 app.listen(PORT, () => {
   console.log(`🚀 Aumoha Backend Server running on http://localhost:${PORT}`);
   console.log(`📡 Health-check API endpoint active at http://localhost:${PORT}/health`);

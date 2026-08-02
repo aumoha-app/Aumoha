@@ -59,7 +59,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // TAB NAVIGATION & SOS STATES
-  const [currentTab, setCurrentTab] = useState<'products' | 'sos' | 'settings' | 'community' | 'calls'>('sos');
+  const [currentTab, setCurrentTab] = useState<'products' | 'sos' | 'settings' | 'community' | 'calls' | 'vets'>('sos');
   const [sosReports, setSosReports] = useState<SosReport[]>([]);
   const [isSosLoading, setIsSosLoading] = useState(false);
 
@@ -139,6 +139,78 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
   const [isSettingsSaving, setIsSettingsSaving] = useState(false);
   const [settingsError, setSettingsError] = useState<string | null>(null);
   const [settingsSuccess, setSettingsSuccess] = useState<boolean>(false);
+
+  // Vets & Experts management state
+  const [vets, setVets] = useState<any[]>([]);
+  const [isVetsLoading, setIsVetsLoading] = useState(false);
+  const [editingVetId, setEditingVetId] = useState<string | null>(null);
+  const [editVetFee, setEditVetFee] = useState('');
+  const [editVetName, setEditVetName] = useState('');
+  const [editVetIsOnline, setEditVetIsOnline] = useState(false);
+  const [isSavingVet, setIsSavingVet] = useState(false);
+  const [vetsError, setVetsError] = useState<string | null>(null);
+
+  const fetchVets = async () => {
+    setIsVetsLoading(true);
+    setVetsError(null);
+    try {
+      const res = await fetch(`${API_BASE}/vets`);
+      if (res.ok) {
+        const data = await res.json();
+        setVets(data.vets || []);
+      } else {
+        setVetsError('Failed to load vets/experts.');
+      }
+    } catch {
+      setVetsError('Network error loading vets/experts.');
+    } finally {
+      setIsVetsLoading(false);
+    }
+  };
+
+  const startEditVet = (vet: any) => {
+    setEditingVetId(vet._id);
+    setEditVetFee(String(vet.fee));
+    setEditVetName(vet.name);
+    setEditVetIsOnline(!!vet.isOnline);
+  };
+
+  const cancelEditVet = () => {
+    setEditingVetId(null);
+    setEditVetFee('');
+    setEditVetName('');
+    setVetsError(null);
+  };
+
+  const handleSaveVet = async (vetId: string) => {
+    const feeNum = Number(editVetFee);
+    if (!editVetName.trim()) { setVetsError('Name cannot be empty.'); return; }
+    if (isNaN(feeNum) || feeNum < 1) { setVetsError('Fee must be a positive number (₹).'); return; }
+    setIsSavingVet(true);
+    setVetsError(null);
+    try {
+      const res = await fetch(`${API_BASE}/vets/${vetId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'X-Admin-Password': adminPassword
+        },
+        body: JSON.stringify({ name: editVetName, fee: feeNum, isOnline: editVetIsOnline })
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        setVets(prev => prev.map(v => v._id === vetId ? { ...v, name: editVetName, fee: feeNum, isOnline: editVetIsOnline } : v));
+        cancelEditVet();
+      } else {
+        setVetsError(data.message || 'Failed to save changes.');
+      }
+    } catch {
+      setVetsError('Network error saving vet.');
+    } finally {
+      setIsSavingVet(false);
+    }
+  };
 
   const fetchProducts = async (password: string) => {
     setIsLoading(true);
@@ -386,6 +458,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
       fetchSosReports(true);
       fetchCheckoutSettings();
       fetchActivities(true);
+      fetchVets();
       const interval = setInterval(() => {
         fetchSosReports(false);
       }, 10000); // Poll every 10 seconds
@@ -776,6 +849,21 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
           }`}
         >
           Manage Products
+        </button>
+        <button
+          onClick={() => setCurrentTab('vets')}
+          className={`px-5 py-2.5 text-xs font-bold transition-all border-b-2 cursor-pointer flex items-center gap-1.5 ${
+            currentTab === 'vets'
+              ? 'border-[#072654] text-[#072654]'
+              : 'border-transparent text-stone-400 hover:text-[#072654]'
+          }`}
+        >
+          <span>🩺 Vets & Experts</span>
+          {vets.length > 0 && (
+            <span className="bg-[#072654]/10 text-[#072654] text-[8px] px-1.5 py-0.5 rounded-full font-extrabold">
+              {vets.length}
+            </span>
+          )}
         </button>
         <button
           onClick={() => setCurrentTab('settings')}
@@ -1348,6 +1436,135 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
           ) : (
             <div className="text-center py-12 border border-dashed border-[#EBE3D5] rounded-[24px] select-none bg-[#FCFAF7]">
               <p className="text-xs text-stone-400 font-semibold">No emergency alerts registered in database logs.</p>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* ======================= VETS & EXPERTS TAB ======================= */}
+      {currentTab === 'vets' && (
+        <section className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-[24px] p-5 md:p-6 flex flex-col gap-4 shadow-sm">
+          <div className="flex items-center justify-between border-b border-[#EBE3D5]/80 pb-2.5">
+            <div>
+              <h2 className="font-serif text-lg text-[#1C1A17] font-normal">Manage Vets & Experts</h2>
+              <p className="text-[11px] text-stone-400 font-medium mt-0.5">Edit consultation fees, names, and availability status for all registered vets and specialists.</p>
+            </div>
+            <button
+              onClick={fetchVets}
+              className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 rounded-xl text-xs font-bold text-stone-700 transition-all cursor-pointer"
+            >
+              🔄 Refresh
+            </button>
+          </div>
+
+          {vetsError && (
+            <div className="bg-[#FDEDEC] border border-[#F5C2C2] text-[#C0392B] rounded-xl px-4 py-2.5 text-xs font-semibold">
+              {vetsError}
+            </div>
+          )}
+
+          {isVetsLoading ? (
+            <div className="flex flex-col items-center justify-center py-10 gap-3 text-stone-400 select-none">
+              <div className="w-7 h-7 rounded-full border-2 border-stone-200 border-t-[#072654] animate-spin" />
+              <p className="text-[10px] font-semibold">Loading vets & experts...</p>
+            </div>
+          ) : vets.length === 0 ? (
+            <div className="text-center py-12 bg-stone-50 rounded-2xl border border-dashed border-stone-200">
+              <p className="text-xs font-bold text-stone-400">No vets or experts found in the database.</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {vets.map((vet) => (
+                <div key={vet._id} className="bg-white border border-[#EBE3D5] rounded-2xl p-4 flex flex-col gap-3 shadow-sm hover:shadow-md transition-all">
+                  {editingVetId === vet._id ? (
+                    /* EDIT MODE */
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center gap-3">
+                        <img src={vet.photo || '/sairaj_avatar.png'} alt={vet.name} className="w-10 h-10 rounded-full object-cover border-2 border-[#EBE3D5] shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[10px] text-stone-400 font-bold uppercase tracking-wider mb-1">Name</p>
+                          <input
+                            type="text"
+                            value={editVetName}
+                            onChange={e => setEditVetName(e.target.value)}
+                            className="w-full bg-stone-50 rounded-xl py-1.5 px-3 text-xs text-[#1C1A17] border border-[#EBE3D5] focus:border-[#072654] focus:ring-1 focus:ring-[#072654]/30 outline-none transition-all"
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <p className="text-[10px] text-stone-400 font-bold uppercase tracking-wider mb-1">Consultation Fee (₹)</p>
+                          <input
+                            type="number"
+                            min="1"
+                            value={editVetFee}
+                            onChange={e => setEditVetFee(e.target.value)}
+                            className="w-full bg-stone-50 rounded-xl py-1.5 px-3 text-xs text-[#1C1A17] border border-[#EBE3D5] focus:border-[#072654] focus:ring-1 focus:ring-[#072654]/30 outline-none transition-all"
+                          />
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-stone-400 font-bold uppercase tracking-wider mb-1">Availability</p>
+                          <button
+                            type="button"
+                            onClick={() => setEditVetIsOnline(v => !v)}
+                            className={`w-full py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                              editVetIsOnline
+                                ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                                : 'bg-stone-50 border-stone-200 text-stone-500'
+                            }`}
+                          >
+                            {editVetIsOnline ? '🟢 Online / Available' : '⚫ Offline'}
+                          </button>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          type="button"
+                          onClick={cancelEditVet}
+                          className="px-4 py-1.5 text-xs font-bold text-stone-500 bg-stone-100 hover:bg-stone-200 rounded-xl transition-all cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSaveVet(vet._id)}
+                          disabled={isSavingVet}
+                          className="px-4 py-1.5 text-xs font-bold text-white bg-[#072654] hover:bg-[#0c3570] disabled:opacity-60 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          {isSavingVet ? <><span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />Saving...</> : '✓ Save Changes'}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    /* VIEW MODE */
+                    <div className="flex items-center gap-3">
+                      <img src={vet.photo || '/sairaj_avatar.png'} alt={vet.name} className="w-10 h-10 rounded-full object-cover border-2 border-[#EBE3D5] shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-extrabold text-[#1C1A17]">{vet.name}</span>
+                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                            vet.isOnline ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500'
+                          }`}>{vet.isOnline ? '🟢 Online' : '⚫ Offline'}</span>
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[#072654]/10 text-[#072654]">
+                            {vet.category === 'vet' ? 'Veterinarian' : vet.category}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-stone-400 mt-0.5">{vet.specialisation} · {vet.experience}yr exp</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-sm font-extrabold text-[#2D4536]">₹{vet.fee}</p>
+                        <p className="text-[9px] text-stone-400">per session</p>
+                      </div>
+                      <button
+                        onClick={() => startEditVet(vet)}
+                        className="ml-1 px-3 py-1.5 text-[10px] font-bold text-[#072654] bg-[#072654]/10 hover:bg-[#072654]/20 rounded-xl transition-all cursor-pointer shrink-0"
+                      >
+                        ✏️ Edit
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           )}
         </section>

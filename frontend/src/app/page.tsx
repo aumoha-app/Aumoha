@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AppShell from '../components/AppShell';
 import MinimalHome from '../components/MinimalHome';
@@ -7,7 +8,14 @@ import { useAuth } from '../context/AuthContext';
 
 export default function Home() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isProvider, loading } = useAuth();
+
+  // Auto-redirect vets/experts to their provider dashboard
+  useEffect(() => {
+    if (!loading && isProvider) {
+      router.replace('/provider');
+    }
+  }, [isProvider, loading, router]);
 
   return (
     <AppShell backdropImage="/backdrop-sunlight.png">

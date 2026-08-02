@@ -1,7 +1,9 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { processRazorpayPayment } from '../lib/razorpay';
+
 
 interface CartItem {
   id: string | number;
@@ -62,6 +64,37 @@ export default function CartDrawer({
     }
     return sum;
   }, 0);
+
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+
+  const handleRazorpayPay = () => {
+    if (subtotal <= 0) return;
+    setIsProcessingPayment(true);
+
+    processRazorpayPayment({
+      amount: subtotal,
+      receipt: `receipt_cart_${Date.now()}`,
+      name: 'Aumoha Marketplace',
+      description: `Purchase of ${totalItems} item${totalItems !== 1 ? 's' : ''}`,
+      prefill: {
+        name: user?.fullName || '',
+        email: user?.email || '',
+        contact: user?.phone || '',
+      },
+      onSuccess: (paymentData) => {
+        setIsProcessingPayment(false);
+        alert(`🎉 Payment Successful!\nPayment ID: ${paymentData.payment_id}\nOrder ID: ${paymentData.order_id}`);
+        onClearCart();
+        onClose();
+      },
+      onFailure: () => {
+        setIsProcessingPayment(false);
+      },
+      onDismiss: () => {
+        setIsProcessingPayment(false);
+      }
+    });
+  };
 
   const handleCheckout = () => {
     if (!checkoutPhone) return;
@@ -301,22 +334,32 @@ Please confirm my order. Thank you!`;
               </div>
             </div>
 
-            {/* Checkout button or Maintenance state */}
-            {!checkoutPhone ? (
-              <div className="w-full py-3.5 px-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl text-xs font-semibold text-center select-none leading-relaxed">
-                ⚠️ Currently this service is under maintenance
-              </div>
-            ) : (
+            {/* Checkout buttons */}
+            <div className="flex flex-col gap-2.5">
               <button 
-                onClick={handleCheckout}
-                className="w-full py-3.5 bg-[#2A3E31] hover:bg-[#1E2E24] active:scale-[0.98] text-white font-bold text-sm rounded-2xl transition-all duration-200 cursor-pointer shadow-md shadow-[#2A3E31]/20 flex items-center justify-center gap-2"
+                onClick={handleRazorpayPay}
+                disabled={isProcessingPayment}
+                className="w-full py-3.5 bg-[#072654] hover:bg-[#0c3570] disabled:bg-stone-300 active:scale-[0.98] text-white font-extrabold text-sm rounded-2xl transition-all duration-200 cursor-pointer shadow-md flex items-center justify-center gap-2"
               >
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <rect x="2" y="5" width="20" height="14" rx="2" />
+                  <line x1="2" y1="10" x2="22" y2="10" />
                 </svg>
-                Checkout via WhatsApp
+                {isProcessingPayment ? 'Processing Payment...' : `Pay ₹${subtotal} Online (Razorpay)`}
               </button>
-            )}
+
+              {checkoutPhone && (
+                <button 
+                  onClick={handleCheckout}
+                  className="w-full py-3 bg-[#2A3E31] hover:bg-[#1E2E24] active:scale-[0.98] text-white font-bold text-xs rounded-2xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                  </svg>
+                  Checkout via WhatsApp
+                </button>
+              )}
+            </div>
 
             {/* Continue shopping link */}
             <button
