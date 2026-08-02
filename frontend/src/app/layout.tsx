@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Outfit, Geist_Mono, Playfair_Display } from "next/font/google";
+import { Outfit, Geist_Mono, Playfair_Display, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import PWARegistration from "../components/PWARegistration";
 import { AuthProvider } from "../context/AuthContext";
@@ -12,6 +12,12 @@ const outfit = Outfit({
 const playfair = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
+});
+
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 const geistMono = Geist_Mono({
@@ -48,7 +54,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${outfit.variable} ${playfair.variable} ${geistMono.variable}`}>
+    <html lang="en" className={`${outfit.variable} ${playfair.variable} ${cormorant.variable} ${geistMono.variable}`}>
       <body>
         <PWARegistration />
         <AuthProvider>
