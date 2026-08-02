@@ -859,7 +859,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
           {/* CATEGORY HERO BANNER HEADER */}
           <div className="bg-white border border-[#F0EBE1] rounded-[28px] p-5 md:p-6 shadow-sm flex items-center justify-between gap-4">
             <div className="flex flex-col items-start min-w-0">
-              <span className="text-[10px] bg-[#FAF2EE] border border-[#F5DFD8] text-terracotta font-extrabold uppercase rounded-full px-3 py-1 tracking-wider shadow-3xs">
+              <span className="text-[10px] bg-[#E8F0EA] border border-[#2D4536]/20 text-[#2D4536] font-extrabold uppercase rounded-full px-3 py-1 tracking-wider shadow-3xs">
                 Specialist Directory
               </span>
               <h2 className="text-xl md:text-2xl font-serif text-charcoal font-normal mt-2 leading-tight">
@@ -869,7 +869,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                 {activeCategoryConfig.subtitle}
               </p>
             </div>
-            <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-[#FAF2EE] border border-[#F5DFD8] flex items-center justify-center shrink-0 shadow-sm text-terracotta">
+            <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-[#E8F0EA] border border-[#2D4536]/20 flex items-center justify-center shrink-0 shadow-sm text-[#2D4536]">
               {activeCategoryConfig.icon}
             </div>
           </div>
@@ -880,7 +880,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
               onClick={() => setListingSubFilter(null)}
               className={`px-4 py-2 border rounded-full text-xs font-bold shrink-0 transition-all cursor-pointer active:scale-95 shadow-xs ${
                 listingSubFilter === null 
-                  ? 'bg-terracotta border-terracotta text-white shadow-sm' 
+                  ? 'bg-[#2D4536] border-[#2D4536] text-white shadow-sm' 
                   : 'bg-white border-[#F0EBE1] text-stone-600 hover:border-stone-300 hover:bg-stone-50'
               }`}
             >
@@ -892,7 +892,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                 onClick={() => setListingSubFilter(subF)}
                 className={`px-4 py-2 border rounded-full text-xs font-bold shrink-0 transition-all cursor-pointer active:scale-95 shadow-xs ${
                   listingSubFilter === subF
-                    ? 'bg-terracotta border-terracotta text-white shadow-sm' 
+                    ? 'bg-[#2D4536] border-[#2D4536] text-white shadow-sm' 
                     : 'bg-white border-[#F0EBE1] text-stone-600 hover:border-stone-300 hover:bg-stone-50'
                 }`}
               >
@@ -911,23 +911,36 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
               </div>
             ) : listedExperts.map((exp, index) => {
               const isTagForwardVariant = index % 2 === 0;
+              const photoUrl = exp.photo || (exp as any).image || (exp as any).avatar || (exp as any).profilePic;
 
               return (
                 <div 
                   key={exp._id}
-                  className="bg-white border border-[#F0EBE1] hover:border-terracotta/20 hover:shadow-[0_8px_30px_rgb(217,93,57,0.05)] rounded-[28px] p-5 md:p-6 flex flex-col gap-4 shadow-sm transition-all duration-300"
+                  className="bg-white border border-[#F0EBE1] hover:border-[#2D4536]/30 hover:shadow-[0_8px_30px_rgba(45,69,54,0.06)] rounded-[28px] p-5 md:p-6 flex flex-col gap-4 shadow-sm transition-all duration-300"
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3.5">
-                      {/* Avatar */}
-                      <div className="w-13 h-13 md:w-14 md:h-14 rounded-full overflow-hidden bg-stone-100 border border-[#F0EBE1] relative shrink-0">
-                        {exp.photo ? (
-                          <img src={exp.photo} alt={exp.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-[#E2E8F0] to-[#CBD5E1] flex items-center justify-center text-stone-600 font-bold text-base">
-                            {exp.name[0]}
-                          </div>
-                        )}
+                      {/* Avatar with resilient photo & initials fallback */}
+                      <div className="w-13 h-13 md:w-14 md:h-14 rounded-full overflow-hidden bg-[#E8F0EA] border border-[#2D4536]/20 relative shrink-0 flex items-center justify-center">
+                        {photoUrl ? (
+                          <img 
+                            src={photoUrl} 
+                            alt={exp.name} 
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLElement).style.display = 'none';
+                              const fallbackEl = (e.target as HTMLElement).nextElementSibling as HTMLElement;
+                              if (fallbackEl) fallbackEl.style.display = 'flex';
+                            }}
+                          />
+                        ) : null}
+                        <div 
+                          className={`w-full h-full bg-gradient-to-br from-[#E8F0EA] to-[#D4E4D7] flex items-center justify-center text-[#2D4536] font-extrabold text-base ${
+                            photoUrl ? 'hidden' : 'flex'
+                          }`}
+                        >
+                          {exp.name ? exp.name.charAt(0).toUpperCase() : 'E'}
+                        </div>
                         {exp.isOnline && (
                           <span className="absolute bottom-0.5 right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white"></span>
                         )}
@@ -937,7 +950,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                       <div>
                         <h4 className="text-sm md:text-base font-bold text-charcoal flex items-center gap-1.5 leading-snug">
                           {exp.name}
-                          <svg className="w-4 h-4 text-blue-500 fill-current" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 text-[#2D4536] fill-current" viewBox="0 0 24 24">
                             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                           </svg>
                         </h4>
@@ -956,13 +969,13 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                     {!isTagForwardVariant && (
                       <div className="text-right flex flex-col items-end gap-0.5 shrink-0">
                         <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider">Starts at</span>
-                        <span className="text-base font-extrabold text-terracotta">₹{exp.fee}</span>
+                        <span className="text-base font-extrabold text-[#2D4536]">₹{exp.fee}</span>
                       </div>
                     )}
                   </div>
 
                   {exp.bio && (
-                    <p className="text-xs md:text-sm text-stone-600 leading-relaxed font-medium pl-3 border-l-2 border-terracotta/40">
+                    <p className="text-xs md:text-sm text-stone-600 leading-relaxed font-medium pl-3 border-l-2 border-[#2D4536]/40">
                       {exp.bio}
                     </p>
                   )}
@@ -974,7 +987,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                         key={tag} 
                         className={`text-[11px] md:text-xs font-bold px-3 py-1.5 rounded-full border transition-colors ${
                           tIdx === 1
-                            ? 'bg-[#FAF2EE] border-[#F5DFD8] text-terracotta'
+                            ? 'bg-[#E8F0EA] border-[#2D4536]/20 text-[#2D4536]'
                             : 'bg-white border-[#F0EBE1] text-stone-600'
                         }`}
                       >
@@ -991,7 +1004,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                     </div>
                     <button
                       onClick={() => handleSelectExpert(exp)}
-                      className="px-6 py-2.5 bg-terracotta hover:bg-[#c2502f] text-white text-xs md:text-sm font-bold rounded-full transition-all shadow-sm hover:shadow active:scale-95 cursor-pointer"
+                      className="px-6 py-2.5 bg-[#2D4536] hover:bg-[#1E2E24] text-white text-xs md:text-sm font-bold rounded-full transition-all shadow-sm hover:shadow active:scale-95 cursor-pointer"
                     >
                       View Profile & Book
                     </button>
