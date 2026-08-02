@@ -154,43 +154,65 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
   };
 
   const toggleJoinActivity = async (activityId: string, title: string) => {
-    if (!token) return;
-    const isCurrentlyJoined = joinedActivities.includes(activityId);
+    const stringId = String(activityId);
+    const isCurrentlyJoined = joinedActivities.map(String).includes(stringId);
     const action = isCurrentlyJoined ? 'leave' : 'join';
-    try {
-      const res = await fetch(`${API_BASE}/activities/${activityId}/${action}`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`
+
+    // 1. Update joinedActivities array immediately
+    setJoinedActivities(prev => {
+      const updated = isCurrentlyJoined 
+        ? prev.filter(id => String(id) !== stringId) 
+        : [...prev, stringId];
+      localStorage.setItem('joinedActivities', JSON.stringify(updated));
+      return updated;
+    });
+
+    // 2. Update selectedBlog joinees list immediately
+    if (selectedBlog && String(selectedBlog.id) === stringId) {
+      setSelectedBlog(prev => {
+        if (!prev) return prev;
+        const currentJoinees = prev.joinees || [];
+        const userEmail = user?.email || 'helper@aumoha.org';
+        const userName = user?.fullName || 'Volunteer Helper';
+        const userPhone = user?.phone || '';
+        
+        let newJoinees;
+        if (isCurrentlyJoined) {
+          newJoinees = currentJoinees.filter(j => j.userEmail !== userEmail && j.userName !== userName);
+        } else {
+          newJoinees = [...currentJoinees, { 
+            userEmail, 
+            userName, 
+            userPhone, 
+            avatar: user?.profilePic || '' 
+          }];
         }
+        return {
+          ...prev,
+          joinees: newJoinees
+        };
       });
-      if (res.ok) {
-        const data = await res.json();
-        setJoinedActivities(prev => {
-          const updated = isCurrentlyJoined ? prev.filter(id => id !== activityId) : [...prev, activityId];
-          localStorage.setItem('joinedActivities', JSON.stringify(updated));
-          return updated;
+    }
+
+    // 3. Sync to backend if token exists
+    if (token) {
+      try {
+        const res = await fetch(`${API_BASE}/activities/${activityId}/${action}`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
         });
-
-        if (selectedBlog && selectedBlog.id === activityId) {
-          setSelectedBlog(prev => {
-            if (!prev) return prev;
-            return {
-              ...prev,
-              joinees: data.activity?.joinees || []
-            };
-          });
+        if (res.ok) {
+          const data = await res.json();
+          if (selectedBlog && String(selectedBlog.id) === stringId && data.activity?.joinees) {
+            setSelectedBlog(prev => (prev ? { ...prev, joinees: data.activity.joinees } : prev));
+          }
+          refreshUpdates();
         }
-
-        refreshUpdates();
-        alert(isCurrentlyJoined ? `Left activity: ${title}` : `Joined activity: ${title}!`);
-      } else {
-        const errData = await res.json();
-        alert(`Failed to update activity status: ${errData.message || 'Unknown error'}`);
+      } catch (err) {
+        console.warn('Failed to sync join activity with server:', err);
       }
-    } catch (err) {
-      console.error('Failed to toggle join activity:', err);
-      alert('Error updating activity status. Please try again.');
     }
   }; const [deviceCoords, setDeviceCoords] = useState<[number, number] | null>(null);
   const [deviceAddress, setDeviceAddress] = useState<string>('');
@@ -551,9 +573,10 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
     L.circle(center, {
       color: '#2D4536',
       fillColor: '#3D5A45',
-      fillOpacity: 0.12,
+      fillOpacity: 0.08,
       radius: 1200,
-      weight: 2
+      weight: 1,
+      opacity: 0.55
     }).addTo(map);
 
     const getPinColor = (role: string) => {

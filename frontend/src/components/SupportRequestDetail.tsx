@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { CommunityUpdate, CircleMember, MemberRole } from '../types';
 import { loadLeaflet } from '../lib/leafletLoader';
 import { CameraIcon, ShieldIcon, SirenIcon } from './icons/PetIcons';
+import { useAuth } from '../context/AuthContext';
 
 interface SupportRequestDetailProps {
   selectedRequest: CommunityUpdate;
@@ -20,6 +21,7 @@ export default function SupportRequestDetail({
   getCoordinatesForLocation,
   computedMembers
 }: SupportRequestDetailProps) {
+  const { incrementRescueCount } = useAuth();
   const detailMapRef = useRef<any>(null);
 
   // Help Modal States
@@ -99,11 +101,12 @@ export default function SupportRequestDetail({
 
       // Draw search radius ring
       L.circle(center, {
-        color: '#81C784',
-        fillColor: '#C8E6C9',
-        fillOpacity: 0.2,
+        color: '#2D4536',
+        fillColor: '#3D5A45',
+        fillOpacity: 0.08,
         radius: 1200,
-        weight: 1.5
+        weight: 1,
+        opacity: 0.55
       }).addTo(map);
 
       const getPinColor = (role: string) => {
@@ -615,6 +618,9 @@ export default function SupportRequestDetail({
                       href={`https://wa.me/${waPhone}?text=${encodeURIComponent(waText)}`}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={() => {
+                        incrementRescueCount();
+                      }}
                       className="py-3 border border-[#E8EFE9] bg-[#E8EFE9]/30 hover:border-[#2E7D32]/40 hover:bg-[#E8EFE9]/60 active:scale-98 text-[#2D4536] font-bold rounded-2xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer text-center"
                     >
                       <svg className="w-4 h-4 text-[#2E7D32] shrink-0" fill="currentColor" viewBox="0 0 24 24">

@@ -19,6 +19,7 @@ export interface IUser extends Document {
   address: string;
   profilePic?: string;
   role: 'rescuer' | 'normal' | 'admin';
+  rescueCount: number;
   pets: IPet[];
   createdAt: Date;
   updatedAt: Date;
@@ -48,6 +49,7 @@ const UserSchema: Schema = new Schema(
     address: { type: String, required: true },
     profilePic: { type: String, default: '' },
     role: { type: String, enum: ['rescuer', 'normal', 'admin'], default: 'normal' },
+    rescueCount: { type: Number, default: 0 },
     pets: { type: [PetSchema], default: [] },
   },
   {
