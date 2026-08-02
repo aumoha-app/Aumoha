@@ -21,15 +21,15 @@ export default function BlogDetailView({
   const getRoleColors = (role: MemberRole) => {
     switch (role) {
       case 'feeder':
-        return { bg: 'bg-[#FAF2EE]', text: 'text-terracotta', border: 'border-[#F5DFD8]', label: 'Feeder' };
+        return { bg: 'bg-[#E8F5E9]', text: 'text-[#2D4536]', border: 'border-[#C8E6C9]', label: 'Feeder' };
       case 'rescuer':
-        return { bg: 'bg-[#FAF2EE]', text: 'text-terracotta', border: 'border-[#F5DFD8]', label: 'Rescuer' };
+        return { bg: 'bg-[#E8F5E9]', text: 'text-[#2D4536]', border: 'border-[#C8E6C9]', label: 'Rescuer' };
       case 'volunteer':
-        return { bg: 'bg-[#FCFAF7]', text: 'text-clay', border: 'border-[#EBE3D5]', label: 'Volunteer' };
+        return { bg: 'bg-[#FCFAF7]', text: 'text-[#2D4536]', border: 'border-[#EBE3D5]', label: 'Volunteer' };
       case 'paravet':
-        return { bg: 'bg-[#FAF2EE]', text: 'text-terracotta', border: 'border-[#F5DFD8]', label: 'Paravet' };
+        return { bg: 'bg-[#E8F5E9]', text: 'text-[#2D4536]', border: 'border-[#C8E6C9]', label: 'Paravet' };
       case 'adopter':
-        return { bg: 'bg-[#FCFAF7]', text: 'text-clay', border: 'border-[#EBE3D5]', label: 'Foster Home' };
+        return { bg: 'bg-[#FCFAF7]', text: 'text-[#2D4536]', border: 'border-[#EBE3D5]', label: 'Foster Home' };
       default:
         return { bg: 'bg-[#F5F2EC]', text: 'text-stone-500', border: 'border-[#EBE3D5]', label: 'Member' };
     }
@@ -38,11 +38,11 @@ export default function BlogDetailView({
   const getCategoryDetails = (cat: string) => {
     switch (cat) {
       case 'feeding':
-        return { label: 'Feeding Drive', bg: 'bg-[#FAF2EE]', text: 'text-terracotta', icon: '🥣' };
+        return { label: 'Feeding Drive', bg: 'bg-[#E8F5E9]', text: 'text-[#2D4536]', icon: '🥣' };
       case 'event':
-        return { label: 'Community Event', bg: 'bg-[#FAF2EE]', text: 'text-terracotta', icon: '📅' };
+        return { label: 'Community Event', bg: 'bg-[#E8F5E9]', text: 'text-[#2D4536]', icon: '📅' };
       case 'awareness':
-        return { label: 'Info & Awareness', bg: 'bg-[#FCFAF7]', text: 'text-clay', icon: '📖' };
+        return { label: 'Info & Awareness', bg: 'bg-[#FCFAF7]', text: 'text-[#2D4536]', icon: '📖' };
       default:
         return { label: 'Community Update', bg: 'bg-[#F5F2EC]', text: 'text-stone-500', icon: '📣' };
     }
@@ -168,7 +168,7 @@ export default function BlogDetailView({
         {/* Structured Scheduled Time Card */}
         {scheduledTime && (
           <div className="flex items-center gap-3 bg-stone-50 border border-stone-200/60 rounded-xl p-3 md:p-3.5 w-fit">
-            <div className="w-8 h-8 rounded-lg bg-[#FAF2EE] border border-[#F5DFD8] flex items-center justify-center text-terracotta shrink-0 shadow-3xs">
+            <div className="w-8 h-8 rounded-lg bg-[#E8F5E9] border border-[#C8E6C9] flex items-center justify-center text-[#2D4536] shrink-0 shadow-3xs">
               <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -239,7 +239,7 @@ export default function BlogDetailView({
               className={`w-full py-3.5 rounded-2xl text-xs sm:text-sm font-extrabold transition-all active:scale-98 cursor-pointer ${
                 isJoined 
                   ? 'bg-stone-50 border border-stone-200 hover:bg-stone-100 text-stone-600 shadow-sm' 
-                  : 'bg-terracotta hover:bg-[#c2502f] text-white shadow-[0_4px_14px_rgba(217,93,57,0.2)] hover:shadow-[0_6px_20px_rgba(217,93,57,0.3)]'
+                  : 'bg-[#2D4536] hover:bg-[#1F3325] text-white shadow-xs hover:shadow-md'
               }`}
             >
               {isJoined ? buttonJoinedLabel : buttonNotJoinedLabel}
@@ -270,7 +270,7 @@ export default function BlogDetailView({
                       {joinee.userPhone && (
                         <a
                           href={`tel:${joinee.userPhone}`}
-                          className="ml-1 p-1 bg-[#FAF2EE] text-terracotta hover:bg-terracotta hover:text-white border border-[#F5DFD8] hover:border-terracotta rounded-full transition-all flex items-center justify-center cursor-pointer"
+                          className="ml-1 p-1 bg-[#E8F5E9] text-[#2D4536] hover:bg-[#2D4536] hover:text-white border border-[#C8E6C9] hover:border-[#2D4536] rounded-full transition-all flex items-center justify-center cursor-pointer"
                           title={`Call ${joinee.userName} at ${joinee.userPhone}`}
                           onClick={(e) => e.stopPropagation()}
                         >
