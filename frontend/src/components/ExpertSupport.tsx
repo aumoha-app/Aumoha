@@ -715,11 +715,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
               onClick={() => handleStartQuiz()}
               className="px-4 bg-[#E8F0EA] hover:bg-[#D4E4D7] border border-[#2D4536]/30 text-[#2D4536] text-[10px] font-extrabold rounded-2xl flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
             >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01" />
-              </svg>
-              Quiz Match
+              Quiz
             </button>
           </div>
 
@@ -755,11 +751,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                   }}
                   className="bg-white border border-[#F0EBE1] rounded-[28px] p-5 cursor-pointer shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden flex flex-col justify-between min-h-[145px] hover:scale-[1.01] group"
                 >
-                  <div className="flex flex-col gap-2.5 z-10 w-[55%]">
-                    {/* Circle icon wrapper */}
-                    <div className="w-9 h-9 rounded-full bg-[#E8F0EA] border border-[#2D4536]/20 flex items-center justify-center text-[#2D4536] shadow-sm">
-                      {conf.icon}
-                    </div>
+                  <div className="flex flex-col gap-1 z-10 w-[55%]">
                     <div>
                       {/* Title and Description */}
                       <h4 className="text-xs font-bold font-serif text-base leading-tight group-hover:text-[#2D4536] transition-colors">
@@ -779,7 +771,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
                   </div>
 
                   {/* Right side high-quality transparent image of the pet */}
-                  <div className="absolute right-0 bottom-0 w-[150px] h-[150px] md:w-[115px] md:h-[115px] pointer-events-none select-none z-0">
+                  <div className="absolute right-0 bottom-0 w-[120px] h-[120px] md:w-[115px] md:h-[115px] pointer-events-none select-none z-0">
                     <img 
                       src={conf.image} 
                       alt={displayTitle} 

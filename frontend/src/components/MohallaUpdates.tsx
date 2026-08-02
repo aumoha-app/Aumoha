@@ -532,7 +532,7 @@ export default function MohallaUpdates({
                         onClick={() => setActivityCategory(cat.id as any)}
                         className={`py-2 px-1.5 border rounded-xl font-bold flex flex-col items-center justify-center gap-1 active:scale-95 transition-all text-[10px] ${
                           isSelected
-                            ? 'bg-terracotta border-terracotta text-white shadow-xs'
+                            ? 'bg-[#2D4536] border-[#2D4536] text-white shadow-xs'
                             : 'bg-white border-[#F0EBE1] text-stone-500 hover:border-stone-300'
                         }`}
                       >
@@ -591,10 +591,10 @@ export default function MohallaUpdates({
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between">
                   <label className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">
-                    Add Photo / Banner <span className="text-rose-500 font-extrabold">*</span>
+                    Add Photo / Banner <span className="text-stone-400 font-extrabold">*</span>
                   </label>
-                  <span className="text-[10px] font-extrabold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 uppercase">
-                    Mandatory
+                  <span className="text-[10px] font-extrabold text-stone-500 bg-stone-100 px-2 py-0.5 rounded border border-stone-200 uppercase">
+                    Required
                   </span>
                 </div>
                 
@@ -643,15 +643,15 @@ export default function MohallaUpdates({
                 ) : (
                   <div 
                     onClick={() => activityFileInputRef.current?.click()}
-                    className="w-full bg-[#FFF9F9] hover:bg-[#FFF2F2] border-2 border-dashed border-rose-300 rounded-2xl p-4 flex flex-col items-center justify-center gap-1.5 cursor-pointer hover:border-rose-400 transition-all select-none group"
+                    className="w-full bg-[#FCFAF7] hover:bg-[#F5F2EC] border-2 border-dashed border-[#2D4536]/30 rounded-2xl p-4 flex flex-col items-center justify-center gap-1.5 cursor-pointer hover:border-[#2D4536]/50 transition-all select-none group"
                   >
-                    <div className="p-2 bg-rose-100/80 rounded-full text-rose-600 group-hover:scale-105 transition-transform duration-200">
+                    <div className="p-2 bg-[#E8F0EA] rounded-full text-[#2D4536] group-hover:scale-105 transition-transform duration-200">
                       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
                         <circle cx="12" cy="13" r="4" />
                       </svg>
                     </div>
-                    <span className="text-[10px] font-extrabold text-rose-600">Upload Photo or Banner (Required)</span>
+                    <span className="text-[10px] font-extrabold text-[#2D4536]">Upload Photo or Banner</span>
                     <span className="text-[9px] text-stone-400 font-semibold">Click to select an image from your device</span>
                   </div>
                 )}
@@ -678,7 +678,7 @@ export default function MohallaUpdates({
               </button>
               <button
                 type="submit"
-                className="flex-1 py-3 bg-terracotta hover:bg-[#c2502f] text-white font-bold rounded-2xl text-xs active:scale-95 transition-all shadow-md shadow-terracotta/15"
+                className="flex-1 py-3 bg-[#2D4536] hover:bg-[#1E2E24] text-white font-bold rounded-2xl text-xs active:scale-95 transition-all shadow-md shadow-[#2D4536]/15"
               >
                 {editingActivityId ? 'Save Changes' : 'Launch Activity'}
               </button>

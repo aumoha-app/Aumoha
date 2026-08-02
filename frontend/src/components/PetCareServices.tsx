@@ -153,8 +153,8 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
     switch (tag) {
       case 'Grooming':
         return (
-          <span className="inline-flex items-center gap-1 text-[9px] font-extrabold uppercase tracking-wider bg-[#FAF2EE] text-terracotta border border-[#F5DFD8] px-2.5 py-1 rounded-full">
-            <Scissors className="w-3 h-3 text-terracotta" /> Grooming
+          <span className="inline-flex items-center gap-1 text-[9px] font-extrabold uppercase tracking-wider bg-[#E8F0EA] text-[#2D4536] border border-[#2D4536]/20 px-2.5 py-1 rounded-full">
+            <Scissors className="w-3 h-3 text-[#2D4536]" /> Grooming
           </span>
         );
       case 'Boarding':
@@ -192,7 +192,7 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
         {filteredServices.map((service) => (
           <div
             key={service.id}
-            className="bg-[#FCFAF7] border border-[#F0EBE1] hover:border-terracotta/30 rounded-[28px] p-5 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col md:flex-row gap-5 items-stretch group"
+            className="bg-[#FCFAF7] border border-[#F0EBE1] hover:border-[#2D4536]/30 rounded-[28px] p-5 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col md:flex-row gap-5 items-stretch group"
           >
             {/* Left Image / Visual Container */}
             <div className="w-full md:w-[130px] h-[130px] rounded-[22px] bg-[#F5F3EF] border border-[#EBE3D5] overflow-hidden shrink-0 relative flex items-center justify-center">
@@ -214,7 +214,7 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-base md:text-lg font-serif font-bold text-charcoal leading-tight truncate group-hover:text-terracotta transition-colors">
+                    <h3 className="text-base md:text-lg font-serif font-bold text-charcoal leading-tight truncate group-hover:text-[#2D4536] transition-colors">
                       {service.title}
                     </h3>
                   </div>
@@ -245,7 +245,7 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
               <div className="flex items-center justify-between gap-3 pt-1">
                 <div className="flex flex-col">
                   <span className="text-[9px] font-extrabold text-stone-400 uppercase tracking-wider leading-none">Starting Fee</span>
-                  <span className="text-base font-extrabold text-terracotta mt-0.5">
+                  <span className="text-base font-extrabold text-[#2D4536] mt-0.5">
                     ₹{service.price} <span className="text-[10px] font-semibold text-stone-400">{service.priceUnit}</span>
                   </span>
                 </div>
@@ -262,7 +262,7 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
                       setBookingProvider(service);
                       setBookingConfirmed(false);
                     }}
-                    className="px-4 py-2 rounded-xl bg-terracotta hover:bg-[#B04535] text-white font-bold text-xs transition-all cursor-pointer active:scale-95 shadow-sm shadow-terracotta/20 flex items-center gap-1.5"
+                    className="px-4 py-2 rounded-xl bg-[#2D4536] hover:bg-[#1E2E24] text-white font-bold text-xs transition-all cursor-pointer active:scale-95 shadow-sm shadow-[#2D4536]/20 flex items-center gap-1.5"
                   >
                     <span>Book Care</span>
                     <ArrowRight className="w-3.5 h-3.5 text-white" />
@@ -326,7 +326,7 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
                 {selectedProvider.features.map((feat, idx) => (
                   <div key={idx} className="flex items-center gap-2 text-xs font-semibold text-charcoal">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-terracotta shrink-0" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#2D4536] shrink-0" />
                     <span>{feat}</span>
                   </div>
                 ))}
@@ -355,7 +355,7 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
                 href={`tel:${selectedProvider.phone}`}
                 className="py-3 border border-stone-200 hover:border-charcoal text-charcoal font-bold rounded-2xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer text-center"
               >
-                <Phone className="w-3.5 h-3.5 text-terracotta" /> Call Provider
+                <Phone className="w-3.5 h-3.5 text-[#2D4536]" /> Call Provider
               </a>
               <button
                 onClick={() => {
@@ -363,7 +363,7 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
                   setSelectedProvider(null);
                   setBookingConfirmed(false);
                 }}
-                className="py-3 bg-terracotta hover:bg-[#B04535] text-white font-bold rounded-2xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer text-center shadow-md shadow-terracotta/15"
+                className="py-3 bg-[#2D4536] hover:bg-[#1E2E24] text-white font-bold rounded-2xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer text-center shadow-md shadow-[#2D4536]/15"
               >
                 Book Session
               </button>
@@ -396,7 +396,7 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
                   <CheckCircle2 className="w-8 h-8 text-emerald-600" />
                 </div>
                 <div>
-                  <h4 className="font-serif text-xl font-bold text-terracotta">Booking Request Submitted!</h4>
+                  <h4 className="font-serif text-xl font-bold text-[#2D4536]">Booking Request Submitted!</h4>
                   <p className="text-xs text-stone-500 font-medium mt-1 leading-relaxed">
                     Thank you! <strong>{bookingProvider.title}</strong> has received your request for {bookingDate} at {bookingTime}.
                   </p>
@@ -413,13 +413,13 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
                   </div>
                   <div className="flex justify-between">
                     <span className="text-stone-400 font-semibold">Scheduled Slot</span>
-                    <span className="font-bold text-terracotta">{bookingDate} • {bookingTime}</span>
+                    <span className="font-bold text-[#2D4536]">{bookingDate} • {bookingTime}</span>
                   </div>
                 </div>
 
                 <button
                   onClick={() => setBookingProvider(null)}
-                  className="w-full py-3 bg-terracotta hover:bg-[#B04535] text-white font-bold rounded-2xl text-xs transition-all shadow-md mt-2"
+                  className="w-full py-3 bg-[#2D4536] hover:bg-[#1E2E24] text-white font-bold rounded-2xl text-xs transition-all shadow-md mt-2"
                 >
                   Done
                 </button>
@@ -435,7 +435,7 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
                     onChange={(e) => setSelectedPet(e.target.value)}
                     placeholder="Enter pet name (e.g. Max)"
                     required
-                    className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl py-2.5 px-3.5 text-xs text-charcoal font-semibold outline-none focus:border-terracotta"
+                    className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl py-2.5 px-3.5 text-xs text-charcoal font-semibold outline-none focus:border-[#2D4536]"
                   />
                 </div>
 
@@ -450,7 +450,7 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
                         onClick={() => setBookingDate(day)}
                         className={`py-2 px-2 border rounded-xl text-xs font-bold transition-all text-center ${
                           bookingDate === day
-                            ? 'bg-terracotta border-terracotta text-white shadow-xs'
+                            ? 'bg-[#2D4536] border-[#2D4536] text-white shadow-xs'
                             : 'bg-white border-[#F0EBE1] text-stone-600 hover:border-stone-300'
                         }`}
                       >
@@ -471,7 +471,7 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
                         onClick={() => setBookingTime(time)}
                         className={`py-2 px-2 border rounded-xl text-xs font-bold transition-all text-center ${
                           bookingTime === time
-                            ? 'bg-terracotta border-terracotta text-white shadow-xs'
+                            ? 'bg-[#2D4536] border-[#2D4536] text-white shadow-xs'
                             : 'bg-white border-[#F0EBE1] text-stone-600 hover:border-stone-300'
                         }`}
                       >
@@ -484,12 +484,12 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
                 {/* Price total */}
                 <div className="flex justify-between items-center bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl p-3.5 my-1">
                   <span className="text-xs font-bold text-stone-600">Total Fee</span>
-                  <span className="text-base font-extrabold text-terracotta">₹{bookingProvider.price}</span>
+                  <span className="text-base font-extrabold text-[#2D4536]">₹{bookingProvider.price}</span>
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full py-3.5 bg-terracotta hover:bg-[#B04535] text-white font-bold rounded-2xl text-xs transition-all shadow-md shadow-terracotta/20 cursor-pointer active:scale-98"
+                  className="w-full py-3.5 bg-[#2D4536] hover:bg-[#1E2E24] text-white font-bold rounded-2xl text-xs transition-all shadow-md shadow-[#2D4536]/20 cursor-pointer active:scale-98"
                 >
                   Confirm Reservation
                 </button>
