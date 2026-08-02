@@ -3,13 +3,13 @@
   "name": "Aumoha - Rescue, Protect & Care",
   "icons": [
     {
-      "src": "/logo.png",
+      "src": "/icon.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "any maskable"
     },
     {
-      "src": "/logo.png",
+      "src": "/icon.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"

@@ -11,7 +11,7 @@ export default function Header({ deferredPrompt, onInstallClick }: HeaderProps) 
       {/* Left Side: Brand Logo & Text */}
       <div className="flex items-center gap-3">
         <img 
-          src="/logo.png" 
+          src="/icon.png" 
           alt="Aumoha Logo" 
           className="h-12 md:h-14 w-auto object-contain mix-blend-multiply"
         />

@@ -24,9 +24,9 @@ export const metadata: Metadata = {
   description: "Aumoha Animal Welfare & Community Rescue Network.",
   manifest: "/manifest.json",
   icons: [
-    { rel: "icon", url: "/logo.png", type: "image/png" },
-    { rel: "shortcut icon", url: "/logo.png", type: "image/png" },
-    { rel: "apple-touch-icon", url: "/logo.png", type: "image/png" },
+    { rel: "icon", url: "/icon.png", type: "image/png" },
+    { rel: "shortcut icon", url: "/icon.png", type: "image/png" },
+    { rel: "apple-touch-icon", url: "/icon.png", type: "image/png" },
   ],
   appleWebApp: {
     capable: true,
