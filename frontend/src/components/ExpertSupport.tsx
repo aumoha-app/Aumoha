@@ -872,7 +872,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
 
   return (
     <>
-      <div className="w-full max-w-2xl mx-auto bg-white rounded-[28px] overflow-hidden shadow-sm transition-all duration-300 font-sans text-charcoal flex flex-col min-h-[80vh]">
+      <div className="w-full max-w-2xl mx-auto bg-[#FAF8F5] rounded-[28px] overflow-hidden shadow-sm transition-all duration-300 font-sans text-charcoal flex flex-col min-h-[80vh]">
       {/* Full-Bleed Hero Banner covering complete top */}
       <div className="relative">
         <div className="relative overflow-hidden bg-gradient-to-br from-[#F5F2EC] via-[#EDE9E1] to-[#E8E3DA]">
@@ -920,8 +920,8 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
             </div>
           </div>
 
-          {/* Bottom fade into white content area */}
-          <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-white to-transparent" />
+          {/* Bottom fade into content area background */}
+          <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[#FAF8F5] to-transparent" />
         </div>
       </div>
 
