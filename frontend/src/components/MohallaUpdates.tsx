@@ -454,10 +454,10 @@ export default function MohallaUpdates({
 
       {/* --- START COMMUNITY ACTIVITY MODAL --- */}
       {showActivityModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-end md:items-center justify-center px-4 transition-all">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-end md:items-center justify-center px-4 pb-24 md:pb-0 transition-all">
           <form
             onSubmit={handleCreateActivity}
-            className="bg-white w-full max-w-lg rounded-t-[32px] md:rounded-[32px] p-6 shadow-2xl flex flex-col gap-5 max-h-[90vh] overflow-y-auto animate-scaleIn select-none"
+            className="bg-white w-full max-w-lg rounded-2xl md:rounded-[32px] p-6 shadow-2xl flex flex-col gap-5 max-h-[80vh] overflow-y-auto animate-scaleIn select-none pb-8"
           >
             {/* Header */}
             <div className="flex justify-between items-center border-b border-[#F0EBE1] pb-3.5">
@@ -658,8 +658,8 @@ export default function MohallaUpdates({
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex gap-3 mt-2">
+            {/* Sticky Actions Footer */}
+            <div className="sticky bottom-0 bg-white pt-3 pb-1 border-t border-[#F0EBE1] flex gap-3 mt-2 z-10">
               <button
                 type="button"
                 onClick={() => {
@@ -672,13 +672,13 @@ export default function MohallaUpdates({
                   setEditingActivityId(null);
                   setShowActivityModal(false);
                 }}
-                className="flex-1 py-3 bg-[#FCFAF7] border border-[#F0EBE1] hover:border-stone-300 text-stone-600 font-bold rounded-2xl text-xs active:scale-95 transition-all"
+                className="flex-1 py-3 bg-[#FCFAF7] border border-[#F0EBE1] hover:border-stone-300 text-stone-600 font-bold rounded-2xl text-xs active:scale-95 transition-all cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="flex-1 py-3 bg-[#2D4536] hover:bg-[#1E2E24] text-white font-bold rounded-2xl text-xs active:scale-95 transition-all shadow-md shadow-[#2D4536]/15"
+                className="flex-1 py-3 bg-[#2D4536] hover:bg-[#1E2E24] text-white font-bold rounded-2xl text-xs active:scale-95 transition-all shadow-md shadow-[#2D4536]/15 cursor-pointer"
               >
                 {editingActivityId ? 'Save Changes' : 'Launch Activity'}
               </button>
