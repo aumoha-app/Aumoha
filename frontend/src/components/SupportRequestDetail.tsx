@@ -61,7 +61,21 @@ export default function SupportRequestDetail({
         lat: detailRequestCoords[0], 
         lng: detailRequestCoords[1], 
         distance: selectedRequest.distance 
-      }
+      },
+      ...computedMembers
+        .filter(m => m.role === 'rescuer')
+        .map(m => {
+          const mCoords = m.lat && m.lng ? [m.lat, m.lng] : getCoordinatesForLocation(m.location || selectedLocation);
+          return {
+            name: m.name || 'Rescuer',
+            avatar: m.avatar,
+            role: m.role || 'rescuer',
+            lat: mCoords[0],
+            lng: mCoords[1],
+            distance: m.distance,
+            badge: m.badge
+          };
+        })
     ];
 
     const loadLeafletMap = (L: any, mapId: string, center: [number, number], pins: any[]) => {
