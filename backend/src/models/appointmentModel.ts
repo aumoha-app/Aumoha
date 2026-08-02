@@ -15,6 +15,9 @@ export interface IAppointment extends Document {
   petId?: string;
   status: 'confirmed' | 'pending' | 'cancelled';
   notes?: string;
+  medicalDocument?: string; // base64 or URL
+  prescription?: string;      // base64 or URL or text
+  prescriptionNotes?: string; // doctor notes
   bookingId: string;
   createdAt: Date;
   updatedAt: Date;
@@ -36,6 +39,9 @@ const AppointmentSchema = new Schema(
     petId: { type: String, default: '' },
     status: { type: String, enum: ['confirmed', 'pending', 'cancelled'], default: 'confirmed' },
     notes: { type: String, default: '' },
+    medicalDocument: { type: String, default: '' },
+    prescription: { type: String, default: '' },
+    prescriptionNotes: { type: String, default: '' },
     bookingId: { type: String, required: true, unique: true }
   },
   {
@@ -44,3 +50,4 @@ const AppointmentSchema = new Schema(
 );
 
 export default mongoose.models.Appointment || mongoose.model<IAppointment>('Appointment', AppointmentSchema);
+

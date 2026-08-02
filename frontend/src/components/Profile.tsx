@@ -798,7 +798,20 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
         )}
       </section>
 
+      {/* 3.5 BOOKING HISTORY & MEDICAL/PRESCRIPTION HUB */}
+      <section className="mt-4 border-t border-[#FAF6F0] pt-6 flex flex-col gap-4 select-none">
+        <div>
+          <h3 className="font-serif text-xl text-[#1C1A17] font-normal tracking-tight">Booking History</h3>
+          <p className="text-[10px] text-stone-400 font-medium leading-normal mt-0.5">
+            View details, upload past medical reports, and retrieve prescriptions for your consultations
+          </p>
+        </div>
+
+        <ProfileBookingHistory token={token} API_BASE={API_BASE} />
+      </section>
+
       {/* 4. PET MODAL OVERLAY */}
+
       {isPetModalOpen && (
         <div className="fixed inset-0 z-50 bg-[#1C1A17]/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full border border-[#F0EBE1] shadow-2xl p-6 flex flex-col gap-4 animate-in fade-in zoom-in duration-200">
@@ -1035,3 +1048,183 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
     </main>
   );
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUB-COMPONENT: ProfileBookingHistory
+// ─────────────────────────────────────────────────────────────────────────────
+function ProfileBookingHistory({ token, API_BASE }: { token: string | null; API_BASE: string }) {
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Upload/updating state
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
+
+  const fetchBookings = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_BASE}/appointments`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        setAppointments(data.appointments || []);
+      } else {
+        setError(data.message || 'Failed to fetch bookings.');
+      }
+    } catch {
+      setError('Network error. Failed to retrieve booking history.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBookings();
+  }, [token]);
+
+  const handleDocumentUpload = (apptId: string) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*,application/pdf';
+    input.onchange = async (e: any) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      setUploadingId(apptId);
+      const reader = new FileReader();
+      reader.onload = async (uploadEvent) => {
+        const base64 = uploadEvent.target?.result as string;
+        try {
+          const res = await fetch(`${API_BASE}/appointments/${apptId}/medical-document`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({ medicalDocument: base64 })
+          });
+          const data = await res.json();
+          if (res.ok && data.status === 'success') {
+            setAppointments(prev => prev.map(a => a._id === apptId ? { ...a, medicalDocument: base64 } : a));
+          } else {
+            alert(data.message || 'Failed to upload medical document.');
+          }
+        } catch {
+          alert('Network error. Failed to upload medical document.');
+        } finally {
+          setUploadingId(null);
+        }
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  };
+
+  const handleDownload = (base64String: string, filename: string) => {
+    const link = document.createElement('a');
+    link.href = base64String;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  if (isLoading) {
+    return <div className="text-stone-400 text-xs py-4 text-center">Loading booking history...</div>;
+  }
+
+  if (error || appointments.length === 0) {
+    return (
+      <div className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl p-6 text-center">
+        <p className="text-xs text-stone-400 font-medium">{error || 'No consultations booked yet.'}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      {appointments.map((appt) => (
+        <div key={appt._id} className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl p-4 flex flex-col gap-3">
+          <div className="flex justify-between items-start">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-serif text-sm font-semibold text-charcoal">{appt.vetName}</span>
+                <span className="text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-stone-100 text-stone-500">
+                  {appt.mode}
+                </span>
+              </div>
+              <p className="text-[10px] text-stone-400 font-medium mt-0.5">{appt.date} • {appt.time}</p>
+              <p className="text-[10px] text-stone-600 font-bold mt-1">Pet: {appt.petName}</p>
+            </div>
+            <div className="text-right">
+              <span className="text-xs font-extrabold text-[#2D4536]">₹{appt.fee}</span>
+              <p className="text-[9px] text-stone-400 mt-1 uppercase font-bold tracking-wider">{appt.status}</p>
+            </div>
+          </div>
+
+          <div className="border-t border-stone-100 pt-3 flex flex-wrap gap-2 justify-between items-center">
+            {/* Client Medical Reports */}
+            <div className="flex items-center gap-1.5">
+              {appt.medicalDocument ? (
+                <div className="flex items-center gap-1">
+                  <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100 flex items-center gap-1">
+                    ✓ Medical Info Uploaded
+                  </span>
+                  <button
+                    onClick={() => handleDownload(appt.medicalDocument, `${appt.petName}_medical_history.jpg`)}
+                    className="p-1 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 text-stone-600 text-[10px] font-extrabold cursor-pointer"
+                    title="Download Report"
+                  >
+                    ⬇
+                  </button>
+                  <button
+                    onClick={() => handleDocumentUpload(appt._id)}
+                    className="p-1 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 text-stone-500 text-[10px] cursor-pointer"
+                    title="Replace Report"
+                  >
+                    ✎ Change
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => handleDocumentUpload(appt._id)}
+                  disabled={uploadingId === appt._id}
+                  className="px-2.5 py-1 bg-white hover:bg-[#FAF6F0] border border-[#EBE3D5] text-charcoal font-bold text-[10px] rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                >
+                  {uploadingId === appt._id ? 'Uploading...' : '+ Upload Medical History'}
+                </button>
+              )}
+            </div>
+
+            {/* Prescription Retreival */}
+            <div>
+              {appt.prescription ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-terracotta font-extrabold bg-[#FAF2EE] border border-[#F5DFD8] px-2 py-1 rounded-lg">
+                    💊 Prescription Ready
+                  </span>
+                  <button
+                    onClick={() => handleDownload(appt.prescription, `${appt.petName}_prescription.jpg`)}
+                    className="px-2.5 py-1 bg-[#2D4536] hover:bg-[#1E2E24] text-white font-bold text-[10px] rounded-lg cursor-pointer"
+                  >
+                    Download Prescription
+                  </button>
+                </div>
+              ) : (
+                <span className="text-[10px] text-stone-400 font-semibold italic">Prescription pending</span>
+              )}
+            </div>
+          </div>
+
+          {appt.prescriptionNotes && (
+            <div className="bg-[#FAF8F5] border-l-2 border-[#2D4536] p-2 rounded text-[10.5px] text-stone-600 italic">
+              <strong>Advice:</strong> "{appt.prescriptionNotes}"
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+

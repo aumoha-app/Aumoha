@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
@@ -24,6 +24,9 @@ interface Appointment {
   type: 'vet' | 'expert';
   status: 'confirmed' | 'pending' | 'cancelled';
   notes?: string;
+  medicalDocument?: string;
+  prescription?: string;
+  prescriptionNotes?: string;
   createdAt: string;
 }
 
@@ -71,6 +74,13 @@ export default function ProviderDashboard() {
   const [slotMsg, setSlotMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const [apptFilter, setApptFilter] = useState<'all' | 'confirmed' | 'pending' | 'cancelled'>('all');
+
+  // Prescription modal and upload state
+  const [selectedApptForPrescription, setSelectedApptForPrescription] = useState<Appointment | null>(null);
+  const [prescriptionNotesText, setPrescriptionNotesText] = useState('');
+  const [prescriptionPhotoBase64, setPrescriptionPhotoBase64] = useState('');
+  const [isSavingPrescription, setIsSavingPrescription] = useState(false);
+
 
   const getAuthHeaders = () => ({
     'Content-Type': 'application/json',
@@ -306,6 +316,58 @@ export default function ProviderDashboard() {
                         <p className="text-[11px] text-stone-500 truncate">Owner: {appt.userEmail}</p>
                         <p className="text-[11px] text-stone-500 mt-0.5">{appt.date} · {appt.time}</p>
                         {appt.notes && <p className="text-[10px] text-stone-400 mt-1.5 italic bg-stone-50 rounded-lg px-2 py-1">"{appt.notes}"</p>}
+
+                        {/* Medical Document upload / view (if uploaded by pet owner) */}
+                        {appt.medicalDocument && (
+                          <div className="mt-2.5 flex items-center gap-2">
+                            <span className="text-[10px] text-stone-500 font-bold">📄 Patient History File:</span>
+                            <button
+                              onClick={() => {
+                                const link = document.createElement('a');
+                                link.href = appt.medicalDocument!;
+                                link.download = `${appt.petName}_history.jpg`;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                              }}
+                              className="px-2 py-1 bg-white hover:bg-stone-50 border border-stone-200 text-stone-700 text-[9px] font-extrabold rounded-lg cursor-pointer"
+                            >
+                              Download File ⬇
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Prescription Upload Actions */}
+                        <div className="mt-3 pt-2.5 border-t border-stone-100 flex items-center gap-2">
+                          {appt.prescription ? (
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                                ✓ Prescription Issued
+                              </span>
+                              <button
+                                onClick={() => {
+                                  setSelectedApptForPrescription(appt);
+                                  setPrescriptionNotesText(appt.prescriptionNotes || '');
+                                  setPrescriptionPhotoBase64(appt.prescription || '');
+                                }}
+                                className="text-[9px] text-[#2D4536] hover:underline font-bold cursor-pointer"
+                              >
+                                Edit / View details
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                setSelectedApptForPrescription(appt);
+                                setPrescriptionNotesText('');
+                                setPrescriptionPhotoBase64('');
+                              }}
+                              className="px-3 py-1 bg-[#2D4536] hover:bg-[#1E2E24] text-white text-[10px] font-extrabold rounded-lg cursor-pointer"
+                            >
+                              + Issue Prescription
+                            </button>
+                          )}
+                        </div>
                       </div>
                       <div className="text-right shrink-0">
                         <p className="text-base font-extrabold text-[#2D4536]">Rs.{appt.fee}</p>
@@ -374,6 +436,130 @@ export default function ProviderDashboard() {
           </>
         )}
       </div>
+
+      {/* PRESCRIPTION SUBMISSION MODAL OVERLAY */}
+      {selectedApptForPrescription && (
+        <div className="fixed inset-0 z-50 bg-[#1C1A17]/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full border border-[#F0EBE1] shadow-2xl p-6 flex flex-col gap-4 animate-in fade-in zoom-in duration-200">
+            <header className="flex justify-between items-start">
+              <div>
+                <h3 className="font-serif text-lg text-[#1C1A17] font-semibold">Issue Prescription</h3>
+                <p className="text-[10px] text-stone-400 font-medium mt-0.5">
+                  Set prescription details and upload a photo for {selectedApptForPrescription.petName}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedApptForPrescription(null)}
+                className="p-1 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 text-stone-400 hover:text-stone-600 cursor-pointer"
+              >
+                ✕
+              </button>
+            </header>
+
+            <div className="flex flex-col gap-4">
+              {/* Photo attachment upload */}
+              <div className="flex flex-col items-center gap-2 select-none">
+                <div className="w-24 h-24 rounded-2xl overflow-hidden border border-[#EBE3D5] bg-[#F5F2EC] flex items-center justify-center shadow-inner relative">
+                  {prescriptionPhotoBase64 ? (
+                    <img src={prescriptionPhotoBase64} alt="Prescription Attachment" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xs text-stone-400">No image attached</span>
+                  )}
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const fileInput = document.createElement('input');
+                      fileInput.type = 'file';
+                      fileInput.accept = 'image/*';
+                      fileInput.onchange = (e: any) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (evt) => {
+                            setPrescriptionPhotoBase64(evt.target?.result as string);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      };
+                      fileInput.click();
+                    }}
+                    className="px-2.5 py-1 bg-white hover:bg-stone-50 border border-[#EBE3D5] text-[#1C1A17] font-bold text-[10px] rounded-lg cursor-pointer"
+                  >
+                    Upload Photo
+                  </button>
+                  {prescriptionPhotoBase64 && (
+                    <button
+                      type="button"
+                      onClick={() => setPrescriptionPhotoBase64('')}
+                      className="px-2.5 py-1 bg-white hover:bg-red-50 hover:border-red-200 border border-[#EBE3D5] text-red-500 font-bold text-[10px] rounded-lg cursor-pointer"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Prescription Notes */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Prescription Advice & Notes</label>
+                <textarea
+                  rows={4}
+                  value={prescriptionNotesText}
+                  onChange={(e) => setPrescriptionNotesText(e.target.value)}
+                  placeholder="Enter medical instructions, dosage advice, etc."
+                  className="w-full bg-[#F5F3EF] rounded-xl py-2 px-3 text-xs text-[#1C1A17] border border-transparent focus:border-[#4A5D4E] focus:bg-white outline-none resize-none"
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-end gap-2.5 mt-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedApptForPrescription(null)}
+                  className="px-4 py-2 text-xs font-bold rounded-xl border border-stone-200 bg-white text-stone-500 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    setIsSavingPrescription(true);
+                    try {
+                      const res = await fetch(`${API_BASE}/provider/appointments/${selectedApptForPrescription._id}/prescription`, {
+                        method: 'PUT',
+                        headers: getAuthHeaders(),
+                        body: JSON.stringify({
+                          prescription: prescriptionPhotoBase64,
+                          prescriptionNotes: prescriptionNotesText
+                        })
+                      });
+                      const data = await res.json();
+                      if (res.ok && data.status === 'success') {
+                        setAppointments(prev => prev.map(a => a._id === selectedApptForPrescription._id ? { ...a, prescription: prescriptionPhotoBase64, prescriptionNotes: prescriptionNotesText } : a));
+                        setSelectedApptForPrescription(null);
+                      } else {
+                        alert(data.message || 'Failed to save prescription.');
+                      }
+                    } catch {
+                      alert('Network error. Failed to save prescription.');
+                    } finally {
+                      setIsSavingPrescription(false);
+                    }
+                  }}
+                  disabled={isSavingPrescription || (!prescriptionPhotoBase64.trim() && !prescriptionNotesText.trim())}
+                  className="px-5 py-2 bg-[#2D4536] hover:bg-[#1E2E24] text-white font-bold text-xs rounded-xl cursor-pointer disabled:opacity-50"
+                >
+                  {isSavingPrescription ? 'Saving...' : 'Save & Notify User'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

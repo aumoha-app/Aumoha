@@ -3476,6 +3476,115 @@ app.put('/api/provider/availability', authMiddleware, async (req: Request, res: 
   }
 });
 
+/**
+ * PUT /api/appointments/:id/medical-document
+ * Allows client to upload/set their past medical document for an appointment
+ */
+app.put('/api/appointments/:id/medical-document', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userEmail = req.user?.email;
+    const { id } = req.params;
+    const { medicalDocument } = req.body; // base64 string or URL
+
+    if (!userEmail) {
+      return res.status(401).json({ status: 'error', message: 'Authentication required' });
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      const appt = fallbackAppointments.find((a: any) => a._id === id && a.userEmail.toLowerCase() === userEmail.toLowerCase());
+      if (!appt) return res.status(404).json({ status: 'error', message: 'Appointment not found' });
+      appt.medicalDocument = medicalDocument;
+      return res.json({ status: 'success', appointment: appt });
+    }
+
+    const appointment = await Appointment.findOneAndUpdate(
+      { _id: id, userEmail: { $regex: new RegExp(`^${userEmail}$`, 'i') } },
+      { $set: { medicalDocument } },
+      { new: true }
+    );
+
+    if (!appointment) {
+      return res.status(404).json({ status: 'error', message: 'Appointment not found' });
+    }
+
+    return res.json({ status: 'success', appointment });
+  } catch (error) {
+    console.error('Error adding medical document:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * PUT /api/provider/appointments/:id/prescription
+ * Allows authenticated vet/expert to upload/set prescription & notes for an appointment
+ */
+app.put('/api/provider/appointments/:id/prescription', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const providerEmail = req.user?.email;
+    const { id } = req.params;
+    const { prescription, prescriptionNotes } = req.body;
+
+    if (!providerEmail) {
+      return res.status(401).json({ status: 'error', message: 'Authentication required' });
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      const appt = fallbackAppointments.find((a: any) => a._id === id);
+      if (!appt) return res.status(404).json({ status: 'error', message: 'Appointment not found' });
+      appt.prescription = prescription;
+      appt.prescriptionNotes = prescriptionNotes;
+      return res.json({ status: 'success', appointment: appt });
+    }
+
+    // Verify provider owns this appointment by matching vet email
+    const appt = await Appointment.findById(id);
+    if (!appt) {
+      return res.status(404).json({ status: 'error', message: 'Appointment not found' });
+    }
+
+    const provider = await Vet.findById(appt.vetId);
+    if (!provider || provider.email.toLowerCase() !== providerEmail.toLowerCase()) {
+      return res.status(403).json({ status: 'error', message: 'You are not authorized to update this appointment' });
+    }
+
+    appt.prescription = prescription || '';
+    appt.prescriptionNotes = prescriptionNotes || '';
+    await appt.save();
+
+    // Trigger Prescription Issued email notification to the pet owner
+    const emailHtml = `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 12px;">
+        <h2 style="color: #2d4536; text-align: center;">Prescription Issued</h2>
+        <p>Hello,</p>
+        <p><strong>Dr. ${provider.name}</strong> has issued a prescription for your pet <strong>${appt.petName}</strong> regarding your consult on <strong>${appt.date}</strong>.</p>
+        
+        ${prescriptionNotes ? `
+        <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #2d4536; margin: 15px 0;">
+          <h4 style="margin: 0 0 8px 0; color: #333;">Doctor's Advice/Notes:</h4>
+          <p style="margin: 0; font-style: italic;">${prescriptionNotes}</p>
+        </div>` : ''}
+
+        <p>Please log in to the Aumoha app and navigate to <strong>Profile &gt; Booking History</strong> to view and download the official prescription attachment.</p>
+        
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+        <p style="font-size: 11px; color: #888; text-align: center;">Aumoha Care Network &bull; Rescue, Protect, Care</p>
+      </div>
+    `;
+
+    await sendEmail({
+      to: appt.userEmail,
+      subject: `Prescription Issued for ${appt.petName} by Dr. ${provider.name}`,
+      html: emailHtml
+    });
+
+    return res.json({ status: 'success', appointment: appt });
+  } catch (error) {
+    console.error('Error adding prescription:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+
 // Start server
 
 app.listen(PORT, () => {

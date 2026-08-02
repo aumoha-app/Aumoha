@@ -72,6 +72,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
   const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(null);
 
   // Selection states for booking flow
+  // Selection states for booking flow
   const [vets, setVets] = useState<Vet[]>([]);
   const [selectedVet, setSelectedVet] = useState<Vet | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
@@ -79,6 +80,28 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
   const [selectedPetName, setSelectedPetName] = useState('');
   const [newPetInput, setNewPetInput] = useState(false);
   const [customPetName, setCustomPetName] = useState('');
+
+  // Add Pet modal states mimicking profile pet management
+  const [isPetModalOpen, setIsPetModalOpen] = useState(false);
+  const [isPetSaving, setIsPetSaving] = useState(false);
+  const [petError, setPetError] = useState<string | null>(null);
+  const [petForm, setPetForm] = useState<{
+    name: string;
+    type: string;
+    photo: string;
+    breed: string;
+    age: number | undefined;
+    gender: 'male' | 'female' | 'unknown';
+    notes: string;
+  }>({
+    name: '',
+    type: 'Dog',
+    photo: '',
+    breed: '',
+    age: undefined,
+    gender: 'unknown',
+    notes: ''
+  });
 
   // Post-booking confirmed screen state
   const [confirmedAppt, setConfirmedAppt] = useState<Appointment | null>(null);
@@ -95,6 +118,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
   
   // Location State
   const [currentLocation, setCurrentLocation] = useState<string>('Detecting location...');
+
 
   // Auto-detect Geolocation / User Profile Location
   useEffect(() => {
@@ -644,7 +668,9 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
   };
 
   return (
+    <>
     <div className="w-full flex flex-col gap-5 sm:gap-6 animate-fadeIn select-none font-sans text-[#1C1A17] pb-4">
+
       
       {/* 1. SEAMLESS HERO IMAGE COVERING FULL CONTAINER WIDTH (ZERO TOP SPACE GAP) */}
       <div className="relative -mx-4 sm:-mx-6 -mt-4 sm:-mt-6 mb-3 overflow-hidden min-h-[210px] xs:min-h-[240px] sm:min-h-[300px] flex flex-col justify-between pt-3 px-4 pb-4 xs:pt-4 xs:px-5 xs:pb-5 sm:pt-5 sm:px-7 sm:pb-6 select-none">
@@ -1146,50 +1172,52 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                 Tele-Consult (Online)
               </button>
             </div>
-          </div>
-
-          {/* Pet Picker */}
+            {/* Pet Picker */}
           <div className="flex flex-col gap-2.5 bg-white border border-[#F0EBE1] rounded-[24px] p-4 shadow-sm">
             <div className="flex justify-between items-center px-1">
               <label className="text-[10px] font-extrabold text-stone-400 uppercase tracking-wider">Select Pet</label>
               <button 
                 type="button"
-                onClick={() => setNewPetInput(!newPetInput)}
+                onClick={() => {
+                  setPetError(null);
+                  setPetForm({
+                    name: '',
+                    type: 'Dog',
+                    photo: '',
+                    breed: '',
+                    age: undefined,
+                    gender: 'unknown',
+                    notes: ''
+                  });
+                  setIsPetModalOpen(true);
+                }}
                 className="text-[9px] font-extrabold text-[#2D4536] hover:underline"
               >
-                {newPetInput ? 'Choose from list' : '+ Add Custom Pet'}
+                + Add New Pet
               </button>
             </div>
 
-            {newPetInput ? (
-              <input 
-                type="text"
-                placeholder="Enter pet name (e.g. Bruno)"
-                value={customPetName}
-                onChange={(e) => setCustomPetName(e.target.value)}
-                className="w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl px-4 py-2.5 text-xs font-semibold focus:outline-none focus:border-[#2D4536]/40"
-              />
-            ) : (
-              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                {user?.pets && user.pets.map((pet: any) => (
-                  <button
-                    key={pet._id}
-                    type="button"
-                    onClick={() => setSelectedPetName(pet.name)}
-                    className={`px-4 py-2.5 border rounded-2xl text-xs font-bold transition-all shrink-0 flex items-center gap-2 ${
-                      selectedPetName === pet.name 
-                        ? 'bg-[#E8F0EA] border-[#2D4536] text-[#2D4536] shadow-sm' 
-                        : 'bg-white border-[#F0EBE1] text-stone-600 hover:border-stone-300'
-                    }`}
-                  >
-                    <DogIcon className="w-4 h-4 text-[#2D4536]" /> {pet.name}
-                  </button>
-                ))}
-                {(!user?.pets || user.pets.length === 0) && (
-                  <span className="text-[10px] text-stone-400 font-semibold italic">No registered pets found. Add a custom name.</span>
-                )}
-              </div>
-            )}
+            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+              {user?.pets && user.pets.map((pet: any) => (
+                <button
+                  key={pet._id}
+                  type="button"
+                  onClick={() => setSelectedPetName(pet.name)}
+                  className={`px-4 py-2.5 border rounded-2xl text-xs font-bold transition-all shrink-0 flex items-center gap-2 ${
+                    selectedPetName === pet.name 
+                      ? 'bg-[#E8F0EA] border-[#2D4536] text-[#2D4536] shadow-sm' 
+                      : 'bg-white border-[#F0EBE1] text-stone-600 hover:border-stone-300'
+                  }`}
+                >
+                  <DogIcon className="w-4 h-4 text-[#2D4536]" /> {pet.name}
+                </button>
+              ))}
+              {(!user?.pets || user.pets.length === 0) && (
+                <span className="text-[10px] text-stone-400 font-semibold italic">No registered pets found. Add a pet above.</span>
+              )}
+            </div>
+          </div>
+
           </div>
 
           {/* Booking Summary Table */}
@@ -1901,6 +1929,171 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
           onClose={() => setActiveCallAppt(null)} 
         />
       )}
+
+      {/* MATCHING PROFILE PET MODAL FOR BOOKING FLOW */}
+
+      {isPetModalOpen && (
+        <div className="fixed inset-0 z-[3000] bg-[#1C1A17]/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full border border-[#F0EBE1] shadow-2xl p-6 flex flex-col gap-4 animate-in fade-in zoom-in duration-200">
+            <header className="flex justify-between items-start">
+              <div>
+                <h3 className="font-serif text-xl text-[#1C1A17] font-normal tracking-tight">Add New Pet</h3>
+                <p className="text-[10px] text-stone-400 font-medium mt-0.5">Introduce a new member of your pet family</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPetModalOpen(false)}
+                className="p-1 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 text-stone-400 hover:text-stone-600 transition-colors cursor-pointer flex items-center justify-center"
+              >
+                ✕
+              </button>
+            </header>
+
+            {petError && (
+              <div className="bg-[#FDEDEC] border border-[#F5C2C2] text-[#C0392B] rounded-xl px-4 py-2.5 text-[10px] font-semibold">
+                {petError}
+              </div>
+            )}
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!petForm.name.trim() || !petForm.type) {
+                  setPetError('Name and Pet Type are required.');
+                  return;
+                }
+                setIsPetSaving(true);
+                setPetError(null);
+                try {
+                  const res = await fetch(`${API_BASE}/auth/profile/pets`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      Authorization: `Bearer ${token}`
+                    },
+                    body: JSON.stringify(petForm)
+                  });
+                  if (res.ok) {
+                    await fetch(`${API_BASE}/auth/me`, {
+                      headers: { Authorization: `Bearer ${token}` }
+                    });
+                    setSelectedPetName(petForm.name);
+                    setIsPetModalOpen(false);
+                    window.location.reload(); // Quick refresh to sync auth context
+                  } else {
+                    const err = await res.json();
+                    setPetError(err.message || 'Failed to save pet details.');
+                  }
+                } catch {
+                  setPetError('Network error. Unable to save pet.');
+                } finally {
+                  setIsPetSaving(false);
+                }
+              }}
+              className="flex flex-col gap-4 text-left"
+            >
+              {/* Name & Type Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[9px] font-bold text-stone-400 uppercase tracking-wider">Pet Name *</label>
+                  <input
+                    type="text"
+                    value={petForm.name}
+                    onChange={(e) => setPetForm(prev => ({ ...prev, name: e.target.value }))}
+                    required
+                    placeholder="e.g. Max"
+                    className="w-full bg-[#F5F3EF] rounded-xl py-2 px-3 text-xs text-[#1C1A17] border border-transparent focus:border-[#2D4536] outline-none"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[9px] font-bold text-stone-400 uppercase tracking-wider">Pet Type *</label>
+                  <select
+                    value={petForm.type}
+                    onChange={(e) => setPetForm(prev => ({ ...prev, type: e.target.value }))}
+                    required
+                    className="w-full bg-[#F5F3EF] rounded-xl py-2 px-3 text-xs text-[#1C1A17] border border-transparent focus:border-[#2D4536] outline-none"
+                  >
+                    <option value="Dog">Dog</option>
+                    <option value="Cat">Cat</option>
+                    <option value="Bird">Bird</option>
+                    <option value="Fish">Fish</option>
+                    <option value="Rabbit">Rabbit</option>
+                    <option value="Reptile">Reptile</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Breed & Age Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[9px] font-bold text-stone-400 uppercase tracking-wider">Breed</label>
+                  <input
+                    type="text"
+                    value={petForm.breed}
+                    onChange={(e) => setPetForm(prev => ({ ...prev, breed: e.target.value }))}
+                    placeholder="e.g. Beagle"
+                    className="w-full bg-[#F5F3EF] rounded-xl py-2 px-3 text-xs text-[#1C1A17] border border-transparent focus:border-[#2D4536] outline-none"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[9px] font-bold text-stone-400 uppercase tracking-wider">Age (Years)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="e.g. 3"
+                    value={petForm.age === undefined ? '' : petForm.age}
+                    onChange={(e) => setPetForm(prev => ({ ...prev, age: e.target.value === '' ? undefined : Number(e.target.value) }))}
+                    className="w-full bg-[#F5F3EF] rounded-xl py-2 px-3 text-xs text-[#1C1A17] border border-transparent focus:border-[#2D4536] outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Gender radio */}
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[9px] font-bold text-stone-400 uppercase tracking-wider">Gender</span>
+                <div className="grid grid-cols-3 gap-2">
+                  {['male', 'female', 'unknown'].map((g) => (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => setPetForm(prev => ({ ...prev, gender: g as any }))}
+                      className={`py-2 px-3 text-xs font-semibold rounded-xl border text-center transition-all capitalize ${
+                        petForm.gender === g
+                          ? 'border-[#2D4536] bg-[#2D4536] text-white'
+                          : 'border-stone-200 bg-white text-stone-500 hover:bg-stone-50'
+                      }`}
+                    >
+                      {g}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Submit Action */}
+              <div className="flex justify-end gap-2.5 mt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsPetModalOpen(false)}
+                  className="px-4 py-2 text-xs font-bold rounded-xl border border-stone-200 bg-white text-stone-500 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isPetSaving}
+                  className="px-5 py-2 bg-[#2D4536] hover:bg-[#1E2E24] text-white font-bold text-xs rounded-xl transition-all cursor-pointer"
+                >
+                  {isPetSaving ? 'Saving...' : 'Add Pet'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
+    </>
   );
 }
+
+

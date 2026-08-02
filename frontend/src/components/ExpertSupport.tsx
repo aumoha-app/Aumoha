@@ -291,6 +291,29 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
   const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
   const [calendarSelectedDay, setCalendarSelectedDay] = useState<number | null>(null);
 
+  // Add Pet modal states mimicking profile pet management
+  const [isPetModalOpen, setIsPetModalOpen] = useState(false);
+  const [isPetSaving, setIsPetSaving] = useState(false);
+  const [petError, setPetError] = useState<string | null>(null);
+  const [petForm, setPetForm] = useState<{
+    name: string;
+    type: string;
+    photo: string;
+    breed: string;
+    age: number | undefined;
+    gender: 'male' | 'female' | 'unknown';
+    notes: string;
+  }>({
+    name: '',
+    type: 'Dog',
+    photo: '',
+    breed: '',
+    age: undefined,
+    gender: 'unknown',
+    notes: ''
+  });
+
+
   // Post booking confirmation state
   const [confirmedAppt, setConfirmedAppt] = useState<Appointment | null>(null);
   const [showCall, setShowCall] = useState<boolean>(false);
@@ -1392,43 +1415,46 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                     <h3 className="text-[12px] font-extrabold text-charcoal uppercase tracking-wider">Your Pet</h3>
                     <button 
                       type="button"
-                      onClick={() => setNewPetInput(!newPetInput)}
+                      onClick={() => {
+                        setPetError(null);
+                        setPetForm({
+                          name: '',
+                          type: 'Dog',
+                          photo: '',
+                          breed: '',
+                          age: undefined,
+                          gender: 'unknown',
+                          notes: ''
+                        });
+                        setIsPetModalOpen(true);
+                      }}
                       className="text-[10px] font-bold text-terracotta hover:underline"
                     >
-                      {newPetInput ? '← Choose from list' : '+ Custom name'}
+                      + Add New Pet
                     </button>
                   </div>
 
-                  {newPetInput ? (
-                    <input 
-                      type="text"
-                      placeholder="Enter pet name"
-                      value={customPetName}
-                      onChange={(e) => setCustomPetName(e.target.value)}
-                      className="w-full bg-[#FAF8F5] border border-[#F0EBE1] rounded-xl px-3.5 py-2 text-[11px] font-semibold text-charcoal focus:outline-none focus:border-terracotta/40 placeholder:text-stone-400"
-                    />
-                  ) : (
-                    <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-hide">
-                      {user?.pets && user.pets.map((pet: any) => (
-                        <button
-                          key={pet._id}
-                          type="button"
-                          onClick={() => setSelectedPetName(pet.name)}
-                          className={`px-3.5 py-1.5 border rounded-lg text-[11px] font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-                            selectedPetName === pet.name 
-                              ? 'bg-[#FAF2EE] border-terracotta/50 text-terracotta' 
-                              : 'bg-[#FAF8F5] border-[#F0EBE1] text-stone-600 hover:border-stone-300'
-                          }`}
-                        >
-                          {pet.name}
-                        </button>
-                      ))}
-                      {(!user?.pets || user.pets.length === 0) && (
-                        <span className="text-[10px] text-stone-400 italic py-1">No pets registered. Use custom name above.</span>
-                      )}
-                    </div>
-                  )}
+                  <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-hide">
+                    {user?.pets && user.pets.map((pet: any) => (
+                      <button
+                        key={pet._id}
+                        type="button"
+                        onClick={() => setSelectedPetName(pet.name)}
+                        className={`px-3.5 py-1.5 border rounded-lg text-[11px] font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+                          selectedPetName === pet.name 
+                            ? 'bg-[#FAF2EE] border-terracotta/50 text-terracotta' 
+                            : 'bg-[#FAF8F5] border-[#F0EBE1] text-stone-600 hover:border-stone-300'
+                        }`}
+                      >
+                        {pet.name}
+                      </button>
+                    ))}
+                    {(!user?.pets || user.pets.length === 0) && (
+                      <span className="text-[10px] text-stone-400 italic py-1">No pets registered. Add a pet above.</span>
+                    )}
+                  </div>
                 </div>
+
 
                 {/* Concerns */}
                 <div className="px-5 pt-3 pb-4">
@@ -2132,6 +2158,166 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
           onClose={() => setShowCall(false)} 
         />
       )}
+
+      {/* MATCHING PROFILE PET MODAL FOR BOOKING FLOW */}
+      {isPetModalOpen && (
+        <div className="fixed inset-0 z-[3000] bg-[#1C1A17]/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full border border-[#F0EBE1] shadow-2xl p-6 flex flex-col gap-4 animate-in fade-in zoom-in duration-200">
+            <header className="flex justify-between items-start">
+              <div>
+                <h3 className="font-serif text-xl text-[#1C1A17] font-normal tracking-tight">Add New Pet</h3>
+                <p className="text-[10px] text-stone-400 font-medium mt-0.5">Introduce a new member of your pet family</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPetModalOpen(false)}
+                className="p-1 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 text-stone-400 hover:text-stone-600 transition-colors cursor-pointer flex items-center justify-center"
+              >
+                ✕
+              </button>
+            </header>
+
+            {petError && (
+              <div className="bg-[#FDEDEC] border border-[#F5C2C2] text-[#C0392B] rounded-xl px-4 py-2.5 text-[10px] font-semibold">
+                {petError}
+              </div>
+            )}
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!petForm.name.trim() || !petForm.type) {
+                  setPetError('Name and Pet Type are required.');
+                  return;
+                }
+                setIsPetSaving(true);
+                setPetError(null);
+                try {
+                  const res = await fetch(`${API_BASE}/auth/profile/pets`, {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      Authorization: `Bearer ${token}`
+                    },
+                    body: JSON.stringify(petForm)
+                  });
+                  if (res.ok) {
+                    const { syncProfile } = useAuth();
+                    await syncProfile();
+                    setSelectedPetName(petForm.name);
+                    setIsPetModalOpen(false);
+                  } else {
+                    const err = await res.json();
+                    setPetError(err.message || 'Failed to save pet details.');
+                  }
+                } catch {
+                  setPetError('Network error. Unable to save pet.');
+                } finally {
+                  setIsPetSaving(false);
+                }
+              }}
+              className="flex flex-col gap-4 text-left"
+            >
+              {/* Name & Type Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[9px] font-bold text-stone-400 uppercase tracking-wider">Pet Name *</label>
+                  <input
+                    type="text"
+                    value={petForm.name}
+                    onChange={(e) => setPetForm(prev => ({ ...prev, name: e.target.value }))}
+                    required
+                    placeholder="e.g. Max"
+                    className="w-full bg-[#F5F3EF] rounded-xl py-2 px-3 text-xs text-[#1C1A17] border border-transparent focus:border-[#2D4536] outline-none"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[9px] font-bold text-stone-400 uppercase tracking-wider">Pet Type *</label>
+                  <select
+                    value={petForm.type}
+                    onChange={(e) => setPetForm(prev => ({ ...prev, type: e.target.value }))}
+                    required
+                    className="w-full bg-[#F5F3EF] rounded-xl py-2 px-3 text-xs text-[#1C1A17] border border-transparent focus:border-[#2D4536] outline-none"
+                  >
+                    <option value="Dog">Dog</option>
+                    <option value="Cat">Cat</option>
+                    <option value="Bird">Bird</option>
+                    <option value="Fish">Fish</option>
+                    <option value="Rabbit">Rabbit</option>
+                    <option value="Reptile">Reptile</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Breed & Age Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[9px] font-bold text-stone-400 uppercase tracking-wider">Breed</label>
+                  <input
+                    type="text"
+                    value={petForm.breed}
+                    onChange={(e) => setPetForm(prev => ({ ...prev, breed: e.target.value }))}
+                    placeholder="e.g. Beagle"
+                    className="w-full bg-[#F5F3EF] rounded-xl py-2 px-3 text-xs text-[#1C1A17] border border-transparent focus:border-[#2D4536] outline-none"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[9px] font-bold text-stone-400 uppercase tracking-wider">Age (Years)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="e.g. 3"
+                    value={petForm.age === undefined ? '' : petForm.age}
+                    onChange={(e) => setPetForm(prev => ({ ...prev, age: e.target.value === '' ? undefined : Number(e.target.value) }))}
+                    className="w-full bg-[#F5F3EF] rounded-xl py-2 px-3 text-xs text-[#1C1A17] border border-transparent focus:border-[#2D4536] outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Gender radio */}
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[9px] font-bold text-stone-400 uppercase tracking-wider">Gender</span>
+                <div className="grid grid-cols-3 gap-2">
+                  {['male', 'female', 'unknown'].map((g) => (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => setPetForm(prev => ({ ...prev, gender: g as any }))}
+                      className={`py-2 px-3 text-xs font-semibold rounded-xl border text-center transition-all capitalize ${
+                        petForm.gender === g
+                          ? 'border-[#2D4536] bg-[#2D4536] text-white'
+                          : 'border-stone-200 bg-white text-stone-500 hover:bg-stone-50'
+                      }`}
+                    >
+                      {g}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Submit Action */}
+              <div className="flex justify-end gap-2.5 mt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsPetModalOpen(false)}
+                  className="px-4 py-2 text-xs font-bold rounded-xl border border-stone-200 bg-white text-stone-500 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isPetSaving}
+                  className="px-5 py-2 bg-[#2D4536] hover:bg-[#1E2E24] text-white font-bold text-xs rounded-xl transition-all cursor-pointer"
+                >
+                  {isPetSaving ? 'Saving...' : 'Add Pet'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 }
+
