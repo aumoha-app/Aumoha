@@ -49,8 +49,11 @@ export default function MinimalHome({
       </div>
 
       {/* 2. SEARCH BAR */}
-      <div className="relative z-10 w-full">
-        <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-stone-600">
+      <div 
+        onClick={onExpertSupportClick}
+        className="relative z-10 w-full cursor-pointer group"
+      >
+        <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-stone-600 group-hover:text-[#1C1A17] transition-colors">
           <svg className="w-4 h-4 stroke-[2.2]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -58,10 +61,12 @@ export default function MinimalHome({
         </span>
         <input
           type="text"
+          readOnly
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onClick={onExpertSupportClick}
+          onFocus={onExpertSupportClick}
           placeholder="Search care, experts, services..."
-          className="w-full pl-11 pr-4 py-3.5 bg-[#EFEAE2] border border-[#D5CEBF] focus:border-[#C85341] rounded-2xl text-xs sm:text-sm text-[#1C1A17] placeholder-stone-600 focus:outline-none transition-all font-sans font-medium shadow-2xs"
+          className="w-full pl-11 pr-4 py-3.5 bg-[#EFEAE2] hover:bg-[#E6E0D6] border border-[#D5CEBF] focus:border-[#C85341] rounded-2xl text-xs sm:text-sm text-[#1C1A17] placeholder-stone-600 focus:outline-none transition-all font-sans font-medium shadow-2xs cursor-pointer"
         />
       </div>
 
