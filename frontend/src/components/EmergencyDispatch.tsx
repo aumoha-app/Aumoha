@@ -41,8 +41,8 @@ export default function EmergencyDispatch({
 
   const [activeCategory, setActiveCategory] = useState<string>('Accident');
   const [locationMode, setLocationMode] = useState<'current' | 'manual'>('current');
-  const [locationText, setLocationText] = useState<string>('Detecting location...');
-  const [currentAddress, setCurrentAddress] = useState<string>('Detecting location...');
+  const [locationText, setLocationText] = useState<string>(user?.address || 'Saheed Nagar, Sector 45');
+  const [currentAddress, setCurrentAddress] = useState<string>(user?.address || 'Saheed Nagar, Sector 45');
   const [severity, setSeverity] = useState<'critical' | 'urgent' | 'stable'>('critical');
   const [photoSelected, setPhotoSelected] = useState<boolean>(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -77,21 +77,18 @@ export default function EmergencyDispatch({
   // Hook to fetch initial browser geolocation and reverse-geocode it on component mount
   useEffect(() => {
     const fallbackAddr = user?.address || 'Saheed Nagar, Sector 45';
-    if (!navigator.geolocation) {
-      setLocationText(fallbackAddr);
-      setCurrentAddress(fallbackAddr);
+    if (user?.address) {
+      setLocationText(user.address);
+      setCurrentAddress(user.address);
+    }
+    if (typeof window === 'undefined' || !navigator.geolocation) {
       return;
     }
-
-    setLocationText('Detecting GPS location...');
-    setCurrentAddress('Detecting GPS location...');
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
-        setLocationText('Resolving street address...');
-        setCurrentAddress('Resolving street address...');
         try {
           const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`, {
             headers: {
@@ -104,26 +101,16 @@ export default function EmergencyDispatch({
               const formattedLoc = `${data.display_name} [${lat.toFixed(6)}, ${lng.toFixed(6)}]`;
               setLocationText(formattedLoc);
               setCurrentAddress(formattedLoc);
-            } else {
-              const coordStr = `Current Coordinates: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-              setLocationText(coordStr);
-              setCurrentAddress(coordStr);
             }
-          } else {
-            setLocationText(fallbackAddr);
-            setCurrentAddress(fallbackAddr);
           }
         } catch (err) {
-          setLocationText(fallbackAddr);
-          setCurrentAddress(fallbackAddr);
+          console.warn('Reverse geocode failed:', err);
         }
       },
       (error) => {
         console.warn('Geolocation access failed or denied:', error);
-        setLocationText(fallbackAddr);
-        setCurrentAddress(fallbackAddr);
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 60000 }
     );
   }, [user?.address]);
 
