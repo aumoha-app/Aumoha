@@ -744,54 +744,57 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
   // Auth lock screen
   if (!isAuthenticated) {
     return (
-      <main className="w-full max-w-2xl mx-auto bg-white rounded-3xl p-6 md:p-10 flex flex-col gap-6 shadow-sm select-none transition-all duration-300">
+      <main className="w-full max-w-md mx-auto bg-white rounded-3xl p-6 sm:p-8 flex flex-col gap-6 shadow-sm border border-[#EBE3D5] select-none transition-all duration-300 my-8 pb-12">
         <header className="flex items-center justify-between w-full border-b border-[#EBE3D5] pb-4">
           <div className="flex items-center gap-2">
-            <h1 className="font-serif text-2xl text-[#1C1A17] font-normal tracking-tight">Admin Authentication</h1>
+            <div className="w-8 h-8 rounded-xl bg-[#4A5D4E]/10 text-[#4A5D4E] flex items-center justify-center font-bold text-sm">
+              🔐
+            </div>
+            <h1 className="font-serif text-xl text-[#1C1A17] font-semibold tracking-tight">Admin Authentication</h1>
           </div>
           <button
             onClick={onClose}
-            className="px-3.5 py-1.5 border border-[#EBE3D5] bg-white text-stone-500 hover:bg-stone-55 hover:text-charcoal font-bold rounded-xl text-xs transition-colors cursor-pointer"
+            className="px-3.5 py-1.5 border border-[#EBE3D5] bg-stone-50 hover:bg-stone-100 text-stone-600 font-bold rounded-xl text-xs transition-colors cursor-pointer"
           >
             Exit
           </button>
         </header>
 
-        <form onSubmit={handleAuthSubmit} className="flex flex-col gap-4 max-w-sm mx-auto w-full py-8">
-          <p className="text-xs text-stone-500 text-center leading-normal mb-2">
-            Enter the admin double-lock password to manage marketplace products.
+        <form onSubmit={handleAuthSubmit} className="flex flex-col gap-4 w-full">
+          <p className="text-xs text-stone-500 text-center leading-relaxed">
+            Enter the admin double-lock password to manage rescue alerts, marketplace products, doctors, call sessions, and community posts.
           </p>
 
           <div className="flex flex-col gap-1.5">
             <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Admin Password</label>
             <input
               type="password"
-              placeholder="Enter password..."
+              placeholder="Enter admin password..."
               value={adminPassword}
               onChange={(e) => setAdminPassword(e.target.value)}
-              className="w-full bg-[#F5F3EF] rounded-xl py-3 px-4 text-sm text-[#1C1A17] outline-none focus:ring-1 focus:ring-[#4A5D4E] transition-all"
+              className="w-full bg-[#F9F8F5] rounded-xl py-3 px-4 text-sm text-[#1C1A17] border border-[#EBE3D5] outline-none focus:ring-2 focus:ring-[#4A5D4E]/30 focus:border-[#4A5D4E] transition-all"
               required
             />
           </div>
 
           {authError && (
-            <div className="bg-[#FDEDEC] border border-[#F5C2C2] text-[#C0392B] rounded-xl px-4 py-2.5 text-xs font-semibold">
-              {authError}
+            <div className="bg-[#FDEDEC] border border-[#F5C2C2] text-[#C0392B] rounded-xl px-4 py-2.5 text-xs font-semibold flex items-center gap-2">
+              <span>⚠️</span> {authError}
             </div>
           )}
 
           <button
             type="submit"
             disabled={isVerifying}
-            className="mt-2 py-3 bg-[#4A5D4E] hover:bg-[#3A4D3E] text-[#FDFBF7] font-bold text-xs rounded-xl shadow-sm transition-all duration-200 cursor-pointer flex items-center justify-center gap-2"
+            className="mt-2 py-3 bg-[#4A5D4E] hover:bg-[#3A4D3E] text-white font-bold text-xs rounded-xl shadow-sm transition-all duration-200 cursor-pointer flex items-center justify-center gap-2"
           >
             {isVerifying ? (
               <>
                 <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Verifying...
+                Verifying Credentials...
               </>
             ) : (
-              'Verify & Unlock'
+              'Verify & Unlock Dashboard'
             )}
           </button>
         </form>
@@ -800,13 +803,19 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
   }
 
   return (
-    <main className="w-full max-w-2xl mx-auto bg-white rounded-3xl p-4 md:p-8 flex flex-col gap-6 shadow-sm transition-all duration-300">
+    <main className="w-full max-w-5xl lg:max-w-6xl mx-auto bg-white rounded-3xl p-4 sm:p-6 md:p-8 pb-32 sm:pb-36 flex flex-col gap-6 shadow-sm border border-[#F0EBE1] transition-all duration-300">
       
       {/* HEADER */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full select-none border-b border-[#EBE3D5] pb-5">
         <div>
-          <h1 className="font-serif text-3xl md:text-4xl text-[#1C1A17] font-normal tracking-tight">Admin Dashboard</h1>
-          <p className="text-xs text-stone-400 font-medium mt-1">Manage and publish items to the Aumoha Marketplace</p>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[10px] font-extrabold uppercase tracking-widest bg-[#4A5D4E]/10 text-[#4A5D4E] px-2.5 py-0.5 rounded-full border border-[#4A5D4E]/20">
+              Admin Portal
+            </span>
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          </div>
+          <h1 className="font-serif text-2xl sm:text-3xl text-[#1C1A17] font-normal tracking-tight">Admin Control Panel</h1>
+          <p className="text-xs text-stone-400 font-medium mt-0.5">Manage rescue alerts, product catalog, vets, calls, community & checkout settings</p>
         </div>
         <div className="flex gap-2 self-start sm:self-auto shrink-0">
           <button
@@ -816,94 +825,109 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
               setAdminPassword('');
               onClose();
             }}
-            className="px-4 py-2 bg-[#4A5D4E] hover:bg-[#3A4D3E] text-white font-bold rounded-xl text-xs shadow-sm transition-all cursor-pointer"
+            className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-xl text-xs border border-stone-200 transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
           >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
             Exit Dashboard
           </button>
         </div>
       </header>
 
-      {/* TAB NAVIGATION */}
-      <div className="flex border-b border-[#EBE3D5] mb-2 select-none">
+      {/* TAB NAVIGATION PILLS */}
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scrollbar-none pb-2.5 border-b border-[#EBE3D5] select-none -mx-1 px-1">
         <button
           onClick={() => setCurrentTab('sos')}
-          className={`px-5 py-2.5 text-xs font-bold transition-all border-b-2 cursor-pointer flex items-center gap-1.5 ${
+          className={`px-4 py-2.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
             currentTab === 'sos'
-              ? 'border-[#9B1C1C] text-[#9B1C1C]'
-              : 'border-transparent text-stone-400 hover:text-[#9B1C1C]'
+              ? 'bg-[#9B1C1C] text-white shadow-md scale-[1.02]'
+              : 'bg-stone-100/80 hover:bg-stone-200/70 text-stone-600'
           }`}
         >
-          <span>Emergency SOS Alerts</span>
+          <span>🚨 SOS Alerts</span>
           {sosReports.filter(r => r.status === 'active').length > 0 && (
-            <span className="bg-[#9B1C1C] text-white text-[8px] px-1.5 py-0.5 rounded-full font-extrabold animate-pulse">
+            <span className="bg-white text-[#9B1C1C] text-[9px] px-1.5 py-0.2 rounded-full font-extrabold animate-pulse">
               {sosReports.filter(r => r.status === 'active').length}
             </span>
           )}
         </button>
+
         <button
           onClick={() => setCurrentTab('products')}
-          className={`px-5 py-2.5 text-xs font-bold transition-all border-b-2 cursor-pointer ${
+          className={`px-4 py-2.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
             currentTab === 'products'
-              ? 'border-[#4A5D4E] text-[#4A5D4E]'
-              : 'border-transparent text-stone-400 hover:text-[#4A5D4E]'
+              ? 'bg-[#4A5D4E] text-white shadow-md scale-[1.02]'
+              : 'bg-stone-100/80 hover:bg-stone-200/70 text-stone-600'
           }`}
         >
-          Manage Products
+          <span>🛍️ Products</span>
+          {products.length > 0 && (
+            <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-extrabold ${currentTab === 'products' ? 'bg-white/20 text-white' : 'bg-stone-200 text-stone-600'}`}>
+              {products.length}
+            </span>
+          )}
         </button>
+
         <button
           onClick={() => setCurrentTab('vets')}
-          className={`px-5 py-2.5 text-xs font-bold transition-all border-b-2 cursor-pointer flex items-center gap-1.5 ${
+          className={`px-4 py-2.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
             currentTab === 'vets'
-              ? 'border-[#072654] text-[#072654]'
-              : 'border-transparent text-stone-400 hover:text-[#072654]'
+              ? 'bg-[#072654] text-white shadow-md scale-[1.02]'
+              : 'bg-stone-100/80 hover:bg-stone-200/70 text-stone-600'
           }`}
         >
           <span>🩺 Vets & Experts</span>
           {vets.length > 0 && (
-            <span className="bg-[#072654]/10 text-[#072654] text-[8px] px-1.5 py-0.5 rounded-full font-extrabold">
+            <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-extrabold ${currentTab === 'vets' ? 'bg-white/20 text-white' : 'bg-stone-200 text-stone-600'}`}>
               {vets.length}
             </span>
           )}
         </button>
-        <button
-          onClick={() => setCurrentTab('settings')}
-          className={`px-5 py-2.5 text-xs font-bold transition-all border-b-2 cursor-pointer ${
-            currentTab === 'settings'
-              ? 'border-[#4A5D4E] text-[#4A5D4E]'
-              : 'border-transparent text-stone-400 hover:text-[#4A5D4E]'
-          }`}
-        >
-          Marketplace Settings
-        </button>
-        <button
-          onClick={() => setCurrentTab('community')}
-          className={`px-5 py-2.5 text-xs font-bold transition-all border-b-2 cursor-pointer flex items-center gap-1.5 ${
-            currentTab === 'community'
-              ? 'border-[#B68A35] text-[#B68A35]'
-              : 'border-transparent text-stone-400 hover:text-[#B68A35]'
-          }`}
-        >
-          <span>Manage Community</span>
-          {activities.length > 0 && (
-            <span className="bg-[#B68A35]/15 text-[#B68A35] text-[8px] px-1.5 py-0.5 rounded-full font-extrabold">
-              {activities.length}
-            </span>
-          )}
-        </button>
+
         <button
           onClick={() => setCurrentTab('calls')}
-          className={`px-5 py-2.5 text-xs font-bold transition-all border-b-2 cursor-pointer flex items-center gap-1.5 ${
+          className={`px-4 py-2.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
             currentTab === 'calls'
-              ? 'border-emerald-600 text-emerald-700'
-              : 'border-transparent text-stone-400 hover:text-emerald-700'
+              ? 'bg-emerald-700 text-white shadow-md scale-[1.02]'
+              : 'bg-stone-100/80 hover:bg-stone-200/70 text-stone-600'
           }`}
         >
           <span>📞 Active Calls</span>
           {callSessions.filter(s => s.status === 'requested').length > 0 && (
-            <span className="bg-amber-500 text-white text-[8px] px-1.5 py-0.5 rounded-full font-extrabold animate-pulse">
+            <span className="bg-amber-400 text-stone-900 text-[9px] px-1.5 py-0.2 rounded-full font-extrabold animate-pulse">
               {callSessions.filter(s => s.status === 'requested').length}
             </span>
           )}
+        </button>
+
+        <button
+          onClick={() => setCurrentTab('community')}
+          className={`px-4 py-2.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
+            currentTab === 'community'
+              ? 'bg-[#B68A35] text-white shadow-md scale-[1.02]'
+              : 'bg-stone-100/80 hover:bg-stone-200/70 text-stone-600'
+          }`}
+        >
+          <span>👥 Community</span>
+          {activities.length > 0 && (
+            <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-extrabold ${currentTab === 'community' ? 'bg-white/20 text-white' : 'bg-stone-200 text-stone-600'}`}>
+              {activities.length}
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => setCurrentTab('settings')}
+          className={`px-4 py-2.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
+            currentTab === 'settings'
+              ? 'bg-[#4A5D4E] text-white shadow-md scale-[1.02]'
+              : 'bg-stone-100/80 hover:bg-stone-200/70 text-stone-600'
+          }`}
+        >
+          <span>⚙️ Settings</span>
         </button>
       </div>
 
@@ -913,36 +937,37 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
         </div>
       )}
 
+      {/* ======================= ACTIVE CALLS TAB ======================= */}
       {currentTab === 'calls' && (
-        <div className="space-y-4 animate-fadeIn p-2">
-          <div className="flex justify-between items-center bg-white p-4 rounded-2xl border border-stone-200 shadow-sm">
+        <div className="space-y-5 animate-fadeIn">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FCFAF7] p-4.5 rounded-2xl border border-[#F0EBE1] shadow-sm">
             <div>
               <h3 className="text-sm font-extrabold text-stone-800">Tele-Consultation Call Sessions</h3>
-              <p className="text-xs text-stone-500">Connect requested client calls to enable video/voice room access for doctor and pet parent.</p>
+              <p className="text-xs text-stone-500 mt-0.5">Connect requested client calls to enable video/voice room access for doctor and pet parent.</p>
             </div>
             <button
               onClick={fetchCallSessions}
-              className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 rounded-xl text-xs font-bold text-stone-700 transition-all cursor-pointer"
+              className="self-start sm:self-auto px-3.5 py-1.5 bg-white hover:bg-stone-50 border border-stone-200 rounded-xl text-xs font-bold text-stone-700 transition-all cursor-pointer shadow-sm flex items-center gap-1.5"
             >
-              🔄 Refresh
+              🔄 Refresh Calls
             </button>
           </div>
 
           {callSessions.length === 0 ? (
-            <div className="text-center py-12 bg-stone-50 rounded-2xl border border-dashed border-stone-200">
+            <div className="text-center py-16 bg-[#FCFAF7] rounded-2xl border border-dashed border-[#EBE3D5]">
               <p className="text-xs font-bold text-stone-400">No active or past call sessions found.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {callSessions.map((session) => (
-                <div key={session._id} className="bg-white p-5 rounded-2xl border border-stone-200 shadow-sm flex flex-col justify-between gap-3">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <span className="text-[10px] font-mono text-stone-400">BOOKING: {session.bookingId}</span>
-                      <h4 className="text-xs font-extrabold text-stone-800 mt-0.5">User: {session.userEmail}</h4>
-                      <p className="text-xs text-stone-600 font-medium">Doctor/Expert ID: {session.expertOrVetId}</p>
+                <div key={session._id} className="bg-white p-5 rounded-2xl border border-[#EBE3D5] shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-3">
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="min-w-0">
+                      <span className="text-[10px] font-mono text-stone-400 bg-stone-100 px-2 py-0.5 rounded">BOOKING: {session.bookingId}</span>
+                      <h4 className="text-xs font-extrabold text-stone-800 mt-2 truncate">User: {session.userEmail}</h4>
+                      <p className="text-[11px] text-stone-500 font-medium truncate mt-0.5">Expert ID: {session.expertOrVetId}</p>
                     </div>
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase ${
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase shrink-0 ${
                       session.status === 'requested' ? 'bg-amber-100 text-amber-800 animate-pulse' :
                       session.status === 'ready' ? 'bg-blue-100 text-blue-800' :
                       session.status === 'ongoing' ? 'bg-emerald-100 text-emerald-800' :
@@ -954,14 +979,14 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
 
                   <div className="text-[11px] text-stone-500 flex justify-between border-t border-stone-100 pt-3">
                     <span>Type: <strong className="capitalize">{session.callType || 'video'}</strong></span>
-                    <span>Requested: {new Date(session.createdAt).toLocaleTimeString()}</span>
+                    <span>{new Date(session.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
 
                   <div className="flex gap-2 pt-1">
                     {session.status === 'requested' && (
                       <button
                         onClick={() => handleConnectCall(session._id)}
-                        className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition-all cursor-pointer"
+                        className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5"
                       >
                         ⚡ Connect Call Room
                       </button>
@@ -969,7 +994,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                     {(session.status === 'ready' || session.status === 'ongoing') && (
                       <button
                         onClick={() => handleForceEndCall(session._id)}
-                        className="flex-1 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition-all cursor-pointer"
+                        className="flex-1 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5"
                       >
                         ⛔ Force End Call
                       </button>
@@ -982,304 +1007,303 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
         </div>
       )}
 
+      {/* ======================= PRODUCTS TAB ======================= */}
       {currentTab === 'products' && (
         <>
           {/* ADD/EDIT FORM */}
-      <section className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-[24px] p-5 md:p-6 flex flex-col gap-4 shadow-sm hover:shadow-md transition-all duration-300">
-        <div className="flex items-center justify-between border-b border-[#EBE3D5]/80 pb-2.5">
-          <h2 className="font-serif text-lg text-[#1C1A17] font-normal">
-            {isEditing ? 'Edit Marketplace Product' : 'Add New Product'}
-          </h2>
-          {isEditing && (
-            <span className="text-[9px] font-extrabold bg-[#D95D39]/10 text-[#D95D39] px-2 py-0.5 rounded-full uppercase tracking-wider">
-              Editing Mode
-            </span>
-          )}
-        </div>
-
-        <form onSubmit={handleSaveProduct} className="flex flex-col gap-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            
-            {/* Title */}
-            <div className="flex flex-col gap-1">
-              <label htmlFor="title" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Product Title *</label>
-              <input
-                type="text"
-                id="title"
-                value={formTitle}
-                onChange={(e) => setFormTitle(e.target.value)}
-                placeholder="e.g. Eco Rope Ball"
-                className="w-full bg-white rounded-xl py-2.5 px-3.5 text-xs text-[#1C1A17] border border-[#EBE3D5] focus:border-[#4A5D4E] focus:ring-1 focus:ring-[#4A5D4E] outline-none transition-all shadow-sm"
-                required
-              />
-            </div>
-
-            {/* Category Custom Pills */}
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Category *</span>
-              <div className="grid grid-cols-3 gap-2">
-                {(['food', 'toys', 'medical'] as const).map((cat) => {
-                  const isActive = formCategory === cat;
-                  return (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => setFormCategory(cat)}
-                      className={`flex items-center justify-center py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
-                        isActive
-                          ? 'bg-terracottaGlow text-terracotta border-terracotta/30 scale-[1.01]'
-                          : 'bg-white hover:bg-stone-50 border-[#EBE3D5] text-stone-500 hover:text-charcoal'
-                      }`}
-                    >
-                      <span className="capitalize text-[10px] md:text-xs">{cat}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            
-            {/* Price */}
-            <div className="flex flex-col gap-1">
-              <label htmlFor="price" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Sale Price *</label>
-              <div className="relative">
-                <span className="absolute inset-y-0 left-3.5 flex items-center text-stone-400 text-xs select-none pointer-events-none font-bold">₹</span>
-                <input
-                  type="number"
-                  id="price"
-                  value={formPrice}
-                  onChange={(e) => setFormPrice(e.target.value)}
-                  placeholder="349"
-                  className="w-full bg-white rounded-xl py-2.5 pl-8 pr-3.5 text-xs text-[#1C1A17] border border-[#EBE3D5] focus:border-[#4A5D4E] focus:ring-1 focus:ring-[#4A5D4E] outline-none transition-all shadow-sm"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Original Price */}
-            <div className="flex flex-col gap-1">
-              <label htmlFor="originalPrice" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Original Price (Optional)</label>
-              <div className="relative">
-                <span className="absolute inset-y-0 left-3.5 flex items-center text-stone-400 text-xs select-none pointer-events-none font-bold">₹</span>
-                <input
-                  type="number"
-                  id="originalPrice"
-                  value={formOriginalPrice}
-                  onChange={(e) => setFormOriginalPrice(e.target.value)}
-                  placeholder="499"
-                  className="w-full bg-white rounded-xl py-2.5 pl-8 pr-3.5 text-xs text-[#1C1A17] border border-[#EBE3D5] focus:border-[#4A5D4E] focus:ring-1 focus:ring-[#4A5D4E] outline-none transition-all shadow-sm"
-                />
-              </div>
-            </div>
-
-            {/* Discount Badge */}
-            <div className="flex flex-col gap-1">
-              <label htmlFor="discountBadge" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Discount Badge (Optional)</label>
-              <input
-                type="text"
-                id="discountBadge"
-                value={formDiscountBadge}
-                onChange={(e) => setFormDiscountBadge(e.target.value)}
-                placeholder="e.g. 10% OFF"
-                className="w-full bg-white rounded-xl py-2.5 px-3.5 text-xs text-[#1C1A17] border border-[#EBE3D5] focus:border-[#4A5D4E] focus:ring-1 focus:ring-[#4A5D4E] outline-none transition-all shadow-sm"
-              />
-            </div>
-
-            {/* Product Image drag-n-drop file selector box */}
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Product Image *</label>
-              <div 
-                onClick={() => fileInputRef.current?.click()}
-                className={`border-2 border-dashed rounded-xl p-3 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all duration-300 bg-white ${
-                  formImage 
-                    ? 'border-terracotta bg-terracottaGlow' 
-                    : 'border-[#EBE3D5] hover:border-[#4A5D4E] hover:bg-stone-50'
-                }`}
-              >
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  accept="image/*"
-                  className="hidden"
-                />
-                {formImage ? (
-                  <div className="flex items-center gap-3.5 w-full select-none">
-                    <div className="w-10 h-10 rounded-lg overflow-hidden border border-[#EBE3D5] bg-[#FAF6F0] shrink-0 shadow-sm">
-                      <img src={formImage} alt="Uploaded" className="w-full h-full object-cover" />
-                    </div>
-                    <div className="flex-grow min-w-0">
-                      <p className="text-[10px] font-extrabold text-terracotta leading-none truncate">Image Loaded</p>
-                      <p className="text-[8px] text-stone-400 mt-1">Click to replace photo</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setFormImage('');
-                        if (fileInputRef.current) fileInputRef.current.value = '';
-                      }}
-                      className="w-5 h-5 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 flex items-center justify-center text-xs font-bold transition-colors cursor-pointer shrink-0 shadow-sm"
-                      title="Remove image"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center py-0.5 text-stone-400 hover:text-[#4A5D4E] transition-colors">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="mb-0.5">
-                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                      <circle cx="8.5" cy="8.5" r="1.5" />
-                      <polyline points="21 15 16 10 5 21" />
-                    </svg>
-                    <span className="text-[10px] font-extrabold uppercase tracking-wide">Upload Image</span>
-                    <span className="text-[8px] mt-0.5 text-stone-400">Click to browse local files</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-          </div>
-
-          {/* Description */}
-          <div className="flex flex-col gap-1">
-            <label htmlFor="description" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Description *</label>
-            <textarea
-              id="description"
-              value={formDescription}
-              onChange={(e) => setFormDescription(e.target.value)}
-              placeholder="Enter product features, ingredients, sizes..."
-              rows={2}
-              className="w-full bg-white rounded-xl py-2.5 px-3.5 text-xs text-[#1C1A17] border border-[#EBE3D5] focus:border-[#4A5D4E] focus:ring-1 focus:ring-[#4A5D4E] outline-none transition-all resize-none leading-relaxed shadow-sm"
-              required
-            />
-          </div>
-
-          {/* Form Action Buttons */}
-          <div className="flex justify-end gap-2.5 mt-2">
-            {isEditing && (
-              <button
-                type="button"
-                onClick={resetForm}
-                className="px-4 py-2 text-xs font-bold rounded-xl border border-stone-200 bg-white text-stone-500 hover:bg-stone-50 transition-all cursor-pointer shadow-sm"
-              >
-                Cancel Edit
-              </button>
-            )}
-            <button
-              type="submit"
-              disabled={isSaving}
-              className="px-6 py-2.5 bg-[#4A5D4E] hover:bg-[#3A4D3E] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-75 text-white font-bold text-xs rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer"
-            >
-              {isSaving ? (
-                <>
-                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                  {isEditing ? 'Update Product' : 'Add Product'}
-                </>
+          <section className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-[24px] p-5 md:p-6 flex flex-col gap-4 shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="flex items-center justify-between border-b border-[#EBE3D5]/80 pb-2.5">
+              <h2 className="font-serif text-lg text-[#1C1A17] font-normal">
+                {isEditing ? 'Edit Marketplace Product' : 'Add New Product'}
+              </h2>
+              {isEditing && (
+                <span className="text-[9px] font-extrabold bg-[#D95D39]/10 text-[#D95D39] px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  Editing Mode
+                </span>
               )}
-            </button>
-          </div>
-        </form>
-      </section>
+            </div>
 
-      {/* PRODUCTS LIST */}
-      <section className="flex flex-col gap-3">
-        <h2 className="font-serif text-lg text-[#1C1A17] font-normal border-b border-[#EBE3D5] pb-2">
-          Current Products ({products.length})
-        </h2>
-
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-10 gap-3 text-stone-400 select-none">
-            <div className="w-7 h-7 rounded-full border-2 border-stone-200 border-t-[#4A5D4E] animate-spin" />
-            <p className="text-[10px] font-semibold">Loading current inventory...</p>
-          </div>
-        ) : products.length > 0 ? (
-          <div className="flex flex-col gap-3">
-            {products.map((product) => (
-              <div
-                key={product._id}
-                className="bg-white border border-[#F0EBE1] rounded-2xl p-3.5 flex gap-4 hover:shadow-sm transition-all duration-200 group"
-              >
-                {/* Thumbnail */}
-                <div className="w-16 h-16 rounded-xl bg-[#FAF6F0] overflow-hidden shrink-0 border border-stone-100 select-none">
-                  <img
-                    src={product.imageUrl}
-                    alt={product.title}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src = '/sw.js';
-                    }}
+            <form onSubmit={handleSaveProduct} className="flex flex-col gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                
+                {/* Title */}
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="title" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Product Title *</label>
+                  <input
+                    type="text"
+                    id="title"
+                    value={formTitle}
+                    onChange={(e) => setFormTitle(e.target.value)}
+                    placeholder="e.g. Eco Rope Ball"
+                    className="w-full bg-white rounded-xl py-2.5 px-3.5 text-xs text-[#1C1A17] border border-[#EBE3D5] focus:border-[#4A5D4E] focus:ring-1 focus:ring-[#4A5D4E] outline-none transition-all shadow-sm"
+                    required
                   />
                 </div>
 
-                {/* Info */}
-                <div className="flex flex-col flex-grow min-w-0 justify-between">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <span className="text-[9px] font-extrabold text-[#4A5D4E] bg-[#D4DDD6] px-1.5 py-0.5 rounded uppercase tracking-wider">
-                        {product.category}
-                      </span>
-                      <h4 className="font-serif text-sm md:text-base text-[#1C1A17] font-normal leading-tight mt-1 truncate">
-                        {product.title}
-                      </h4>
-                    </div>
-
-                    {/* Action buttons */}
-                    <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => handleEditClick(product)}
-                        className="p-1.5 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 text-stone-600 transition-colors cursor-pointer"
-                        title="Edit product"
-                      >
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                          <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => product._id && handleDeleteClick(product._id)}
-                        className="p-1.5 rounded-lg border border-red-100 bg-white hover:bg-red-50 text-red-500 transition-colors cursor-pointer"
-                        title="Delete product"
-                      >
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="3 6 5 6 21 6" />
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                          <line x1="10" y1="11" x2="10" y2="17" />
-                          <line x1="14" y1="11" x2="14" y2="17" />
-                        </svg>
-                      </button>
-                    </div>
+                {/* Category Custom Pills */}
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Category *</span>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(['food', 'toys', 'medical'] as const).map((cat) => {
+                      const isActive = formCategory === cat;
+                      return (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => setFormCategory(cat)}
+                          className={`flex items-center justify-center py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                            isActive
+                              ? 'bg-terracottaGlow text-terracotta border-terracotta/30 scale-[1.01]'
+                              : 'bg-white hover:bg-stone-50 border-[#EBE3D5] text-stone-500 hover:text-charcoal'
+                          }`}
+                        >
+                          <span className="capitalize text-[10px] md:text-xs">{cat}</span>
+                        </button>
+                      );
+                    })}
                   </div>
+                </div>
+                
+                {/* Price */}
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="price" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Sale Price *</label>
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-3.5 flex items-center text-stone-400 text-xs select-none pointer-events-none font-bold">₹</span>
+                    <input
+                      type="number"
+                      id="price"
+                      value={formPrice}
+                      onChange={(e) => setFormPrice(e.target.value)}
+                      placeholder="349"
+                      className="w-full bg-white rounded-xl py-2.5 pl-8 pr-3.5 text-xs text-[#1C1A17] border border-[#EBE3D5] focus:border-[#4A5D4E] focus:ring-1 focus:ring-[#4A5D4E] outline-none transition-all shadow-sm"
+                      required
+                    />
+                  </div>
+                </div>
 
-                  <div className="flex items-center gap-1.5 text-xs mt-1.5">
-                    <span className="font-extrabold text-[#1C1A17]">₹{product.price}</span>
-                    {product.originalPrice && (
-                      <span className="text-[10px] text-stone-400 line-through">₹{product.originalPrice}</span>
-                    )}
-                    {product.discountBadge && (
-                      <span className="text-[9px] font-bold text-stone-400 ml-1">({product.discountBadge})</span>
+                {/* Original Price */}
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="originalPrice" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Original Price (Optional)</label>
+                  <div className="relative">
+                    <span className="absolute inset-y-0 left-3.5 flex items-center text-stone-400 text-xs select-none pointer-events-none font-bold">₹</span>
+                    <input
+                      type="number"
+                      id="originalPrice"
+                      value={formOriginalPrice}
+                      onChange={(e) => setFormOriginalPrice(e.target.value)}
+                      placeholder="499"
+                      className="w-full bg-white rounded-xl py-2.5 pl-8 pr-3.5 text-xs text-[#1C1A17] border border-[#EBE3D5] focus:border-[#4A5D4E] focus:ring-1 focus:ring-[#4A5D4E] outline-none transition-all shadow-sm"
+                    />
+                  </div>
+                </div>
+
+                {/* Discount Badge */}
+                <div className="flex flex-col gap-1">
+                  <label htmlFor="discountBadge" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Discount Badge (Optional)</label>
+                  <input
+                    type="text"
+                    id="discountBadge"
+                    value={formDiscountBadge}
+                    onChange={(e) => setFormDiscountBadge(e.target.value)}
+                    placeholder="e.g. 10% OFF"
+                    className="w-full bg-white rounded-xl py-2.5 px-3.5 text-xs text-[#1C1A17] border border-[#EBE3D5] focus:border-[#4A5D4E] focus:ring-1 focus:ring-[#4A5D4E] outline-none transition-all shadow-sm"
+                  />
+                </div>
+
+                {/* Product Image drag-n-drop file selector box */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Product Image *</label>
+                  <div 
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-xl p-3 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all duration-300 bg-white ${
+                      formImage 
+                        ? 'border-terracotta bg-terracottaGlow' 
+                        : 'border-[#EBE3D5] hover:border-[#4A5D4E] hover:bg-stone-50'
+                    }`}
+                  >
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileChange}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                    {formImage ? (
+                      <div className="flex items-center gap-3.5 w-full select-none">
+                        <div className="w-10 h-10 rounded-lg overflow-hidden border border-[#EBE3D5] bg-[#FAF6F0] shrink-0 shadow-sm">
+                          <img src={formImage} alt="Uploaded" className="w-full h-full object-cover" />
+                        </div>
+                        <div className="flex-grow min-w-0">
+                          <p className="text-[10px] font-extrabold text-terracotta leading-none truncate">Image Loaded</p>
+                          <p className="text-[8px] text-stone-400 mt-1">Click to replace photo</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setFormImage('');
+                            if (fileInputRef.current) fileInputRef.current.value = '';
+                          }}
+                          className="w-5 h-5 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 flex items-center justify-center text-xs font-bold transition-colors cursor-pointer shrink-0 shadow-sm"
+                          title="Remove image"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center py-0.5 text-stone-400 hover:text-[#4A5D4E] transition-colors">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="mb-0.5">
+                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                          <circle cx="8.5" cy="8.5" r="1.5" />
+                          <polyline points="21 15 16 10 5 21" />
+                        </svg>
+                        <span className="text-[10px] font-extrabold uppercase tracking-wide">Upload Image</span>
+                        <span className="text-[8px] mt-0.5 text-stone-400">Click to browse local files</span>
+                      </div>
                     )}
                   </div>
                 </div>
+
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-10 border border-dashed border-[#EBE3D5] rounded-[20px] select-none">
-            <p className="text-xs text-stone-400 font-medium">No products in inventory. Use the form above to add one!</p>
-          </div>
-        )}
-      </section>
+
+              {/* Description */}
+              <div className="flex flex-col gap-1">
+                <label htmlFor="description" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Description *</label>
+                <textarea
+                  id="description"
+                  value={formDescription}
+                  onChange={(e) => setFormDescription(e.target.value)}
+                  placeholder="Enter product features, ingredients, sizes..."
+                  rows={2}
+                  className="w-full bg-white rounded-xl py-2.5 px-3.5 text-xs text-[#1C1A17] border border-[#EBE3D5] focus:border-[#4A5D4E] focus:ring-1 focus:ring-[#4A5D4E] outline-none transition-all resize-none leading-relaxed shadow-sm"
+                  required
+                />
+              </div>
+
+              {/* Form Action Buttons */}
+              <div className="flex justify-end gap-2.5 mt-2">
+                {isEditing && (
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    className="px-4 py-2 text-xs font-bold rounded-xl border border-stone-200 bg-white text-stone-500 hover:bg-stone-50 transition-all cursor-pointer shadow-sm"
+                  >
+                    Cancel Edit
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  className="px-6 py-2.5 bg-[#4A5D4E] hover:bg-[#3A4D3E] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-75 text-white font-bold text-xs rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer"
+                >
+                  {isSaving ? (
+                    <>
+                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                      </svg>
+                      {isEditing ? 'Update Product' : 'Add Product'}
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </section>
+
+          {/* PRODUCTS LIST */}
+          <section className="flex flex-col gap-3">
+            <h2 className="font-serif text-lg text-[#1C1A17] font-normal border-b border-[#EBE3D5] pb-2">
+              Current Products ({products.length})
+            </h2>
+
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-10 gap-3 text-stone-400 select-none">
+                <div className="w-7 h-7 rounded-full border-2 border-stone-200 border-t-[#4A5D4E] animate-spin" />
+                <p className="text-[10px] font-semibold">Loading current inventory...</p>
+              </div>
+            ) : products.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {products.map((product) => (
+                  <div
+                    key={product._id}
+                    className="bg-white border border-[#F0EBE1] rounded-2xl p-4 flex flex-col justify-between gap-3 hover:shadow-md transition-all duration-200 group relative"
+                  >
+                    <div className="flex gap-3">
+                      {/* Thumbnail */}
+                      <div className="w-16 h-16 rounded-xl bg-[#FAF6F0] overflow-hidden shrink-0 border border-stone-100 select-none">
+                        <img
+                          src={product.imageUrl}
+                          alt={product.title}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.src = '/sw.js';
+                          }}
+                        />
+                      </div>
+
+                      {/* Info */}
+                      <div className="flex flex-col flex-grow min-w-0">
+                        <span className="text-[9px] font-extrabold text-[#4A5D4E] bg-[#D4DDD6] px-1.5 py-0.5 rounded uppercase tracking-wider self-start">
+                          {product.category}
+                        </span>
+                        <h4 className="font-serif text-sm text-[#1C1A17] font-semibold leading-tight mt-1 truncate">
+                          {product.title}
+                        </h4>
+                        <div className="flex items-center gap-1.5 text-xs mt-1.5">
+                          <span className="font-extrabold text-[#1C1A17]">₹{product.price}</span>
+                          {product.originalPrice && (
+                            <span className="text-[10px] text-stone-400 line-through">₹{product.originalPrice}</span>
+                          )}
+                          {product.discountBadge && (
+                            <span className="text-[9px] font-bold text-stone-400">({product.discountBadge})</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action buttons */}
+                    <div className="flex items-center justify-end gap-1.5 pt-2 border-t border-stone-100">
+                      <button
+                        onClick={() => handleEditClick(product)}
+                        className="px-2.5 py-1 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 text-stone-600 text-[11px] font-bold transition-colors cursor-pointer flex items-center gap-1"
+                        title="Edit product"
+                      >
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.2">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                          <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => product._id && handleDeleteClick(product._id)}
+                        className="px-2.5 py-1 rounded-lg border border-red-100 bg-white hover:bg-red-50 text-red-500 text-[11px] font-bold transition-colors cursor-pointer flex items-center gap-1"
+                        title="Delete product"
+                      >
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.2">
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        </svg>
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-10 border border-dashed border-[#EBE3D5] rounded-[20px] select-none">
+                <p className="text-xs text-stone-400 font-medium">No products in inventory. Use the form above to add one!</p>
+              </div>
+            )}
+          </section>
         </>
       )}
 
+      {/* ======================= SOS ALERTS TAB ======================= */}
       {currentTab === 'sos' && (
         <section className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
@@ -1292,7 +1316,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
               <p className="text-[10px] font-semibold">Checking rescue logs...</p>
             </div>
           ) : sosReports.length > 0 ? (
-            <div className="flex flex-col gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {sosReports.map((report) => {
                 let severityColor = 'bg-[#FAF8F5]/30 border-stone-200 text-stone-600';
                 if (report.severity === 'critical') severityColor = 'bg-[#FDF2F2] border-[#F8B4B4] text-[#C0392B]';
@@ -1338,22 +1362,22 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                     </div>
 
                     {/* Location & User Info */}
-                    <div className="bg-white border border-[#EBE3D5] rounded-xl p-3 flex flex-col gap-2 pl-7 text-[11px] text-stone-600">
+                    <div className="bg-white border border-[#EBE3D5] rounded-xl p-3 flex flex-col gap-2 text-[11px] text-stone-600">
                       <div className="flex items-center gap-2">
-                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-stone-400">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-stone-400 shrink-0">
                           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                         </svg>
-                        <span><strong>Location:</strong> {report.location}</span>
+                        <span className="truncate"><strong>Location:</strong> {report.location}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-stone-400">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-stone-400 shrink-0">
                           <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                         </svg>
-                        <span><strong>Reporter:</strong> {report.userEmail}</span>
+                        <span className="truncate"><strong>Reporter:</strong> {report.userEmail}</span>
                       </div>
                       {report.userPhone && (
                         <div className="flex items-center gap-2 mt-0.5">
-                          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-[#4A5D4E]">
+                          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-[#4A5D4E] shrink-0">
                             <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
                           </svg>
                           <span><strong>Phone:</strong> {report.userPhone}</span>
@@ -1363,12 +1387,12 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
 
                     {/* Media Attachments */}
                     {(report.photo || report.audio) && (
-                      <div className="flex flex-col gap-3 mt-1.5 pt-1.5 border-t border-[#F0EBE1] pl-7">
+                      <div className="flex flex-col gap-3 mt-1 pt-2 border-t border-[#F0EBE1]">
                         {report.photo && (
                           <div className="flex flex-col gap-1">
                             <span className="text-[9px] font-bold text-stone-400 uppercase tracking-wide">Report Photo Attachment</span>
                             <a href={report.photo} target="_blank" rel="noopener noreferrer" className="block max-w-sm rounded-xl overflow-hidden border border-stone-200 shadow-sm cursor-zoom-in">
-                              <img src={report.photo} alt="Distress alert photo attachment" className="w-full max-h-48 object-cover hover:scale-102 transition-transform duration-200" />
+                              <img src={report.photo} alt="Distress alert photo attachment" className="w-full max-h-44 object-cover hover:scale-102 transition-transform duration-200" />
                             </a>
                           </div>
                         )}
@@ -1385,7 +1409,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                     <div className="flex items-center justify-between border-t border-[#EBE3D5]/80 pt-3 mt-1 flex-wrap gap-2.5">
                       {/* Status select switcher */}
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Update Status:</span>
+                        <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Status:</span>
                         <div className="flex gap-1">
                           {(['active', 'dispatched', 'resolved'] as const).map((st) => (
                             <button
@@ -1408,7 +1432,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                         {report.userPhone && (
                           <a
                             href={`tel:${report.userPhone}`}
-                            className="px-3.5 py-1.5 bg-[#4A5D4E] hover:bg-[#3A4D3E] text-white font-bold rounded-xl text-[10px] uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1 shadow-sm"
+                            className="px-3 py-1.5 bg-[#4A5D4E] hover:bg-[#3A4D3E] text-white font-bold rounded-xl text-[10px] uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1 shadow-sm"
                           >
                             <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="3">
                               <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
@@ -1451,7 +1475,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
             </div>
             <button
               onClick={fetchVets}
-              className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 rounded-xl text-xs font-bold text-stone-700 transition-all cursor-pointer"
+              className="px-3 py-1.5 bg-white hover:bg-stone-50 border border-stone-200 rounded-xl text-xs font-bold text-stone-700 transition-all cursor-pointer shadow-sm"
             >
               🔄 Refresh
             </button>
@@ -1473,7 +1497,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
               <p className="text-xs font-bold text-stone-400">No vets or experts found in the database.</p>
             </div>
           ) : (
-            <div className="flex flex-col gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {vets.map((vet) => (
                 <div key={vet._id} className="bg-white border border-[#EBE3D5] rounded-2xl p-4 flex flex-col gap-3 shadow-sm hover:shadow-md transition-all">
                   {editingVetId === vet._id ? (
@@ -1513,7 +1537,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                                 : 'bg-stone-50 border-stone-200 text-stone-500'
                             }`}
                           >
-                            {editVetIsOnline ? '🟢 Online / Available' : '⚫ Offline'}
+                            {editVetIsOnline ? '🟢 Online' : '⚫ Offline'}
                           </button>
                         </div>
                       </div>
@@ -1570,8 +1594,9 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
         </section>
       )}
 
+      {/* ======================= SETTINGS TAB ======================= */}
       {currentTab === 'settings' && (
-        <section className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-[24px] p-5 md:p-6 flex flex-col gap-4 shadow-sm hover:shadow-md transition-all duration-300">
+        <section className="max-w-xl mx-auto w-full bg-[#FCFAF7] border border-[#F0EBE1] rounded-[24px] p-5 md:p-6 flex flex-col gap-4 shadow-sm hover:shadow-md transition-all duration-300">
           <div className="border-b border-[#EBE3D5]/80 pb-2.5">
             <h2 className="font-serif text-lg text-[#1C1A17] font-normal">Marketplace Settings</h2>
             <p className="text-[11px] text-stone-400 font-medium leading-normal mt-0.5">Configure the destination contact for WhatsApp checkout orders.</p>
@@ -1580,10 +1605,10 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
           {isSettingsLoading ? (
             <div className="flex flex-col items-center justify-center py-10 gap-3 text-stone-400 select-none">
               <div className="w-7 h-7 rounded-full border-2 border-stone-200 border-t-[#4A5D4E] animate-spin" />
-              <p className="text-[10px] font-semibold">Loading current settings...</p>
+              <p className="text-[10px] font-semibold">Loading checkout settings...</p>
             </div>
           ) : (
-            <form onSubmit={handleSaveSettings} className="flex flex-col gap-4 max-w-md">
+            <form onSubmit={handleSaveSettings} className="flex flex-col gap-4">
               <div className="grid grid-cols-3 gap-3">
                 {/* Country Code */}
                 <div className="flex flex-col gap-1 col-span-1">
@@ -1594,7 +1619,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                     value={checkoutCountryCode}
                     onChange={(e) => setCheckoutCountryCode(e.target.value)}
                     placeholder="+91"
-                    className="w-full bg-white rounded-xl py-2.5 px-3.5 text-xs text-[#1C1A17] border border-[#EBE3D5] focus:border-[#4A5D4E] focus:ring-1 focus:ring-[#4A5D4E] outline-none transition-all shadow-sm"
+                    className="w-full bg-white rounded-xl py-2.5 px-3.5 text-xs text-[#1C1A17] border border-[#EBE3D5] focus:border-[#4A5D4E] focus:ring-1 focus:ring-[#4A5D4E] outline-none transition-all shadow-sm font-semibold"
                     required
                   />
                 </div>
@@ -1664,7 +1689,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
             </div>
 
             <form onSubmit={handleSaveActivity} className="flex flex-col gap-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Title */}
                 <div className="flex flex-col gap-1">
                   <label htmlFor="actTitle" className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Post Title *</label>
@@ -1682,7 +1707,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                 {/* Category */}
                 <div className="flex flex-col gap-1">
                   <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Category *</span>
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-4 gap-1.5">
                     {(['feeding', 'help', 'event', 'awareness'] as const).map((cat) => {
                       const isActive = actFormCategory === cat;
                       const labels: Record<string, string> = { feeding: '🍽️ Feed', help: '🆘 Help', event: '📅 Event', awareness: '📢 Info' };
@@ -1732,11 +1757,11 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                 </div>
 
                 {/* Image Upload */}
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1 sm:col-span-2 lg:col-span-2">
                   <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Cover Image (Optional)</label>
                   <div
                     onClick={() => actFileInputRef.current?.click()}
-                    className={`border-2 border-dashed rounded-xl p-3 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all duration-300 bg-white ${
+                    className={`border-2 border-dashed rounded-xl p-2.5 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all duration-300 bg-white ${
                       actFormImage
                         ? 'border-[#B68A35] bg-[#B68A35]/5'
                         : 'border-[#EBE3D5] hover:border-[#B68A35] hover:bg-stone-50'
@@ -1848,7 +1873,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                 <p className="text-[10px] font-semibold">Loading community posts...</p>
               </div>
             ) : activities.length > 0 ? (
-              <div className="flex flex-col gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {activities.map((act: any) => {
                   const catColors: Record<string, string> = {
                     feeding: 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -1910,22 +1935,22 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                               <circle cx="12" cy="7" r="4" />
                             </svg>
-                            <strong>{act.authorName}</strong>
+                            <strong className="truncate max-w-[90px] inline-block">{act.authorName}</strong>
                           </span>
                           <span className="flex items-center gap-1">
                             <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-stone-400">
                               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                               <circle cx="12" cy="10" r="3" />
                             </svg>
-                            {act.location}
+                            <span className="truncate max-w-[80px] inline-block">{act.location}</span>
                           </span>
-                          <span className="font-bold text-[#4A5D4E]">
+                          <span className="font-bold text-[#4A5D4E] shrink-0">
                             {(act.joinees || []).length} joined
                           </span>
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center gap-1 shrink-0">
                           <button
                             onClick={() => handleEditActivity(act)}
                             className="p-1.5 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 text-stone-600 transition-colors cursor-pointer"
