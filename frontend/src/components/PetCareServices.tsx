@@ -131,6 +131,7 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
   const [bookingConfirmed, setBookingConfirmed] = useState<boolean>(false);
   const [bookingDate, setBookingDate] = useState<string>('Tomorrow');
   const [bookingTime, setBookingTime] = useState<string>('10:00 AM');
+  const [customTimeRaw, setCustomTimeRaw] = useState<string>('');
   const [selectedPet, setSelectedPet] = useState<string>(user?.pets?.[0]?.name || 'My Pet');
   const [bookingMonth, setBookingMonth] = useState(new Date().getMonth());
   const [bookingYear, setBookingYear] = useState(new Date().getFullYear());
@@ -506,16 +507,24 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
                   </div>
 
                   {/* SELECT TIME Header & Slots */}
-                  <div className="flex flex-col gap-2 pt-2 border-t border-[#E8E2D8]">
-                    <label className="text-[10px] font-extrabold text-stone-500 uppercase tracking-widest">SELECT TIME</label>
+                  <div className="flex flex-col gap-2.5 pt-2.5 border-t border-[#E8E2D8]">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-extrabold text-stone-500 uppercase tracking-widest">SELECT TIME</label>
+                      <span className="text-[10px] font-bold text-[#2D4536] bg-[#E8F0EA] px-2 py-0.5 rounded-md">Selected: {bookingTime}</span>
+                    </div>
+
+                    {/* Popular Slot Pills */}
                     <div className="grid grid-cols-3 gap-2">
                       {['10:00 AM', '02:00 PM', '05:30 PM'].map(time => (
                         <button
                           key={time}
                           type="button"
-                          onClick={() => setBookingTime(time)}
+                          onClick={() => {
+                            setBookingTime(time);
+                            setCustomTimeRaw('');
+                          }}
                           className={`py-2 px-2 border rounded-xl text-xs font-extrabold transition-all text-center cursor-pointer ${
-                            bookingTime === time
+                            bookingTime === time && !customTimeRaw
                               ? 'bg-[#2D4536] border-[#2D4536] text-white shadow-xs'
                               : 'bg-white border-[#E5E0D8] text-[#1C1A17] hover:bg-[#F4F0EA]'
                           }`}
@@ -523,6 +532,29 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
                           {time}
                         </button>
                       ))}
+                    </div>
+
+                    {/* Or Pick Any Custom Time */}
+                    <div className="flex items-center justify-between gap-2 pt-1 border-t border-dashed border-[#E8E2D8]">
+                      <span className="text-[10.5px] font-bold text-stone-600">Pick any custom time:</span>
+                      <input
+                        type="time"
+                        value={customTimeRaw}
+                        onChange={(e) => {
+                          const rawVal = e.target.value;
+                          setCustomTimeRaw(rawVal);
+                          if (rawVal) {
+                            const [hStr, mStr] = rawVal.split(':');
+                            let h = parseInt(hStr, 10);
+                            const m = mStr;
+                            const ampm = h >= 12 ? 'PM' : 'AM';
+                            h = h % 12 || 12;
+                            const formatted = `${h < 10 ? '0' + h : h}:${m} ${ampm}`;
+                            setBookingTime(formatted);
+                          }
+                        }}
+                        className={`bg-white border ${customTimeRaw ? 'border-[#2D4536] ring-1 ring-[#2D4536]' : 'border-[#E5E0D8]'} rounded-xl px-3 py-1.5 text-xs font-extrabold text-[#1C1A17] outline-none focus:border-[#2D4536] cursor-pointer shadow-2xs`}
+                      />
                     </div>
                   </div>
 
