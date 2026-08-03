@@ -339,9 +339,9 @@ Please confirm my order. Thank you!`;
               <button 
                 onClick={handleRazorpayPay}
                 disabled={isProcessingPayment}
-                className="w-full py-3.5 bg-[#072654] hover:bg-[#0c3570] disabled:bg-stone-300 active:scale-[0.98] text-white font-extrabold text-sm rounded-2xl transition-all duration-200 cursor-pointer shadow-md flex items-center justify-center gap-2"
+                className="w-full py-3.5 bg-[#2D4536] hover:bg-[#1E2E24] disabled:bg-stone-300 active:scale-[0.98] text-white font-extrabold text-xs rounded-2xl transition-all duration-200 cursor-pointer shadow-md flex items-center justify-center gap-2"
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <rect x="2" y="5" width="20" height="14" rx="2" />
                   <line x1="2" y1="10" x2="22" y2="10" />
                 </svg>

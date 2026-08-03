@@ -6,6 +6,7 @@ import { API_BASE } from '../lib/api';
 import { processRazorpayPayment } from '../lib/razorpay';
 import AgoraCallModal from './AgoraCallModal';
 import CallSessionButton from './CallSessionButton';
+import PaymentModal from './PaymentModal';
 
 
 // Interfaces matching backend models
@@ -258,7 +259,7 @@ const CATEGORY_CONFIGS: Record<string, {
 };
 
 export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
-  const { token, user } = useAuth();
+  const { token, user, syncProfile } = useAuth();
 
   // Navigation states
   const [currentView, setCurrentView] = useState<'home' | 'listing' | 'wizard' | 'confirmed' | 'admin'>('home');
@@ -287,6 +288,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
   const [customPetName, setCustomPetName] = useState('');
   const [timezone, setTimezone] = useState('Asia/Kolkata (IST)');
   const [isChangingTimezone, setIsChangingTimezone] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(new Date().getMonth());
   const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
   const [calendarSelectedDay, setCalendarSelectedDay] = useState<number | null>(null);
@@ -1184,7 +1186,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3.5">
                       {/* Avatar with responsive photo & initials fallback */}
-                      <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl overflow-hidden bg-[#E8F0EA] border border-[#2D4536]/20 relative shrink-0 flex items-center justify-center shadow-xs">
+                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden bg-[#E8F0EA] border border-[#2D4536]/20 relative shrink-0 flex items-center justify-center shadow-xs">
                         {photoUrl ? (
                           <img 
                             src={photoUrl} 
@@ -1729,9 +1731,9 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                       });
                     }}
                     disabled={!selectedSlot || !(newPetInput ? customPetName : selectedPetName).trim()}
-                    className="w-full py-3 bg-[#072654] hover:bg-[#0c3570] disabled:bg-stone-200 disabled:text-stone-400 disabled:cursor-not-allowed text-white text-xs font-extrabold rounded-2xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full py-3 bg-[#2D4536] hover:bg-[#1E2E24] disabled:bg-stone-200 disabled:text-stone-400 disabled:cursor-not-allowed text-white text-xs font-extrabold rounded-2xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    💳 Pay ₹{selectedExpert.fee} Online (Razorpay) <span>→</span>
+                    💳 Proceed to Pay ₹{selectedExpert.fee} Online <span>→</span>
                   </button>
                   
                   <button
@@ -2202,7 +2204,6 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                     body: JSON.stringify(petForm)
                   });
                   if (res.ok) {
-                    const { syncProfile } = useAuth();
                     await syncProfile();
                     setSelectedPetName(petForm.name);
                     setIsPetModalOpen(false);
