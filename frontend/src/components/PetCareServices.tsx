@@ -492,14 +492,14 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
                               isPast 
                                 ? 'text-stone-300 cursor-not-allowed'
                                 : isSelected
-                                  ? 'bg-[#2D4536] text-white shadow-2xs font-extrabold'
+                                  ? 'bg-[#1C1A17] text-white shadow-2xs font-extrabold'
                                   : 'text-[#1C1A17] hover:bg-[#F4F0EA] cursor-pointer'
                             }`}
                           >
                             {dayNum}
                           </button>
                           {!isPast && (
-                            <span className={`w-1 h-1 rounded-full mt-0.5 ${isSelected ? 'bg-emerald-400' : 'bg-stone-400'}`} />
+                            <span className={`w-1 h-1 rounded-full mt-0.5 ${isSelected ? 'bg-terracotta' : 'bg-stone-300'}`} />
                           )}
                         </div>
                       );
@@ -510,7 +510,7 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
                   <div className="flex flex-col gap-2.5 pt-2.5 border-t border-[#E8E2D8]">
                     <div className="flex items-center justify-between">
                       <label className="text-[10px] font-extrabold text-stone-500 uppercase tracking-widest">SELECT TIME</label>
-                      <span className="text-[10px] font-bold text-[#2D4536] bg-[#E8F0EA] px-2 py-0.5 rounded-md">Selected: {bookingTime}</span>
+                      <span className="text-[10px] font-bold text-terracotta bg-[#FAF2EE] border border-[#F5DFD8] px-2 py-0.5 rounded-md">Selected: {bookingTime}</span>
                     </div>
 
                     {/* Popular Slot Pills */}
@@ -525,7 +525,7 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
                           }}
                           className={`py-2 px-2 border rounded-xl text-xs font-extrabold transition-all text-center cursor-pointer ${
                             bookingTime === time && !customTimeRaw
-                              ? 'bg-[#2D4536] border-[#2D4536] text-white shadow-xs'
+                              ? 'bg-[#1C1A17] border-[#1C1A17] text-white shadow-xs'
                               : 'bg-white border-[#E5E0D8] text-[#1C1A17] hover:bg-[#F4F0EA]'
                           }`}
                         >
@@ -553,7 +553,7 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
                             setBookingTime(formatted);
                           }
                         }}
-                        className={`bg-white border ${customTimeRaw ? 'border-[#2D4536] ring-1 ring-[#2D4536]' : 'border-[#E5E0D8]'} rounded-xl px-3 py-1.5 text-xs font-extrabold text-[#1C1A17] outline-none focus:border-[#2D4536] cursor-pointer shadow-2xs`}
+                        className={`bg-white border ${customTimeRaw ? 'border-[#1C1A17] ring-1 ring-[#1C1A17]' : 'border-[#E5E0D8]'} rounded-xl px-3 py-1.5 text-xs font-extrabold text-[#1C1A17] outline-none focus:border-[#1C1A17] cursor-pointer shadow-2xs`}
                       />
                     </div>
                   </div>
@@ -563,12 +563,12 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
                 {/* Price total */}
                 <div className="flex justify-between items-center bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl p-3.5 my-1">
                   <span className="text-xs font-bold text-stone-600">Total Fee</span>
-                  <span className="text-base font-extrabold text-[#2D4536]">₹{bookingProvider.price}</span>
+                  <span className="text-base font-extrabold text-terracotta">₹{bookingProvider.price}</span>
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full py-3.5 bg-[#2D4536] hover:bg-[#1E2E24] text-white font-bold rounded-2xl text-xs transition-all shadow-md shadow-[#2D4536]/20 cursor-pointer active:scale-98"
+                  className="w-full py-3.5 bg-terracotta hover:bg-[#C85236] text-white font-bold rounded-2xl text-xs transition-all shadow-md shadow-terracotta/20 cursor-pointer active:scale-98"
                 >
                   Confirm Reservation
                 </button>
