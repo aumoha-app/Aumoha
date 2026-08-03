@@ -10,34 +10,20 @@ export function adminMiddleware(req: Request, res: Response, next: NextFunction)
   }
 
   const userEmail = req.user.email.toLowerCase();
-
-  // 2. Validate email against whitelist in ADMIN_EMAILS env variable
+  const defaultAdminEmails = ['admin@aumoha.com', 'ananya.patra@aumoha.com'];
   const adminEmailsEnv = process.env.ADMIN_EMAILS || '';
-  const adminEmails = adminEmailsEnv
-    .split(',')
-    .map(email => email.trim().toLowerCase())
-    .filter(Boolean);
+  const adminEmails = [
+    ...defaultAdminEmails,
+    ...adminEmailsEnv.split(',').map(email => email.trim().toLowerCase()).filter(Boolean)
+  ];
 
-  if (!adminEmails.includes(userEmail)) {
+  const userRole = (req.user as any).role;
+
+  // Allow if user email is in whitelist OR user role is admin
+  if (userRole !== 'admin' && !adminEmails.includes(userEmail)) {
     return res.status(403).json({
       status: 'error',
       message: 'Forbidden: You do not have admin privileges'
-    });
-  }
-
-  // 3. Verify Admin Password header
-  const adminPassword = process.env.ADMIN_PASSWORD;
-  const providedPassword = req.headers['x-admin-password'];
-
-  if (!adminPassword) {
-    console.warn('⚠️ ADMIN_PASSWORD environment variable is not set. Admin action permitted by email match only.');
-    return next();
-  }
-
-  if (!providedPassword || providedPassword !== adminPassword) {
-    return res.status(403).json({
-      status: 'error',
-      message: 'Forbidden: Invalid admin password'
     });
   }
 

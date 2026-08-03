@@ -31,7 +31,7 @@ export interface UserProfile {
   phone: string;
   address: string;
   profilePic?: string;
-  role?: 'rescuer' | 'normal' | 'admin';
+  role?: 'normal' | 'admin' | 'rescuer' | 'doctor' | 'expert' | 'feeder' | 'volunteer' | 'paravet' | string;
   rescueCount?: number;
   pets?: Pet[];
   createdAt?: string;

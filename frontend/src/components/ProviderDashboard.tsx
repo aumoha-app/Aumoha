@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE } from '../lib/api';
+import CallSessionButton from './CallSessionButton';
+import AgoraCallModal from './AgoraCallModal';
 
 interface Slot {
   _id?: string;
@@ -63,6 +65,8 @@ export default function ProviderDashboard() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedProviderId, setSelectedProviderId] = useState<string>('vet1');
+  const [activeCallAppt, setActiveCallAppt] = useState<Appointment | null>(null);
 
   const [activeTab, setActiveTab] = useState<Tab>('overview');
   const [isTogglingOnline, setIsTogglingOnline] = useState(false);
@@ -87,11 +91,12 @@ export default function ProviderDashboard() {
     Authorization: `Bearer ${token}`,
   });
 
-  const fetchProviderData = async () => {
+  const fetchProviderData = async (targetId?: string) => {
     setIsLoading(true);
     setError(null);
+    const pId = targetId || selectedProviderId;
     try {
-      const res = await fetch(`${API_BASE}/provider/me`, { headers: getAuthHeaders() });
+      const res = await fetch(`${API_BASE}/provider/me?providerId=${pId}`, { headers: getAuthHeaders() });
       const data = await res.json();
       if (res.ok && data.status === 'success') {
         setProvider(data.provider);
@@ -109,8 +114,8 @@ export default function ProviderDashboard() {
   };
 
   useEffect(() => {
-    if (token) fetchProviderData();
-  }, [token]);
+    if (token) fetchProviderData(selectedProviderId);
+  }, [token, selectedProviderId]);
 
   const toggleOnline = async () => {
     if (!provider) return;
@@ -147,13 +152,12 @@ export default function ProviderDashboard() {
       const res = await fetch(`${API_BASE}/provider/slots`, {
         method: 'PUT',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ slots }),
+        body: JSON.stringify({ slots, providerId: provider?._id || selectedProviderId }),
       });
       const data = await res.json();
-      if (res.ok && data.status === 'success') {
-        setSlots(data.slots || slots);
-        setSlotMsg({ type: 'success', text: 'Slots saved successfully!' });
-        setTimeout(() => setSlotMsg(null), 3000);
+      if (res.ok) {
+        setSlotMsg({ type: 'success', text: 'Free slots saved successfully!' });
+        if (data.slots) setSlots(data.slots);
       } else {
         setSlotMsg({ type: 'error', text: data.message || 'Failed to save slots.' });
       }
@@ -185,7 +189,7 @@ export default function ProviderDashboard() {
         <h2 className="text-lg font-extrabold text-stone-800 mb-2">Provider Account Not Found</h2>
         <p className="text-sm text-stone-500 mb-4">{error || 'No provider profile linked to this email. Contact admin.'}</p>
         <p className="text-xs text-stone-400 bg-stone-50 rounded-xl p-3 font-mono">{user?.email}</p>
-        <button onClick={fetchProviderData} className="mt-4 w-full py-2.5 bg-[#2D4536] text-white text-sm font-bold rounded-2xl hover:bg-[#1E2E24] transition-all cursor-pointer">Retry</button>
+        <button onClick={() => fetchProviderData()} className="mt-4 w-full py-2.5 bg-[#2D4536] text-white text-sm font-bold rounded-2xl hover:bg-[#1E2E24] transition-all cursor-pointer">Retry</button>
       </div>
     </div>
   );
@@ -201,7 +205,24 @@ export default function ProviderDashboard() {
             <span className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[#1C2A20] ${provider.isOnline ? 'bg-emerald-400' : 'bg-stone-400'}`} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[11px] text-white/50 font-semibold uppercase tracking-widest mb-0.5">Provider Portal</p>
+            <div className="flex items-center gap-2 mb-0.5">
+              <p className="text-[11px] text-white/50 font-semibold uppercase tracking-widest">Provider Portal</p>
+              <select
+                value={selectedProviderId}
+                onChange={(e) => {
+                  setSelectedProviderId(e.target.value);
+                  fetchProviderData(e.target.value);
+                }}
+                className="bg-white/10 hover:bg-white/20 border border-white/20 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-lg outline-none cursor-pointer"
+              >
+                <option value="vet1" className="bg-stone-900 text-white">Dr. Ananya Patra (Vet)</option>
+                <option value="vet2" className="bg-stone-900 text-white">Dr. Rohit Nanda (Vet)</option>
+                <option value="vet3" className="bg-stone-900 text-white">Dr. Meera Iyer (Vet)</option>
+                <option value="exp1" className="bg-stone-900 text-white">Rohan Verma (Nutritionist)</option>
+                <option value="exp2" className="bg-stone-900 text-white">Dr. Ananya Rao (Behaviourist)</option>
+                <option value="exp5" className="bg-stone-900 text-white">John (Physiotherapist)</option>
+              </select>
+            </div>
             <h1 className="text-xl font-extrabold text-white leading-tight truncate">{provider.name}</h1>
             <p className="text-sm text-white/70 font-medium truncate">{provider.specialisation}</p>
           </div>
@@ -284,7 +305,7 @@ export default function ProviderDashboard() {
                 </div>
               )}
             </div>
-            <button onClick={fetchProviderData} className="w-full py-3 bg-white border border-[#EBE3D5] hover:bg-stone-50 text-stone-600 text-xs font-bold rounded-2xl transition-all flex items-center justify-center gap-2 cursor-pointer">Refresh Dashboard</button>
+            <button onClick={() => fetchProviderData()} className="w-full py-3 bg-white border border-[#EBE3D5] hover:bg-stone-50 text-stone-600 text-xs font-bold rounded-2xl transition-all flex items-center justify-center gap-2 cursor-pointer">Refresh Dashboard</button>
           </>
         )}
 
@@ -368,6 +389,16 @@ export default function ProviderDashboard() {
                             </button>
                           )}
                         </div>
+
+                        {/* Direct Video Call Join Button */}
+                        {appt.mode === 'tele-consult' && appt.status !== 'cancelled' && (
+                          <div className="mt-2.5">
+                            <CallSessionButton
+                              appointment={appt}
+                              onJoinCall={(a) => setActiveCallAppt(a)}
+                            />
+                          </div>
+                        )}
                       </div>
                       <div className="text-right shrink-0">
                         <p className="text-base font-extrabold text-[#2D4536]">Rs.{appt.fee}</p>
@@ -558,6 +589,23 @@ export default function ProviderDashboard() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* AGORA VIDEO CALL MODAL FOR DOCTOR / EXPERT */}
+      {activeCallAppt && (
+        <AgoraCallModal
+          channelName={activeCallAppt.bookingId || activeCallAppt._id}
+          appointment={activeCallAppt}
+          onClose={() => {
+            const finishedAppt = activeCallAppt;
+            setActiveCallAppt(null);
+            if (finishedAppt && !finishedAppt.prescription) {
+              setSelectedApptForPrescription(finishedAppt);
+              setPrescriptionNotesText('');
+              setPrescriptionPhotoBase64('');
+            }
+          }}
+        />
       )}
     </div>
   );

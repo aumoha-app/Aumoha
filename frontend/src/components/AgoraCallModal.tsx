@@ -196,12 +196,15 @@ export class SafeCallBoundary extends Component<SafeCallBoundaryProps, SafeCallB
 }
 
 interface AgoraCallModalProps {
-  appointmentId: string;
+  appointmentId?: string;
+  channelName?: string;
+  appointment?: any;
   onClose: () => void;
 }
 
-export default function AgoraCallModal({ appointmentId, onClose }: AgoraCallModalProps) {
+export default function AgoraCallModal({ appointmentId, channelName, appointment, onClose }: AgoraCallModalProps) {
   const { token: authToken } = useAuth();
+  const targetApptId = appointmentId || channelName || (appointment ? (appointment._id || appointment.bookingId) : '');
   const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || '';
   const [permissionState, setPermissionState] = useState<'checking' | 'granted' | 'denied'>('checking');
   const [permissionError, setPermissionError] = useState<string>('');
@@ -218,7 +221,7 @@ export default function AgoraCallModal({ appointmentId, onClose }: AgoraCallModa
           headers['Authorization'] = `Bearer ${authToken}`;
         }
         
-        const res = await fetch(`${API_BASE}/appointments/${appointmentId}/token`, {
+        const res = await fetch(`${API_BASE}/appointments/${targetApptId}/token`, {
           headers
         });
         
@@ -235,12 +238,12 @@ export default function AgoraCallModal({ appointmentId, onClose }: AgoraCallModa
       }
     };
 
-    if (appointmentId) {
+    if (targetApptId) {
       fetchAgoraToken();
     } else {
       setLoadingToken(false);
     }
-  }, [appointmentId, authToken]);
+  }, [targetApptId, authToken]);
 
   // 2. Request local media permissions
   useEffect(() => {

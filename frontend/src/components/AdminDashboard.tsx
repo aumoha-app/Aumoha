@@ -59,9 +59,65 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // TAB NAVIGATION & SOS STATES
-  const [currentTab, setCurrentTab] = useState<'products' | 'sos' | 'settings' | 'community' | 'calls' | 'vets'>('sos');
+  const [currentTab, setCurrentTab] = useState<'products' | 'sos' | 'settings' | 'community' | 'calls' | 'vets' | 'users'>('sos');
   const [sosReports, setSosReports] = useState<SosReport[]>([]);
   const [isSosLoading, setIsSosLoading] = useState(false);
+
+  // User Role Management State
+  const [usersList, setUsersList] = useState<any[]>([]);
+  const [roleAssignEmail, setRoleAssignEmail] = useState('');
+  const [roleAssignRole, setRoleAssignRole] = useState('doctor');
+  const [isAssigningRole, setIsAssigningRole] = useState(false);
+  const [roleMsg, setRoleMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const fetchAdminUsers = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/admin/users`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Admin-Password': adminPassword
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUsersList(data.users || []);
+      }
+    } catch (err) {
+      console.error('Error fetching admin users:', err);
+    }
+  };
+
+  const handleAssignRole = async (targetEmail?: string, targetRole?: string) => {
+    const emailToUse = targetEmail || roleAssignEmail;
+    const roleToUse = targetRole || roleAssignRole;
+    if (!emailToUse.trim()) return;
+
+    setIsAssigningRole(true);
+    setRoleMsg(null);
+    try {
+      const res = await fetch(`${API_BASE}/admin/users/assign-role`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'X-Admin-Password': adminPassword
+        },
+        body: JSON.stringify({ email: emailToUse, role: roleToUse })
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        setRoleMsg({ type: 'success', text: data.message });
+        setRoleAssignEmail('');
+        fetchAdminUsers();
+      } else {
+        setRoleMsg({ type: 'error', text: data.message || 'Failed to assign role.' });
+      }
+    } catch {
+      setRoleMsg({ type: 'error', text: 'Network error assigning user role.' });
+    } finally {
+      setIsAssigningRole(false);
+    }
+  };
 
   // Call Sessions States
   const [callSessions, setCallSessions] = useState<any[]>([]);
@@ -905,6 +961,19 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
             </span>
           )}
         </button>
+        <button
+          onClick={() => {
+            setCurrentTab('users');
+            fetchAdminUsers();
+          }}
+          className={`px-5 py-2.5 text-xs font-bold transition-all border-b-2 cursor-pointer flex items-center gap-1.5 ${
+            currentTab === 'users'
+              ? 'border-purple-600 text-purple-700'
+              : 'border-transparent text-stone-400 hover:text-purple-700'
+          }`}
+        >
+          <span>👤 Assign Roles</span>
+        </button>
       </div>
 
       {errorMessage && (
@@ -979,6 +1048,116 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {currentTab === 'users' && (
+        <div className="space-y-6 animate-fadeIn p-2">
+          {/* ASSIGN ROLE CARD */}
+          <div className="bg-white p-5 rounded-3xl border border-stone-200 shadow-xs flex flex-col gap-4">
+            <div>
+              <h3 className="text-base font-extrabold text-stone-800 flex items-center gap-2">
+                <span>👤 Assign User Role by Email</span>
+              </h3>
+              <p className="text-xs text-stone-500 mt-1">
+                Enter any user's email address to assign them a role (Doctor, Expert, Rescuer, Feeder, Volunteer, Admin).
+              </p>
+            </div>
+
+            {roleMsg && (
+              <div className={`p-3 rounded-2xl text-xs font-bold ${
+                roleMsg.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'
+              }`}>
+                {roleMsg.text}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="md:col-span-2">
+                <label className="text-[10px] font-extrabold text-stone-400 uppercase tracking-wider block mb-1">User Email Address</label>
+                <input
+                  type="email"
+                  value={roleAssignEmail}
+                  onChange={(e) => setRoleAssignEmail(e.target.value)}
+                  placeholder="e.g. vet1@aumoha.com or doctor@aumoha.com"
+                  className="w-full bg-[#FAF8F5] border border-[#F0EBE1] rounded-2xl px-3.5 py-2.5 text-xs font-semibold text-charcoal outline-none focus:border-purple-500"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-extrabold text-stone-400 uppercase tracking-wider block mb-1">Target Role</label>
+                <select
+                  value={roleAssignRole}
+                  onChange={(e) => setRoleAssignRole(e.target.value)}
+                  className="w-full bg-[#FAF8F5] border border-[#F0EBE1] rounded-2xl px-3.5 py-2.5 text-xs font-bold text-charcoal outline-none focus:border-purple-500 cursor-pointer"
+                >
+                  <option value="doctor">🩺 Doctor / Veterinarian</option>
+                  <option value="expert">🎓 Specialist / Expert</option>
+                  <option value="rescuer">⭐ Certified Rescuer</option>
+                  <option value="feeder">🍲 Community Feeder</option>
+                  <option value="volunteer">🤝 Community Volunteer</option>
+                  <option value="paravet">🚑 Paravet Assistant</option>
+                  <option value="admin">👑 Platform Admin</option>
+                  <option value="normal">👤 Normal User</option>
+                </select>
+              </div>
+            </div>
+
+            <button
+              onClick={() => handleAssignRole()}
+              disabled={isAssigningRole || !roleAssignEmail.trim()}
+              className="w-full py-3 bg-[#2D4536] hover:bg-[#1E2E24] disabled:opacity-50 text-white font-extrabold text-xs rounded-2xl shadow-sm transition-all cursor-pointer"
+            >
+              {isAssigningRole ? 'Assigning Role...' : 'Assign Role & Update User Account →'}
+            </button>
+          </div>
+
+          {/* LIST OF SYSTEM USERS & QUICK ROLE BUTTONS */}
+          <div className="bg-white p-5 rounded-3xl border border-stone-200 shadow-xs">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h4 className="text-sm font-extrabold text-stone-800">System Registered Users & Roles</h4>
+                <p className="text-[11px] text-stone-400">Manage all registered accounts and assigned privileges.</p>
+              </div>
+              <button
+                onClick={fetchAdminUsers}
+                className="px-3 py-1 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
+              >
+                🔄 Refresh
+              </button>
+            </div>
+
+            {usersList.length === 0 ? (
+              <p className="text-xs text-stone-400 italic text-center py-6">No registered users found.</p>
+            ) : (
+              <div className="divide-y divide-stone-100">
+                {usersList.map((u, idx) => (
+                  <div key={u._id || idx} className="py-3 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-full bg-stone-100 border border-stone-200 overflow-hidden shrink-0 flex items-center justify-center font-bold text-stone-600 text-xs">
+                        {u.profilePic ? <img src={u.profilePic} alt={u.fullName} className="w-full h-full object-cover" /> : u.fullName?.[0] || 'U'}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-extrabold text-stone-800 truncate">{u.fullName || u.email}</p>
+                        <p className="text-[10px] text-stone-400 truncate">{u.email}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase ${
+                        u.role === 'rescuer' ? 'bg-amber-100 text-amber-900 border border-amber-300' :
+                        u.role === 'doctor' || u.role === 'expert' ? 'bg-emerald-100 text-emerald-900 border border-emerald-300' :
+                        u.role === 'admin' ? 'bg-purple-100 text-purple-900 border border-purple-300' :
+                        'bg-stone-100 text-stone-600 border border-stone-200'
+                      }`}>
+                        {u.role === 'rescuer' ? '⭐ Rescuer' : u.role}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 

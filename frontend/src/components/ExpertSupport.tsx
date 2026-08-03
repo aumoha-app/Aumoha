@@ -53,6 +53,9 @@ interface Appointment {
   petId?: string;
   status: 'confirmed' | 'pending' | 'cancelled';
   notes?: string;
+  medicalDocument?: string;
+  prescription?: string;
+  prescriptionNotes?: string;
   bookingId: string;
   createdAt: string;
 }
@@ -702,6 +705,9 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
     setCurrentView('wizard');
   };
 
+  const [medicalReportBase64, setMedicalReportBase64] = useState<string>('');
+  const [medicalReportName, setMedicalReportName] = useState<string>('');
+
   // Action: Final Confirmed Booking Post API
   const handleConfirmBooking = async () => {
     if (!token || !selectedExpert || !selectedSlot) return;
@@ -724,7 +730,8 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
           slotId: selectedSlot._id,
           mode: bookingMode === 'in-person' ? 'in-clinic' : 'tele-consult',
           petName: petName.trim(),
-          type: 'expert'
+          type: 'expert',
+          medicalDocument: medicalReportBase64
         })
       });
 
@@ -733,6 +740,8 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
         setConfirmedAppt(data.appointment);
         setWizardStep(6);
         setCurrentView('confirmed');
+        setMedicalReportBase64('');
+        setMedicalReportName('');
         fetchExperts();
       } else {
         alert(data.message || 'Failed to confirm expert booking.');
@@ -1495,6 +1504,52 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                     placeholder="Additional notes or symptoms..."
                     className="w-full mt-3 bg-[#FAF8F5] border border-[#F0EBE1] rounded-xl p-3 text-[11px] font-semibold text-charcoal focus:outline-none focus:border-terracotta/40 placeholder:text-stone-400 resize-none"
                   />
+                </div>
+
+                {/* Medical Report Upload */}
+                <div className="px-5 pt-3 pb-4 border-t border-stone-100/60">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <h3 className="text-[12px] font-extrabold text-charcoal uppercase tracking-wider">
+                      📄 Medical Report / Previous Prescription (Optional)
+                    </h3>
+                    <span className="text-[9px] text-stone-400 font-semibold">Image/PDF</span>
+                  </div>
+                  <p className="text-[10px] text-stone-500 font-medium mb-2.5">
+                    Upload old medical reports or history for {selectedExpert.name} to review.
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <label className="px-3.5 py-2 bg-[#FAF8F5] border border-[#F0EBE1] hover:bg-white text-stone-700 text-[11px] font-bold rounded-xl cursor-pointer transition-all flex items-center gap-1.5 shadow-2xs">
+                      <span>📤 Choose File</span>
+                      <input 
+                        type="file" 
+                        accept="image/*,.pdf" 
+                        className="hidden" 
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setMedicalReportName(file.name);
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                              setMedicalReportBase64(event.target?.result as string);
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }} 
+                      />
+                    </label>
+                    {medicalReportName && (
+                      <div className="flex items-center gap-2 text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-xl truncate max-w-[180px]">
+                        <span>✓ {medicalReportName}</span>
+                        <button 
+                          type="button" 
+                          onClick={() => { setMedicalReportBase64(''); setMedicalReportName(''); }}
+                          className="text-stone-400 hover:text-rose-500 font-extrabold ml-1 cursor-pointer"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 

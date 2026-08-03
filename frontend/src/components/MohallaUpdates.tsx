@@ -170,7 +170,7 @@ export default function MohallaUpdates({
       case 'feeder':
         return { bg: 'bg-[#E5E0D4]', text: 'text-[#2D4536]', border: 'border-[#D3CCBE]', label: 'Feeder' };
       case 'rescuer':
-        return { bg: 'bg-[#E5E0D4]', text: 'text-[#2D4536]', border: 'border-[#D3CCBE]', label: 'Rescuer' };
+        return { bg: 'bg-amber-100', text: 'text-amber-900', border: 'border-amber-300', label: '⭐ Rescuer' };
       case 'volunteer':
         return { bg: 'bg-[#E5E0D4]', text: 'text-[#2D4536]', border: 'border-[#D3CCBE]', label: 'Volunteer' };
       case 'paravet':

@@ -2449,7 +2449,7 @@ app.get('/api/vets', async (req: Request, res: Response) => {
  */
 app.post('/api/appointments', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const { vetId, slotId, mode, petName, petId, type } = req.body;
+    const { vetId, slotId, mode, petName, petId, type, notes, medicalDocument } = req.body;
     const userEmail = req.user?.email;
 
     if (!userEmail) {
@@ -2492,6 +2492,8 @@ app.post('/api/appointments', authMiddleware, async (req: Request, res: Response
         petName,
         petId,
         status: 'confirmed',
+        notes: notes || '',
+        medicalDocument: medicalDocument || '',
         bookingId,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -2527,6 +2529,8 @@ app.post('/api/appointments', authMiddleware, async (req: Request, res: Response
         petName,
         petId,
         status: 'confirmed',
+        notes: notes || '',
+        medicalDocument: medicalDocument || '',
         bookingId
       });
     }
@@ -2824,6 +2828,98 @@ app.put('/api/admin/calls/:id/end', authMiddleware, adminMiddleware, async (req:
     return res.json({ status: 'success', session: session || null });
   } catch (error) {
     console.error('Error force ending call session:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * ADMIN: GET /api/admin/users
+ * List all registered users and their roles
+ */
+app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    let users = [];
+    if (mongoose.connection.readyState === 1) {
+      users = await User.find().select('fullName email role phone address profilePic createdAt').sort({ createdAt: -1 });
+    }
+    const merged = [...fallbackUsers, ...users];
+    const uniqueMap = new Map();
+    merged.forEach(u => uniqueMap.set(u.email.toLowerCase(), u));
+    return res.json({ status: 'success', users: Array.from(uniqueMap.values()) });
+  } catch (error) {
+    console.error('Error fetching admin users:', error);
+    return res.json({ status: 'success', users: fallbackUsers });
+  }
+});
+
+/**
+ * ADMIN: POST /api/admin/users/assign-role
+ * Assign or update a user's role by email
+ */
+app.post('/api/admin/users/assign-role', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { email, role } = req.body;
+
+    if (!email || !role) {
+      return res.status(400).json({ status: 'error', message: 'Email and role are required.' });
+    }
+
+    const validRoles = ['normal', 'doctor', 'expert', 'rescuer', 'feeder', 'volunteer', 'paravet', 'admin'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ status: 'error', message: `Invalid role. Must be one of: ${validRoles.join(', ')}` });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    let updatedUser: any = null;
+
+    if (mongoose.connection.readyState === 1) {
+      updatedUser = await User.findOneAndUpdate(
+        { email: { $regex: new RegExp(`^${cleanEmail}$`, 'i') } },
+        { $set: { role } },
+        { new: true }
+      );
+    }
+
+    const fbUser = fallbackUsers.find((u: any) => u.email.toLowerCase() === cleanEmail);
+    if (fbUser) {
+      fbUser.role = role;
+      if (!updatedUser) updatedUser = fbUser;
+    }
+
+    for (const [uid, cachedUser] of userCache.entries()) {
+      if (cachedUser.email?.toLowerCase() === cleanEmail) {
+        cachedUser.role = role;
+        userCache.set(uid, cachedUser);
+      }
+    }
+
+    if (!updatedUser) {
+      if (mongoose.connection.readyState === 1) {
+        updatedUser = await User.create({
+          email: cleanEmail,
+          fullName: cleanEmail.split('@')[0],
+          role,
+          firebaseUid: `uid_${Date.now()}`
+        });
+      } else {
+        updatedUser = {
+          _id: `user_${Date.now()}`,
+          email: cleanEmail,
+          fullName: cleanEmail.split('@')[0],
+          role,
+          createdAt: new Date().toISOString()
+        };
+        fallbackUsers.push(updatedUser);
+      }
+    }
+
+    return res.json({
+      status: 'success',
+      message: `Role for ${cleanEmail} successfully set to "${role}".`,
+      user: updatedUser
+    });
+  } catch (error) {
+    console.error('Error in POST /api/admin/users/assign-role:', error);
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
   }
 });
@@ -3350,43 +3446,55 @@ app.post('/api/donations', authMiddleware, async (req: Request, res: Response) =
 app.get('/api/provider/me', authMiddleware, async (req: Request, res: Response) => {
   try {
     const userEmail = req.user?.email;
+    const providerId = req.query.providerId as string;
+
     if (!userEmail) {
       return res.status(401).json({ status: 'error', message: 'Authentication required' });
     }
 
-    // Look up vet/expert by email
+    // Look up vet/expert profile by email or providerId
     let vetProfile: any = null;
     if (mongoose.connection.readyState === 1) {
-      vetProfile = await Vet.findOne({ email: { $regex: new RegExp(`^${userEmail}$`, 'i') } }).lean();
-    } else {
-      // Fallback: check in-memory
-      const { fallbackVets } = await import('./index') as any;
-      vetProfile = fallbackVets?.find((v: any) => v.email?.toLowerCase() === userEmail.toLowerCase()) || null;
+      if (providerId && mongoose.Types.ObjectId.isValid(providerId)) {
+        vetProfile = await Vet.findById(providerId).lean();
+      } else {
+        vetProfile = await Vet.findOne({ email: { $regex: new RegExp(`^${userEmail}$`, 'i') } }).lean();
+      }
+    }
+    
+    if (!vetProfile) {
+      if (providerId) {
+        vetProfile = fallbackVets.find((v: any) => v._id === providerId || v.email?.toLowerCase() === userEmail.toLowerCase()) || null;
+      } else {
+        vetProfile = fallbackVets.find((v: any) => v.email?.toLowerCase() === userEmail.toLowerCase()) || fallbackVets[0] || null;
+      }
     }
 
     if (!vetProfile) {
       return res.status(404).json({ status: 'error', message: 'No provider profile found for this account' });
     }
 
-    // Fetch all appointments for this vet
+    // Fetch all appointments for this vet/expert
     let appointments: any[] = [];
     if (mongoose.connection.readyState === 1) {
       appointments = await Appointment.find({ vetId: String(vetProfile._id) })
         .sort({ createdAt: -1 })
         .lean();
     }
+    const fbAppts = fallbackAppointments.filter((a: any) => String(a.vetId) === String(vetProfile._id));
+    const mergedAppts = [...appointments, ...fbAppts.filter(fa => !appointments.some(dbA => dbA._id.toString() === fa._id.toString()))];
 
     // Compute earnings summary
-    const confirmedAppts = appointments.filter((a: any) => a.status === 'confirmed');
+    const confirmedAppts = mergedAppts.filter((a: any) => a.status === 'confirmed');
     const totalEarnings = confirmedAppts.reduce((sum: number, a: any) => sum + (a.fee || 0), 0);
-    const upcomingAppts = appointments.filter((a: any) => a.status !== 'cancelled');
+    const upcomingAppts = mergedAppts.filter((a: any) => a.status !== 'cancelled');
 
     return res.json({
       status: 'success',
       provider: vetProfile,
-      appointments,
+      appointments: mergedAppts,
       summary: {
-        total: appointments.length,
+        total: mergedAppts.length,
         confirmed: confirmedAppts.length,
         upcoming: upcomingAppts.length,
         totalEarnings
@@ -3401,7 +3509,7 @@ app.get('/api/provider/me', authMiddleware, async (req: Request, res: Response) 
 /**
  * PUT /api/provider/slots
  * Allows the authenticated vet/expert to update their available slots.
- * Body: { slots: [{ date: string, time: string }] }
+ * Body: { slots: [{ date: string, time: string }], providerId?: string }
  */
 app.put('/api/provider/slots', authMiddleware, async (req: Request, res: Response) => {
   try {
@@ -3410,30 +3518,48 @@ app.put('/api/provider/slots', authMiddleware, async (req: Request, res: Respons
       return res.status(401).json({ status: 'error', message: 'Authentication required' });
     }
 
-    const { slots } = req.body;
+    const { slots, providerId } = req.body;
     if (!Array.isArray(slots)) {
       return res.status(400).json({ status: 'error', message: '`slots` must be an array of { date, time } objects' });
     }
 
-    if (mongoose.connection.readyState !== 1) {
-      return res.status(503).json({ status: 'error', message: 'Database unavailable. Cannot update slots offline.' });
-    }
+    const newSlots = slots.map((s: any, idx: number) => ({
+      _id: s._id || `slot_${Date.now()}_${idx}`,
+      date: String(s.date || '').trim(),
+      time: String(s.time || '').trim(),
+      isBooked: !!s.isBooked,
+      bookedBy: s.bookedBy || null
+    })).filter((s: any) => s.date && s.time);
 
-    const vet = await Vet.findOne({ email: { $regex: new RegExp(`^${userEmail}$`, 'i') } });
-    if (!vet) {
+    if (mongoose.connection.readyState !== 1) {
+      const fbVet = fallbackVets.find((v: any) => v._id === providerId || v.email?.toLowerCase() === userEmail.toLowerCase()) || fallbackVets[0];
+      if (fbVet) {
+        fbVet.availableSlots = newSlots;
+        return res.json({ status: 'success', message: 'Slots updated successfully', slots: fbVet.availableSlots });
+      }
       return res.status(404).json({ status: 'error', message: 'Provider profile not found' });
     }
 
-    // Build slot objects, preserving booking status for existing slots
-    const newSlots = slots.map((s: any, idx: number) => ({
-      _id: new mongoose.Types.ObjectId(),
-      date: String(s.date || '').trim(),
-      time: String(s.time || '').trim(),
-      isBooked: false,
-      bookedBy: null
-    })).filter((s: any) => s.date && s.time);
+    let vet: any = null;
+    if (providerId && mongoose.Types.ObjectId.isValid(providerId)) {
+      vet = await Vet.findById(providerId);
+    } else {
+      vet = await Vet.findOne({ email: { $regex: new RegExp(`^${userEmail}$`, 'i') } });
+    }
 
-    vet.availableSlots = newSlots as any;
+    if (!vet) {
+      const fbVet = fallbackVets.find((v: any) => v._id === providerId || v.email?.toLowerCase() === userEmail.toLowerCase());
+      if (fbVet) {
+        fbVet.availableSlots = newSlots;
+        return res.json({ status: 'success', message: 'Slots updated successfully', slots: fbVet.availableSlots });
+      }
+      return res.status(404).json({ status: 'error', message: 'Provider profile not found' });
+    }
+
+    vet.availableSlots = newSlots.map(s => ({
+      ...s,
+      _id: mongoose.Types.ObjectId.isValid(s._id) ? s._id : new mongoose.Types.ObjectId()
+    })) as any;
     await vet.save();
 
     return res.json({ status: 'success', message: 'Slots updated successfully', slots: vet.availableSlots });
