@@ -83,6 +83,8 @@ export const processRazorpayPayment = async (options: RazorpayOptions): Promise<
 
     const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || orderData.key_id || 'rzp_test_TKxpLxhMCofQDL';
 
+    const logoUrl = typeof window !== 'undefined' ? `${window.location.origin}/logo.png` : '/logo.png';
+
     // 2. Configure Razorpay modal options
     const rzpOptions = {
       key: razorpayKey,
@@ -90,7 +92,7 @@ export const processRazorpayPayment = async (options: RazorpayOptions): Promise<
       currency: orderData.currency,
       name: options.name || 'Aumoha Pet Care Services',
       description: options.description || 'Payment for Aumoha Order',
-      image: '/logo.png',
+      image: logoUrl,
       order_id: orderData.order_id,
       prefill: {
         name: options.prefill?.name || '',
@@ -99,6 +101,7 @@ export const processRazorpayPayment = async (options: RazorpayOptions): Promise<
       },
       theme: {
         color: '#2D4536',
+        backdrop_color: 'rgba(28, 26, 23, 0.7)',
       },
       handler: async (response: {
         razorpay_payment_id: string;

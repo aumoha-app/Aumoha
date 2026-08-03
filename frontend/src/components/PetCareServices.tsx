@@ -131,7 +131,11 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
   const [bookingConfirmed, setBookingConfirmed] = useState<boolean>(false);
   const [bookingDate, setBookingDate] = useState<string>('Tomorrow');
   const [bookingTime, setBookingTime] = useState<string>('10:00 AM');
+  const [customTimeRaw, setCustomTimeRaw] = useState<string>('');
   const [selectedPet, setSelectedPet] = useState<string>(user?.pets?.[0]?.name || 'My Pet');
+  const [bookingMonth, setBookingMonth] = useState(new Date().getMonth());
+  const [bookingYear, setBookingYear] = useState(new Date().getFullYear());
+  const [selectedCalendarDay, setSelectedCalendarDay] = useState<number>(new Date().getDate());
 
   // Filter & Sort Logic
   let filteredServices = PET_CARE_SERVICES.filter(service => {
@@ -201,11 +205,6 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
                 alt={service.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
-              {service.verified && (
-                <div className="absolute top-2 left-2 bg-white/95 backdrop-blur-xs px-2 py-0.5 rounded-full border border-emerald-200 text-emerald-700 text-[8px] font-extrabold flex items-center gap-1 shadow-xs">
-                  <ShieldCheck className="w-3 h-3 text-emerald-600" /> Verified
-                </div>
-              )}
             </div>
 
             {/* Right Details Column */}
@@ -229,16 +228,12 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
 
               {/* Meta stats row */}
               <div className="flex flex-wrap items-center gap-3 text-xs text-stone-500 font-medium border-y border-[#F0EBE1] py-2">
-                <span className="flex items-center gap-1 font-extrabold text-amber-600 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-lg">
-                  <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                  {service.rating}
-                  <span className="text-[10px] text-stone-400 font-semibold">({service.reviews})</span>
-                </span>
-                <span className="text-stone-300">•</span>
                 <span className="flex items-center gap-1 text-stone-500 font-semibold text-[11px]">
                   <MapPin className="w-3.5 h-3.5 text-stone-400" />
                   {service.location}
                 </span>
+                <span className="text-stone-300">•</span>
+                <span className="text-stone-500 font-semibold text-[11px]">{service.experience}</span>
               </div>
 
               {/* Action & Price Footer */}
@@ -285,8 +280,8 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
 
       {/* ==================== PROVIDER DETAILS MODAL ==================== */}
       {selectedProvider && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-end md:items-center justify-center px-4 transition-all">
-          <div className="bg-white w-full max-w-lg rounded-t-[32px] md:rounded-[32px] p-6 shadow-2xl flex flex-col gap-5 max-h-[85vh] overflow-y-auto scrollbar-hide animate-scaleIn select-none">
+        <div className="fixed inset-0 bg-[#1C1A17]/60 backdrop-blur-sm z-[10000] flex items-center justify-center p-4 transition-all">
+          <div className="bg-white w-full max-w-lg rounded-[28px] sm:rounded-[32px] p-5 sm:p-6 shadow-2xl flex flex-col gap-4 sm:gap-5 max-h-[85vh] overflow-y-auto scrollbar-hide animate-scaleIn select-none mb-14 sm:mb-0">
             {/* Header */}
             <div className="flex justify-between items-start border-b border-[#F0EBE1] pb-4">
               <div className="flex items-center gap-3">
@@ -306,7 +301,7 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
               </div>
               <button
                 onClick={() => setSelectedProvider(null)}
-                className="w-8 h-8 rounded-full border border-stone-200 flex items-center justify-center hover:bg-stone-50 active:scale-90 transition-all"
+                className="w-8 h-8 rounded-full border border-stone-200 flex items-center justify-center hover:bg-stone-50 active:scale-90 transition-all cursor-pointer"
               >
                 <X className="w-4 h-4 text-stone-500" />
               </button>
@@ -374,8 +369,8 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
 
       {/* ==================== BOOKING APPOINTMENT MODAL ==================== */}
       {bookingProvider && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-end md:items-center justify-center px-4 transition-all">
-          <div className="bg-white w-full max-w-md rounded-t-[32px] md:rounded-[32px] p-6 shadow-2xl flex flex-col gap-5 max-h-[85vh] overflow-y-auto scrollbar-hide animate-scaleIn select-none">
+        <div className="fixed inset-0 bg-[#1C1A17]/65 backdrop-blur-sm z-[10000] flex items-center justify-center p-4 transition-all">
+          <div className="bg-white w-full max-w-md rounded-[28px] sm:rounded-[32px] p-5 sm:p-6 shadow-2xl flex flex-col gap-4 sm:gap-5 max-h-[85vh] overflow-y-auto scrollbar-hide animate-scaleIn select-none mb-14 sm:mb-0">
             {/* Header */}
             <div className="flex justify-between items-center border-b border-[#F0EBE1] pb-3.5">
               <div>
@@ -384,7 +379,7 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
               </div>
               <button
                 onClick={() => setBookingProvider(null)}
-                className="w-8 h-8 rounded-full border border-stone-200 flex items-center justify-center hover:bg-stone-50 active:scale-90 transition-all"
+                className="w-8 h-8 rounded-full border border-stone-200 flex items-center justify-center hover:bg-stone-50 active:scale-90 transition-all cursor-pointer"
               >
                 <X className="w-4 h-4 text-stone-500" />
               </button>
@@ -439,57 +434,141 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
                   />
                 </div>
 
-                {/* Date Picker */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-extrabold text-stone-400 uppercase tracking-wider">Preferred Day</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {['Today', 'Tomorrow', 'This Weekend'].map(day => (
-                      <button
-                        key={day}
-                        type="button"
-                        onClick={() => setBookingDate(day)}
-                        className={`py-2 px-2 border rounded-xl text-xs font-bold transition-all text-center ${
-                          bookingDate === day
-                            ? 'bg-[#2D4536] border-[#2D4536] text-white shadow-xs'
-                            : 'bg-white border-[#F0EBE1] text-stone-600 hover:border-stone-300'
-                        }`}
+                {/* SELECT DATE & TIME GRID */}
+                <div className="flex flex-col gap-3 bg-[#FAF8F5] border border-[#E8E2D8] rounded-[22px] p-3.5 sm:p-4">
+                  
+                  {/* SELECT DATE Header */}
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-extrabold text-stone-500 uppercase tracking-widest">SELECT DATE</label>
+                    <div className="flex items-center gap-2">
+                      <span className="font-serif text-xs font-bold text-[#1C1A17]">
+                        {['January','February','March','April','May','June','July','August','September','October','November','December'][bookingMonth]} {bookingYear}
+                      </span>
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          if (bookingMonth === 11) {
+                            setBookingMonth(0);
+                            setBookingYear(prev => prev + 1);
+                          } else {
+                            setBookingMonth(prev => prev + 1);
+                          }
+                        }}
+                        className="w-5 h-5 rounded-full hover:bg-stone-200 text-stone-600 flex items-center justify-center transition-all cursor-pointer font-bold text-xs"
                       >
-                        {day}
+                        ›
                       </button>
-                    ))}
+                    </div>
                   </div>
-                </div>
 
-                {/* Time Picker */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-extrabold text-stone-400 uppercase tracking-wider">Time Slot</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {['10:00 AM', '02:00 PM', '05:30 PM'].map(time => (
-                      <button
-                        key={time}
-                        type="button"
-                        onClick={() => setBookingTime(time)}
-                        className={`py-2 px-2 border rounded-xl text-xs font-bold transition-all text-center ${
-                          bookingTime === time
-                            ? 'bg-[#2D4536] border-[#2D4536] text-white shadow-xs'
-                            : 'bg-white border-[#F0EBE1] text-stone-600 hover:border-stone-300'
-                        }`}
-                      >
-                        {time}
-                      </button>
+                  {/* Day Headers */}
+                  <div className="grid grid-cols-7 text-center">
+                    {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(d => (
+                      <span key={d} className="text-[8.5px] font-bold text-stone-400 uppercase py-0.5">{d}</span>
                     ))}
                   </div>
+
+                  {/* Days Grid */}
+                  <div className="grid grid-cols-7 gap-y-1 text-center">
+                    {Array.from({ length: new Date(bookingYear, bookingMonth, 1).getDay() }).map((_, i) => (
+                      <span key={`blank-${i}`} />
+                    ))}
+                    {Array.from({ length: new Date(bookingYear, bookingMonth + 1, 0).getDate() }).map((_, i) => {
+                      const dayNum = i + 1;
+                      const isSelected = selectedCalendarDay === dayNum;
+                      const isPast = new Date().getMonth() === bookingMonth && new Date().getFullYear() === bookingYear && dayNum < new Date().getDate();
+                      
+                      return (
+                        <div key={dayNum} className="flex flex-col items-center justify-center">
+                          <button
+                            type="button"
+                            disabled={isPast}
+                            onClick={() => {
+                              setSelectedCalendarDay(dayNum);
+                              const mName = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][bookingMonth];
+                              setBookingDate(`${mName} ${dayNum}`);
+                            }}
+                            className={`w-7 h-7 rounded-full text-[11px] font-bold transition-all flex items-center justify-center ${
+                              isPast 
+                                ? 'text-stone-300 cursor-not-allowed'
+                                : isSelected
+                                  ? 'bg-[#1C1A17] text-white shadow-2xs font-extrabold'
+                                  : 'text-[#1C1A17] hover:bg-[#F4F0EA] cursor-pointer'
+                            }`}
+                          >
+                            {dayNum}
+                          </button>
+                          {!isPast && (
+                            <span className={`w-1 h-1 rounded-full mt-0.5 ${isSelected ? 'bg-terracotta' : 'bg-stone-300'}`} />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* SELECT TIME Header & Slots */}
+                  <div className="flex flex-col gap-2.5 pt-2.5 border-t border-[#E8E2D8]">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-extrabold text-stone-500 uppercase tracking-widest">SELECT TIME</label>
+                      <span className="text-[10px] font-bold text-terracotta bg-[#FAF2EE] border border-[#F5DFD8] px-2 py-0.5 rounded-md">Selected: {bookingTime}</span>
+                    </div>
+
+                    {/* Popular Slot Pills */}
+                    <div className="grid grid-cols-3 gap-2">
+                      {['10:00 AM', '02:00 PM', '05:30 PM'].map(time => (
+                        <button
+                          key={time}
+                          type="button"
+                          onClick={() => {
+                            setBookingTime(time);
+                            setCustomTimeRaw('');
+                          }}
+                          className={`py-2 px-2 border rounded-xl text-xs font-extrabold transition-all text-center cursor-pointer ${
+                            bookingTime === time && !customTimeRaw
+                              ? 'bg-[#1C1A17] border-[#1C1A17] text-white shadow-xs'
+                              : 'bg-white border-[#E5E0D8] text-[#1C1A17] hover:bg-[#F4F0EA]'
+                          }`}
+                        >
+                          {time}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Or Pick Any Custom Time */}
+                    <div className="flex items-center justify-between gap-2 pt-1 border-t border-dashed border-[#E8E2D8]">
+                      <span className="text-[10.5px] font-bold text-stone-600">Pick any custom time:</span>
+                      <input
+                        type="time"
+                        value={customTimeRaw}
+                        onChange={(e) => {
+                          const rawVal = e.target.value;
+                          setCustomTimeRaw(rawVal);
+                          if (rawVal) {
+                            const [hStr, mStr] = rawVal.split(':');
+                            let h = parseInt(hStr, 10);
+                            const m = mStr;
+                            const ampm = h >= 12 ? 'PM' : 'AM';
+                            h = h % 12 || 12;
+                            const formatted = `${h < 10 ? '0' + h : h}:${m} ${ampm}`;
+                            setBookingTime(formatted);
+                          }
+                        }}
+                        className={`bg-white border ${customTimeRaw ? 'border-[#1C1A17] ring-1 ring-[#1C1A17]' : 'border-[#E5E0D8]'} rounded-xl px-3 py-1.5 text-xs font-extrabold text-[#1C1A17] outline-none focus:border-[#1C1A17] cursor-pointer shadow-2xs`}
+                      />
+                    </div>
+                  </div>
+
                 </div>
 
                 {/* Price total */}
                 <div className="flex justify-between items-center bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl p-3.5 my-1">
                   <span className="text-xs font-bold text-stone-600">Total Fee</span>
-                  <span className="text-base font-extrabold text-[#2D4536]">₹{bookingProvider.price}</span>
+                  <span className="text-base font-extrabold text-terracotta">₹{bookingProvider.price}</span>
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full py-3.5 bg-[#2D4536] hover:bg-[#1E2E24] text-white font-bold rounded-2xl text-xs transition-all shadow-md shadow-[#2D4536]/20 cursor-pointer active:scale-98"
+                  className="w-full py-3.5 bg-terracotta hover:bg-[#C85236] text-white font-bold rounded-2xl text-xs transition-all shadow-md shadow-terracotta/20 cursor-pointer active:scale-98"
                 >
                   Confirm Reservation
                 </button>

@@ -7,6 +7,7 @@ import { API_BASE } from '../lib/api';
 import { processRazorpayPayment } from '../lib/razorpay';
 import AgoraCallModal from './AgoraCallModal';
 import CallSessionButton from './CallSessionButton';
+import PaymentModal from './PaymentModal';
 
 
 // Define Interface types
@@ -80,6 +81,11 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
   const [selectedPetName, setSelectedPetName] = useState('');
   const [newPetInput, setNewPetInput] = useState(false);
   const [customPetName, setCustomPetName] = useState('');
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [bookingMonth, setBookingMonth] = useState(new Date().getMonth());
+  const [bookingYear, setBookingYear] = useState(new Date().getFullYear());
+  const [selectedCalendarDay, setSelectedCalendarDay] = useState<number>(new Date().getDate());
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('1:00 PM');
 
   // Add Pet modal states mimicking profile pet management
   const [isPetModalOpen, setIsPetModalOpen] = useState(false);
@@ -161,8 +167,10 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
     }
   }, [user]);
 
-  // All Slots viewer modal state
+  // All Slots viewer modal state & calendar picker states
   const [isViewingAllSlotsVet, setIsViewingAllSlotsVet] = useState<Vet | null>(null);
+  const [modalSelectedDate, setModalSelectedDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
+  const [modalSelectedTime, setModalSelectedTime] = useState<string>('10:30 AM');
 
   // Role Security Checking
   const [isAdminUser, setIsAdminUser] = useState(false);
@@ -845,7 +853,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
               {/* Upper Details Row */}
               <div className="flex flex-row items-stretch min-h-[140px] xs:min-h-[155px] sm:min-h-[175px]">
                 {/* Left Side Portrait Photo */}
-                <div className="w-28 xs:w-36 sm:w-44 bg-[#EAE4D8] relative shrink-0 overflow-hidden">
+                <div className="w-24 xs:w-32 sm:w-44 max-w-[32%] sm:max-w-[40%] bg-[#EAE4D8] relative shrink-0 overflow-hidden">
                   <img 
                     src={vet.photo || (vetIndex === 0 ? '/warden-1.png' : '/warden-2.png')} 
                     alt={vet.name} 
@@ -900,11 +908,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                     <button
                       key={slot._id || slotIdx}
                       onClick={() => handleStartBooking(vet, slot)}
-                      className={`px-2.5 xs:px-3.5 sm:px-4 py-1.5 rounded-full text-[11px] xs:text-xs font-semibold transition-all shrink-0 cursor-pointer active:scale-95 whitespace-nowrap ${
-                        slotIdx === 1
-                          ? 'bg-[#2D4536] text-white shadow-2xs font-bold'
-                          : 'bg-white border border-[#DCD5C7] text-[#1C1A17] hover:bg-[#F5F2EC]'
-                      }`}
+                      className="px-2.5 xs:px-3.5 sm:px-4 py-1.5 rounded-full text-[11px] xs:text-xs font-semibold transition-all shrink-0 cursor-pointer active:scale-95 whitespace-nowrap bg-white border border-[#DCD5C7] text-[#1C1A17] hover:bg-[#F5F2EC]"
                     >
                       {slot.time}
                     </button>
@@ -913,9 +917,12 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
 
                 <button
                   onClick={() => {
-                    const defaultSlot = (vet.availableSlots && vet.availableSlots.length > 0) 
-                      ? vet.availableSlots[0] 
-                      : { _id: 's1', date: 'Today', time: '10:30 AM', isBooked: false };
+                    const defaultSlot = vet.availableSlots?.[0] || {
+                      _id: `slot_${new Date().getDate()}`,
+                      date: `Today`,
+                      time: '10:30 AM',
+                      isBooked: false
+                    };
                     handleStartBooking(vet, defaultSlot);
                   }}
                   className="text-[11px] xs:text-xs sm:text-sm font-semibold text-stone-600 hover:text-stone-900 shrink-0 cursor-pointer whitespace-nowrap flex items-center gap-0.5 pl-0.5"
@@ -1041,15 +1048,10 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                 <div className="flex flex-col gap-2.5 pt-2.5 border-t border-stone-100">
                   <div className="flex justify-between items-center px-1">
                     <span className="text-[9px] font-extrabold text-stone-400 uppercase tracking-wider">Next Available Slots</span>
-                    {/* View all slots triggers appointment booking page */}
+                    {/* View all slots triggers calendar date & time picker modal */}
                     <button 
                       type="button"
-                      onClick={() => {
-                        const defaultSlot = (vet.availableSlots && vet.availableSlots.length > 0) 
-                          ? vet.availableSlots[0] 
-                          : { _id: 's1', date: 'Today', time: '10:30 AM', isBooked: false };
-                        handleStartBooking(vet, defaultSlot);
-                      }}
+                      onClick={() => setIsViewingAllSlotsVet(vet)}
                       className="text-[9px] font-extrabold text-terracotta hover:underline cursor-pointer"
                     >
                       View all slots ›
@@ -1061,13 +1063,9 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                       <button
                         key={slot._id}
                         onClick={() => handleStartBooking(vet, slot)}
-                        className={`px-3.5 py-2 border rounded-xl text-[10px] font-bold text-center transition-all shrink-0 active:scale-95 flex flex-col gap-0.5 min-w-[70px] ${
-                          index === 0
-                            ? 'bg-terracotta border-terracotta text-white shadow-sm hover:bg-[#c2502f]'
-                            : 'bg-[#FCFAF7] border-[#F0EBE1] text-charcoal hover:bg-white'
-                        }`}
+                        className="px-3.5 py-2 border border-[#F0EBE1] bg-[#FCFAF7] hover:bg-white text-charcoal rounded-xl text-[10px] font-bold text-center transition-all shrink-0 active:scale-95 flex flex-col gap-0.5 min-w-[70px]"
                       >
-                        <span className={`text-[8px] opacity-75 font-bold ${index === 0 ? 'text-white/80' : 'text-stone-400'}`}>{slot.date}</span>
+                        <span className="text-[8px] opacity-75 font-bold text-stone-400">{slot.date}</span>
                         <span>{slot.time}</span>
                       </button>
                     ))}
@@ -1079,49 +1077,6 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
               </div>
             ))}
           </div>
-
-          {/* VIEW ALL AVAILABLE SLOTS BOTTOM SHEET MODAL */}
-          {isViewingAllSlotsVet && (
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-end md:items-center justify-center px-4 transition-all">
-              <div className="bg-white rounded-t-3xl md:rounded-3xl p-5 w-full max-w-sm flex flex-col gap-4 shadow-xl border border-warmBeige">
-                <div className="flex justify-between items-center pb-2 border-b border-stone-100">
-                  <h3 className="text-xs font-extrabold text-stone-500 uppercase">All Available Slots</h3>
-                  <button 
-                    type="button"
-                    onClick={() => setIsViewingAllSlotsVet(null)}
-                    className="text-stone-400 hover:text-stone-600 font-extrabold text-xs px-1"
-                  >
-                    ✕
-                  </button>
-                </div>
-                
-                <div className="text-[10px] text-stone-500 font-semibold mb-1">
-                  Select an appointment slot with <strong>{isViewingAllSlotsVet.name}</strong>:
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pb-1">
-                  {isViewingAllSlotsVet.availableSlots.filter(s => !s.isBooked).map(slot => (
-                    <button
-                      key={slot._id}
-                      type="button"
-                      onClick={() => {
-                        handleStartBooking(isViewingAllSlotsVet, slot);
-                        setIsViewingAllSlotsVet(null);
-                      }}
-                      className="p-2.5 border border-[#F0EBE1] hover:border-terracotta/30 bg-[#FCFAF7] hover:bg-white rounded-xl text-[10px] font-bold text-terracotta text-center transition-all active:scale-95 flex flex-col gap-0.5"
-                    >
-                      <span className="text-[8px] text-stone-400 font-bold">{slot.date}</span>
-                      <span>{slot.time}</span>
-                    </button>
-                  ))}
-                  {isViewingAllSlotsVet.availableSlots.filter(s => !s.isBooked).length === 0 && (
-                    <span className="text-[10px] text-stone-400 font-semibold italic col-span-2 text-center py-2">No other slots are currently available.</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
         </div>
       )}
 
@@ -1150,126 +1105,306 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
           </div>
 
           {/* Consultation Mode Picker */}
-          <div className="flex flex-col gap-2">
-            <label className="text-[10px] font-extrabold text-stone-400 uppercase tracking-wider px-1">Consultation Mode</label>
-            <div className="grid grid-cols-2 bg-[#FCFAF7] border border-[#F0EBE1] p-1 rounded-2xl w-full">
+          <div className="flex flex-col gap-2.5">
+            <label className="text-[10.5px] font-extrabold text-stone-500 uppercase tracking-widest px-1">CONSULTATION MODE</label>
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 w-full">
+              {/* In-clinic Card */}
               <button 
                 type="button"
                 onClick={() => setBookingMode('in-clinic')}
-                className={`py-2 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all ${
-                  bookingMode === 'in-clinic' ? 'bg-white shadow-sm text-[#2D4536] border border-[#2D4536]/20' : 'text-stone-500 hover:text-stone-700'
+                className={`p-4 sm:p-5 rounded-2xl sm:rounded-[22px] text-left transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[120px] ${
+                  bookingMode === 'in-clinic'
+                    ? 'bg-[#F4F0EA] border-2 border-[#2D4536] shadow-sm'
+                    : 'bg-[#F9F6F0] border border-[#E5E0D8] hover:bg-[#F5F1EA]'
                 }`}
               >
-                In-Clinic Consult
+                <div className="flex items-start justify-between w-full">
+                  <svg className="w-7 h-7 sm:w-8 sm:h-8 text-[#2D4536]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 21h18" />
+                    <path d="M5 21V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v14" />
+                    <path d="M9 21v-4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4" />
+                    <path d="M10 9h4" />
+                    <path d="M12 7v4" />
+                  </svg>
+
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                    bookingMode === 'in-clinic'
+                      ? 'bg-[#2D4536] border-2 border-[#2D4536]'
+                      : 'border-2 border-stone-300'
+                  }`}>
+                    {bookingMode === 'in-clinic' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                  </div>
+                </div>
+
+                <div className="mt-3">
+                  <h4 className="font-serif text-sm sm:text-base font-bold text-[#1C1A17] leading-tight">In-clinic</h4>
+                  <p className="text-[11px] sm:text-xs text-stone-500 font-medium mt-0.5">Visit the clinic</p>
+                </div>
               </button>
+
+              {/* Tele-consult Card */}
               <button 
                 type="button"
                 onClick={() => setBookingMode('tele-consult')}
-                className={`py-2 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all ${
-                  bookingMode === 'tele-consult' ? 'bg-white shadow-sm text-[#2D4536] border border-[#2D4536]/20' : 'text-stone-500 hover:text-stone-700'
+                className={`p-4 sm:p-5 rounded-2xl sm:rounded-[22px] text-left transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[120px] ${
+                  bookingMode === 'tele-consult'
+                    ? 'bg-[#F4F0EA] border-2 border-[#2D4536] shadow-sm'
+                    : 'bg-[#F9F6F0] border border-[#E5E0D8] hover:bg-[#F5F1EA]'
                 }`}
               >
-                Tele-Consult (Online)
-              </button>
-            </div>
-            {/* Pet Picker */}
-          <div className="flex flex-col gap-2.5 bg-white border border-[#F0EBE1] rounded-[24px] p-4 shadow-sm">
-            <div className="flex justify-between items-center px-1">
-              <label className="text-[10px] font-extrabold text-stone-400 uppercase tracking-wider">Select Pet</label>
-              <button 
-                type="button"
-                onClick={() => {
-                  setPetError(null);
-                  setPetForm({
-                    name: '',
-                    type: 'Dog',
-                    photo: '',
-                    breed: '',
-                    age: undefined,
-                    gender: 'unknown',
-                    notes: ''
-                  });
-                  setIsPetModalOpen(true);
-                }}
-                className="text-[9px] font-extrabold text-[#2D4536] hover:underline"
-              >
-                + Add New Pet
-              </button>
-            </div>
+                <div className="flex items-start justify-between w-full">
+                  <svg className="w-7 h-7 sm:w-8 sm:h-8 text-[#2D4536]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="6" width="14" height="12" rx="3" />
+                    <path d="M16 10l5-3v10l-5-3" />
+                  </svg>
 
-            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-              {user?.pets && user.pets.map((pet: any) => (
-                <button
-                  key={pet._id}
-                  type="button"
-                  onClick={() => setSelectedPetName(pet.name)}
-                  className={`px-4 py-2.5 border rounded-2xl text-xs font-bold transition-all shrink-0 flex items-center gap-2 ${
-                    selectedPetName === pet.name 
-                      ? 'bg-[#E8F0EA] border-[#2D4536] text-[#2D4536] shadow-sm' 
-                      : 'bg-white border-[#F0EBE1] text-stone-600 hover:border-stone-300'
-                  }`}
-                >
-                  <DogIcon className="w-4 h-4 text-[#2D4536]" /> {pet.name}
-                </button>
-              ))}
-              {(!user?.pets || user.pets.length === 0) && (
-                <span className="text-[10px] text-stone-400 font-semibold italic">No registered pets found. Add a pet above.</span>
-              )}
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                    bookingMode === 'tele-consult'
+                      ? 'bg-[#2D4536] border-2 border-[#2D4536]'
+                      : 'border-2 border-stone-300'
+                  }`}>
+                    {bookingMode === 'tele-consult' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                  </div>
+                </div>
+
+                <div className="mt-3">
+                  <h4 className="font-serif text-sm sm:text-base font-bold text-[#1C1A17] leading-tight">Tele-consult</h4>
+                  <p className="text-[11px] sm:text-xs text-stone-500 font-medium mt-0.5">Online video call</p>
+                </div>
+              </button>
             </div>
           </div>
 
-          </div>
-
-          {/* Booking Summary Table */}
-          <div className="bg-white border border-[#F0EBE1] rounded-[28px] p-5 flex flex-col gap-3 shadow-sm">
-            <h3 className="text-[10px] font-extrabold text-stone-400 uppercase tracking-wider border-b border-stone-100 pb-2">Booking Summary</h3>
+          {/* SELECT PET SECTION */}
+          <div className="flex flex-col gap-2.5 w-full">
+            <label className="text-[10.5px] font-extrabold text-stone-500 uppercase tracking-widest px-1">SELECT PET</label>
             
-            <table className="w-full border-collapse text-xs font-semibold text-stone-600">
-              <tbody>
-                <tr className="border-b border-stone-100">
-                  <td className="py-2.5 text-stone-400 font-medium">Vet</td>
-                  <td className="py-2.5 text-right font-extrabold text-charcoal">{selectedVet.name}</td>
-                </tr>
-                <tr className="border-b border-stone-100">
-                  <td className="py-2.5 text-stone-400 font-medium">Date / Time</td>
-                  <td className="py-2.5 text-right font-extrabold text-emerald-700">{selectedSlot.date} • {selectedSlot.time}</td>
-                </tr>
-                <tr className="border-b border-stone-100">
-                  <td className="py-2.5 text-stone-400 font-medium">Mode</td>
-                  <td className="py-2.5 text-right font-extrabold text-charcoal capitalize">{bookingMode}</td>
-                </tr>
-                <tr className="border-b border-stone-100">
-                  <td className="py-2.5 text-stone-400 font-medium">Pet</td>
-                  <td className="py-2.5 text-right font-extrabold text-charcoal flex items-center justify-end gap-1.5">
-                    <span>{newPetInput ? customPetName : selectedPetName}</span>
-                    {/* Inline Vector SVG for Dog Icon */}
-                    <svg className="w-3.5 h-3.5 text-[#2D4536]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M10 5.172A2 2 0 0 0 8.586 4.5H5.414A2 2 0 0 0 4 5.172L2 7.172A2 2 0 0 0 1.5 8.586V14a2 2 0 0 0 2 2h1v2a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2h1a2 2 0 0 0 2-2v-5.414a2 2 0 0 0-.586-1.414L10 5.172z" />
-                    </svg>
-                  </td>
-                </tr>
-                <tr className="border-b border-stone-100">
-                  <td className="py-2.5 text-stone-400 font-medium">Consultation Fee</td>
-                  <td className="py-2.5 text-right font-extrabold text-charcoal">₹{selectedVet.fee}</td>
-                </tr>
-                <tr className="pt-2">
-                  <td className="py-3 text-charcoal font-extrabold text-sm">Total</td>
-                  <td className="py-3 text-right font-extrabold text-[#2D4536] text-sm">₹{selectedVet.fee}</td>
-                </tr>
-              </tbody>
-            </table>
+            {/* Selected Pet Card */}
+            <div className="bg-[#F4F0EA] border border-[#E5E0D8] rounded-[22px] p-4 flex items-center justify-between w-full shadow-2xs">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-full overflow-hidden bg-stone-200 border border-[#D5CEBF] shrink-0">
+                  <img 
+                    src={user?.pets?.[0]?.photo || 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=200'} 
+                    alt={selectedPetName || 'Pet'} 
+                    className="w-full h-full object-cover" 
+                  />
+                </div>
+                <div>
+                  <h4 className="font-serif text-base font-bold text-[#1C1A17] leading-tight">
+                    {newPetInput ? (customPetName || 'Snow') : (selectedPetName || user?.pets?.[0]?.name || 'Snow')}
+                  </h4>
+                  <p className="text-xs text-stone-500 font-medium mt-0.5">
+                    {user?.pets?.[0]?.breed || 'Golden Retriever'} • {user?.pets?.[0]?.age ? `${user.pets[0].age} yrs` : '3 yrs'} • {user?.pets?.[0]?.gender || 'Male'}
+                  </p>
+                </div>
+              </div>
+              <div className="w-6 h-6 text-stone-600 flex items-center justify-center">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Add another pet button */}
+            <button 
+              type="button"
+              onClick={() => {
+                setPetError(null);
+                setPetForm({ name: '', type: 'Dog', photo: '', breed: '', age: undefined, gender: 'unknown', notes: '' });
+                setIsPetModalOpen(true);
+              }}
+              className="w-full py-3.5 px-4 border-2 border-dashed border-[#DCD5C7] rounded-[22px] bg-transparent hover:bg-[#F5F2EC] text-[#1C1A17] text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer"
+            >
+              <span className="text-base font-bold">+</span>
+              <span>Add another pet</span>
+            </button>
           </div>
 
-          {/* Confirm & Pay Buttons */}
-          <div className="flex flex-col gap-2.5">
+          {/* SELECT DATE & SELECT TIME SECTION */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-5 w-full bg-[#FAF8F5] border border-[#E8E2D8] rounded-[26px] p-5 shadow-2xs">
+            
+            {/* SELECT DATE (Left 7 Cols) */}
+            <div className="md:col-span-7 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <label className="text-[10.5px] font-extrabold text-stone-500 uppercase tracking-widest">SELECT DATE</label>
+              </div>
+
+              {/* Month Header & Nav */}
+              <div className="flex items-center justify-between pt-1">
+                <span className="font-serif text-sm font-bold text-[#1C1A17]">
+                  {['January','February','March','April','May','June','July','August','September','October','November','December'][bookingMonth]} {bookingYear}
+                </span>
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    if (bookingMonth === 11) {
+                      setBookingMonth(0);
+                      setBookingYear(prev => prev + 1);
+                    } else {
+                      setBookingMonth(prev => prev + 1);
+                    }
+                  }}
+                  className="w-6 h-6 rounded-full hover:bg-stone-200 text-stone-600 flex items-center justify-center transition-all cursor-pointer font-bold text-xs"
+                >
+                  ›
+                </button>
+              </div>
+
+              {/* Day Headers */}
+              <div className="grid grid-cols-7 text-center">
+                {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(d => (
+                  <span key={d} className="text-[9px] font-bold text-stone-400 uppercase py-1">{d}</span>
+                ))}
+              </div>
+
+              {/* Days Grid */}
+              <div className="grid grid-cols-7 gap-y-1 text-center">
+                {Array.from({ length: new Date(bookingYear, bookingMonth, 1).getDay() }).map((_, i) => (
+                  <span key={`blank-${i}`} />
+                ))}
+                {Array.from({ length: new Date(bookingYear, bookingMonth + 1, 0).getDate() }).map((_, i) => {
+                  const dayNum = i + 1;
+                  const isSelected = selectedCalendarDay === dayNum;
+                  const isPast = new Date().getMonth() === bookingMonth && new Date().getFullYear() === bookingYear && dayNum < new Date().getDate();
+                  
+                  return (
+                    <div key={dayNum} className="flex flex-col items-center justify-center">
+                      <button
+                        type="button"
+                        disabled={isPast}
+                        onClick={() => {
+                          setSelectedCalendarDay(dayNum);
+                          const mName = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][bookingMonth];
+                          const dateStr = `${mName} ${dayNum}`;
+                          if (selectedVet) {
+                            setSelectedSlot({
+                              _id: `slot_${dayNum}`,
+                              date: dateStr,
+                              time: selectedTimeSlot,
+                              isBooked: false
+                            });
+                          }
+                        }}
+                        className={`w-8 h-8 rounded-full text-xs font-bold transition-all flex items-center justify-center ${
+                          isPast 
+                            ? 'text-stone-300 cursor-not-allowed'
+                            : isSelected
+                              ? 'bg-[#2D4536] text-white shadow-sm font-extrabold'
+                              : 'text-[#1C1A17] hover:bg-[#F4F0EA] cursor-pointer'
+                        }`}
+                      >
+                        {dayNum}
+                      </button>
+                      {!isPast && (
+                        <span className={`w-1 h-1 rounded-full mt-0.5 ${isSelected ? 'bg-emerald-400' : 'bg-stone-400'}`} />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Vertical Separator for Desktop */}
+            <div className="hidden md:block w-px bg-[#E8E2D8] self-stretch" />
+
+            {/* SELECT TIME (Right 5 Cols) */}
+            <div className="md:col-span-4 flex flex-col gap-3 border-t md:border-t-0 pt-4 md:pt-0">
+              <label className="text-[10.5px] font-extrabold text-stone-500 uppercase tracking-widest">SELECT TIME</label>
+
+              <div className="flex flex-col gap-2.5">
+                {['10:30 AM', '1:00 PM', '3:30 PM', '5:00 PM'].map(timeStr => {
+                  const isTimeSelected = selectedTimeSlot === timeStr;
+                  return (
+                    <button
+                      key={timeStr}
+                      type="button"
+                      onClick={() => {
+                        setSelectedTimeSlot(timeStr);
+                        if (selectedVet) {
+                          const mName = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][bookingMonth];
+                          setSelectedSlot({
+                            _id: `slot_${selectedCalendarDay}`,
+                            date: `${mName} ${selectedCalendarDay}`,
+                            time: timeStr,
+                            isBooked: false
+                          });
+                        }
+                      }}
+                      className={`w-full py-3 rounded-2xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer text-center ${
+                        isTimeSelected
+                          ? 'bg-[#2D4536] text-white shadow-sm border border-[#2D4536]'
+                          : 'bg-[#F9F6F0] border border-[#E5E0D8] text-[#1C1A17] hover:bg-[#F4F0EA]'
+                      }`}
+                    >
+                      {timeStr}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+          </div>
+
+          {/* Booking Summary Card */}
+          <div className="bg-white/95 backdrop-blur-sm border border-[#E2DBD0] rounded-[24px] p-5 sm:p-6 flex flex-col gap-1 shadow-sm">
+            <h3 className="text-[10.5px] font-extrabold text-stone-400 uppercase tracking-[0.15em] border-b border-[#F0EBE1] pb-3 mb-1">BOOKING SUMMARY</h3>
+            
+            <div className="divide-y divide-[#F5F2EB]">
+              {/* Vet Row */}
+              <div className="flex justify-between items-center py-3">
+                <span className="text-xs sm:text-sm font-medium text-stone-500">Vet</span>
+                <span className="font-serif text-sm sm:text-base font-bold text-[#1C1A17]">{selectedVet.name}</span>
+              </div>
+
+              {/* Date / Time Row */}
+              <div className="flex justify-between items-center py-3">
+                <span className="text-xs sm:text-sm font-medium text-stone-400">Date / Time</span>
+                <span className="font-extrabold text-[#0D7855] text-xs sm:text-sm">
+                  {selectedSlot.date} • {selectedSlot.time}
+                </span>
+              </div>
+
+              {/* Mode Row */}
+              <div className="flex justify-between items-center py-3">
+                <span className="text-xs sm:text-sm font-medium text-stone-400">Mode</span>
+                <span className="font-extrabold text-[#1C1A17] text-xs sm:text-sm capitalize">
+                  {bookingMode === 'tele-consult' ? 'Tele-consult' : 'In-Clinic'}
+                </span>
+              </div>
+
+              {/* Pet Row */}
+              <div className="flex justify-between items-center py-3">
+                <span className="text-xs sm:text-sm font-medium text-stone-400">Pet</span>
+                <span className="font-extrabold text-[#1C1A17] text-xs sm:text-sm capitalize">
+                  {newPetInput ? customPetName : selectedPetName}
+                </span>
+              </div>
+
+              {/* Fee Row */}
+              <div className="flex justify-between items-center py-3">
+                <span className="text-xs sm:text-sm font-medium text-stone-500">Consultation Fee</span>
+                <span className="font-serif text-sm sm:text-base font-bold text-[#1C1A17]">₹{selectedVet.fee}</span>
+              </div>
+            </div>
+
+            {/* Total Row Highlight Box */}
+            <div className="mt-2 pt-3.5 border-t-2 border-[#F0EBE1] flex items-center justify-between">
+              <span className="font-serif text-base sm:text-lg font-extrabold text-[#1C1A17]">Total</span>
+              <span className="font-serif text-xl sm:text-2xl font-extrabold text-[#2D4536]">₹{selectedVet.fee}</span>
+            </div>
+          </div>
+
+          {/* Confirm & Pay Action Buttons */}
+          <div className="flex flex-col gap-3 mt-1">
             <button 
               onClick={() => {
                 if (!selectedVet || !selectedSlot) return;
+                const petName = newPetInput ? customPetName : selectedPetName;
                 processRazorpayPayment({
                   amount: selectedVet.fee,
                   receipt: `receipt_vet_${Date.now()}`,
                   name: `Vet Consultation - ${selectedVet.name}`,
-                  description: `Consultation fee for ${newPetInput ? customPetName : selectedPetName}`,
+                  description: `Consultation fee for ${petName}`,
                   prefill: {
                     name: user?.fullName || '',
                     email: user?.email || '',
@@ -1280,16 +1415,24 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                   }
                 });
               }}
-              className="w-full py-3.5 bg-[#072654] hover:bg-[#0c3570] text-white text-xs font-extrabold rounded-2xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-4 bg-[#2D4536] hover:bg-[#1E2E24] active:scale-[0.98] text-white text-xs sm:text-sm font-extrabold rounded-[20px] shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2.5 cursor-pointer"
             >
-              💳 Pay ₹{selectedVet.fee} Online (Razorpay) <span>→</span>
+              <svg className="w-4 h-4 text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <rect x="2" y="5" width="20" height="14" rx="2" />
+                <line x1="2" y1="10" x2="22" y2="10" />
+              </svg>
+              <span>Proceed to Pay ₹{selectedVet.fee} Online</span>
+              <span className="text-emerald-300 font-bold text-sm">→</span>
             </button>
             
             <button 
               onClick={handleConfirmAppointment}
-              className="w-full py-2.5 bg-white border border-[#EBE3D5] hover:bg-stone-50 text-stone-600 text-xs font-bold rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+              className="w-full py-3.5 bg-white border border-[#DCD5C7] hover:bg-[#FAF8F5] active:scale-[0.98] text-[#1C1A17] text-xs sm:text-sm font-bold rounded-[20px] shadow-2xs transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
             >
-              Pay at Clinic / Book Direct
+              <svg className="w-4 h-4 text-stone-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 21h18M5 21V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v14M9 21v-4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4" />
+              </svg>
+              <span>Pay at Clinic / Book Direct</span>
             </button>
           </div>
 
@@ -2088,6 +2231,156 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* VIEW ALL AVAILABLE SLOTS & CALENDAR DATE/TIME PICKER MODAL (GLOBAL ROOT LEVEL) */}
+      {isViewingAllSlotsVet && (
+        <div className="fixed inset-0 bg-[#1C1A17]/65 backdrop-blur-md z-[2000] flex items-center justify-center p-4 transition-all animate-fadeIn">
+          <div className="bg-[#FAF8F5] border border-[#EFEAE2] w-full max-w-lg rounded-[28px] shadow-2xl p-6 flex flex-col gap-4">
+            
+            {/* Modal Header */}
+            <div className="flex justify-between items-center pb-3 border-b border-[#E8E2D8]">
+              <div>
+                <h3 className="font-serif text-base font-bold text-[#1C1A17]">Select Date & Time</h3>
+                <p className="text-xs text-stone-500 font-medium mt-0.5">Booking with <strong className="text-[#2D4536]">{isViewingAllSlotsVet.name}</strong></p>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setIsViewingAllSlotsVet(null)}
+                className="w-8 h-8 rounded-full bg-stone-200/60 hover:bg-stone-300/80 text-stone-600 font-extrabold text-xs flex items-center justify-center transition-all cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            
+            {/* SELECT DATE & TIME GRID */}
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 w-full bg-white border border-[#E8E2D8] rounded-[22px] p-4">
+              
+              {/* SELECT DATE (Left 7 Cols) */}
+              <div className="sm:col-span-7 flex flex-col gap-2.5">
+                <label className="text-[10.5px] font-extrabold text-stone-500 uppercase tracking-widest">SELECT DATE</label>
+
+                {/* Month Header */}
+                <div className="flex items-center justify-between">
+                  <span className="font-serif text-xs font-bold text-[#1C1A17]">
+                    {['January','February','March','April','May','June','July','August','September','October','November','December'][bookingMonth]} {bookingYear}
+                  </span>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      if (bookingMonth === 11) {
+                        setBookingMonth(0);
+                        setBookingYear(prev => prev + 1);
+                      } else {
+                        setBookingMonth(prev => prev + 1);
+                      }
+                    }}
+                    className="w-5 h-5 rounded-full hover:bg-stone-100 text-stone-600 flex items-center justify-center transition-all cursor-pointer font-bold text-xs"
+                  >
+                    ›
+                  </button>
+                </div>
+
+                {/* Day Headers */}
+                <div className="grid grid-cols-7 text-center">
+                  {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(d => (
+                    <span key={d} className="text-[8.5px] font-bold text-stone-400 uppercase py-0.5">{d}</span>
+                  ))}
+                </div>
+
+                {/* Days Grid */}
+                <div className="grid grid-cols-7 gap-y-1 text-center">
+                  {Array.from({ length: new Date(bookingYear, bookingMonth, 1).getDay() }).map((_, i) => (
+                    <span key={`blank-${i}`} />
+                  ))}
+                  {Array.from({ length: new Date(bookingYear, bookingMonth + 1, 0).getDate() }).map((_, i) => {
+                    const dayNum = i + 1;
+                    const isSelected = selectedCalendarDay === dayNum;
+                    const isPast = new Date().getMonth() === bookingMonth && new Date().getFullYear() === bookingYear && dayNum < new Date().getDate();
+                    
+                    return (
+                      <div key={dayNum} className="flex flex-col items-center justify-center">
+                        <button
+                          type="button"
+                          disabled={isPast}
+                          onClick={() => setSelectedCalendarDay(dayNum)}
+                          className={`w-7 h-7 rounded-full text-[11px] font-bold transition-all flex items-center justify-center ${
+                            isPast 
+                              ? 'text-stone-300 cursor-not-allowed'
+                              : isSelected
+                                ? 'bg-[#2D4536] text-white shadow-2xs font-extrabold'
+                                : 'text-[#1C1A17] hover:bg-[#F4F0EA] cursor-pointer'
+                          }`}
+                        >
+                          {dayNum}
+                        </button>
+                        {!isPast && (
+                          <span className={`w-1 h-1 rounded-full mt-0.5 ${isSelected ? 'bg-emerald-400' : 'bg-stone-400'}`} />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* SELECT TIME (Right 5 Cols) */}
+              <div className="sm:col-span-5 flex flex-col gap-2.5 border-t sm:border-t-0 sm:border-l border-[#E8E2D8] pt-3 sm:pt-0 sm:pl-3">
+                <label className="text-[10.5px] font-extrabold text-stone-500 uppercase tracking-widest">SELECT TIME</label>
+
+                <div className="flex flex-col gap-2">
+                  {['10:30 AM', '1:00 PM', '3:30 PM', '5:00 PM'].map(timeStr => {
+                    const isTimeSelected = selectedTimeSlot === timeStr;
+                    return (
+                      <button
+                        key={timeStr}
+                        type="button"
+                        onClick={() => setSelectedTimeSlot(timeStr)}
+                        className={`w-full py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer text-center ${
+                          isTimeSelected
+                            ? 'bg-[#2D4536] text-white shadow-sm border border-[#2D4536]'
+                            : 'bg-[#F9F6F0] border border-[#E5E0D8] text-[#1C1A17] hover:bg-[#F4F0EA]'
+                        }`}
+                      >
+                        {timeStr}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+            </div>
+
+            {/* Confirm Action Button */}
+            <div className="pt-2 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setIsViewingAllSlotsVet(null)}
+                className="flex-1 py-3 bg-white border border-[#DCD5C7] hover:bg-[#FAF8F5] text-stone-700 text-xs font-bold rounded-2xl transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const mName = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][bookingMonth];
+                  const chosenSlot = {
+                    _id: `slot_${selectedCalendarDay}_${selectedTimeSlot}`,
+                    date: `${mName} ${selectedCalendarDay}`,
+                    time: selectedTimeSlot,
+                    isBooked: false
+                  };
+                  handleStartBooking(isViewingAllSlotsVet, chosenSlot);
+                  setIsViewingAllSlotsVet(null);
+                }}
+                className="flex-[2] py-3 bg-[#2D4536] hover:bg-[#1E2E24] text-white text-xs font-extrabold rounded-2xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span>Confirm Date & Time</span>
+                <span>→</span>
+              </button>
+            </div>
+
           </div>
         </div>
       )}
