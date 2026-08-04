@@ -1,10 +1,13 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { UserProfile } from '../types';
 import { DogIcon, CatIcon, BirdIcon, FishIcon, RabbitIcon, ReptileIcon, PawIcon } from './icons/PetIcons';
 import { API_BASE } from '../lib/api';
+import CallSessionButton from './CallSessionButton';
+import AgoraCallModal from './AgoraCallModal';
 
 interface ProfileProps {
   onOpenAdmin?: () => void;
@@ -459,7 +462,15 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
         </div>
 
         <div className="flex flex-wrap gap-2.5 sm:self-auto self-start shrink-0">
-          {(isAdmin || user?.role === 'admin') && onOpenAdmin && (
+          {(user?.role === 'doctor' || user?.role === 'expert') && (
+            <Link
+              href="/provider"
+              className="px-4 py-2 text-xs font-bold rounded-xl border border-emerald-200 bg-[#2D4536] hover:bg-[#1E2E24] text-white transition-all duration-200 cursor-pointer whitespace-nowrap shadow-sm flex items-center gap-1.5"
+            >
+              <span>🩺 Doctor Dashboard</span>
+            </Link>
+          )}
+          {(user?.role === 'admin' || isAdmin) && onOpenAdmin && (
             <button
               onClick={onOpenAdmin}
               className="px-4 py-2 text-xs font-bold rounded-xl border border-transparent bg-terracotta hover:bg-terracotta/90 text-[#FDFBF7] transition-all duration-200 cursor-pointer whitespace-nowrap shadow-sm"
@@ -641,9 +652,19 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
                   <h2 className="font-serif text-xl md:text-2xl font-normal text-[#1C1A17] leading-tight">
                     {user.fullName}
                   </h2>
-                  {user.role === 'rescuer' && (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold tracking-wide uppercase bg-[#E8F5E9] text-[#2E7D32] border border-[#C8E6C9] shadow-sm select-none">
-                      Rescuer
+                  {(user.role === 'rescuer' || user.role?.includes('rescuer')) && (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-extrabold tracking-wide uppercase bg-gradient-to-r from-amber-100 via-amber-50 to-emerald-100 text-amber-900 border border-amber-300 shadow-xs select-none">
+                      <span className="text-amber-500 text-xs">⭐</span> Certified Rescuer
+                    </span>
+                  )}
+                  {(user.role === 'doctor' || user.role === 'expert') && (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-extrabold tracking-wide uppercase bg-emerald-100 text-emerald-900 border border-emerald-300 shadow-xs select-none">
+                      <span className="text-emerald-700 text-xs">🩺</span> Verified {user.role === 'doctor' ? 'Veterinarian' : 'Specialist'}
+                    </span>
+                  )}
+                  {user.role === 'admin' && (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-extrabold tracking-wide uppercase bg-purple-100 text-purple-900 border border-purple-300 shadow-xs select-none">
+                      <span className="text-purple-700 text-xs">👑</span> Admin
                     </span>
                   )}
                 </div>
@@ -1059,6 +1080,7 @@ function ProfileBookingHistory({ token, API_BASE }: { token: string | null; API_
 
   // Upload/updating state
   const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const [activeCallAppt, setActiveCallAppt] = useState<any | null>(null);
 
   const fetchBookings = async () => {
     if (!token) return;
@@ -1222,8 +1244,24 @@ function ProfileBookingHistory({ token, API_BASE }: { token: string | null; API_
               <strong>Advice:</strong> "{appt.prescriptionNotes}"
             </div>
           )}
+
+          {appt.mode === 'tele-consult' && appt.status !== 'cancelled' && (
+            <CallSessionButton
+              appointment={appt}
+              onJoinCall={(a) => setActiveCallAppt(a)}
+              className="mt-2"
+            />
+          )}
         </div>
       ))}
+
+      {activeCallAppt && (
+        <AgoraCallModal
+          channelName={activeCallAppt.bookingId || activeCallAppt._id}
+          appointment={activeCallAppt}
+          onClose={() => setActiveCallAppt(null)}
+        />
+      )}
     </div>
   );
 }

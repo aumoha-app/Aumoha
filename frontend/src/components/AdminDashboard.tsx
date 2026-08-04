@@ -59,9 +59,65 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // TAB NAVIGATION & SOS STATES
-  const [currentTab, setCurrentTab] = useState<'products' | 'sos' | 'settings' | 'community' | 'calls' | 'vets'>('sos');
+  const [currentTab, setCurrentTab] = useState<'products' | 'sos' | 'settings' | 'community' | 'calls' | 'vets' | 'users'>('sos');
   const [sosReports, setSosReports] = useState<SosReport[]>([]);
   const [isSosLoading, setIsSosLoading] = useState(false);
+
+  // User Role Management State
+  const [usersList, setUsersList] = useState<any[]>([]);
+  const [roleAssignEmail, setRoleAssignEmail] = useState('');
+  const [roleAssignRole, setRoleAssignRole] = useState('doctor');
+  const [isAssigningRole, setIsAssigningRole] = useState(false);
+  const [roleMsg, setRoleMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const fetchAdminUsers = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/admin/users`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Admin-Password': adminPassword
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUsersList(data.users || []);
+      }
+    } catch (err) {
+      console.error('Error fetching admin users:', err);
+    }
+  };
+
+  const handleAssignRole = async (targetEmail?: string, targetRole?: string) => {
+    const emailToUse = targetEmail || roleAssignEmail;
+    const roleToUse = targetRole || roleAssignRole;
+    if (!emailToUse.trim()) return;
+
+    setIsAssigningRole(true);
+    setRoleMsg(null);
+    try {
+      const res = await fetch(`${API_BASE}/admin/users/assign-role`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'X-Admin-Password': adminPassword
+        },
+        body: JSON.stringify({ email: emailToUse, role: roleToUse })
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        setRoleMsg({ type: 'success', text: data.message });
+        setRoleAssignEmail('');
+        fetchAdminUsers();
+      } else {
+        setRoleMsg({ type: 'error', text: data.message || 'Failed to assign role.' });
+      }
+    } catch {
+      setRoleMsg({ type: 'error', text: 'Network error assigning user role.' });
+    } finally {
+      setIsAssigningRole(false);
+    }
+  };
 
   // Call Sessions States
   const [callSessions, setCallSessions] = useState<any[]>([]);
@@ -928,6 +984,19 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
           }`}
         >
           <span>⚙️ Settings</span>
+        </button>
+        <button
+          onClick={() => {
+            setCurrentTab('users');
+            fetchAdminUsers();
+          }}
+          className={`px-5 py-2.5 text-xs font-bold transition-all border-b-2 cursor-pointer flex items-center gap-1.5 ${
+            currentTab === 'users'
+              ? 'border-purple-600 text-purple-700'
+              : 'border-transparent text-stone-400 hover:text-purple-700'
+          }`}
+        >
+          <span>👤 Assign Roles</span>
         </button>
       </div>
 

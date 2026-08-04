@@ -53,6 +53,9 @@ interface Appointment {
   petId?: string;
   status: 'confirmed' | 'pending' | 'cancelled';
   notes?: string;
+  medicalDocument?: string;
+  prescription?: string;
+  prescriptionNotes?: string;
   bookingId: string;
   createdAt: string;
 }
@@ -86,6 +89,11 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
   const [bookingYear, setBookingYear] = useState(new Date().getFullYear());
   const [selectedCalendarDay, setSelectedCalendarDay] = useState<number>(new Date().getDate());
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('1:00 PM');
+  
+  // Medical document / Old report upload state
+  const [medicalReportBase64, setMedicalReportBase64] = useState<string>('');
+  const [medicalReportName, setMedicalReportName] = useState<string>('');
+  const [uploadingDocApptId, setUploadingDocApptId] = useState<string | null>(null);
 
   // Add Pet modal states mimicking profile pet management
   const [isPetModalOpen, setIsPetModalOpen] = useState(false);
@@ -453,7 +461,8 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
           vetId: selectedVet._id,
           slotId: selectedSlot._id,
           mode: bookingMode,
-          petName: petName.trim()
+          petName: petName.trim(),
+          medicalDocument: medicalReportBase64
         })
       });
 
@@ -461,6 +470,8 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
       if (res.ok) {
         setConfirmedAppt(data.appointment);
         setCurrentView('confirmed');
+        setMedicalReportBase64('');
+        setMedicalReportName('');
         fetchVets();
         fetchAppointments();
       } else {
@@ -469,6 +480,32 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
     } catch (err) {
       console.error(err);
       alert('Network connection error booking appointment.');
+    }
+  };
+
+  // Action: Upload medical document for existing appointment
+  const handleUploadExistingMedicalDoc = async (apptId: string, base64Data: string) => {
+    if (!token || !base64Data) return;
+    setUploadingDocApptId(apptId);
+    try {
+      const res = await fetch(`${API_BASE}/appointments/${apptId}/medical-document`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ medicalDocument: base64Data })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setAppointments(prev => prev.map(a => a._id === apptId ? { ...a, medicalDocument: base64Data } : a));
+      } else {
+        alert(data.message || 'Failed to upload report.');
+      }
+    } catch (err) {
+      console.error('Error uploading medical doc:', err);
+    } finally {
+      setUploadingDocApptId(null);
     }
   };
 
@@ -1220,6 +1257,50 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
             </button>
           </div>
 
+          {/* UPLOAD OLD MEDICAL REPORT SECTION */}
+          <div className="flex flex-col gap-2.5 w-full bg-[#FAF8F5] border border-[#E8E2D8] rounded-[24px] p-4 shadow-2xs">
+            <div className="flex items-center justify-between">
+              <label className="text-[10.5px] font-extrabold text-stone-500 uppercase tracking-widest">
+                📄 UPLOAD OLD MEDICAL REPORT / PREVIOUS PRESCRIPTION (OPTIONAL)
+              </label>
+              <span className="text-[9px] text-stone-400 font-semibold">Image or PDF</span>
+            </div>
+            <p className="text-[11px] text-stone-500 font-medium">Share your pet's past medical records with {selectedVet.name} in advance for better consultation context.</p>
+            <div className="flex items-center gap-3">
+              <label className="px-4 py-2.5 bg-white border border-[#D5CEBF] hover:bg-[#F5F2EC] text-[#1C1A17] text-xs font-bold rounded-xl cursor-pointer transition-all flex items-center gap-2 shadow-2xs">
+                <span>📤 Choose File</span>
+                <input 
+                  type="file" 
+                  accept="image/*,.pdf" 
+                  className="hidden" 
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setMedicalReportName(file.name);
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        setMedicalReportBase64(event.target?.result as string);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }} 
+                />
+              </label>
+              {medicalReportName && (
+                <div className="flex items-center gap-2 text-xs font-bold text-[#2D4536] bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl truncate max-w-[200px]">
+                  <span>✓ {medicalReportName}</span>
+                  <button 
+                    type="button" 
+                    onClick={() => { setMedicalReportBase64(''); setMedicalReportName(''); }}
+                    className="text-stone-400 hover:text-rose-500 font-extrabold ml-1 cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* SELECT DATE & SELECT TIME SECTION */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-5 w-full bg-[#FAF8F5] border border-[#E8E2D8] rounded-[26px] p-5 shadow-2xs">
             
@@ -1612,6 +1693,88 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                       <strong>Notes:</strong> {appt.notes}
                     </div>
                   )}
+
+                  {/* Medical Report / History Attachment Section */}
+                  <div className="bg-[#FAF8F5] border border-[#F0EBE1] rounded-xl p-2.5 flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-stone-600 font-bold flex items-center gap-1">
+                        📄 Patient Medical Report / History
+                      </span>
+                      <label className="text-[9px] text-[#2D4536] hover:underline font-extrabold cursor-pointer">
+                        {uploadingDocApptId === appt._id ? 'Uploading...' : appt.medicalDocument ? 'Replace File 🔄' : '+ Upload Report'}
+                        <input
+                          type="file"
+                          accept="image/*,.pdf"
+                          className="hidden"
+                          disabled={uploadingDocApptId === appt._id}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = (ev) => {
+                                handleUploadExistingMedicalDoc(appt._id, ev.target?.result as string);
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                      </label>
+                    </div>
+
+                    {appt.medicalDocument ? (
+                      <div className="flex items-center justify-between bg-white border border-stone-200 rounded-lg p-2 text-[10px]">
+                        <span className="text-emerald-700 font-bold flex items-center gap-1">
+                          ✓ Document attached
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const link = document.createElement('a');
+                            link.href = appt.medicalDocument!;
+                            link.download = `${appt.petName}_medical_history.jpg`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          }}
+                          className="px-2 py-1 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded cursor-pointer"
+                        >
+                          Download ⬇
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-[9.5px] text-stone-400 italic">No report attached yet. Upload to share with vet.</span>
+                    )}
+                  </div>
+
+                  {/* Issued Prescription Section */}
+                  {appt.prescription ? (
+                    <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-xl p-2.5 flex flex-col gap-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-emerald-800 font-extrabold flex items-center gap-1">
+                          💊 Doctor's Official Prescription
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const link = document.createElement('a');
+                            link.href = appt.prescription!;
+                            link.download = `${appt.petName}_prescription.jpg`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          }}
+                          className="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-800 text-white text-[9px] font-extrabold rounded-md shadow-2xs cursor-pointer"
+                        >
+                          Download Rx ⬇
+                        </button>
+                      </div>
+                      {appt.prescriptionNotes && (
+                        <p className="text-[10px] text-emerald-900 font-medium italic bg-white/70 p-2 rounded-lg border border-emerald-100">
+                          "{appt.prescriptionNotes}"
+                        </p>
+                      )}
+                    </div>
+                  ) : null}
 
                   {/* Booking Actions Row with Vector SVGs */}
                   {appt.status !== 'cancelled' && (
