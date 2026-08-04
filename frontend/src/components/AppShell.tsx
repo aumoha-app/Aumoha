@@ -76,7 +76,7 @@ export default function AppShell({ children, backdropImage, bgColor = '#F5F2EC' 
       <Header deferredPrompt={deferredPrompt} onInstallClick={handleInstallClick} />
 
       {/* MAIN CONTENT AREA */}
-      <div className="flex-grow w-full max-w-3xl md:max-w-4xl mx-auto px-4 sm:px-6 py-4 pb-28 relative z-10">
+      <div className="flex-grow w-full max-w-3xl md:max-w-5xl lg:max-w-6xl mx-auto px-3 sm:px-6 py-4 pb-28 sm:pb-36 relative z-10">
         {!firebaseUser ? (
           <AuthScreen />
         ) : isNewUser ? (

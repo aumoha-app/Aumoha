@@ -250,7 +250,7 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
                     onClick={() => setSelectedProvider(service)}
                     className="px-3.5 py-2 rounded-xl bg-white border border-[#EBE3D5] hover:bg-stone-50 text-charcoal font-bold text-xs transition-all cursor-pointer active:scale-95 shadow-xs"
                   >
-                    View Details
+                    Details
                   </button>
                   <button
                     onClick={() => {
@@ -259,7 +259,7 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
                     }}
                     className="px-4 py-2 rounded-xl bg-[#2D4536] hover:bg-[#1E2E24] text-white font-bold text-xs transition-all cursor-pointer active:scale-95 shadow-sm shadow-[#2D4536]/20 flex items-center gap-1.5"
                   >
-                    <span>Book Care</span>
+                    <span>Book</span>
                     <ArrowRight className="w-3.5 h-3.5 text-white" />
                   </button>
                 </div>
