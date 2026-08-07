@@ -5,6 +5,7 @@ import { CommunityUpdate, CircleMember, MemberRole } from '../types';
 import { loadLeaflet } from '../lib/leafletLoader';
 import { CameraIcon, ShieldIcon, SirenIcon } from './icons/PetIcons';
 import { useAuth } from '../context/AuthContext';
+import { Stethoscope, Truck, Home, Heart } from 'lucide-react';
 
 interface SupportRequestDetailProps {
   selectedRequest: CommunityUpdate;
@@ -24,9 +25,10 @@ export default function SupportRequestDetail({
   const { incrementRescueCount } = useAuth();
   const detailMapRef = useRef<any>(null);
 
-  // Help Modal States
+  // Help Modal & Image Lightbox States
   const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
   const [helpMessage, setHelpMessage] = useState<string>('');
+  const [isImageModalOpen, setIsImageModalOpen] = useState<boolean>(false);
 
   const requestAny = selectedRequest as any;
   const displayTitle = requestAny.animalCategory 
@@ -40,6 +42,39 @@ export default function SupportRequestDetail({
   const waPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
 
   const [selectedHelpOptions, setSelectedHelpOptions] = useState<string[]>(['vet']);
+
+  const defaultRescuers: CircleMember[] = [
+    {
+      id: 'res_1',
+      name: 'Dr. Ananya Patra',
+      role: 'rescuer',
+      avatar: '/warden-2.png',
+      distance: '0.8 km away',
+      location: 'Saheed Nagar',
+      badge: 'trusted'
+    },
+    {
+      id: 'res_2',
+      name: 'Rohan Sharma',
+      role: 'rescuer',
+      avatar: '/sairaj_avatar.png',
+      distance: '1.4 km away',
+      location: 'Janpath Road',
+      badge: 'level4'
+    },
+    {
+      id: 'res_3',
+      name: 'Bikram Rout',
+      role: 'paravet',
+      avatar: '/warden-1.png',
+      distance: '2.1 km away',
+      location: 'Master Canteen',
+      badge: 'available'
+    }
+  ];
+
+  const computedRescuers = computedMembers ? computedMembers.filter(m => m.role === 'rescuer' || m.role === 'paravet') : [];
+  const activeRescuersList = computedRescuers.length > 0 ? computedRescuers : defaultRescuers;
 
   const handleHelpToggle = (option: string) => {
     setSelectedHelpOptions(prev => 
@@ -102,26 +137,9 @@ export default function SupportRequestDetail({
         attribution: '&copy; OpenStreetMap &copy; CARTO'
       }).addTo(map);
 
-      // User node center dot
-      const greenDotIcon = L.divIcon({
-        className: 'custom-center-icon',
-        html: `<div class="w-6 h-6 bg-white rounded-full border-2 border-[#3D5A45] shadow-md flex items-center justify-center">
-                 <div class="w-3 h-3 bg-[#3D5A45] rounded-full"></div>
-               </div>`,
-        iconSize: [24, 24],
-        iconAnchor: [12, 12]
-      });
-      L.marker(center, { icon: greenDotIcon }).addTo(map);
 
-      // Draw search radius ring
-      L.circle(center, {
-        color: '#2D4536',
-        fillColor: '#3D5A45',
-        fillOpacity: 0.08,
-        radius: 1200,
-        weight: 1,
-        opacity: 0.55
-      }).addTo(map);
+
+
 
       const getPinColor = (role: string) => {
         switch (role) {
@@ -272,15 +290,23 @@ export default function SupportRequestDetail({
             </p>
           </div>
           {selectedRequest.image ? (
-            <div className="w-full md:w-[140px] h-[110px] rounded-2xl overflow-hidden bg-stone-100 border border-[#F0EBE1] relative shadow-inner shrink-0 select-none">
-              <img src={selectedRequest.image} alt={displayTitle} className="w-full h-full object-cover" />
-              <div className="absolute bottom-2 right-2 bg-black/60 px-2 py-0.5 rounded-full text-[9px] font-extrabold text-white flex items-center gap-1 shadow-sm">
-                <CameraIcon className="w-3 h-3 text-white" /> 2
+            <div 
+              onClick={() => setIsImageModalOpen(true)}
+              className="w-full md:w-56 h-52 sm:h-56 md:h-44 rounded-2xl overflow-hidden bg-stone-900/5 border border-[#F0EBE1] relative shadow-sm shrink-0 select-none cursor-pointer group transition-all"
+            >
+              <img 
+                src={selectedRequest.image} 
+                alt={displayTitle} 
+                className="w-full h-full object-cover object-center group-hover:scale-105 transition-all duration-300" 
+              />
+              <div className="absolute bottom-2.5 right-2.5 bg-black/70 backdrop-blur-xs px-2.5 py-1 rounded-full text-[10px] font-extrabold text-white flex items-center gap-1 shadow-md">
+                <CameraIcon className="w-3.5 h-3.5 text-white" />
+                <span>Tap to expand</span>
               </div>
             </div>
           ) : (
-            <div className="w-full md:w-[140px] h-[110px] rounded-2xl bg-[#FCFAF7] border border-[#F0EBE1] relative flex items-center justify-center shrink-0 select-none text-stone-400 font-medium text-[11px] text-center p-3.5 shadow-xs">
-              not provided
+            <div className="w-full md:w-56 h-36 rounded-2xl bg-[#FCFAF7] border border-[#F0EBE1] relative flex items-center justify-center shrink-0 select-none text-stone-400 font-medium text-[11px] text-center p-3.5 shadow-xs">
+              No photo provided
             </div>
           )}
         </div>
@@ -418,41 +444,25 @@ export default function SupportRequestDetail({
               { 
                 id: 'vet', 
                 title: 'Take to Vet', 
-                icon: (
-                  <svg className="w-6 h-6 text-[#3D5A45]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="4"/><path d="M16 8v0a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2M12 5v14M5 12h14"/>
-                  </svg>
-                ),
+                icon: <Stethoscope className="w-6 h-6 text-[#3D5A45]" />,
                 desc: 'Provide medical assistance' 
               },
               { 
                 id: 'transport', 
                 title: 'Transport', 
-                icon: (
-                  <svg className="w-6 h-6 text-[#5E7A68]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                    <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-1.1 0-2 .9-2 2v7c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>
-                  </svg>
-                ),
+                icon: <Truck className="w-6 h-6 text-[#5E7A68]" />,
                 desc: 'Help in safe transport' 
               },
               { 
                 id: 'foster', 
                 title: 'Foster Care', 
-                icon: (
-                  <svg className="w-6 h-6 text-[#B68A35]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 17v0c-1.5-1.5-2.5-2.5-2.5-3.5 0-1.1.9-2 2-2s2 .9 2 2c0 1-1 2-2 3.5z"/>
-                  </svg>
-                ),
+                icon: <Home className="w-6 h-6 text-[#B68A35]" />,
                 desc: 'Provide temporary care' 
               },
               { 
                 id: 'support', 
                 title: 'Support', 
-                icon: (
-                  <svg className="w-6 h-6 text-[#C85341]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5c0-3.08 2.42-5.5 5.5-5.5 1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3c3.08 0 5.5 2.42 5.5 5.5 0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                  </svg>
-                ),
+                icon: <Heart className="w-6 h-6 text-[#C85341]" />,
                 desc: 'Contribute or share leads' 
               }
             ].map(opt => (
@@ -485,14 +495,69 @@ export default function SupportRequestDetail({
             </svg>
             I can help
           </button>
+        </div>
 
+        {/* Nearby Rescuers Section with Direct Call Option */}
+        <div className="bg-white border border-[#F0EBE1] rounded-[28px] p-5 md:p-6 shadow-sm flex flex-col gap-4 mt-2 select-none">
+          <div className="flex items-center justify-between border-b border-[#F5F2EC] pb-3.5">
+            <div>
+              <h3 className="font-sans text-sm md:text-base font-extrabold text-charcoal flex items-center gap-2">
+                <span>Nearby Rescuers</span>
+                <span className="text-xs bg-[#F5F2EC] text-stone-600 font-bold px-2 py-0.5 rounded-full">
+                  {activeRescuersList.length}
+                </span>
+              </h3>
+              <p className="text-[11px] text-stone-400 font-medium mt-0.5">Verified emergency responders within range</p>
+            </div>
+          </div>
+
+          <div className="flex flex-col divide-y divide-[#F5F2EC]">
+            {activeRescuersList.map((rescuer, idx) => {
+              const rawNum = (rescuer as any).phone || `987654321${idx + 1}`;
+              const cleanNum = rawNum.replace(/\D/g, '');
+              return (
+                <div key={rescuer.id} className="py-3 flex items-center justify-between gap-3.5 first:pt-1 last:pb-1">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="relative shrink-0">
+                      <div className="w-11 h-11 rounded-full overflow-hidden bg-[#FAF8F5] border border-[#E8E2D8] flex items-center justify-center text-[#2D4536] font-bold text-xs shadow-2xs">
+                        {rescuer.avatar && (rescuer.avatar.startsWith('/') || rescuer.avatar.startsWith('http')) ? (
+                          <img src={rescuer.avatar} alt={rescuer.name} className="w-full h-full object-cover" />
+                        ) : (
+                          rescuer.name?.charAt(0) || 'R'
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="min-w-0 flex flex-col justify-center">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h4 className="text-xs sm:text-sm font-bold text-[#1C1A17] truncate leading-tight">{rescuer.name}</h4>
+                      </div>
+                      <span className="text-[11px] text-stone-500 font-medium mt-1 truncate">
+                        {rescuer.role === 'paravet' ? 'Paravet' : 'Verified Rescuer'} • {rescuer.distance || 'Nearby'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <a
+                    href={`tel:${cleanNum}`}
+                    className="px-4 py-2 bg-[#2D4536] hover:bg-[#1E2E24] active:scale-95 text-white text-xs font-extrabold rounded-full flex items-center gap-1.5 transition-all shadow-xs shrink-0 cursor-pointer"
+                  >
+                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                    </svg>
+                    <span>Call</span>
+                  </a>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
       {/* --- OFFER YOUR HELP MODAL (Screen 5) --- */}
       {showHelpModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-end md:items-center justify-center px-4 transition-all">
-          <div className="bg-white w-full max-w-lg rounded-t-[32px] md:rounded-[32px] p-6 shadow-2xl flex flex-col gap-5 max-h-[90vh] overflow-y-auto scrollbar-hide animate-scaleIn select-none">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[3000] flex items-end md:items-center justify-center px-4 transition-all">
+          <div className="bg-white w-full max-w-lg rounded-t-[32px] md:rounded-[32px] p-6 pb-28 md:pb-8 shadow-2xl flex flex-col gap-5 max-h-[85vh] md:max-h-[90vh] overflow-y-auto scrollbar-hide animate-scaleIn select-none">
             
             {/* Context Header */}
             <div className="flex justify-between items-center border-b border-[#F0EBE1] pb-3.5">
@@ -529,38 +594,15 @@ export default function SupportRequestDetail({
                 { id: 'support', title: 'Support', desc: 'Contribute or share leads' }
               ].map(item => {
                 const isChecked = selectedHelpOptions.includes(item.id);
-                let svgIcon;
+                let iconEl;
                 if (item.id === 'vet') {
-                  svgIcon = (
-                    <svg className="w-5 h-5 text-[#3D5A45]" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M4.82 17.22a3 3 0 1 1-3-3m0 0v-4a7 7 0 0 1 14 0v4m0-4V6a2 2 0 0 1 2-2h2m-6 13.22a3 3 0 1 1 3-3" />
-                    </svg>
-                  );
+                  iconEl = <Stethoscope className="w-5 h-5 text-[#3D5A45]" />;
                 } else if (item.id === 'transport') {
-                  svgIcon = (
-                    <svg className="w-5 h-5 text-[#B68A35]" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-1.1 0-2 .9-2 2v7c0 .6.4 1 1 1h2" />
-                      <circle cx="7" cy="17" r="2" />
-                      <path d="M9 17h6" />
-                      <circle cx="17" cy="17" r="2" />
-                    </svg>
-                  );
+                  iconEl = <Truck className="w-5 h-5 text-[#B68A35]" />;
                 } else if (item.id === 'foster') {
-                  svgIcon = (
-                    <svg className="w-5 h-5 text-[#2E7D32]" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                      <polyline points="9 22 9 12 15 12 15 22" />
-                    </svg>
-                  );
+                  iconEl = <Home className="w-5 h-5 text-[#2E7D32]" />;
                 } else {
-                  svgIcon = (
-                    <svg className="w-5 h-5 text-[#E65100]" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                      <circle cx="9" cy="7" r="4" />
-                      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                    </svg>
-                  );
+                  iconEl = <Heart className="w-5 h-5 text-[#E65100]" />;
                 }
                 return (
                   <div 
@@ -572,7 +614,7 @@ export default function SupportRequestDetail({
                   >
                     <div className="flex items-center gap-3.5">
                       <div className="w-10 h-10 rounded-xl bg-stone-50 border border-stone-200/60 flex items-center justify-center shrink-0">
-                        {svgIcon}
+                        {iconEl}
                       </div>
                       <div>
                         <span className="text-xs font-bold text-charcoal block">{item.title}</span>
@@ -647,6 +689,28 @@ export default function SupportRequestDetail({
               </div>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* --- FULLSCREEN PHOTO LIGHTBOX MODAL --- */}
+      {isImageModalOpen && selectedRequest.image && (
+        <div 
+          className="fixed inset-0 bg-black/90 backdrop-blur-md z-[6000] flex items-center justify-center p-4 select-none animate-fadeIn"
+          onClick={() => setIsImageModalOpen(false)}
+        >
+          <button 
+            onClick={() => setIsImageModalOpen(false)}
+            className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-white font-extrabold text-lg flex items-center justify-center cursor-pointer transition-all z-10"
+          >
+            ✕
+          </button>
+          <div className="relative max-w-4xl max-h-[85vh] overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
+            <img 
+              src={selectedRequest.image} 
+              alt={displayTitle} 
+              className="max-w-full max-h-[85vh] object-contain rounded-2xl" 
+            />
           </div>
         </div>
       )}

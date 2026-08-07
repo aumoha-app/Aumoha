@@ -1836,7 +1836,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                   <div className="grid grid-cols-4 gap-1.5">
                     {(['feeding', 'help', 'event', 'awareness'] as const).map((cat) => {
                       const isActive = actFormCategory === cat;
-                      const icons: Record<string, JSX.Element> = {
+                      const icons: Record<string, React.ReactNode> = {
                         feeding: (
                           <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                             <path d="M18 8h1a4 4 0 0 1 0 8h-1" />

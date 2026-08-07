@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { CircleMember } from '../types';
 import { API_BASE } from '../lib/api';
+import RadiusSelector from './RadiusSelector';
 import { 
   Users, 
   AlertTriangle, 
@@ -23,13 +24,17 @@ interface MohallaImpactProps {
   dbSosReports: any[];
   selectedLocation: string;
   getCoordinatesForLocation: (loc: string) => [number, number];
+  selectedRadius?: number;
+  onSelectRadius?: (radiusKm: number) => void;
 }
 
 export default function MohallaImpact({ 
   computedMembers, 
   dbSosReports, 
   selectedLocation, 
-  getCoordinatesForLocation 
+  getCoordinatesForLocation,
+  selectedRadius = 10,
+  onSelectRadius
 }: MohallaImpactProps) {
   const [checkoutCountryCode, setCheckoutCountryCode] = useState('');
   const [checkoutPhone, setCheckoutPhone] = useState('');
@@ -71,19 +76,21 @@ export default function MohallaImpact({
     return R * c;
   };
 
+  const radiusKm = selectedRadius === 0 ? 99999 : selectedRadius;
+
   const nearbyHelpers = computedMembers.filter(m => {
     if (m.role === 'normal' || m.role as string === 'member') return false;
-    return (m.distanceVal ?? 9999) <= 10.0;
+    return (m.distanceVal ?? 9999) / 1000 <= radiusKm;
   });
 
   const activeSosCount = dbSosReports.filter(r => {
     if (r.status !== 'active') return false;
-    return getReportDistance(r.location || '') <= 10.0;
+    return getReportDistance(r.location || '') <= radiusKm;
   }).length;
 
   const ongoingCareCount = dbSosReports.filter(r => {
     if (r.status !== 'dispatched') return false;
-    return getReportDistance(r.location || '') <= 10.0;
+    return getReportDistance(r.location || '') <= radiusKm;
   }).length;
 
   const currentMonthYear = new Date().toLocaleDateString('en-US', {
@@ -153,7 +160,16 @@ export default function MohallaImpact({
 
   return (
     <div className="w-full flex flex-col gap-4 sm:gap-5 animate-scaleIn select-none font-serif text-sm">
-      
+      {/* RADIUS SELECTOR BAR */}
+      {onSelectRadius && (
+        <div className="w-full bg-[#F5F2EC] border border-[#EBE3D5] rounded-2xl p-3 shadow-2xs font-sans">
+          <RadiusSelector
+            selectedRadius={selectedRadius}
+            onSelectRadius={onSelectRadius}
+          />
+        </div>
+      )}
+
       {/* STATS TILES CARD */}
       <div className="bg-[#F5F2EC] border border-[#EBE3D5] rounded-2xl sm:rounded-[24px] p-4 sm:p-5 shadow-xs flex flex-col gap-3.5">
         <div className="flex items-center justify-between">

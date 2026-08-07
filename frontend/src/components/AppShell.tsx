@@ -60,14 +60,14 @@ export default function AppShell({ children, backdropImage, bgColor = '#F5F2EC' 
       {/* Full-Screen Backdrop Layer - ONLY rendered on homepage or when explicitly provided */}
       {backdropImage && (
         <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-          <div className="relative w-full h-[55%] sm:h-[68%] overflow-hidden">
+          <div className="relative w-full h-[40%] sm:h-[30%] overflow-hidden">
             <img
               src={backdropImage}
               alt="Soft sunlight backdrop"
-              className="w-full h-full object-cover object-top opacity-60 mix-blend-multiply"
+              className="w-full h-full object-cover object-top opacity-80 mix-blend-multiply"
             />
             {/* Soft Smudge Dissolve Gradient Overlay from below */}
-            <div className="absolute bottom-0 left-0 right-0 h-64 sm:h-80" style={{ background: `linear-gradient(to top, ${bgColor}, ${bgColor}e6, ${bgColor}66, transparent)` }} />
+            <div className="absolute translate-y-10 inset-x-0 bottom-0 h-28 sm:h-40" style={{ background: `linear-gradient(to top, ${bgColor} 0%, ${bgColor}fa 40%, ${bgColor}cc 70%, ${bgColor}66 85%, transparent 100%)` }} />
           </div>
         </div>
       )}

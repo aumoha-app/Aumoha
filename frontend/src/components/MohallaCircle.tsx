@@ -18,7 +18,9 @@ import BlogDetailView from './BlogDetailView';
 import MohallaImpact from './MohallaImpact';
 import { loadLeaflet } from '../lib/leafletLoader';
 import { CalendarIcon, SyringeIcon, LeafIcon, HouseIcon } from './icons/PetIcons';
+import { MapPinOff, AlertTriangle, Users, PlusCircle, CalendarDays } from 'lucide-react';
 import { API_BASE } from '../lib/api';
+import RadiusSelector from './RadiusSelector';
 
 
 const formatTime = (dateStr: string) => {
@@ -125,6 +127,24 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
   }, [view]);
   const [memberFilter, setMemberFilter] = useState<MemberRole>('all');
   const [updateFilter, setUpdateFilter] = useState<string>('all');
+  const [selectedRadius, setSelectedRadius] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('aumoha_radius_km');
+      return saved ? parseInt(saved, 10) : 10;
+    } catch {
+      return 10;
+    }
+  });
+
+  const handleRadiusChange = (radiusKm: number) => {
+    setSelectedRadius(radiusKm);
+    try {
+      localStorage.setItem('aumoha_radius_km', String(radiusKm));
+    } catch (e) {
+      console.warn('Failed to save radius preference:', e);
+    }
+  };
+
   const [selectedLocation, setSelectedLocation] = useState(userAddress || 'Saheed Nagar, Sector 45');
   const [joinedEvents, setJoinedEvents] = useState<string[]>([]);
   const [joinedActivities, setJoinedActivities] = useState<string[]>([]);
@@ -529,7 +549,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
   };
 
   // CDN Leaflet loading logic (checks if loaded, loads on demand, cleans up)
-  const loadLeafletMap = (L: any, mapId: string, center: [number, number], pins: any[], setInstanceRef: any) => {
+  const loadLeafletMap = (L: any, mapId: string, center: [number, number], pins: any[], setInstanceRef: any, radiusKm: number = 10) => {
     const mapContainer = document.getElementById(mapId);
     if (!mapContainer) return;
 
@@ -547,7 +567,15 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
       delete (mapContainer as any)._leaflet_id;
     }
 
-    const map = L.map(mapId, { zoomControl: false }).setView(center, 14);
+    let zoomLevel = 12;
+    if (radiusKm === 1) zoomLevel = 15;
+    else if (radiusKm === 2) zoomLevel = 14;
+    else if (radiusKm === 5) zoomLevel = 13;
+    else if (radiusKm === 10) zoomLevel = 12;
+    else if (radiusKm === 25) zoomLevel = 10;
+    else if (radiusKm === 0) zoomLevel = 9;
+
+    const map = L.map(mapId, { zoomControl: false }).setView(center, zoomLevel);
     setInstanceRef.current = map;
 
     // CartoDB Voyager warm style map layer
@@ -567,13 +595,14 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
     L.marker(center, { icon: greenDotIcon }).addTo(map);
 
     // Draw search radius ring (Forest green outline & soft green tint)
+    const ringRadiusMeters = radiusKm === 0 ? 50000 : radiusKm * 1000;
     L.circle(center, {
       color: '#2D4536',
       fillColor: '#3D5A45',
       fillOpacity: 0.08,
-      radius: 1200,
-      weight: 1,
-      opacity: 0.55
+      radius: ringRadiusMeters,
+      weight: 1.5,
+      opacity: 0.6
     }).addTo(map);
 
     const getPinColor = (role: string) => {
@@ -607,13 +636,18 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
       }
     };
 
-    // Add pins
+    // Add pins (Filter pins to only render those within active radius)
     const centerKey = `${center[0].toFixed(6)},${center[1].toFixed(6)}`;
     const coordinatesRegistry: { [key: string]: number } = {
       [centerKey]: 0
     };
 
     pins.forEach(pin => {
+      // Check radius threshold
+      if (radiusKm > 0 && pin.distanceVal !== undefined && pin.distanceVal > ringRadiusMeters) {
+        return; // Skip pin outside radius
+      }
+
       let lat = pin.lat;
       let lng = pin.lng;
       const key = `${lat.toFixed(6)},${lng.toFixed(6)}`;
@@ -705,7 +739,8 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
               role: 'help_needed',
               lat: u.lat || centerCoords[0],
               lng: u.lng || centerCoords[1],
-              distance: u.distance
+              distance: u.distance,
+              distanceVal: u.distanceVal
             }));
 
           const rescuerPins = computedMembers
@@ -720,12 +755,13 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
                 lat: mCoords[0],
                 lng: mCoords[1],
                 distance: m.distance,
+                distanceVal: m.distanceVal,
                 badge: m.badge
               };
             });
 
           const homePins = [...activeReportsPins, ...rescuerPins];
-          loadLeafletMap(L, 'home-map', centerCoords, homePins, homeMapRef);
+          loadLeafletMap(L, 'home-map', centerCoords, homePins, homeMapRef, selectedRadius);
         }
       } catch (err) {
         console.error('Failed to initialize Leaflet map:', err);
@@ -754,7 +790,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
         membersMapRef.current = null;
       }
     };
-  }, [activeView, selectedRequest, computedMembers, computedUpdates, selectedLocation]);
+  }, [activeView, selectedRequest, computedMembers, computedUpdates, selectedLocation, selectedRadius]);
 
 
 
@@ -1127,22 +1163,29 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
         </div>
       )}
 
-
-
-
       {/* ==================== 1. HOME VIEW (Screen 1) ==================== */}
       {activeView === 'home' && (
-        <div className="w-full flex flex-col gap-6 animate-scaleIn">
+        <div className="w-full flex flex-col gap-5 animate-scaleIn">
+
+          {/* RADIUS SELECTOR BAR */}
+          <div className="w-full bg-[#F5F2EC] border border-[#EBE3D5] rounded-2xl p-3 shadow-2xs">
+            <RadiusSelector
+              selectedRadius={selectedRadius}
+              onSelectRadius={handleRadiusChange}
+            />
+          </div>
 
           {/* RADIUS MAP CARD (Clean borderless map) */}
           <div id="home-map" className="h-64 sm:h-72 w-full rounded-2xl sm:rounded-[24px] bg-[#EFEBE4] overflow-hidden shadow-xs z-10 [&_.leaflet-tile-pane]:sepia-[0.18] [&_.leaflet-tile-pane]:brightness-[0.98] [&_.leaflet-tile-pane]:contrast-[0.97]" />
-
 
           {/* NEARBY ACTIVITY FEED LIST (Horizontally Scrollable) */}
           <div className="flex flex-col gap-3 select-none">
             <div className="flex items-center justify-between px-1">
               <div className="flex items-center gap-2">
                 <h3 className="font-serif text-base font-bold text-charcoal">Nearby Activity</h3>
+                <span className="text-[11px] font-extrabold text-[#D95D39] bg-[#FDF6ED] border border-[#E89552]/40 px-2 py-0.5 rounded-md">
+                  {selectedRadius === 0 ? 'All' : `Within ${selectedRadius} km`}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -1154,18 +1197,39 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
               </div>
             </div>
 
-            {/* Horizontal Scroll Cards Row */}
-            <div
-              id="nearby-activity-scroll-container"
-              className="flex gap-3.5 overflow-x-auto pb-2 pt-1 scrollbar-hide snap-x snap-mandatory select-none"
-            >
-              {computedUpdates
+            {/* Horizontal Scroll Cards Row or Radius Empty State */}
+            {(() => {
+              const filteredNearby = computedUpdates
                 .filter(u => u.category !== 'help' || u.status === 'active')
-                .slice(0, 5)
-                .map(renderNearbyActivityCard)}
-            </div>
+                .filter(u => selectedRadius === 0 || (u.distanceVal === undefined || u.distanceVal <= selectedRadius * 1000));
 
+              if (filteredNearby.length === 0) {
+                return (
+                  <div className="w-full bg-[#F5F2EC] border border-[#EBE3D5] rounded-2xl p-5 text-center flex flex-col items-center justify-center gap-2 shadow-xs">
+                    <div className="w-10 h-10 rounded-full bg-[#E5E0D4] flex items-center justify-center text-[#2D4536] shrink-0 mb-0.5">
+                      <MapPinOff className="w-5 h-5 stroke-[2]" />
+                    </div>
+                    <h4 className="font-serif text-sm sm:text-base font-bold text-charcoal">No cases found within {selectedRadius} km</h4>
+                    <p className="text-xs text-stone-500 max-w-xs font-medium">No active cases or activities nearby right now.</p>
+                    <button
+                      onClick={() => handleRadiusChange(selectedRadius === 1 ? 5 : selectedRadius === 5 ? 10 : 25)}
+                      className="mt-1 px-4 py-1.5 bg-[#2D4536] text-white rounded-full text-xs font-bold hover:bg-[#1E2E24] transition-all cursor-pointer shadow-xs"
+                    >
+                      Expand Radius
+                    </button>
+                  </div>
+                );
+              }
 
+              return (
+                <div
+                  id="nearby-activity-scroll-container"
+                  className="flex gap-3.5 overflow-x-auto pb-2 pt-1 scrollbar-hide snap-x snap-mandatory select-none"
+                >
+                  {filteredNearby.slice(0, 5).map(renderNearbyActivityCard)}
+                </div>
+              );
+            })()}
           </div>
 
           {/* QUICK ACTIONS GRID (2x2 Grid Structure for both Mobile & Desktop) */}
@@ -1178,11 +1242,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
                 className="bg-[#F5F2EC] hover:bg-[#EFEBE3] border border-[#EBE3D5] hover:border-stone-300 transition-all rounded-2xl sm:rounded-[24px] p-3.5 sm:p-5 flex items-center gap-3 sm:gap-4 text-left shadow-xs group active:scale-98 cursor-pointer"
               >
                 <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shrink-0 text-[#2D4536]">
-                  <svg className="w-6 h-6 sm:w-7 sm:h-7 text-[#2D4536]" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-                    <line x1="12" y1="9" x2="12" y2="13" />
-                    <line x1="12" y1="17" x2="12.01" y2="17" />
-                  </svg>
+                  <AlertTriangle className="w-6 h-6 sm:w-7 sm:h-7 text-[#2D4536] stroke-[1.8]" />
                 </div>
                 <div className="flex flex-col min-w-0">
                   <span className="font-serif text-xs sm:text-lg font-bold text-charcoal leading-snug group-hover:text-[#2D4536] transition-colors truncate">
@@ -1202,12 +1262,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
                 className="bg-[#F5F2EC] hover:bg-[#EFEBE3] border border-[#EBE3D5] hover:border-stone-300 transition-all rounded-2xl sm:rounded-[24px] p-3.5 sm:p-5 flex items-center gap-3 sm:gap-4 text-left shadow-xs group active:scale-98 cursor-pointer"
               >
                 <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shrink-0 text-[#2D4536]">
-                  <svg className="w-6 h-6 sm:w-7 sm:h-7 text-[#2D4536]" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                    <circle cx="9" cy="7" r="4" />
-                    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                  </svg>
+                  <Users className="w-6 h-6 sm:w-7 sm:h-7 text-[#2D4536] stroke-[1.8]" />
                 </div>
                 <div className="flex flex-col min-w-0">
                   <span className="font-serif text-xs sm:text-lg font-bold text-charcoal leading-snug group-hover:text-[#2D4536] transition-colors truncate">
@@ -1228,11 +1283,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
                 className="bg-[#F5F2EC] hover:bg-[#EFEBE3] border border-[#EBE3D5] hover:border-stone-300 transition-all rounded-2xl sm:rounded-[24px] p-3.5 sm:p-5 flex items-center gap-3 sm:gap-4 text-left shadow-xs group active:scale-98 cursor-pointer"
               >
                 <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shrink-0 text-[#2D4536]">
-                  <svg className="w-6 h-6 sm:w-7 sm:h-7 text-[#2D4536]" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="16" />
-                    <line x1="8" y1="12" x2="16" y2="12" />
-                  </svg>
+                  <PlusCircle className="w-6 h-6 sm:w-7 sm:h-7 text-[#2D4536] stroke-[1.8]" />
                 </div>
                 <div className="flex flex-col min-w-0">
                   <span className="font-serif text-xs sm:text-lg font-bold text-charcoal leading-snug group-hover:text-[#2D4536] transition-colors truncate">
@@ -1253,13 +1304,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
                 className="bg-[#F5F2EC] hover:bg-[#EFEBE3] border border-[#EBE3D5] hover:border-stone-300 transition-all rounded-2xl sm:rounded-[24px] p-3.5 sm:p-5 flex items-center gap-3 sm:gap-4 text-left shadow-xs group active:scale-98 cursor-pointer"
               >
                 <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shrink-0 text-[#2D4536]">
-                  <svg className="w-6 h-6 sm:w-7 sm:h-7 text-[#2D4536]" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                    <line x1="16" y1="2" x2="16" y2="6" />
-                    <line x1="8" y1="2" x2="8" y2="6" />
-                    <line x1="3" y1="10" x2="21" y2="10" />
-                    <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01" />
-                  </svg>
+                  <CalendarDays className="w-6 h-6 sm:w-7 sm:h-7 text-[#2D4536] stroke-[1.8]" />
                 </div>
                 <div className="flex flex-col min-w-0">
                   <span className="font-serif text-xs sm:text-lg font-bold text-charcoal leading-snug group-hover:text-[#2D4536] transition-colors truncate">
@@ -1285,6 +1330,8 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
           resolvedSosCount={resolvedSosCount}
           memberFilter={memberFilter}
           setMemberFilter={setMemberFilter}
+          selectedRadius={selectedRadius}
+          onSelectRadius={handleRadiusChange}
         />
       )}
 
@@ -1296,6 +1343,8 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
           dbSosReports={dbSosReports}
           selectedLocation={selectedLocation}
           getCoordinatesForLocation={getCoordinatesForLocation}
+          selectedRadius={selectedRadius}
+          onSelectRadius={handleRadiusChange}
         />
       )}
 
@@ -1311,6 +1360,8 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
           refreshUpdates={refreshUpdates}
           triggerStartActivity={startActivityOnUpdates}
           onStartActivityTriggered={() => setStartActivityOnUpdates(false)}
+          selectedRadius={selectedRadius}
+          onSelectRadius={handleRadiusChange}
         />
       )}
 

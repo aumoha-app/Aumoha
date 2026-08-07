@@ -149,15 +149,19 @@ export const processRazorpayPayment = async (options: RazorpayOptions): Promise<
 
     const rzp = new window.Razorpay(rzpOptions);
     rzp.on('payment.failed', function (response: any) {
-      console.error('Razorpay Payment Failed:', response.error);
-      alert(`Payment Failed: ${response.error.description || response.error.reason}`);
-      if (options.onFailure) options.onFailure(response.error);
+      const err = response?.error || {};
+      const message = err.description || err.reason || err.code || 'Payment was declined or cancelled.';
+      console.warn('Razorpay Payment Notification:', message);
+      if (options.onFailure) {
+        options.onFailure(err);
+      }
     });
 
     rzp.open();
   } catch (error: any) {
-    console.error('Error initiating Razorpay checkout:', error);
-    alert(error.message || 'Error processing payment request.');
+    console.warn('Error initiating Razorpay checkout:', error);
+    const msg = error?.message || 'Unable to start payment checkout.';
+    alert(msg);
     if (options.onFailure) options.onFailure(error);
   }
 };

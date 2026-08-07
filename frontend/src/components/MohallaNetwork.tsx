@@ -1,8 +1,7 @@
-'use client';
-
 import { useState } from 'react';
 import { LayoutGrid, Shield, Utensils, Stethoscope, Home, Heart, Search, PhoneCall } from 'lucide-react';
 import { CircleMember, MemberRole } from '../types';
+import RadiusSelector from './RadiusSelector';
 
 interface MohallaNetworkProps {
   computedMembers: CircleMember[];
@@ -10,9 +9,19 @@ interface MohallaNetworkProps {
   resolvedSosCount?: number;
   memberFilter: MemberRole | 'all';
   setMemberFilter: (filter: MemberRole | 'all') => void;
+  selectedRadius?: number;
+  onSelectRadius?: (radiusKm: number) => void;
 }
 
-export default function MohallaNetwork({ computedMembers, dbSosReports, resolvedSosCount = 0, memberFilter, setMemberFilter }: MohallaNetworkProps) {
+export default function MohallaNetwork({
+  computedMembers,
+  dbSosReports,
+  resolvedSosCount = 0,
+  memberFilter,
+  setMemberFilter,
+  selectedRadius = 10,
+  onSelectRadius
+}: MohallaNetworkProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Define role pills
@@ -75,9 +84,12 @@ export default function MohallaNetwork({ computedMembers, dbSosReports, resolved
     }
   };
 
-  // Filter members based on selected role filter
+  const radiusMeters = selectedRadius === 0 ? Infinity : selectedRadius * 1000;
+
+  // Filter members based on selected role filter and radius
   const filteredMembers = computedMembers.filter(m => {
     if (m.role === 'normal' || m.role as string === 'member') return false;
+    if (selectedRadius !== 0 && m.distanceVal !== undefined && m.distanceVal > radiusMeters) return false;
     if (memberFilter !== 'all' && m.role !== memberFilter) return false;
     return true;
   });
@@ -100,6 +112,16 @@ export default function MohallaNetwork({ computedMembers, dbSosReports, resolved
           Find and coordinate with verified helpers, rescuers, paravets, and feeders in your local community.
         </p>
       </div>
+
+      {/* RADIUS SELECTOR BAR */}
+      {onSelectRadius && (
+        <div className="w-full bg-[#F5F2EC] border border-[#EBE3D5] rounded-2xl p-3 shadow-2xs">
+          <RadiusSelector
+            selectedRadius={selectedRadius}
+            onSelectRadius={onSelectRadius}
+          />
+        </div>
+      )}
 
       {/* STATS STRIP CARD (#F5F2EC Box Color with clean spacing) */}
       <div className="bg-[#F5F2EC] border border-[#EBE3D5] rounded-[24px] p-4 sm:p-5 shadow-xs flex items-center justify-between text-center divide-x divide-[#EBE3D5]">

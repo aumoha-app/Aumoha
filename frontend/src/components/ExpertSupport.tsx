@@ -120,14 +120,14 @@ const CATEGORY_CONFIGS: Record<string, {
     displayTitle: 'Trainer',
     subtitle: 'Obedience foundation & trick training',
     subFilters: ['Puppy Training', 'Basic Obedience', 'Leash Pulling', 'Available Today'],
-    color: 'text-amber-700 bg-amber-50 border-amber-100',
-    bgGradient: 'bg-gradient-to-tr from-amber-500/20 to-orange-500/10',
+    color: 'text-emerald-700 bg-emerald-50 border-emerald-100',
+    bgGradient: 'bg-gradient-to-tr from-emerald-500/20 to-teal-500/10',
     desc: 'Positive training for obedience & skills.',
     filterGroup: 'Behaviour',
     emoji: '🦮',
     image: '/expert_trainer.png',
     icon: (
-      <svg className="w-5 h-5 text-amber-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <svg className="w-5 h-5 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
         <path d="M13.73 21a2 2 0 0 1-3.46 0" />
       </svg>
@@ -155,14 +155,14 @@ const CATEGORY_CONFIGS: Record<string, {
     displayTitle: 'Physiotherapist',
     subtitle: 'Muscle recovery, senior comfort & massage',
     subFilters: ['Mobility', 'Injury Recovery', 'Senior Care', 'Post-Surgery'],
-    color: 'text-orange-700 bg-orange-50 border-orange-100',
-    bgGradient: 'bg-gradient-to-tr from-orange-500/20 to-yellow-500/10',
+    color: 'text-emerald-700 bg-emerald-50 border-emerald-100',
+    bgGradient: 'bg-gradient-to-tr from-emerald-500/20 to-teal-500/10',
     desc: 'Pain relief, mobility & recovery care.',
     filterGroup: 'Therapy',
     emoji: '🐕',
     image: '/expert_physiotherapist.png',
     icon: (
-      <svg className="w-5 h-5 text-orange-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <svg className="w-5 h-5 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
         <circle cx="12" cy="12" r="3" />
       </svg>
@@ -1229,23 +1229,10 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                           </svg>
                         </h4>
                         <span className="text-xs text-stone-500 font-semibold block mt-0.5">{exp.specialisation}</span>
-                        <div className="flex items-center gap-1.5 mt-1 text-xs text-stone-500">
-                          <span className="text-amber-500 font-bold">★</span>
-                          <strong className="text-charcoal font-extrabold">{exp.rating}</strong>
-                          <span>({exp.reviewCount} sessions)</span>
-                          <span>•</span>
-                          <span>{exp.experience} yrs exp</span>
-                        </div>
                       </div>
                     </div>
 
-                    {/* Price Tag styling */}
-                    {!isTagForwardVariant && (
-                      <div className="text-right flex flex-col items-end gap-0.5 shrink-0">
-                        <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider">Starts at</span>
-                        <span className="text-base font-extrabold text-[#2D4536]">₹{exp.fee}</span>
-                      </div>
-                    )}
+
                   </div>
 
                   {exp.bio && (
@@ -1406,7 +1393,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                         onClick={() => setBookingMode(m.mode as any)}
                         className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-[11px] font-bold transition-all ${
                           bookingMode === m.mode
-                            ? 'bg-white text-terracotta shadow-sm border border-[#EBE3D5]'
+                            ? 'bg-[#2D4536] text-white shadow-sm border border-[#2D4536]'
                             : 'text-stone-500 hover:text-charcoal hover:bg-white/60'
                         }`}
                       >
@@ -1439,7 +1426,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                         });
                         setIsPetModalOpen(true);
                       }}
-                      className="text-[10px] font-bold text-terracotta hover:underline"
+                      className="text-[10px] font-bold text-[#2D4536] hover:underline"
                     >
                       + Add New Pet
                     </button>
@@ -1453,7 +1440,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                         onClick={() => setSelectedPetName(pet.name)}
                         className={`px-3.5 py-1.5 border rounded-lg text-[11px] font-bold transition-all shrink-0 flex items-center gap-1.5 ${
                           selectedPetName === pet.name 
-                            ? 'bg-[#FAF2EE] border-terracotta/50 text-terracotta' 
+                            ? 'bg-[#E8F0EA] border-[#2D4536]/30 text-[#2D4536]' 
                             : 'bg-[#FAF8F5] border-[#F0EBE1] text-stone-600 hover:border-stone-300'
                         }`}
                       >
@@ -1487,7 +1474,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                           }}
                           className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all ${
                             isSelected 
-                              ? 'bg-[#FAF2EE] border-terracotta/40 text-terracotta' 
+                              ? 'bg-[#E8F0EA] border-[#2D4536]/30 text-[#2D4536]' 
                               : 'bg-[#FAF8F5] border-[#F0EBE1] text-stone-500 hover:border-stone-300'
                           }`}
                         >
@@ -1502,7 +1489,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                     value={concernText}
                     onChange={(e) => setConcernText(e.target.value)}
                     placeholder="Additional notes or symptoms..."
-                    className="w-full mt-3 bg-[#FAF8F5] border border-[#F0EBE1] rounded-xl p-3 text-[11px] font-semibold text-charcoal focus:outline-none focus:border-terracotta/40 placeholder:text-stone-400 resize-none"
+                    className="w-full mt-3 bg-[#FAF8F5] border border-[#F0EBE1] rounded-xl p-3 text-[11px] font-semibold text-charcoal focus:outline-none focus:border-[#2D4536]/40 placeholder:text-stone-400 resize-none"
                   />
                 </div>
 
@@ -1553,158 +1540,162 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                 </div>
               </div>
 
-              {/* ── Section 3: Calendar & Time Slots ── */}
-              <div className="bg-white border border-[#EBE3D5] rounded-2xl shadow-sm overflow-hidden">
-                <div className="px-5 pt-4 pb-2">
-                  <h3 className="text-[12px] font-extrabold text-charcoal uppercase tracking-wider">Schedule</h3>
-                </div>
+              {/* ── Section 3: Select Date & Select Time (Vet Consultation matching layout) ── */}
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-5 w-full bg-[#FAF8F5] border border-[#E8E2D8] rounded-[26px] p-5 shadow-2xs">
                 
-                {/* Calendar */}
-                <div className="px-5 pb-4 pt-1">
-                  {/* Month Navigation */}
-                  <div className="flex items-center justify-between mb-3">
-                    <button 
-                      type="button" 
-                      onClick={prevMonth}
-                      className="w-7 h-7 rounded-lg border border-[#F0EBE1] bg-[#FAF8F5] flex items-center justify-center text-stone-500 hover:bg-stone-100 transition-all"
-                    >
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M15 19l-7-7 7-7" /></svg>
-                    </button>
-                    <span className="text-[13px] font-extrabold text-charcoal">{monthNames[calendarMonth]} {calendarYear}</span>
-                    <button 
-                      type="button" 
-                      onClick={nextMonth}
-                      className="w-7 h-7 rounded-lg border border-[#F0EBE1] bg-[#FAF8F5] flex items-center justify-center text-stone-500 hover:bg-stone-100 transition-all"
-                    >
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M9 5l7 7-7 7" /></svg>
-                    </button>
+                {/* SELECT DATE (Left 7 Cols) */}
+                <div className="md:col-span-7 flex flex-col gap-3">
+                  <label className="text-[10.5px] font-extrabold text-stone-500 uppercase tracking-widest">SELECT DATE</label>
+
+                  {/* Month Header & Nav */}
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="font-serif text-sm font-bold text-[#1C1A17]">
+                      {monthNames[calendarMonth]} {calendarYear}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <button 
+                        type="button" 
+                        onClick={prevMonth}
+                        className="w-6 h-6 rounded-full hover:bg-stone-200 text-stone-600 flex items-center justify-center transition-all cursor-pointer font-bold text-xs"
+                      >
+                        ‹
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={nextMonth}
+                        className="w-6 h-6 rounded-full hover:bg-stone-200 text-stone-600 flex items-center justify-center transition-all cursor-pointer font-bold text-xs"
+                      >
+                        ›
+                      </button>
+                    </div>
                   </div>
 
                   {/* Day Headers */}
-                  <div className="grid grid-cols-7 mb-1">
-                    {dayNames.map(d => (
-                      <span key={d} className="text-center text-[9px] font-bold text-stone-400 uppercase py-1">{d}</span>
+                  <div className="grid grid-cols-7 text-center">
+                    {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(d => (
+                      <span key={d} className="text-[9px] font-bold text-stone-400 uppercase py-1">{d}</span>
                     ))}
                   </div>
 
-                  {/* Day Grid */}
-                  <div className="grid grid-cols-7 gap-y-0.5">
+                  {/* Days Grid */}
+                  <div className="grid grid-cols-7 gap-y-1 text-center">
                     {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-                      <span key={`empty-${i}`} />
+                      <span key={`blank-${i}`} />
                     ))}
                     {Array.from({ length: daysInMonth }).map((_, i) => {
                       const day = i + 1;
                       const isPast = isCurrentMonth && day < todayDate;
-                      const isToday = isCurrentMonth && day === todayDate;
                       const isSelected = calendarSelectedDay === day;
-                      const hasSlot = hasSlotOnDay(day);
                       
                       return (
-                        <button
-                          key={day}
-                          type="button"
-                          disabled={isPast}
-                          onClick={() => {
-                            setCalendarSelectedDay(day);
-                            const label = getDateLabel(day);
-                            setSelectedDate(label);
-                            const firstSlot = availableSlots.find(s => s.date === label);
-                            if (firstSlot) setSelectedSlot(firstSlot);
-                          }}
-                          className={`relative w-full aspect-square flex items-center justify-center rounded-lg text-[10px] font-bold transition-all ${
-                            isPast 
-                              ? 'text-stone-300 cursor-default'
-                              : isSelected
-                                ? 'bg-terracotta text-white shadow-sm'
-                                : isToday
-                                  ? 'bg-[#FAF2EE] text-terracotta border border-terracotta/30'
-                                  : 'text-charcoal hover:bg-stone-50 cursor-pointer'
-                          }`}
-                        >
-                          {day}
-                          {hasSlot && !isSelected && (
-                            <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-emerald-500" />
-                          )}
-                        </button>
+                        <div key={day} className="flex flex-col items-center justify-center">
+                          <button
+                            type="button"
+                            disabled={isPast}
+                            onClick={() => {
+                              setCalendarSelectedDay(day);
+                              const label = getDateLabel(day);
+                              setSelectedDate(label);
+                              const firstSlot = availableSlots.find(s => s.date === label);
+                              if (firstSlot) setSelectedSlot(firstSlot);
+                            }}
+                            className={`w-8 h-8 rounded-full text-xs font-bold transition-all flex items-center justify-center ${
+                              isPast 
+                                ? 'text-stone-300 cursor-not-allowed'
+                                : isSelected
+                                  ? 'bg-[#2D4536] text-white shadow-sm font-extrabold'
+                                  : 'text-[#1C1A17] hover:bg-[#F4F0EA] cursor-pointer'
+                            }`}
+                          >
+                            {day}
+                          </button>
+                        </div>
                       );
                     })}
                   </div>
-
-                  {/* Legend */}
-                  <div className="flex items-center gap-4 mt-2.5 pt-2 border-t border-stone-100/60">
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                      <span className="text-[9px] font-semibold text-stone-400">Slots available</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-3 h-3 rounded bg-terracotta/10 border border-terracotta/30" />
-                      <span className="text-[9px] font-semibold text-stone-400">Today</span>
-                    </div>
-                  </div>
                 </div>
 
-                {/* Time Slots */}
-                <div className="px-5 pb-4 pt-3 border-t border-stone-100">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-[12px] font-extrabold text-charcoal uppercase tracking-wider">
-                      {calendarSelectedDay ? activeDateLabel : 'Select a date'}
-                    </span>
-                    <span className="text-[10px] font-semibold text-stone-400 bg-[#FAF8F5] px-2 py-0.5 rounded-md">
-                      {slotsForActiveDate.length} slot{slotsForActiveDate.length !== 1 ? 's' : ''}
-                    </span>
-                  </div>
+                {/* Vertical Separator for Desktop */}
+                <div className="hidden md:block w-px bg-[#E8E2D8] self-stretch" />
 
-                  {slotsForActiveDate.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {slotsForActiveDate.map(slot => (
+                {/* SELECT TIME (Right 4 Cols) */}
+                <div className="md:col-span-4 flex flex-col gap-3 border-t md:border-t-0 pt-4 md:pt-0">
+                  <label className="text-[10.5px] font-extrabold text-stone-500 uppercase tracking-widest">SELECT TIME</label>
+
+                  <div className="flex flex-col gap-2.5">
+                    {(slotsForActiveDate.length > 0 ? slotsForActiveDate : availableSlots.slice(0, 4)).map((slot, sIdx) => {
+                      const isSelectedSlot = selectedSlot?._id === slot._id || (!selectedSlot && sIdx === 0);
+                      return (
                         <button
-                          key={slot._id}
+                          key={slot._id || sIdx}
                           type="button"
                           onClick={() => {
                             setSelectedSlot(slot);
                             setSelectedDate(slot.date);
                           }}
-                          className={`py-2.5 px-5 border rounded-xl text-[12px] font-bold text-center transition-all ${
-                            selectedSlot?._id === slot._id
-                              ? 'bg-clay border-clay text-white shadow-sm'
-                              : 'bg-[#FAF8F5] border-[#F0EBE1] text-charcoal hover:border-stone-300 hover:bg-white'
+                          className={`w-full py-3 rounded-2xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer text-center ${
+                            isSelectedSlot
+                              ? 'bg-[#2D4536] text-white shadow-sm border border-[#2D4536]'
+                              : 'bg-[#F9F6F0] border border-[#E5E0D8] text-[#1C1A17] hover:bg-[#F4F0EA]'
                           }`}
                         >
                           {slot.time}
                         </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center py-5">
-                      <span className="text-[11px] text-stone-400 font-semibold italic">
-                        {calendarSelectedDay ? 'No slots available on this date' : 'Pick a date from the calendar above'}
-                      </span>
-                    </div>
-                  )}
+                      );
+                    })}
 
-                  {/* Timezone */}
-                  <div className="mt-3 pt-2.5 border-t border-stone-100/60 flex items-center justify-between">
-                    <span className="text-[10px] text-stone-400 font-semibold">🌐 {timezone}</span>
-                    <button 
-                      type="button" 
-                      onClick={() => setIsChangingTimezone(!isChangingTimezone)}
-                      className="text-[10px] text-terracotta font-bold hover:underline"
+                    {/* Custom Time Selection Option Card */}
+                    <div 
+                      className={`w-full rounded-2xl p-3 transition-all border flex flex-col gap-2 ${
+                        isChangingTimezone
+                          ? 'bg-[#2D4536] text-white border-[#2D4536] shadow-sm'
+                          : 'bg-[#F9F6F0] border-[#E5E0D8] text-[#1C1A17] hover:bg-[#F4F0EA]'
+                      }`}
                     >
-                      Change
-                    </button>
+                      <div 
+                        onClick={() => setIsChangingTimezone(!isChangingTimezone)}
+                        className="flex items-center justify-between px-1 cursor-pointer font-extrabold text-xs sm:text-sm select-none"
+                      >
+                        <span className="flex items-center gap-1.5">
+                          <svg className="w-4 h-4 text-current" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
+                            <circle cx="12" cy="12" r="10" />
+                            <polyline points="12 6 12 12 16 14" />
+                          </svg>
+                          <span>Custom Time</span>
+                        </span>
+                      </div>
+
+                      {isChangingTimezone && (
+                        <div className="pt-1 flex items-center gap-2">
+                          <input
+                            type="time"
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val) {
+                                const [hStr, mStr] = val.split(':');
+                                let h = parseInt(hStr, 10);
+                                const m = parseInt(mStr, 10);
+                                const ampm = h >= 12 ? 'PM' : 'AM';
+                                h = h % 12;
+                                h = h ? h : 12;
+                                const formattedTime = `${h}:${m < 10 ? '0' : ''}${m} ${ampm}`;
+                                const customSlot = {
+                                  _id: `custom_${Date.now()}`,
+                                  date: activeDateLabel,
+                                  time: formattedTime,
+                                  isBooked: false
+                                };
+                                setSelectedSlot(customSlot);
+                              }
+                            }}
+                            className="w-full bg-white text-charcoal border border-[#E5E0D8] rounded-xl px-3 py-2 text-xs font-extrabold outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer shadow-inner"
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  {isChangingTimezone && (
-                    <select 
-                      value={timezone}
-                      onChange={(e) => { setTimezone(e.target.value); setIsChangingTimezone(false); }}
-                      className="mt-1.5 bg-[#FAF8F5] border border-[#F0EBE1] text-[10px] font-bold px-2.5 py-1.5 rounded-lg focus:outline-none w-full"
-                    >
-                      <option value="Asia/Kolkata (IST)">Asia/Kolkata (IST)</option>
-                      <option value="America/New_York (EST)">America/New_York (EST)</option>
-                      <option value="Europe/London (GMT)">Europe/London (GMT)</option>
-                    </select>
-                  )}
                 </div>
+
               </div>
             </div>
 
@@ -1726,7 +1717,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                   <h4 className="text-[12px] font-bold text-charcoal truncate leading-tight">{selectedExpert.name}</h4>
                   <span className="text-[10px] text-stone-500 font-semibold truncate block">{selectedExpert.specialisation}</span>
                 </div>
-                <div className="bg-[#FAF2EE] border border-[#F5DFD8] text-terracotta text-[8px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 shrink-0">
+                <div className="bg-[#E8F0EA] border border-[#2D4536]/20 text-[#2D4536] text-[8px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 shrink-0">
                   <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                     <path d="M7 11V7a5 5 0 0 1 10 0v4" />
@@ -1760,7 +1751,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                     ))}
                     <div className="flex justify-between items-center py-3">
                       <span className="text-[12px] text-charcoal font-extrabold">Total</span>
-                      <span className="text-base font-extrabold text-terracotta">₹{selectedExpert.fee}</span>
+                      <span className="text-base font-extrabold text-[#2D4536]">₹{selectedExpert.fee}</span>
                     </div>
                   </div>
                 </div>
@@ -1824,18 +1815,18 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
           </div>
 
           <div>
-            <h2 className="font-serif font-extrabold text-xl text-terracotta">Booking Confirmed!</h2>
+            <h2 className="font-serif font-extrabold text-xl text-[#2D4536]">Booking Confirmed!</h2>
             <p className="text-[10px] text-stone-500 font-semibold mt-1">Your specialist consultation has been scheduled.</p>
           </div>
 
           {/* Real Email confirmation summary */}
-          <div className="bg-[#FAF2EE] border border-[#F5DFD8] text-terracotta rounded-xl px-4 py-2.5 text-[9.5px] font-bold w-full flex items-center justify-center gap-2">
+          <div className="bg-[#E8F0EA] border border-[#2D4536]/20 text-[#2D4536] rounded-xl px-4 py-2.5 text-[9.5px] font-bold w-full flex items-center justify-center gap-2">
             <span>🌿</span> A confirmation summary has been sent to your email.
           </div>
 
           {/* Session details */}
           <div className="w-full bg-white border border-[#F0EBE1] rounded-[24px] p-5 text-left flex flex-col gap-4 shadow-sm">
-            <h4 className="text-[10px] font-extrabold text-terracotta uppercase tracking-wider border-b border-stone-100 pb-2">Session Details</h4>
+            <h4 className="text-[10px] font-extrabold text-[#2D4536] uppercase tracking-wider border-b border-stone-100 pb-2">Session Details</h4>
             
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center gap-2 text-xs font-semibold text-stone-600">
@@ -1891,7 +1882,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
             </div>
             <div className="text-[9px] text-stone-400 font-bold text-right shrink-0">
               Booking ID<br />
-              <strong className="text-terracotta text-[10px]">{confirmedAppt.bookingId}</strong>
+              <strong className="text-[#2D4536] text-[10px]">{confirmedAppt.bookingId}</strong>
             </div>
           </div>
 
@@ -1940,7 +1931,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
               onClick={() => {
                 setActiveTab('vetconsult');
               }}
-              className="w-full py-3.5 bg-terracotta hover:bg-[#c2502f] text-white text-xs font-extrabold rounded-2xl shadow-sm transition-all"
+              className="w-full py-3.5 bg-[#2D4536] hover:bg-[#1E2E24] text-white text-xs font-extrabold rounded-2xl shadow-sm transition-all"
             >
               Go to My Consultations
             </button>

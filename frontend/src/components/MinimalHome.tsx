@@ -97,16 +97,23 @@ export default function MinimalHome({
         </div>
 
         {/* Right Column: Laying Dog with Solid #EFEAE2 Circle BG & 3D Pop-Out Effect */}
+        {/* 
+          DOG & CIRCLE GRAPHIC COMPONENT:
+          ---------------------------------
+          - Background Circle: A full circular div (`rounded-full`) colored with warm tone `#EFEAE2`, subtle border `#D5CEBF`, and shadow layer positioned behind (`z-0`).
+          - Dog Image (`/laying-dog.png`): A transparent PNG cut-out of the laying dog positioned above the circle (`z-10`).
+          - 3D Pop-Out Effect: Scaled to 1.25x (`scale-125`) and expanding to 1.30x on group hover (`group-hover:scale-130`) so the paws and body extend beyond the circle boundaries with a soft drop shadow.
+        */}
         <div className="relative flex items-center justify-center shrink-0 w-48 xs:w-56 sm:w-68 md:w-76 h-[220px] sm:h-[260px]">
-          {/* Circle Background with #EFEAE2 Fill */}
-          <div className="absolute w-48 h-48 xs:w-56 xs:h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 rounded-full bg-[#EFEAE2] shadow-xs border border-[#D5CEBF] pointer-events-none z-0" />
+          {/* 1. CIRCLE BACKGROUND - Soft beige circular base */}
+          {/* <div className="absolute w-48 h-48 xs:w-56 xs:h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 rounded-full bg-[#EFEAE2] shadow-xs border border-[#D5CEBF] pointer-events-none z-0" /> */}
 
-          {/* 3D Pop-out Laying Dog Image */}
-          <img 
+          {/* 2. LAYING DOG IMAGE - High-resolution dog artwork positioned over the circle container */}
+          {/* <img 
             src="/laying-dog.png" 
             alt="Laying Dog" 
             className="w-full h-auto max-h-[260px] sm:max-h-[300px] object-contain relative z-10 scale-125 group-hover:scale-130 transition-transform duration-500 drop-shadow-[0_10px_20px_rgba(30,20,10,0.25)]"
-          />
+          /> */}
         </div>
       </div>
 

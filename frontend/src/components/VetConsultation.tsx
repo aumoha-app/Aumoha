@@ -89,11 +89,14 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
   const [bookingYear, setBookingYear] = useState(new Date().getFullYear());
   const [selectedCalendarDay, setSelectedCalendarDay] = useState<number>(new Date().getDate());
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('1:00 PM');
-  
   // Medical document / Old report upload state
   const [medicalReportBase64, setMedicalReportBase64] = useState<string>('');
   const [medicalReportName, setMedicalReportName] = useState<string>('');
   const [uploadingDocApptId, setUploadingDocApptId] = useState<string | null>(null);
+
+  const [isCustomTimeActive, setIsCustomTimeActive] = useState<boolean>(false);
+  const [customTimeValRaw, setCustomTimeValRaw] = useState<string>('');
+  const [customTimeValue, setCustomTimeValue] = useState<string>('');
 
   // Add Pet modal states mimicking profile pet management
   const [isPetModalOpen, setIsPetModalOpen] = useState(false);
@@ -926,7 +929,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
 
                   {/* Price Tag */}
                   <div className="text-right mt-1">
-                    <span className="font-serif text-base xs:text-lg sm:text-xl font-bold text-[#1C1A17]">₹{vet.fee || (vetIndex === 0 ? 600 : 400)}</span>
+                    <span className="font-sans text-base xs:text-lg sm:text-xl font-extrabold text-[#1C1A17]">₹{vet.fee || (vetIndex === 0 ? 600 : 400)}</span>
                     <span className="text-[10px] xs:text-xs text-stone-500 font-normal block">In-clinic</span>
                   </div>
                 </div>
@@ -1216,31 +1219,83 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
           <div className="flex flex-col gap-2.5 w-full">
             <label className="text-[10.5px] font-extrabold text-stone-500 uppercase tracking-widest px-1">SELECT PET</label>
             
-            {/* Selected Pet Card */}
-            <div className="bg-[#F4F0EA] border border-[#E5E0D8] rounded-[22px] p-4 flex items-center justify-between w-full shadow-2xs">
-              <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-full overflow-hidden bg-stone-200 border border-[#D5CEBF] shrink-0">
-                  <img 
-                    src={user?.pets?.[0]?.photo || 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=200'} 
-                    alt={selectedPetName || 'Pet'} 
-                    className="w-full h-full object-cover" 
-                  />
+            {/* Selected Pet Card (Real user pet data) */}
+            {(() => {
+              const currentPet = user?.pets?.find((p: any) => p.name === selectedPetName) || user?.pets?.[0];
+              const petName = newPetInput ? customPetName : (selectedPetName || currentPet?.name);
+              
+              if (!petName && !currentPet) {
+                return (
+                  <div className="bg-[#F4F0EA] border border-[#E5E0D8] rounded-[22px] p-4 flex items-center justify-between w-full shadow-2xs">
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="w-12 h-12 rounded-full overflow-hidden bg-stone-200 border border-[#D5CEBF] shrink-0 flex items-center justify-center text-stone-500">
+                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="font-serif text-base font-bold text-[#1C1A17] leading-tight">No Pet Selected</h4>
+                        <p className="text-xs text-stone-500 font-medium mt-0.5">Click "+ Add another pet" below to add your pet profile</p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              const petBreed = currentPet?.breed || (currentPet?.type ? `${currentPet.type}` : '');
+              const petAge = currentPet?.age ? `${currentPet.age} yrs` : '';
+              const petGender = currentPet?.gender && currentPet.gender !== 'unknown' ? currentPet.gender : '';
+              const detailsString = [petBreed, petAge, petGender].filter(Boolean).join(' • ') || (currentPet?.type || 'Pet');
+
+              return (
+                <div 
+                  onClick={() => {
+                    if (user?.pets && user.pets.length > 1) {
+                      const currentIndex = user.pets.findIndex((p: any) => p.name === (selectedPetName || currentPet?.name));
+                      const nextPet = user.pets[(currentIndex + 1) % user.pets.length];
+                      if (nextPet) {
+                        setSelectedPetName(nextPet.name);
+                        setNewPetInput(false);
+                      }
+                    }
+                  }}
+                  className={`bg-[#F4F0EA] border border-[#E5E0D8] rounded-[22px] p-4 flex items-center justify-between w-full shadow-2xs ${
+                    user?.pets && user.pets.length > 1 ? 'cursor-pointer hover:border-[#D5CEBF]' : ''
+                  }`}
+                >
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-12 h-12 rounded-full overflow-hidden bg-stone-200 border border-[#D5CEBF] shrink-0 flex items-center justify-center text-[#2D4536]">
+                      {currentPet?.photo ? (
+                        <img 
+                          src={currentPet.photo} 
+                          alt={petName || 'Pet'} 
+                          className="w-full h-full object-cover" 
+                        />
+                      ) : (
+                        <svg className="w-6 h-6 stroke-[1.8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="font-serif text-base font-bold text-[#1C1A17] leading-tight truncate">
+                        {petName}
+                      </h4>
+                      <p className="text-xs text-stone-500 font-medium mt-0.5 truncate capitalize">
+                        {detailsString}
+                      </p>
+                    </div>
+                  </div>
+                  {user?.pets && user.pets.length > 1 && (
+                    <div className="w-6 h-6 text-stone-600 flex items-center justify-center shrink-0" title="Click to cycle pets">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <h4 className="font-serif text-base font-bold text-[#1C1A17] leading-tight">
-                    {newPetInput ? (customPetName || 'Snow') : (selectedPetName || user?.pets?.[0]?.name || 'Snow')}
-                  </h4>
-                  <p className="text-xs text-stone-500 font-medium mt-0.5">
-                    {user?.pets?.[0]?.breed || 'Golden Retriever'} • {user?.pets?.[0]?.age ? `${user.pets[0].age} yrs` : '3 yrs'} • {user?.pets?.[0]?.gender || 'Male'}
-                  </p>
-                </div>
-              </div>
-              <div className="w-6 h-6 text-stone-600 flex items-center justify-center">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            </div>
+              );
+            })()}
 
             {/* Add another pet button */}
             <button 
@@ -1394,13 +1449,14 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
 
               <div className="flex flex-col gap-2.5">
                 {['10:30 AM', '1:00 PM', '3:30 PM', '5:00 PM'].map(timeStr => {
-                  const isTimeSelected = selectedTimeSlot === timeStr;
+                  const isTimeSelected = selectedTimeSlot === timeStr && !isCustomTimeActive;
                   return (
                     <button
                       key={timeStr}
                       type="button"
                       onClick={() => {
                         setSelectedTimeSlot(timeStr);
+                        setIsCustomTimeActive(false);
                         if (selectedVet) {
                           const mName = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][bookingMonth];
                           setSelectedSlot({
@@ -1421,6 +1477,62 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                     </button>
                   );
                 })}
+
+                {/* Custom Time Selection Option Card */}
+                <div 
+                  className={`w-full rounded-2xl p-3 transition-all border flex flex-col gap-2 ${
+                    isCustomTimeActive
+                      ? 'bg-[#2D4536] text-white border-[#2D4536] shadow-sm'
+                      : 'bg-[#F9F6F0] border-[#E5E0D8] text-[#1C1A17] hover:bg-[#F4F0EA]'
+                  }`}
+                >
+                  <div 
+                    onClick={() => setIsCustomTimeActive(true)}
+                    className="flex items-center justify-between px-1 cursor-pointer font-extrabold text-xs sm:text-sm select-none"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <svg className="w-4 h-4 text-current" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                      </svg>
+                      <span>Custom Time</span>
+                    </span>
+                  </div>
+
+                  {isCustomTimeActive && (
+                    <div className="pt-1 flex items-center gap-2">
+                      <input
+                        type="time"
+                        value={customTimeValRaw}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setCustomTimeValRaw(val);
+                          if (val) {
+                            const [hStr, mStr] = val.split(':');
+                            let h = parseInt(hStr, 10);
+                            const m = parseInt(mStr, 10);
+                            const ampm = h >= 12 ? 'PM' : 'AM';
+                            h = h % 12;
+                            h = h ? h : 12;
+                            const formattedTime = `${h}:${m < 10 ? '0' : ''}${m} ${ampm}`;
+                            setCustomTimeValue(formattedTime);
+                            setSelectedTimeSlot(formattedTime);
+                            if (selectedVet) {
+                              const mName = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][bookingMonth];
+                              setSelectedSlot({
+                                _id: `slot_${selectedCalendarDay}`,
+                                date: `${mName} ${selectedCalendarDay}`,
+                                time: formattedTime,
+                                isBooked: false
+                              });
+                            }
+                          }
+                        }}
+                        className="w-full bg-white text-charcoal border border-[#E5E0D8] rounded-xl px-3 py-2 text-xs font-extrabold outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer shadow-inner"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -1464,14 +1576,14 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
               {/* Fee Row */}
               <div className="flex justify-between items-center py-3">
                 <span className="text-xs sm:text-sm font-medium text-stone-500">Consultation Fee</span>
-                <span className="font-serif text-sm sm:text-base font-bold text-[#1C1A17]">₹{selectedVet.fee}</span>
+                <span className="font-sans text-sm sm:text-base font-extrabold text-[#1C1A17]">₹{selectedVet.fee}</span>
               </div>
             </div>
 
             {/* Total Row Highlight Box */}
             <div className="mt-2 pt-3.5 border-t-2 border-[#F0EBE1] flex items-center justify-between">
-              <span className="font-serif text-base sm:text-lg font-extrabold text-[#1C1A17]">Total</span>
-              <span className="font-serif text-xl sm:text-2xl font-extrabold text-[#2D4536]">₹{selectedVet.fee}</span>
+              <span className="font-sans text-base sm:text-lg font-extrabold text-[#1C1A17]">Total</span>
+              <span className="font-sans text-xl sm:text-2xl font-extrabold text-[#2D4536]">₹{selectedVet.fee}</span>
             </div>
           </div>
 

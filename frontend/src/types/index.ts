@@ -103,6 +103,7 @@ export interface CommunityUpdate {
   image?: string;
   location?: string;
   distance?: string;
+  distanceVal?: number;
   likes?: number;
   lat?: number;
   lng?: number;
