@@ -235,10 +235,6 @@ export default function EmergencyDispatch({
       return;
     }
 
-    if (!sosReason || !sosReason.trim()) {
-      setPhotoError('Please describe the emergency or animal condition before submitting.');
-      return;
-    }
     setPhotoError(null);
 
     let photoBase64 = '';
@@ -260,7 +256,8 @@ export default function EmergencyDispatch({
       }
     }
 
-    onSubmitSos(activeCategory, severity, sosReason, locationText, photoBase64, audioBase64);
+    const finalReason = (sosReason && sosReason.trim()) ? sosReason : `${activeCategory} emergency reported`;
+    onSubmitSos(activeCategory, severity, finalReason, locationText, photoBase64, audioBase64);
   };
 
   const fetchMyReports = async () => {

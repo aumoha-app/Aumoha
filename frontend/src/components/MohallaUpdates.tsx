@@ -4,7 +4,9 @@ import { useState, useEffect, useRef } from 'react';
 import { CommunityUpdate, MemberRole } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { ClockIcon } from './icons/PetIcons';
+import { MapPinOff } from 'lucide-react';
 import { API_BASE } from '../lib/api';
+import RadiusSelector from './RadiusSelector';
 
 interface MohallaUpdatesProps {
   computedUpdates: CommunityUpdate[];
@@ -15,6 +17,8 @@ interface MohallaUpdatesProps {
   refreshUpdates: () => void;
   triggerStartActivity?: boolean;
   onStartActivityTriggered?: () => void;
+  selectedRadius?: number;
+  onSelectRadius?: (radiusKm: number) => void;
 }
 
 export default function MohallaUpdates({
@@ -25,7 +29,9 @@ export default function MohallaUpdates({
   currentUser,
   refreshUpdates,
   triggerStartActivity,
-  onStartActivityTriggered
+  onStartActivityTriggered,
+  selectedRadius = 10,
+  onSelectRadius
 }: MohallaUpdatesProps) {
   const { token } = useAuth();
 
@@ -372,8 +378,23 @@ export default function MohallaUpdates({
     );
   };
 
+  const radiusMeters = selectedRadius === 0 ? Infinity : selectedRadius * 1000;
+  const filteredFeed = computedUpdates
+    .filter(u => updateFilter === 'all' || u.category === updateFilter)
+    .filter(u => selectedRadius === 0 || (u.distanceVal === undefined || u.distanceVal <= radiusMeters));
+
   return (
     <div className="w-full flex flex-col gap-5 animate-scaleIn">
+      {/* RADIUS SELECTOR BAR */}
+      {onSelectRadius && (
+        <div className="w-full bg-[#F5F2EC] border border-[#EBE3D5] rounded-2xl p-3 shadow-2xs">
+          <RadiusSelector
+            selectedRadius={selectedRadius}
+            onSelectRadius={onSelectRadius}
+          />
+        </div>
+      )}
+
       {/* UPDATES CATEGORIES ROW FILTERS */}
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide select-none w-full justify-between">
         {[
@@ -454,9 +475,27 @@ export default function MohallaUpdates({
 
       {/* UPDATES FEED LIST */}
       <div className="flex flex-col gap-4">
-        {computedUpdates
-          .filter(u => updateFilter === 'all' || u.category === updateFilter)
-          .map(renderPostCard)}
+        {filteredFeed.length > 0 ? (
+          filteredFeed.map(renderPostCard)
+        ) : (
+          <div className="bg-[#F5F2EC] border border-[#EBE3D5] rounded-3xl p-6 text-center flex flex-col items-center justify-center gap-2 shadow-xs">
+            <div className="w-10 h-10 rounded-full bg-[#E5E0D4] flex items-center justify-center text-[#2D4536] shrink-0 mb-0.5">
+              <MapPinOff className="w-5 h-5 stroke-[2]" />
+            </div>
+            <h4 className="font-serif text-base font-bold text-charcoal">No updates found within {selectedRadius === 0 ? 'all areas' : `${selectedRadius} km`}</h4>
+            <p className="text-xs text-stone-500 max-w-xs font-medium">
+              No reports or activities in this category nearby.
+            </p>
+            {onSelectRadius && selectedRadius !== 0 && (
+              <button
+                onClick={() => onSelectRadius(selectedRadius === 1 ? 5 : selectedRadius === 5 ? 10 : 25)}
+                className="mt-1 px-4 py-1.5 bg-[#2D4536] text-white rounded-full text-xs font-bold hover:bg-[#1E2E24] transition-all cursor-pointer shadow-xs"
+              >
+                Expand Radius
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* --- START COMMUNITY ACTIVITY MODAL --- */}

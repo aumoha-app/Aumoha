@@ -903,7 +903,12 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
               : 'bg-stone-100/80 hover:bg-stone-200/70 text-stone-600'
           }`}
         >
-          <span>🚨 SOS Alerts</span>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+          <span>SOS Alerts</span>
           {sosReports.filter(r => r.status === 'active').length > 0 && (
             <span className="bg-white text-[#9B1C1C] text-[9px] px-1.5 py-0.2 rounded-full font-extrabold animate-pulse">
               {sosReports.filter(r => r.status === 'active').length}
@@ -919,7 +924,12 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
               : 'bg-stone-100/80 hover:bg-stone-200/70 text-stone-600'
           }`}
         >
-          <span>🛍️ Products</span>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <path d="M16 10a4 4 0 0 1-8 0" />
+          </svg>
+          <span>Products</span>
           {products.length > 0 && (
             <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-extrabold ${currentTab === 'products' ? 'bg-white/20 text-white' : 'bg-stone-200 text-stone-600'}`}>
               {products.length}
@@ -935,7 +945,12 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
               : 'bg-stone-100/80 hover:bg-stone-200/70 text-stone-600'
           }`}
         >
-          <span>🩺 Vets & Experts</span>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4.8 2.3A.3.3 0 0 0 4.5 2.6V8a5 5 0 0 0 10 0V2.6a.3.3 0 0 0-.3-.3h-.9a.3.3 0 0 0-.3.3V8a3.5 3.5 0 1 1-7 0V2.6a.3.3 0 0 0-.3-.3h-.9z" />
+            <path d="M9.5 13a4.5 4.5 0 0 0 4.5 4.5h.5a4 4 0 0 0 4-4V12" />
+            <circle cx="18.5" cy="11.5" r="1.5" />
+          </svg>
+          <span>Vets & Experts</span>
           {vets.length > 0 && (
             <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-extrabold ${currentTab === 'vets' ? 'bg-white/20 text-white' : 'bg-stone-200 text-stone-600'}`}>
               {vets.length}
@@ -951,7 +966,10 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
               : 'bg-stone-100/80 hover:bg-stone-200/70 text-stone-600'
           }`}
         >
-          <span>📞 Active Calls</span>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+          </svg>
+          <span>Active Calls</span>
           {callSessions.filter(s => s.status === 'requested').length > 0 && (
             <span className="bg-amber-400 text-stone-900 text-[9px] px-1.5 py-0.2 rounded-full font-extrabold animate-pulse">
               {callSessions.filter(s => s.status === 'requested').length}
@@ -967,7 +985,13 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
               : 'bg-stone-100/80 hover:bg-stone-200/70 text-stone-600'
           }`}
         >
-          <span>👥 Community</span>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          <span>Community</span>
           {activities.length > 0 && (
             <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-extrabold ${currentTab === 'community' ? 'bg-white/20 text-white' : 'bg-stone-200 text-stone-600'}`}>
               {activities.length}
@@ -983,7 +1007,11 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
               : 'bg-stone-100/80 hover:bg-stone-200/70 text-stone-600'
           }`}
         >
-          <span>⚙️ Settings</span>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+          <span>Settings</span>
         </button>
         <button
           onClick={() => {
@@ -1018,7 +1046,11 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
               onClick={fetchCallSessions}
               className="self-start sm:self-auto px-3.5 py-1.5 bg-white hover:bg-stone-50 border border-stone-200 rounded-xl text-xs font-bold text-stone-700 transition-all cursor-pointer shadow-sm flex items-center gap-1.5"
             >
-              🔄 Refresh Calls
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="23 4 23 10 17 10" />
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+              </svg>
+              Refresh Calls
             </button>
           </div>
 
@@ -1057,7 +1089,10 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                         onClick={() => handleConnectCall(session._id)}
                         className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5"
                       >
-                        ⚡ Connect Call Room
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                        </svg>
+                        Connect Call Room
                       </button>
                     )}
                     {(session.status === 'ready' || session.status === 'ongoing') && (
@@ -1065,7 +1100,11 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                         onClick={() => handleForceEndCall(session._id)}
                         className="flex-1 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5"
                       >
-                        ⛔ Force End Call
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+                        </svg>
+                        Force End Call
                       </button>
                     )}
                   </div>
@@ -1420,12 +1459,18 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                     {/* Report Content */}
                     <div className="flex flex-col gap-1.5">
                       <div className="flex items-center gap-2">
-                        <span className="text-xl">🚨</span>
+                        <div className="w-7 h-7 rounded-xl bg-red-100 text-[#9B1C1C] flex items-center justify-center shrink-0">
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                            <line x1="12" y1="9" x2="12" y2="13" />
+                            <line x1="12" y1="17" x2="12.01" y2="17" />
+                          </svg>
+                        </div>
                         <h4 className="font-serif text-base text-[#1C1A17] font-semibold">
                           {report.category} Alert
                         </h4>
                       </div>
-                      <p className="text-xs text-[#1C1A17] leading-relaxed pl-7">
+                      <p className="text-xs text-[#1C1A17] leading-relaxed pl-9">
                         &ldquo;{report.reason}&rdquo;
                       </p>
                     </div>
@@ -1544,9 +1589,13 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
             </div>
             <button
               onClick={fetchVets}
-              className="px-3 py-1.5 bg-white hover:bg-stone-50 border border-stone-200 rounded-xl text-xs font-bold text-stone-700 transition-all cursor-pointer shadow-sm"
+              className="px-3 py-1.5 bg-white hover:bg-stone-50 border border-stone-200 rounded-xl text-xs font-bold text-stone-700 transition-all cursor-pointer shadow-sm flex items-center gap-1.5"
             >
-              🔄 Refresh
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="23 4 23 10 17 10" />
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+              </svg>
+              Refresh
             </button>
           </div>
 
@@ -1600,13 +1649,14 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                           <button
                             type="button"
                             onClick={() => setEditVetIsOnline(v => !v)}
-                            className={`w-full py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                            className={`w-full py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                               editVetIsOnline
                                 ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
                                 : 'bg-stone-50 border-stone-200 text-stone-500'
                             }`}
                           >
-                            {editVetIsOnline ? '🟢 Online' : '⚫ Offline'}
+                            <span className={`w-2 h-2 rounded-full ${editVetIsOnline ? 'bg-emerald-500' : 'bg-stone-400'}`} />
+                            {editVetIsOnline ? 'Online' : 'Offline'}
                           </button>
                         </div>
                       </div>
@@ -1624,7 +1674,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                           disabled={isSavingVet}
                           className="px-4 py-1.5 text-xs font-bold text-white bg-[#072654] hover:bg-[#0c3570] disabled:opacity-60 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
                         >
-                          {isSavingVet ? <><span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />Saving...</> : '✓ Save Changes'}
+                          {isSavingVet ? <><span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />Saving...</> : 'Save Changes'}
                         </button>
                       </div>
                     </div>
@@ -1635,9 +1685,12 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-xs font-extrabold text-[#1C1A17]">{vet.name}</span>
-                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-1 ${
                             vet.isOnline ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500'
-                          }`}>{vet.isOnline ? '🟢 Online' : '⚫ Offline'}</span>
+                          }`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${vet.isOnline ? 'bg-emerald-500' : 'bg-stone-400'}`} />
+                            {vet.isOnline ? 'Online' : 'Offline'}
+                          </span>
                           <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[#072654]/10 text-[#072654]">
                             {vet.category === 'vet' ? 'Veterinarian' : vet.category}
                           </span>
@@ -1650,9 +1703,13 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                       </div>
                       <button
                         onClick={() => startEditVet(vet)}
-                        className="ml-1 px-3 py-1.5 text-[10px] font-bold text-[#072654] bg-[#072654]/10 hover:bg-[#072654]/20 rounded-xl transition-all cursor-pointer shrink-0"
+                        className="ml-1 px-2.5 py-1.5 text-[10px] font-bold text-[#072654] bg-[#072654]/10 hover:bg-[#072654]/20 rounded-xl transition-all cursor-pointer shrink-0 flex items-center gap-1"
                       >
-                        ✏️ Edit
+                        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                          <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                        Edit
                       </button>
                     </div>
                   )}
@@ -1779,7 +1836,39 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                   <div className="grid grid-cols-4 gap-1.5">
                     {(['feeding', 'help', 'event', 'awareness'] as const).map((cat) => {
                       const isActive = actFormCategory === cat;
-                      const labels: Record<string, string> = { feeding: '🍽️ Feed', help: '🆘 Help', event: '📅 Event', awareness: '📢 Info' };
+                      const icons: Record<string, React.ReactNode> = {
+                        feeding: (
+                          <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                            <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+                            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+                            <line x1="6" y1="1" x2="6" y2="4" />
+                            <line x1="10" y1="1" x2="10" y2="4" />
+                            <line x1="14" y1="1" x2="14" y2="4" />
+                          </svg>
+                        ),
+                        help: (
+                          <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="mr-1 text-red-500">
+                            <circle cx="12" cy="12" r="10" />
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                            <line x1="12" y1="17" x2="12.01" y2="17" />
+                          </svg>
+                        ),
+                        event: (
+                          <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                            <line x1="16" y1="2" x2="16" y2="6" />
+                            <line x1="8" y1="2" x2="8" y2="6" />
+                            <line x1="3" y1="10" x2="21" y2="10" />
+                          </svg>
+                        ),
+                        awareness: (
+                          <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                          </svg>
+                        )
+                      };
+                      const labels: Record<string, string> = { feeding: 'Feed', help: 'Help', event: 'Event', awareness: 'Info' };
                       return (
                         <button
                           key={cat}
@@ -1791,7 +1880,8 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                               : 'bg-white hover:bg-stone-50 border-[#EBE3D5] text-stone-500 hover:text-charcoal'
                           }`}
                         >
-                          {labels[cat]}
+                          {icons[cat]}
+                          <span>{labels[cat]}</span>
                         </button>
                       );
                     })}
@@ -1970,8 +2060,12 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                             {act.category}
                           </span>
                           {isOfficial && (
-                            <span className="text-[8px] font-extrabold bg-gradient-to-r from-[#B68A35] to-[#D4A84B] text-white px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
-                              ✦ Official
+                            <span className="text-[8px] font-extrabold bg-gradient-to-r from-[#B68A35] to-[#D4A84B] text-white px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1">
+                              <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                <path d="m9 12 2 2 4-4" />
+                              </svg>
+                              Official
                             </span>
                           )}
                         </div>
@@ -1991,7 +2085,13 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                           <h4 className="font-serif text-sm text-[#1C1A17] font-semibold leading-tight truncate">{act.title}</h4>
                           <p className="text-[11px] text-stone-500 leading-relaxed mt-1 line-clamp-2">{descText}</p>
                           {scheduledTime && (
-                            <span className="text-[10px] text-[#B68A35] font-bold mt-1">🕒 {scheduledTime}</span>
+                            <span className="text-[10px] text-[#B68A35] font-bold mt-1 flex items-center gap-1">
+                              <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="10" />
+                                <polyline points="12 6 12 12 16 14" />
+                              </svg>
+                              {scheduledTime}
+                            </span>
                           )}
                         </div>
                       </div>
