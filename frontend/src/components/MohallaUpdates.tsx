@@ -173,6 +173,8 @@ export default function MohallaUpdates({
 
   const getRoleColors = (role: MemberRole) => {
     switch (role) {
+      case 'ngo':
+        return { bg: 'bg-[#E5E0D4]', text: 'text-[#2D4536]', border: 'border-[#D3CCBE]', label: 'NGO' };
       case 'feeder':
         return { bg: 'bg-[#E5E0D4]', text: 'text-[#2D4536]', border: 'border-[#D3CCBE]', label: 'Feeder' };
       case 'rescuer':

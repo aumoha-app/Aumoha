@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { LayoutGrid, Shield, Utensils, Stethoscope, Home, Heart, Search, PhoneCall } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { LayoutGrid, Shield, Utensils, Stethoscope, Home, Heart, Search, PhoneCall, Building2 } from 'lucide-react';
 import { CircleMember, MemberRole } from '../types';
 import RadiusSelector from './RadiusSelector';
 
@@ -23,10 +23,24 @@ export default function MohallaNetwork({
   onSelectRadius
 }: MohallaNetworkProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedProfileMember, setSelectedProfileMember] = useState<CircleMember | null>(null);
+
+  // Lock background scrolling when member profile modal is active
+  useEffect(() => {
+    if (selectedProfileMember) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [selectedProfileMember]);
 
   // Define role pills
   const rolesList: { id: MemberRole | 'all'; label: string }[] = [
     { id: 'all', label: 'All' },
+    { id: 'ngo', label: 'NGOs' },
     { id: 'rescuer', label: 'Rescuers' },
     { id: 'feeder', label: 'Feeders' },
     { id: 'paravet', label: 'Paravets' },
@@ -37,6 +51,8 @@ export default function MohallaNetwork({
   // Helper to resolve role colors & display text
   const getRoleColors = (role: MemberRole) => {
     switch (role) {
+      case 'ngo':
+        return { bg: 'bg-[#E5E0D4]', text: 'text-[#2D4536]', border: 'border-[#D3CCBE]', label: 'NGO' };
       case 'feeder':
         return { bg: 'bg-[#E5E0D4]', text: 'text-[#2D4536]', border: 'border-[#D3CCBE]', label: 'Feeder' };
       case 'rescuer':
@@ -57,6 +73,7 @@ export default function MohallaNetwork({
   const getFilterIcon = (id: MemberRole | 'all', isActive: boolean) => {
     const colorClass = isActive ? 'text-white' : {
       all: 'text-stone-500',
+      ngo: 'text-terracotta',
       rescuer: 'text-terracotta',
       feeder: 'text-terracotta',
       paravet: 'text-terracotta',
@@ -69,6 +86,8 @@ export default function MohallaNetwork({
     switch (id) {
       case 'all':
         return <LayoutGrid className={`w-3.5 h-3.5 ${colorClass}`} />;
+      case 'ngo':
+        return <Building2 className={`w-3.5 h-3.5 ${colorClass}`} />;
       case 'rescuer':
         return <Shield className={`w-3.5 h-3.5 ${colorClass}`} />;
       case 'feeder':
@@ -94,12 +113,14 @@ export default function MohallaNetwork({
     return true;
   });
 
-  // Filter members based on search query (name or location)
-  const searchedMembers = filteredMembers.filter(
-    m =>
-      m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (m.location || '').toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter members based on search query (name or location) and sort by distance ascending (closest first)
+  const searchedMembers = filteredMembers
+    .filter(
+      m =>
+        m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (m.location || '').toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => (a.distanceVal ?? Infinity) - (b.distanceVal ?? Infinity));
 
   const activeSosCount = dbSosReports.filter(r => r.status === 'active').length;
 
@@ -193,18 +214,17 @@ export default function MohallaNetwork({
               return (
                 <div
                   key={member.id}
+                  onClick={() => setSelectedProfileMember(member)}
                   className="bg-[#F5F2EC] hover:bg-[#EFEBE3] border border-[#EBE3D5] rounded-[24px] p-4 sm:p-5 flex items-center justify-between hover:shadow-md hover:border-stone-300 transition-all duration-300 relative group cursor-pointer"
                 >
                   <div className="flex items-center gap-3.5">
-                    {/* Avatar with dynamic ring */}
+                    {/* Avatar */}
                     <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden bg-white/80 border-2 border-white/60 flex items-center justify-center shadow-inner relative shrink-0">
                       {member.avatar && member.avatar.startsWith('http') ? (
                         <img src={member.avatar} alt={member.name} className="w-full h-full object-cover" />
                       ) : (
                         <span className="font-serif text-base sm:text-lg font-bold text-[#2D4536]">{member.name.charAt(0)}</span>
                       )}
-                      {/* Active/Online indicator dot */}
-                      <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white animate-pulse"></span>
                     </div>
 
                     {/* Name and Info */}
@@ -232,7 +252,10 @@ export default function MohallaNetwork({
 
                   {/* Dispatch / Contact CTA */}
                   <button
-                    onClick={() => alert(`Calling rescue responder ${member.name}...`)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      alert(`Calling rescue responder ${member.name}...`);
+                    }}
                     className="p-3 bg-white/80 text-[#2D4536] hover:bg-[#2D4536] hover:text-white rounded-full transition-all duration-200 shadow-xs shrink-0 active:scale-95 border border-white/60 cursor-pointer"
                     aria-label={`Call ${member.name}`}
                   >
@@ -252,6 +275,123 @@ export default function MohallaNetwork({
           </div>
         )}
       </div>
+
+      {/* MEMBER PROFILE MODAL */}
+      {selectedProfileMember && (
+        <div 
+          onClick={() => setSelectedProfileMember(null)}
+          className="fixed inset-0 z-[4000] bg-[#1C1A17]/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-[32px] max-w-md w-full max-h-[82vh] sm:max-h-[85vh] overflow-y-auto shadow-2xl animate-in fade-in zoom-in duration-200 text-left relative flex flex-col my-auto"
+          >
+            
+            {/* Header Banner */}
+            <div className="bg-gradient-to-r from-[#2D4536] to-[#4A5D4E] p-6 text-white relative shrink-0">
+              <button
+                onClick={() => setSelectedProfileMember(null)}
+                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-sm transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+
+              <div className="flex items-center gap-4 pt-2">
+                <div className="w-16 h-16 rounded-full overflow-hidden bg-white/20 border-2 border-white/80 flex items-center justify-center shrink-0 shadow-md relative">
+                  {selectedProfileMember.avatar && selectedProfileMember.avatar.startsWith('http') ? (
+                    <img src={selectedProfileMember.avatar} alt={selectedProfileMember.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="font-serif text-2xl font-bold text-white">{selectedProfileMember.name.charAt(0)}</span>
+                  )}
+                </div>
+
+                <div className="flex flex-col min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-serif text-xl font-bold text-white leading-tight truncate">{selectedProfileMember.name}</h3>
+                    {selectedProfileMember.badge && (
+                      <span className="bg-amber-400/90 text-stone-900 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        ★ Verified
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs text-white/80 font-medium mt-0.5 capitalize">
+                    {getRoleColors(selectedProfileMember.role).label} Community Helper
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Body Content */}
+            <div className="p-6 flex flex-col gap-5 overflow-y-auto">
+              
+              {/* Info Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-white border border-[#EBE3D5] rounded-2xl p-3.5 flex flex-col gap-1">
+                  <span className="text-[10px] font-extrabold text-stone-400 uppercase tracking-wider">Role Type</span>
+                  <span className="text-xs font-bold text-[#2D4536] capitalize">
+                    {getRoleColors(selectedProfileMember.role).label}
+                  </span>
+                </div>
+
+                <div className="bg-white border border-[#EBE3D5] rounded-2xl p-3.5 flex flex-col gap-1">
+                  <span className="text-[10px] font-extrabold text-stone-400 uppercase tracking-wider">Tenure</span>
+                  <span className="text-xs font-bold text-stone-700">
+                    {selectedProfileMember.joinedTime ? `${selectedProfileMember.joinedTime} days active` : 'Active Helper'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Location Box */}
+              <div className="bg-white border border-[#EBE3D5] rounded-2xl p-4 flex flex-col gap-1.5">
+                <span className="text-[10px] font-extrabold text-stone-400 uppercase tracking-wider flex items-center gap-1">
+                  <svg className="w-3.5 h-3.5 text-[#2D4536]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  Primary Area / Location
+                </span>
+                <p className="text-xs font-semibold text-stone-800 leading-relaxed">
+                  {(selectedProfileMember.location || 'Saheed Nagar, Rourkela, Odisha').replace(/\[.*?\]/g, '').trim()}
+                </p>
+                {selectedProfileMember.distance && (
+                  <span className="text-[10px] font-bold text-[#2D4536] bg-[#E8F5E9] border border-[#C8E6C9] px-2 py-0.5 rounded-md self-start mt-1">
+                    📍 {selectedProfileMember.distance} away
+                  </span>
+                )}
+              </div>
+
+              {/* Bio / Impact Note */}
+              <div className="bg-[#FAF6F0] border border-[#EBE3D5] rounded-2xl p-4">
+                <span className="text-[10px] font-extrabold text-[#2D4536] uppercase tracking-wider block mb-1">About Helper</span>
+                <p className="text-xs text-stone-600 font-medium leading-relaxed">
+                  Verified animal welfare volunteer in the Mohalla Network. Active responder for local feeding drives, rescue calls, and emergency assistance.
+                </p>
+              </div>
+
+              {/* CTA Buttons */}
+              <div className="flex items-center gap-3 pt-1">
+                <button
+                  onClick={() => {
+                    alert(`Connecting call to ${selectedProfileMember.name}...`);
+                  }}
+                  className="flex-1 py-3 bg-[#2D4536] hover:bg-[#1E2E24] text-white text-xs font-extrabold rounded-2xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <PhoneCall className="w-4 h-4" />
+                  <span>Call {selectedProfileMember.name.split(' ')[0]}</span>
+                </button>
+
+                <button
+                  onClick={() => setSelectedProfileMember(null)}
+                  className="px-5 py-3 bg-white border border-[#D5CEBF] hover:bg-[#FAF8F5] text-stone-700 text-xs font-bold rounded-2xl transition-all cursor-pointer shadow-2xs"
+                >
+                  Close
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

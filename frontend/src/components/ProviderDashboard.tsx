@@ -86,10 +86,53 @@ export default function ProviderDashboard() {
   const [isSavingPrescription, setIsSavingPrescription] = useState(false);
 
 
+  // Doctor Profile Editing State
+  const [isEditingProfileModal, setIsEditingProfileModal] = useState(false);
+  const [editBioText, setEditBioText] = useState('');
+  const [editFeeVal, setEditFeeVal] = useState('');
+  const [editExpVal, setEditExpVal] = useState('');
+  const [editSpecialisationText, setEditSpecialisationText] = useState('');
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+
   const getAuthHeaders = () => ({
     'Content-Type': 'application/json',
     Authorization: `Bearer ${token}`,
   });
+
+  const handleSaveProfile = async () => {
+    if (!provider) return;
+    setIsSavingProfile(true);
+    try {
+      const res = await fetch(`${API_BASE}/provider/profile`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          providerId: provider._id,
+          bio: editBioText,
+          fee: Number(editFeeVal),
+          experience: Number(editExpVal),
+          specialisation: editSpecialisationText
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        setProvider(prev => prev ? {
+          ...prev,
+          bio: editBioText,
+          fee: Number(editFeeVal),
+          experience: Number(editExpVal),
+          specialisation: editSpecialisationText
+        } : prev);
+        setIsEditingProfileModal(false);
+      } else {
+        alert(data.message || 'Failed to update profile.');
+      }
+    } catch {
+      alert('Network error updating profile.');
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
 
   const fetchProviderData = async (targetId?: string) => {
     setIsLoading(true);
@@ -261,7 +304,26 @@ export default function ProviderDashboard() {
         {activeTab === 'overview' && (
           <>
             <div className="bg-white rounded-3xl border border-[#EBE3D5] p-5 shadow-sm">
-              <h3 className="text-sm font-extrabold text-stone-800 mb-3">Your Profile</h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-extrabold text-stone-800">Your Profile</h3>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditBioText(provider.bio || '');
+                    setEditFeeVal(String(provider.fee));
+                    setEditExpVal(String(provider.experience));
+                    setEditSpecialisationText(provider.specialisation || '');
+                    setIsEditingProfileModal(true);
+                  }}
+                  className="px-3 py-1.5 bg-[#2D4536] hover:bg-[#1E2E24] text-white text-[11px] font-extrabold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                >
+                  <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                  <span>Edit Profile & Bio</span>
+                </button>
+              </div>
               <div className="grid grid-cols-2 gap-3 text-xs">
                 {[
                   { label: 'Category', value: provider.category === 'vet' ? 'Veterinarian' : provider.category },
@@ -277,7 +339,12 @@ export default function ProviderDashboard() {
                   </div>
                 ))}
               </div>
-              {provider.bio && <p className="mt-3 text-xs text-stone-500 leading-relaxed border-t border-stone-100 pt-3">{provider.bio}</p>}
+              {provider.bio && (
+                <div className="mt-3 pt-3 border-t border-stone-100">
+                  <p className="text-[9px] text-stone-400 font-bold uppercase tracking-wider mb-1">Doctor Description / Bio</p>
+                  <p className="text-xs text-stone-600 leading-relaxed font-medium">{provider.bio}</p>
+                </div>
+              )}
             </div>
 
             <div className="bg-white rounded-3xl border border-[#EBE3D5] p-5 shadow-sm">
@@ -586,6 +653,92 @@ export default function ProviderDashboard() {
                   {isSavingPrescription ? 'Saving...' : 'Save & Notify User'}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DOCTOR PROFILE EDITING MODAL */}
+      {isEditingProfileModal && (
+        <div className="fixed inset-0 z-50 bg-[#1C1A17]/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full border border-[#F0EBE1] shadow-2xl p-6 flex flex-col gap-4 animate-in fade-in zoom-in duration-200">
+            <header className="flex justify-between items-start border-b border-stone-100 pb-3">
+              <div>
+                <h3 className="font-serif text-lg text-[#1C1A17] font-bold">Edit Doctor Profile & Bio</h3>
+                <p className="text-[11px] text-stone-400 font-medium mt-0.5">
+                  Update your public profile info & description visible to clients during booking.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsEditingProfileModal(false)}
+                className="p-1 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 text-stone-400 hover:text-stone-600 cursor-pointer"
+              >
+                ✕
+              </button>
+            </header>
+
+            <div className="flex flex-col gap-3 text-xs">
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Doctor Bio / Description</label>
+                <textarea
+                  rows={4}
+                  value={editBioText}
+                  onChange={(e) => setEditBioText(e.target.value)}
+                  placeholder="Describe your medical background, treatment philosophy, or specialisations..."
+                  className="w-full bg-[#F5F3EF] rounded-xl p-3 text-xs text-[#1C1A17] border border-[#EBE3D5] focus:border-[#2D4536] focus:bg-white outline-none resize-none font-medium leading-relaxed"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Consultation Fee (₹)</label>
+                  <input
+                    type="number"
+                    value={editFeeVal}
+                    onChange={(e) => setEditFeeVal(e.target.value)}
+                    className="w-full bg-[#F5F3EF] rounded-xl py-2 px-3 text-xs text-[#1C1A17] font-bold border border-[#EBE3D5] focus:border-[#2D4536] focus:bg-white outline-none"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Experience (Years)</label>
+                  <input
+                    type="number"
+                    value={editExpVal}
+                    onChange={(e) => setEditExpVal(e.target.value)}
+                    className="w-full bg-[#F5F3EF] rounded-xl py-2 px-3 text-xs text-[#1C1A17] font-bold border border-[#EBE3D5] focus:border-[#2D4536] focus:bg-white outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Specialisation / Title</label>
+                <input
+                  type="text"
+                  value={editSpecialisationText}
+                  onChange={(e) => setEditSpecialisationText(e.target.value)}
+                  className="w-full bg-[#F5F3EF] rounded-xl py-2 px-3 text-xs text-[#1C1A17] font-bold border border-[#EBE3D5] focus:border-[#2D4536] focus:bg-white outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2.5 mt-2 pt-2 border-t border-stone-100">
+              <button
+                type="button"
+                onClick={() => setIsEditingProfileModal(false)}
+                className="px-4 py-2.5 text-xs font-bold rounded-xl border border-stone-200 bg-white text-stone-500 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveProfile}
+                disabled={isSavingProfile}
+                className="px-6 py-2.5 bg-[#2D4536] hover:bg-[#1E2E24] text-white font-extrabold text-xs rounded-xl cursor-pointer shadow-sm transition-all disabled:opacity-50"
+              >
+                {isSavingProfile ? 'Saving Changes...' : 'Save Profile & Bio'}
+              </button>
             </div>
           </div>
         </div>
