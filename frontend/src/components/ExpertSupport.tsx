@@ -958,7 +958,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
             {/* Right: Hero Image */}
             <div className="w-[42%] md:w-[35%] relative shrink-0 flex items-end justify-end overflow-hidden">
               <img
-                src="/expert_care_pet_hero.png"
+                src="/expert_care_pet_hero.png?v=2"
                 alt="Expert Support Pet Hero"
                 className="w-full h-full object-cover object-right-bottom scale-115 origin-right translate-y-0.5"
               />

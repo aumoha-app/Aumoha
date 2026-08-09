@@ -513,7 +513,7 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
       {/* 2. HERO PROFILE HEADER CARD (Artistic Textured Background matching reference style) */}
       <div 
         className="w-full bg-[#1C1A17] text-[#FDFBF7] rounded-3xl p-6 md:p-8 shadow-xl relative overflow-hidden flex flex-col items-center text-center border border-white/10 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `linear-gradient(to bottom, rgba(28, 26, 23, 0.65), rgba(18, 16, 14, 0.85)), url('/profile_hero_bg.png')` }}
+        style={{ backgroundImage: `linear-gradient(to bottom, rgba(28, 26, 23, 0.65), rgba(18, 16, 14, 0.85)), url('/profile_hero_bg.png?v=2')` }}
       >
         
         {/* Subtle Warm Glow Texture Accent */}
