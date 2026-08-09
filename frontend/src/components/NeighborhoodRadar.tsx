@@ -165,11 +165,6 @@ export default function NeighborhoodRadar({ onEnterCircle }: NeighborhoodRadarPr
               <span className="text-base sm:text-xl md:text-2xl font-black text-[#1C1A17] leading-none">{rescuesCount}</span>
               <span className="font-serif text-xs sm:text-base font-bold text-[#1C1A17] leading-none mt-1 lowercase">rescues</span>
             </div>
-            <div className="w-[1.5px] h-5 sm:h-7 bg-stone-300 shrink-0" />
-            <div className="flex flex-col">
-              <span className="text-base sm:text-xl md:text-2xl font-black text-[#1C1A17] leading-none">#{rank}</span>
-              <span className="font-serif text-xs sm:text-base font-bold text-[#1C1A17] leading-none mt-1 lowercase">rank</span>
-            </div>
           </div>
 
           {/* Solid Gold Enter Circle Button */}
