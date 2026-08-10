@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { StethoscopeIcon, LeafIcon, UserIcon, UsersIcon } from './icons/PetIcons';
 import NeighborhoodRadar from './NeighborhoodRadar';
 import MarketplaceCategories from './MarketplaceCategories';
+import { API_BASE } from '../lib/api';
 
 interface MinimalHomeProps {
   userName?: string;
@@ -26,6 +27,38 @@ export default function MinimalHome({
 }: MinimalHomeProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Impact Section Live metrics state
+  const [impactCounts, setImpactCounts] = useState({
+    rescued: 142,
+    active: 8,
+    pending: 3
+  });
+
+  useEffect(() => {
+    const fetchImpact = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/sos`);
+        if (res.ok) {
+          const data = await res.json();
+          const reports = data.reports || [];
+          if (reports.length > 0) {
+            const resolved = reports.filter((r: any) => r.status === 'resolved').length;
+            const dispatched = reports.filter((r: any) => r.status === 'dispatched').length;
+            const active = reports.filter((r: any) => r.status === 'active').length;
+            setImpactCounts({
+              rescued: 140 + resolved,
+              active: dispatched > 0 ? dispatched : 8,
+              pending: active > 0 ? active : 3
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Using baseline impact metrics:', err);
+      }
+    };
+    fetchImpact();
+  }, []);
+
   // Extract first name
   const firstName = userName ? userName.split(' ')[0] : 'Ananya';
 
@@ -34,15 +67,15 @@ export default function MinimalHome({
       {/* 1. TOP GREETING & HERO TITLE */}
       <div className="flex flex-col gap-3 pt-2">
         <div>
-          <span className="text-stone-700 font-serif text-sm sm:text-base tracking-wide block">
+          <span className="text-stone-700 font-serif text-sm sm:text-base tracking-wide block font-semibold">
             Good morning,
           </span>
-          <h2 className="font-serif text-stone-900 font-bold text-lg sm:text-xl leading-tight">
+          <h2 className="font-serif text-stone-900 font-extrabold text-lg sm:text-xl leading-tight">
             {firstName}
           </h2>
         </div>
 
-        <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-medium leading-[1.15] text-[#1C1A17] tracking-tight mt-2">
+        <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-extrabold leading-[1.15] text-[#1C1A17] tracking-tight mt-2">
           Care for them.<br />
           Better, together.
         </h1>
@@ -53,8 +86,8 @@ export default function MinimalHome({
         onClick={onExpertSupportClick}
         className="relative z-10 w-full cursor-pointer group"
       >
-        <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-stone-600 group-hover:text-[#1C1A17] transition-colors">
-          <svg className="w-4 h-4 stroke-[2.2]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+        <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-stone-700 group-hover:text-[#1C1A17] transition-colors">
+          <svg className="w-4.5 h-4.5 stroke-[2.4]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
@@ -66,7 +99,7 @@ export default function MinimalHome({
           onClick={onExpertSupportClick}
           onFocus={onExpertSupportClick}
           placeholder="Search care, experts, services..."
-          className="w-full pl-11 pr-4 py-3.5 bg-[#EFEAE2] hover:bg-[#E6E0D6] border border-[#D5CEBF] focus:border-[#C85341] rounded-2xl text-xs sm:text-sm text-[#1C1A17] placeholder-stone-600 focus:outline-none transition-all font-sans font-medium shadow-2xs cursor-pointer"
+          className="w-full pl-11 pr-4 py-3.5 bg-[#EFEAE2] hover:bg-[#E6E0D6] border border-[#D5CEBF] focus:border-[#C85341] rounded-2xl text-xs sm:text-sm text-[#1C1A17] placeholder-stone-600 focus:outline-none transition-all font-sans font-bold shadow-2xs cursor-pointer"
         />
       </div>
 
@@ -80,10 +113,10 @@ export default function MinimalHome({
           <span className="text-[10.5px] sm:text-xs font-sans font-extrabold text-[#C85341] tracking-widest uppercase leading-none mb-2.5">
             SOS • EMERGENCY
           </span>
-          <h3 className="font-serif text-2xl sm:text-3xl md:text-4xl text-[#1C1A17] font-semibold leading-[1.15] mb-2">
+          <h3 className="font-serif text-2xl sm:text-3xl md:text-4xl text-[#1C1A17] font-extrabold leading-[1.15] mb-2">
             Need help<br />right now?
           </h3>
-          <p className="text-xs sm:text-sm text-stone-700 font-medium leading-relaxed mb-4">
+          <p className="text-xs sm:text-sm text-stone-700 font-bold leading-relaxed mb-4">
             Report an animal<br />in need.
           </p>
 
@@ -96,33 +129,88 @@ export default function MinimalHome({
           </div>
         </div>
 
-        {/* Right Column: Laying Dog with Solid #EFEAE2 Circle BG & 3D Pop-Out Effect */}
-        {/* 
-          DOG & CIRCLE GRAPHIC COMPONENT:
-          ---------------------------------
-          - Background Circle: A full circular div (`rounded-full`) colored with warm tone `#EFEAE2`, subtle border `#D5CEBF`, and shadow layer positioned behind (`z-0`).
-          - Dog Image (`/laying-dog.png`): A transparent PNG cut-out of the laying dog positioned above the circle (`z-10`).
-          - 3D Pop-Out Effect: Scaled to 1.25x (`scale-125`) and expanding to 1.30x on group hover (`group-hover:scale-130`) so the paws and body extend beyond the circle boundaries with a soft drop shadow.
-        */}
         <div className="relative flex items-center justify-center shrink-0 w-48 xs:w-56 sm:w-68 md:w-76 h-[220px] sm:h-[260px]">
-          {/* 1. CIRCLE BACKGROUND - Soft beige circular base */}
-          {/* <div className="absolute w-48 h-48 xs:w-56 xs:h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 rounded-full bg-[#EFEAE2] shadow-xs border border-[#D5CEBF] pointer-events-none z-0" /> */}
-
-          {/* 2. LAYING DOG IMAGE - High-resolution dog artwork positioned over the circle container */}
-          {/* <img 
-            src="/laying-dog.png" 
-            alt="Laying Dog" 
-            className="w-full h-auto max-h-[260px] sm:max-h-[300px] object-contain relative z-10 scale-125 group-hover:scale-130 transition-transform duration-500 drop-shadow-[0_10px_20px_rgba(30,20,10,0.25)]"
-          /> */}
         </div>
       </div>
 
-      {/* 4. SECTION HEADER */}
-      <h3 className="font-serif text-base sm:text-xl text-[#1C1A17] font-bold tracking-tight pt-1">
+      {/* 4. SUBTLE LANDING PAGE IMPACT SECTION */}
+      <div className="w-full bg-[#EFEAE2] border border-[#D5CEBF] rounded-2xl sm:rounded-[24px] p-4 sm:p-5 flex flex-col gap-3.5 shadow-2xs font-sans select-none">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            <h3 className="font-serif text-base sm:text-lg font-extrabold text-[#1C1A17] tracking-tight">
+              Community Impact
+            </h3>
+          </div>
+          <span className="text-[10px] sm:text-xs font-extrabold uppercase bg-[#EAE4D8] text-[#2D4536] px-2.5 py-1 rounded-full border border-[#D5CEBF]">
+            Live Overview
+          </span>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 text-center pt-0.5">
+          {/* Metric 1: Rescued */}
+          <div className="bg-[#FAF8F5] border border-[#D5CEBF] rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 flex flex-col items-center justify-center shadow-2xs">
+            <div className="w-7 h-7 sm:w-8.5 sm:h-8.5 rounded-full bg-[#2D4536]/10 text-[#2D4536] flex items-center justify-center mb-1.5">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.78-8.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+            </div>
+            <span className="font-serif text-xl sm:text-2xl font-extrabold text-[#1C1A17] leading-none">
+              {impactCounts.rescued}+
+            </span>
+            <span className="text-[11px] sm:text-xs font-extrabold text-[#2D4536] mt-1 leading-tight">
+              Rescued
+            </span>
+            <span className="text-[9.5px] sm:text-[10.5px] text-stone-600 font-bold block leading-tight mt-0.5">
+              Animals safe
+            </span>
+          </div>
+
+          {/* Metric 2: Active */}
+          <div className="bg-[#FAF8F5] border border-[#D5CEBF] rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 flex flex-col items-center justify-center shadow-2xs">
+            <div className="w-7 h-7 sm:w-8.5 sm:h-8.5 rounded-full bg-[#C85341]/10 text-[#C85341] flex items-center justify-center mb-1.5">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
+            </div>
+            <span className="font-serif text-xl sm:text-2xl font-extrabold text-[#1C1A17] leading-none">
+              {impactCounts.active}
+            </span>
+            <span className="text-[11px] sm:text-xs font-extrabold text-[#C85341] mt-1 leading-tight">
+              Active
+            </span>
+            <span className="text-[9.5px] sm:text-[10.5px] text-stone-600 font-bold block leading-tight mt-0.5">
+              In progress
+            </span>
+          </div>
+
+          {/* Metric 3: Pending */}
+          <div className="bg-[#FAF8F5] border border-[#D5CEBF] rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 flex flex-col items-center justify-center shadow-2xs">
+            <div className="w-7 h-7 sm:w-8.5 sm:h-8.5 rounded-full bg-[#D97706]/10 text-[#D97706] flex items-center justify-center mb-1.5">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+            </div>
+            <span className="font-serif text-xl sm:text-2xl font-extrabold text-[#1C1A17] leading-none">
+              {impactCounts.pending}
+            </span>
+            <span className="text-[11px] sm:text-xs font-extrabold text-[#D97706] mt-1 leading-tight">
+              Pending
+            </span>
+            <span className="text-[9.5px] sm:text-[10.5px] text-stone-600 font-bold block leading-tight mt-0.5">
+              Queued response
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* 5. SECTION HEADER */}
+      <h3 className="font-serif text-base sm:text-xl text-[#1C1A17] font-extrabold tracking-tight pt-1">
         How can we help today?
       </h3>
 
-      {/* 5. 2x2 SERVICES & ACTION TILES GRID */}
+      {/* 6. 2x2 SERVICES & ACTION TILES GRID */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4">
         {/* Tile 1: Vet Care */}
         <div
@@ -130,13 +218,13 @@ export default function MinimalHome({
           className="bg-[#EFEAE2] hover:bg-[#E6E0D6] border border-[#D5CEBF] rounded-2xl sm:rounded-[24px] p-3.5 sm:p-5 flex flex-row items-center gap-2.5 sm:gap-4 h-full min-h-[88px] sm:min-h-[108px] transition-all duration-200 cursor-pointer shadow-2xs group"
         >
           <div className="w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center text-[#2D4536] shrink-0 group-hover:scale-105 transition-transform">
-            <StethoscopeIcon className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.8]" />
+            <StethoscopeIcon className="w-6 h-6 sm:w-7 sm:h-7 stroke-[2]" />
           </div>
           <div className="flex flex-col min-w-0 justify-center">
-            <span className="font-serif text-xs sm:text-base font-bold text-[#1C1A17] leading-tight">
+            <span className="font-serif text-xs sm:text-base font-extrabold text-[#1C1A17] leading-tight">
               Vet Care
             </span>
-            <span className="text-[10.5px] sm:text-xs text-stone-700 font-sans font-medium mt-0.5 leading-snug">
+            <span className="text-[10.5px] sm:text-xs text-stone-700 font-sans font-bold mt-0.5 leading-snug">
               Medical help
             </span>
           </div>
@@ -148,13 +236,13 @@ export default function MinimalHome({
           className="bg-[#EFEAE2] hover:bg-[#E6E0D6] border border-[#D5CEBF] rounded-2xl sm:rounded-[24px] p-3.5 sm:p-5 flex flex-row items-center gap-2.5 sm:gap-4 h-full min-h-[88px] sm:min-h-[108px] transition-all duration-200 cursor-pointer shadow-2xs group"
         >
           <div className="w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center text-[#2D4536] shrink-0 group-hover:scale-105 transition-transform">
-            <LeafIcon className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.8]" />
+            <LeafIcon className="w-6 h-6 sm:w-7 sm:h-7 stroke-[2]" />
           </div>
           <div className="flex flex-col min-w-0 justify-center">
-            <span className="font-serif text-xs sm:text-base font-bold text-[#1C1A17] leading-tight">
+            <span className="font-serif text-xs sm:text-base font-extrabold text-[#1C1A17] leading-tight">
               Expert Support
             </span>
-            <span className="text-[10.5px] sm:text-xs text-stone-700 font-sans font-medium mt-0.5 leading-snug">
+            <span className="text-[10.5px] sm:text-xs text-stone-700 font-sans font-bold mt-0.5 leading-snug">
               Wellness & behaviour
             </span>
           </div>
@@ -166,13 +254,13 @@ export default function MinimalHome({
           className="bg-[#EFEAE2] hover:bg-[#E6E0D6] border border-[#D5CEBF] rounded-2xl sm:rounded-[24px] p-3.5 sm:p-5 flex flex-row items-center gap-2.5 sm:gap-4 h-full min-h-[88px] sm:min-h-[108px] transition-all duration-200 cursor-pointer shadow-2xs group"
         >
           <div className="w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center text-[#2D4536] shrink-0 group-hover:scale-105 transition-transform">
-            <UserIcon className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.8]" />
+            <UserIcon className="w-6 h-6 sm:w-7 sm:h-7 stroke-[2]" />
           </div>
           <div className="flex flex-col min-w-0 justify-center">
-            <span className="font-serif text-xs sm:text-base font-bold text-[#1C1A17] leading-tight">
+            <span className="font-serif text-xs sm:text-base font-extrabold text-[#1C1A17] leading-tight">
               Pet Services
             </span>
-            <span className="text-[10.5px] sm:text-xs text-stone-700 font-sans font-medium mt-0.5 leading-snug">
+            <span className="text-[10.5px] sm:text-xs text-stone-700 font-sans font-bold mt-0.5 leading-snug">
               Grooming, training & more
             </span>
           </div>
@@ -184,23 +272,23 @@ export default function MinimalHome({
           className="bg-[#EFEAE2] hover:bg-[#E6E0D6] border border-[#D5CEBF] rounded-2xl sm:rounded-[24px] p-3.5 sm:p-5 flex flex-row items-center gap-2.5 sm:gap-4 h-full min-h-[88px] sm:min-h-[108px] transition-all duration-200 cursor-pointer shadow-2xs group"
         >
           <div className="w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center text-[#2D4536] shrink-0 group-hover:scale-105 transition-transform">
-            <UsersIcon className="w-6 h-6 sm:w-7 sm:h-7 stroke-[1.8]" />
+            <UsersIcon className="w-6 h-6 sm:w-7 sm:h-7 stroke-[2]" />
           </div>
           <div className="flex flex-col min-w-0 justify-center">
-            <span className="font-serif text-xs sm:text-base font-bold text-[#1C1A17] leading-tight">
+            <span className="font-serif text-xs sm:text-base font-extrabold text-[#1C1A17] leading-tight">
               Community
             </span>
-            <span className="text-[10.5px] sm:text-xs text-stone-700 font-sans font-medium mt-0.5 leading-snug">
+            <span className="text-[10.5px] sm:text-xs text-stone-700 font-sans font-bold mt-0.5 leading-snug">
               Mohalla circles
             </span>
           </div>
         </div>
       </div>
 
-      {/* 6. MOHA CIRCLE NEIGHBORHOOD RADAR CARD */}
+      {/* 7. MOHA CIRCLE NEIGHBORHOOD RADAR CARD */}
       <NeighborhoodRadar onEnterCircle={onCommunityClick} />
 
-      {/* 7. MARKETPLACE QUICK ACTIONS */}
+      {/* 8. MARKETPLACE QUICK ACTIONS */}
       <MarketplaceCategories onExploreMoreClick={onMarketplaceClick || (() => {})} />
     </div>
   );

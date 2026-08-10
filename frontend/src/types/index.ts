@@ -43,7 +43,9 @@ export interface Product {
   id?: number; // For compatibility
   category: 'food' | 'toys' | 'medical';
   title: string;
+  subtitle?: string;
   description: string;
+  features?: string[];
   price: number;
   originalPrice: number | null;
   discountBadge: string | null;

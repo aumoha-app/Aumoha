@@ -4,8 +4,16 @@
 
 @layer base {
   body {
-    @apply bg-cream text-charcoal min-h-screen selection:bg-terracottaGlow relative;
+    @apply bg-cream text-charcoal min-h-screen selection:bg-terracottaGlow relative font-sans font-medium text-[#111827];
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-plus-jakarta), var(--font-inter), sans-serif;
+    letter-spacing: -0.015em;
   }
 
   body::before {

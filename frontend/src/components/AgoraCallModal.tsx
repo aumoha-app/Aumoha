@@ -340,13 +340,13 @@ export default function AgoraCallModal({ appointmentId, channelName, appointment
 
   // 4. Update status to 'ongoing' on backend when channel opens
   useEffect(() => {
-    if (permissionState === 'granted' && appointmentId) {
-      fetch(`${API_BASE}/appointments/${appointmentId}/call/join`, {
+    if (permissionState === 'granted' && targetApptId) {
+      fetch(`${API_BASE}/appointments/${targetApptId}/call/join`, {
         method: 'PUT',
         headers: authToken ? { 'Authorization': `Bearer ${authToken}` } : {}
       }).catch(err => console.error('Error notifying join:', err));
     }
-  }, [permissionState, appointmentId, authToken]);
+  }, [permissionState, targetApptId, authToken]);
 
   if (!appId) {
     return (
@@ -422,10 +422,12 @@ export default function AgoraCallModal({ appointmentId, channelName, appointment
 
   const handleEndCall = async () => {
     try {
-      await fetch(`${API_BASE}/appointments/${appointmentId}/call/end`, {
-        method: 'PUT',
-        headers: authToken ? { 'Authorization': `Bearer ${authToken}` } : {}
-      });
+      if (targetApptId) {
+        await fetch(`${API_BASE}/appointments/${targetApptId}/call/end`, {
+          method: 'PUT',
+          headers: authToken ? { 'Authorization': `Bearer ${authToken}` } : {}
+        });
+      }
     } catch (err) {
       console.error('Error ending call:', err);
     } finally {
@@ -435,7 +437,7 @@ export default function AgoraCallModal({ appointmentId, channelName, appointment
 
   const rtcProps = {
     appId,
-    channel: appointmentId,
+    channel: targetApptId || 'default-channel',
     token: agoraToken, // Passes backend generated dynamic token (or null if tokenless)
     enableRtm: false,  // Disables RTM chat signals to prevent RTM Error Code 5 (vendor dynamic key error)
   };
