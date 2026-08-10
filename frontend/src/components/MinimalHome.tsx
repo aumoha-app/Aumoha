@@ -135,7 +135,16 @@ export default function MinimalHome({
           </div>
         </div>
 
-        <div className="relative flex items-center justify-center shrink-0 w-48 xs:w-56 sm:w-68 md:w-76 h-[220px] sm:h-[260px]">
+        {/* Right Column: Animal Image Cutout */}
+        <div className="relative flex items-center justify-center shrink-0 w-40 xs:w-48 sm:w-64 md:w-72 h-[200px] sm:h-[240px] overflow-visible">
+          <img
+            src="/expert-hero-dog-transparent.png"
+            alt="Rescue Animal"
+            className="w-full h-full object-contain object-right-bottom group-hover:scale-105 transition-transform duration-500 drop-shadow-md"
+            onError={(e) => {
+              e.currentTarget.src = '/hero-dog.png';
+            }}
+          />
         </div>
       </div>
 
