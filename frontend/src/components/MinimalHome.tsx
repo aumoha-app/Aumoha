@@ -136,15 +136,9 @@ export default function MinimalHome({
       {/* 4. SUBTLE LANDING PAGE IMPACT SECTION */}
       <div className="w-full bg-[#EFEAE2] border border-[#D5CEBF] rounded-2xl sm:rounded-[24px] p-4 sm:p-5 flex flex-col gap-3.5 shadow-2xs font-sans select-none">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            <h3 className="font-serif text-base sm:text-lg font-extrabold text-[#1C1A17] tracking-tight">
-              Community Impact
-            </h3>
-          </div>
-          <span className="text-[10px] sm:text-xs font-extrabold uppercase bg-[#EAE4D8] text-[#2D4536] px-2.5 py-1 rounded-full border border-[#D5CEBF]">
-            Live Overview
-          </span>
+          <h3 className="font-serif text-base sm:text-lg font-extrabold text-[#1C1A17] tracking-tight">
+            Community Impact
+          </h3>
         </div>
 
         <div className="grid grid-cols-3 gap-2 sm:gap-3 text-center pt-0.5">
