@@ -11,7 +11,7 @@ export default function Home() {
   const { user } = useAuth();
 
   return (
-    <AppShell backdropImage="/backdrop-sunlight.png">
+    <AppShell>
       <main className="w-full max-w-3xl md:max-w-4xl mx-auto flex flex-col gap-6 transition-all duration-300">
         <MinimalHome
           userName={user?.fullName || 'Ananya'}
