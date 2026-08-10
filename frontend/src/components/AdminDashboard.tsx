@@ -2169,11 +2169,6 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
           {/* Header Banner */}
           <div className="bg-gradient-to-r from-[#1C1A17] via-[#2D4536] to-[#4A5D4E] text-white rounded-3xl p-6 sm:p-7 shadow-lg relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex flex-col gap-1.5 relative z-10 max-w-xl">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider bg-white/15 text-emerald-200 border border-white/20 px-3 py-0.5 rounded-full">
-                  User Permissions & Access Control
-                </span>
-              </div>
               <h2 className="font-serif text-2xl sm:text-3xl font-semibold tracking-tight text-white">
                 Assign User Roles
               </h2>
