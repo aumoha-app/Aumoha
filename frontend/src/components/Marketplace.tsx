@@ -135,14 +135,14 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
       <main className="w-full max-w-4xl lg:max-w-5xl mx-auto flex flex-col gap-6 transition-all duration-300 font-sans pb-24">
         
         {/* 1. HEADER: Title & Cart Drawer Icon */}
-        <header className="flex items-center justify-between w-full select-none px-1 pt-1">
-          <div className="flex flex-col gap-1">
-            <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#111827] tracking-tight leading-none">
+        <header className="flex items-center justify-between gap-4 w-full select-none px-1 pt-1">
+          <div className="flex flex-col gap-1 min-w-0 pr-2">
+            <h1 className="font-heading text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#111827] tracking-tight leading-none">
               Care Marketplace
             </h1>
-            <span className="text-xs sm:text-sm text-stone-600 font-medium tracking-wide">
-              Ethical nutrition, veterinary medicines & essential supplies for companion wellness and rescue care
-            </span>
+            <p className="text-xs sm:text-sm text-stone-600 font-medium tracking-normal leading-relaxed max-w-lg">
+              Ethical nutrition, veterinary care & essential pet supplies
+            </p>
           </div>
           
           <button 
