@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import CartDrawer, { type CartItem } from './CartDrawer';
 import { useAuth } from '../context/AuthContext';
 import { Product } from '../types';
@@ -12,6 +13,11 @@ interface MarketplaceProps {
 
 export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
   const { token } = useAuth();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -138,7 +144,7 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
         <header className="flex items-center justify-between gap-4 w-full select-none px-1 pt-1">
           <div className="flex flex-col gap-1 min-w-0 pr-2">
             <h1 className="font-heading text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#111827] tracking-tight leading-none">
-              Care Marketplace
+              Marketplace
             </h1>
             <p className="text-xs sm:text-sm text-stone-600 font-medium tracking-normal leading-relaxed max-w-lg">
               Ethical nutrition, veterinary care & essential pet supplies
@@ -360,12 +366,18 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
       </main>
 
       {/* CUSTOMER PRODUCT DETAILS MODAL (PetCareServices Formatted View) */}
-      {selectedProduct && (
-        <div className="fixed inset-0 bg-black/70 z-[99999] backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-[#FAF8F5] border border-[#D5CEBF] rounded-[32px] max-w-lg w-full p-5 sm:p-7 shadow-2xl relative max-h-[92vh] overflow-y-auto flex flex-col gap-5 font-sans">
+      {isMounted && selectedProduct && createPortal(
+        <div 
+          onClick={() => setSelectedProduct(null)}
+          className="fixed inset-0 bg-black/75 z-[100000] backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fadeIn select-none"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-[#FAF8F5] border border-[#D5CEBF] rounded-[32px] max-w-lg w-full p-5 sm:p-7 shadow-2xl relative max-h-[85vh] sm:max-h-[88vh] overflow-y-auto flex flex-col gap-5 font-sans my-auto"
+          >
             
             {/* Modal Header */}
-            <div className="flex items-center justify-between w-full border-b border-[#EAE4D8] pb-3">
+            <div className="flex items-center justify-between w-full border-b border-[#EAE4D8] pb-3 shrink-0">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold uppercase bg-[#2D4536] text-white px-3 py-1 rounded-full tracking-wider">
                   {selectedProduct.category}
@@ -387,7 +399,7 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
             </div>
 
             {/* Product Image */}
-            <div className="w-full aspect-[4/3] max-h-[260px] rounded-2xl bg-[#EFEAE2] overflow-hidden relative border border-[#D5CEBF]">
+            <div className="w-full aspect-[4/3] max-h-[240px] rounded-2xl bg-[#EFEAE2] overflow-hidden relative border border-[#D5CEBF] shrink-0">
               <img
                 src={selectedProduct.imageUrl}
                 alt={selectedProduct.title}
@@ -462,8 +474,8 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
               </div>
             </div>
 
-            {/* Action Bar */}
-            <div className="flex items-center justify-between gap-3 pt-2 border-t border-[#EAE4D8] mt-1">
+            {/* Sticky Action Bar */}
+            <div className="sticky bottom-0 bg-[#FAF8F5] pt-3 pb-1 border-t border-[#EAE4D8] mt-auto z-20">
               {getCartQuantity(selectedProduct._id || selectedProduct.id || '') > 0 ? (
                 <div className="flex items-center justify-between w-full bg-[#2D4536] rounded-2xl px-4 py-2.5 shadow-xs">
                   <button
@@ -498,7 +510,8 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
             </div>
 
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Cart Drawer */}
