@@ -36,6 +36,13 @@ const formatTime = (dateStr: string) => {
 
 const renderRoleIcon = (role: MemberRole, size = 'w-6 h-6') => {
   switch (role) {
+    case 'ngo':
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-terracotta`}>
+          <rect x="4" y="2" width="16" height="20" rx="2" />
+          <path d="M9 22v-4h6v4M8 6h.01M16 6h.01M8 10h.01M16 10h.01M8 14h.01M16 14h.01" />
+        </svg>
+      );
     case 'feeder':
       return (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className={`${size} text-terracotta`}>
@@ -419,7 +426,7 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
       lat: coords[0],
       lng: coords[1]
     };
-  });
+  }).sort((a, b) => (a.distanceVal ?? Infinity) - (b.distanceVal ?? Infinity));
 
   const dbMappedReports = dbSosReports.map(r => {
     const user = dbUsers.find(u => u.phone === r.userPhone || u.email === r.userEmail);
@@ -500,6 +507,8 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
   // Role style mappings (matching dark green theme)
   const getRoleColors = (role: MemberRole) => {
     switch (role) {
+      case 'ngo':
+        return { bg: 'bg-[#E5E0D4]', text: 'text-[#2D4536]', border: 'border-[#D3CCBE]', label: 'NGO' };
       case 'feeder':
         return { bg: 'bg-[#E5E0D4]', text: 'text-[#2D4536]', border: 'border-[#D3CCBE]', label: 'Feeder' };
       case 'rescuer':

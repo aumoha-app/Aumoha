@@ -280,11 +280,12 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
   // Wizard state
   const [wizardStep, setWizardStep] = useState<number>(1);
   const [selectedExpert, setSelectedExpert] = useState<Expert | null>(null);
-  const [bookingMode, setBookingMode] = useState<'chat' | 'video' | 'audio' | 'in-person'>('chat');
+  const [bookingMode, setBookingMode] = useState<string>('in-clinic');
   const [selectedConcerns, setSelectedConcerns] = useState<string[]>([]);
   const [concernText, setConcernText] = useState('');
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>('Today');
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('10:30 AM');
   const [timeToggle, setTimeToggle] = useState<'Morning' | 'Afternoon' | 'Evening'>('Morning');
   const [selectedPetName, setSelectedPetName] = useState('');
   const [newPetInput, setNewPetInput] = useState(false);
@@ -633,6 +634,15 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
     }
   }, [token]);
 
+  // Auto scroll to top on view transition
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const container = document.getElementById('expert-wizard-container');
+    if (container) {
+      container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [currentView, wizardStep]);
+
   useEffect(() => {
     if (user?.pets && user.pets.length > 0) {
       setSelectedPetName(user.pets[0].name);
@@ -946,19 +956,14 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
             </div>
 
             {/* Right: Hero Image */}
-            <div className="w-[45%] md:w-[35%] relative shrink-0 flex items-end justify-end overflow-hidden">
-              {/* Top smudge overlay specifically over image */}
-              <div className="absolute top-0 left-0 right-0 h-14 bg-gradient-to-b from-[#FAF8F5] via-[#FAF8F5]/70 to-transparent z-10 pointer-events-none" />
+            <div className="w-[42%] md:w-[35%] relative shrink-0 flex items-end justify-end overflow-hidden">
               <img
-                src="/expert_care_pet_hero.png"
+                src="/expert_care_pet_hero.png?v=2"
                 alt="Expert Support Pet Hero"
-                className="w-full h-full object-contain object-right-bottom translate-y-0.5"
+                className="w-full h-full object-cover object-right-bottom scale-115 origin-right translate-y-0.5"
               />
             </div>
           </div>
-
-          {/* Bottom fade into content area background */}
-          <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[#FAF8F5] to-transparent" />
         </div>
       </div>
 
@@ -989,7 +994,10 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
               onClick={() => handleStartQuiz()}
               className="px-4 bg-[#1C1A17] hover:bg-stone-800 text-white text-[11px] font-extrabold rounded-2xl flex items-center gap-1.5 shadow-sm transition-all cursor-pointer active:scale-95"
             >
-              ✨ Quiz
+              <svg className="w-3.5 h-3.5 text-amber-300" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z" />
+              </svg>
+              <span>Match Quiz</span>
             </button>
           </div>
 
@@ -1023,15 +1031,15 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                     setListingSubFilter(null);
                     setCurrentView('listing');
                   }}
-                  className="bg-white border border-[#F0EBE1] rounded-[24px] p-5 cursor-pointer shadow-xs hover:shadow-md transition-all duration-300 relative overflow-hidden flex flex-col justify-between h-[160px] hover:scale-[1.02] group"
+                  className="bg-white border border-[#F0EBE1] rounded-[24px] p-5 md:p-6 cursor-pointer shadow-xs hover:shadow-md transition-all duration-300 relative overflow-hidden flex flex-col justify-between min-h-[175px] hover:scale-[1.02] group"
                 >
-                  <div className="flex flex-col gap-1 z-10 w-[58%]">
+                  <div className="flex flex-col gap-1 z-10 w-[62%]">
                     <div>
                       {/* Title and Description */}
-                      <h4 className="text-xs font-bold font-serif text-charcoal leading-tight group-hover:text-[#2D4536] transition-colors">
+                      <h4 className="text-base sm:text-lg font-bold font-serif text-[#1C1A17] leading-snug group-hover:text-[#2D4536] transition-colors">
                         {displayTitle}
                       </h4>
-                      <p className="text-[10px] text-stone-500 font-semibold leading-relaxed mt-1 line-clamp-2">
+                      <p className="text-xs sm:text-sm text-stone-600 font-medium leading-relaxed mt-1.5 line-clamp-2">
                         {conf.desc}
                       </p>
                     </div>
@@ -1188,617 +1196,709 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
               const photoUrl = exp.photo || (exp as any).image || (exp as any).avatar || (exp as any).profilePic;
 
               return (
-                <div 
+                <div
                   key={exp._id}
-                  className="bg-white border border-[#F0EBE1] hover:border-[#2D4536]/30 hover:shadow-[0_8px_30px_rgba(45,69,54,0.06)] rounded-[28px] p-5 md:p-6 flex flex-col gap-4 shadow-sm transition-all duration-300"
+                  className="bg-[#FAF6F0] border border-[#E8E2D8] rounded-[24px] overflow-hidden shadow-2xs flex flex-col hover:border-[#2D4536]/30 transition-all duration-300"
                 >
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-3.5">
-                      {/* Avatar with responsive photo & initials fallback */}
-                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden bg-[#E8F0EA] border border-[#2D4536]/20 relative shrink-0 flex items-center justify-center shadow-xs">
-                        {photoUrl ? (
-                          <img 
-                            src={photoUrl} 
-                            alt={exp.name} 
-                            className={`w-full h-full ${photoUrl.includes('expert_') || photoUrl.includes('.png') ? 'object-contain p-1' : 'object-cover'} rounded-2xl`}
-                            onError={(e) => {
-                              (e.target as HTMLElement).style.display = 'none';
-                              const fallbackEl = (e.target as HTMLElement).nextElementSibling as HTMLElement;
-                              if (fallbackEl) fallbackEl.style.display = 'flex';
-                            }}
-                          />
-                        ) : null}
-                        <div 
-                          className={`w-full h-full bg-gradient-to-br from-[#E8F0EA] to-[#D4E4D7] flex items-center justify-center text-[#2D4536] font-extrabold text-sm sm:text-base ${
-                            photoUrl ? 'hidden' : 'flex'
-                          }`}
-                        >
-                          {exp.name ? exp.name.charAt(0).toUpperCase() : 'E'}
-                        </div>
-                        {exp.isOnline && (
-                          <span className="absolute bottom-0.5 right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white"></span>
-                        )}
-                      </div>
-
-                      {/* Bio Details */}
-                      <div>
-                        <h4 className="text-sm md:text-base font-bold text-charcoal flex items-center gap-1.5 leading-snug">
-                          {exp.name}
-                          <svg className="w-4 h-4 text-[#2D4536] fill-current" viewBox="0 0 24 24">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                          </svg>
-                        </h4>
-                        <span className="text-xs text-stone-500 font-semibold block mt-0.5">{exp.specialisation}</span>
-                      </div>
-                    </div>
-
-
-                  </div>
-
-                  {exp.bio && (
-                    <p className="text-xs md:text-sm text-stone-600 leading-relaxed font-medium pl-3 border-l-2 border-[#2D4536]/40">
-                      {exp.bio}
-                    </p>
-                  )}
-
-                  {/* Specialty Tags */}
-                  <div className="flex flex-wrap gap-2 select-none">
-                    {exp.specialtyTags && exp.specialtyTags.map((tag, tIdx) => (
-                      <span 
-                        key={tag} 
-                        className={`text-[11px] md:text-xs font-bold px-3 py-1.5 rounded-full border transition-colors ${
-                          tIdx === 1
-                            ? 'bg-[#E8F0EA] border-[#2D4536]/20 text-[#2D4536]'
-                            : 'bg-white border-[#F0EBE1] text-stone-600'
+                  {/* TOP MAIN SECTION */}
+                  <div className="flex items-stretch min-h-[145px] sm:min-h-[155px]">
+                    {/* LEFT TALL PHOTO COLUMN */}
+                    <div className="w-28 sm:w-32 md:w-36 self-stretch shrink-0 bg-[#E8F0EA] overflow-hidden relative flex items-center justify-center">
+                      {photoUrl ? (
+                        <img
+                          src={photoUrl}
+                          alt={exp.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none';
+                            const fallbackEl = (e.target as HTMLElement).nextElementSibling as HTMLElement;
+                            if (fallbackEl) fallbackEl.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      <div
+                        className={`w-full h-full bg-gradient-to-br from-[#2D4536] to-[#4A5D4E] flex items-center justify-center text-white font-serif font-bold text-2xl ${
+                          photoUrl ? 'hidden' : 'flex'
                         }`}
                       >
-                        {tag}
-                      </span>
-                    ))}
+                        {exp.name ? exp.name.charAt(0).toUpperCase() : 'E'}
+                      </div>
+                    </div>
+
+                    {/* RIGHT DETAILS COLUMN */}
+                    <div className="flex-1 p-4 sm:p-5 flex flex-col justify-between min-w-0 gap-2">
+                      <div className="flex items-start justify-between gap-2.5">
+                        {/* Name + Category Pill Tag */}
+                        <div className="flex items-center gap-2 flex-wrap min-w-0">
+                          <h4 className="font-serif text-base sm:text-xl font-bold text-[#1C1A17] leading-tight">
+                            {exp.name}
+                          </h4>
+                          <span className="bg-[#E8E2D8] text-stone-700 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider shrink-0 inline-block">
+                            {exp.category === 'vet' ? 'VET' : (exp.category || 'EXPERT')}
+                          </span>
+                        </div>
+
+                        {/* Fee & Mode */}
+                        <div className="text-right shrink-0">
+                          <span className="font-sans text-lg sm:text-2xl font-extrabold text-[#1C1A17] block leading-none">
+                            ₹{exp.fee}
+                          </span>
+                          <span className="text-[10px] sm:text-xs text-stone-500 font-medium block text-right mt-1">
+                            In-clinic
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Specialisation Subtitle */}
+                      <p className="text-xs sm:text-sm font-semibold text-stone-700 leading-snug">
+                        {exp.specialisation}
+                      </p>
+
+                      {/* Bio Quote */}
+                      {exp.bio && (
+                        <p className="text-xs sm:text-sm text-stone-600 font-medium italic leading-snug line-clamp-2">
+                          "{exp.bio}"
+                        </p>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Action CTA */}
-                  <div className="flex justify-between items-center pt-3.5 border-t border-stone-100 mt-1 flex-wrap gap-3">
-                    <div className="text-left flex flex-col">
-                      <span className="text-[10px] font-extrabold text-stone-400 uppercase tracking-wider">Consultation Fee</span>
-                      <span className="text-sm md:text-base font-extrabold text-charcoal">₹{exp.fee} / session</span>
+                  {/* BOTTOM SLOT SELECTOR ROW */}
+                  <div className="bg-[#F4EFE6] border-t border-[#E8E2D8] px-4 py-3 sm:px-5 flex items-center justify-between gap-3 flex-wrap">
+                    <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                      <span className="font-serif text-sm sm:text-base font-bold text-[#1C1A17] mr-1">Today</span>
+                      {(exp.availableSlots && exp.availableSlots.length > 0
+                        ? exp.availableSlots.filter(s => !s.isBooked).slice(0, 3)
+                        : [
+                            { _id: 's1', time: '9:00 AM' },
+                            { _id: 's2', time: '11:00 AM' },
+                            { _id: 's3', time: '2:00 PM' }
+                          ]
+                      ).map((slot, sIdx) => (
+                        <button
+                          key={slot._id || sIdx}
+                          type="button"
+                          onClick={() => {
+                            setSelectedSlot(slot as any);
+                            handleSelectExpert(exp);
+                          }}
+                          className="px-3.5 py-1.5 sm:px-4 sm:py-2 bg-white hover:bg-[#2D4536] hover:text-white border border-[#E5E0D8] rounded-full text-xs font-extrabold text-[#1C1A17] transition-all shadow-2xs cursor-pointer"
+                        >
+                          {slot.time}
+                        </button>
+                      ))}
                     </div>
+
                     <button
+                      type="button"
                       onClick={() => handleSelectExpert(exp)}
-                      className="px-6 py-2.5 bg-[#2D4536] hover:bg-[#1E2E24] text-white text-xs md:text-sm font-bold rounded-full transition-all shadow-sm hover:shadow active:scale-95 cursor-pointer"
+                      className="text-xs sm:text-sm font-extrabold text-[#2D4536] hover:underline cursor-pointer flex items-center gap-1 ml-auto"
                     >
-                      View Profile & Book
+                      <span>View all</span>
+                      <span>→</span>
                     </button>
                   </div>
                 </div>
               );
             })}
           </div>
-
         </div>
       )}
 
-      {/* ==================== SCREEN 3: BOOKING FORM SHEET ==================== */}
-      {currentView === 'wizard' && selectedExpert && (() => {
-        const availableSlots = selectedExpert.availableSlots 
-          ? selectedExpert.availableSlots.filter(s => !s.isBooked) 
-          : [];
+      {/* ==================== SCREEN 3: MULTI-STEP CONFIRM BOOKING FLOW ==================== */}
+          {currentView === 'wizard' && selectedExpert && (
+            <div id="expert-wizard-container" className="flex flex-col gap-5 w-full animate-fadeIn select-none text-left">
 
-        // Calendar helpers
-        const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-        const dayNames = ['Su','Mo','Tu','We','Th','Fr','Sa'];
-        const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
-        const firstDayOfWeek = new Date(calendarYear, calendarMonth, 1).getDay();
-        const today = new Date();
-        const isCurrentMonth = calendarMonth === today.getMonth() && calendarYear === today.getFullYear();
-        const todayDate = today.getDate();
-
-        // Build slots lookup by date string for the calendar dots
-        const slotDateStrings = new Set(availableSlots.map(s => s.date));
-        const hasSlotOnDay = (day: number) => {
-          // Check common date label formats
-          const dateObj = new Date(calendarYear, calendarMonth, day);
-          const labels = ['Today', 'Tomorrow'];
-          const todayObj = new Date();
-          const tomorrowObj = new Date(); tomorrowObj.setDate(todayObj.getDate() + 1);
-          if (dateObj.toDateString() === todayObj.toDateString() && slotDateStrings.has('Today')) return true;
-          if (dateObj.toDateString() === tomorrowObj.toDateString() && slotDateStrings.has('Tomorrow')) return true;
-          // Also check formatted strings
-          const formatted = `${dateObj.getDate()} ${monthNames[dateObj.getMonth()].slice(0,3)}`;
-          if (slotDateStrings.has(formatted)) return true;
-          return slotDateStrings.has(dateObj.toLocaleDateString());
-        };
-
-        // Get label for selected calendar day
-        const getDateLabel = (day: number) => {
-          const dateObj = new Date(calendarYear, calendarMonth, day);
-          const todayObj = new Date();
-          const tomorrowObj = new Date(); tomorrowObj.setDate(todayObj.getDate() + 1);
-          if (dateObj.toDateString() === todayObj.toDateString()) return 'Today';
-          if (dateObj.toDateString() === tomorrowObj.toDateString()) return 'Tomorrow';
-          return `${day} ${monthNames[calendarMonth].slice(0,3)}`;
-        };
-
-        const activeDateLabel = calendarSelectedDay ? getDateLabel(calendarSelectedDay) : (availableSlots[0]?.date || 'Today');
-        const slotsForActiveDate = availableSlots.filter(s => s.date === activeDateLabel);
-
-        const prevMonth = () => {
-          if (calendarMonth === 0) { setCalendarMonth(11); setCalendarYear(calendarYear - 1); }
-          else setCalendarMonth(calendarMonth - 1);
-        };
-        const nextMonth = () => {
-          if (calendarMonth === 11) { setCalendarMonth(0); setCalendarYear(calendarYear + 1); }
-          else setCalendarMonth(calendarMonth + 1);
-        };
-
-        return (
-          <div className="w-full max-w-[860px] mx-auto grid grid-cols-1 md:grid-cols-[1fr_280px] gap-4 animate-fadeIn select-none text-left">
-            
-            {/* ─── LEFT COLUMN ─── */}
-            <div className="flex flex-col gap-4">
-              
-              {/* ── Section 1: Session Mode ── */}
-              <div className="bg-white border border-[#EBE3D5] rounded-2xl shadow-sm overflow-hidden">
-                <div className="px-5 pt-4 pb-2">
-                  <h3 className="text-[12px] font-extrabold text-charcoal uppercase tracking-wider">Session Mode</h3>
-                </div>
-                <div className="px-4 pb-4">
-                  <div className="grid grid-cols-4 gap-1.5 p-1.5 bg-[#FAF8F5] border border-[#F0EBE1] rounded-xl">
-                    {[
-                      { 
-                        mode: 'chat', 
-                        label: 'Chat', 
-                        icon: (
-                          <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                          </svg>
-                        ) 
-                      },
-                      { 
-                        mode: 'video', 
-                        label: 'Video', 
-                        icon: (
-                          <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <polygon points="23 7 16 12 23 17 23 7" />
-                            <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
-                          </svg>
-                        ) 
-                      },
-                      { 
-                        mode: 'audio', 
-                        label: 'Voice', 
-                        icon: (
-                          <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                          </svg>
-                        ) 
-                      },
-                      { 
-                        mode: 'in-person', 
-                        label: 'Clinic', 
-                        icon: (
-                          <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M3 21h18" />
-                            <path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16" />
-                            <path d="M9 21v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4" />
-                            <path d="M10 9h4" />
-                            <path d="M12 7v4" />
-                          </svg>
-                        ) 
-                      }
-                    ].map(m => (
-                      <button
-                        key={m.mode}
-                        type="button"
-                        onClick={() => setBookingMode(m.mode as any)}
-                        className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-[11px] font-bold transition-all ${
-                          bookingMode === m.mode
-                            ? 'bg-[#2D4536] text-white shadow-sm border border-[#2D4536]'
-                            : 'text-stone-500 hover:text-charcoal hover:bg-white/60'
-                        }`}
-                      >
-                        {m.icon}
-                        <span>{m.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* ── Section 2: Pet & Concerns ── */}
-              <div className="bg-white border border-[#EBE3D5] rounded-2xl shadow-sm overflow-hidden">
-                {/* Pet Selection */}
-                <div className="px-5 pt-4 pb-3 border-b border-stone-100/60">
-                  <div className="flex justify-between items-center mb-3">
-                    <h3 className="text-[12px] font-extrabold text-charcoal uppercase tracking-wider">Your Pet</h3>
-                    <button 
-                      type="button"
-                      onClick={() => {
-                        setPetError(null);
-                        setPetForm({
-                          name: '',
-                          type: 'Dog',
-                          photo: '',
-                          breed: '',
-                          age: undefined,
-                          gender: 'unknown',
-                          notes: ''
-                        });
-                        setIsPetModalOpen(true);
-                      }}
-                      className="text-[10px] font-bold text-[#2D4536] hover:underline"
-                    >
-                      + Add New Pet
-                    </button>
-                  </div>
-
-                  <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-hide">
-                    {user?.pets && user.pets.map((pet: any) => (
-                      <button
-                        key={pet._id}
-                        type="button"
-                        onClick={() => setSelectedPetName(pet.name)}
-                        className={`px-3.5 py-1.5 border rounded-lg text-[11px] font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-                          selectedPetName === pet.name 
-                            ? 'bg-[#E8F0EA] border-[#2D4536]/30 text-[#2D4536]' 
-                            : 'bg-[#FAF8F5] border-[#F0EBE1] text-stone-600 hover:border-stone-300'
-                        }`}
-                      >
-                        {pet.name}
-                      </button>
-                    ))}
-                    {(!user?.pets || user.pets.length === 0) && (
-                      <span className="text-[10px] text-stone-400 italic py-1">No pets registered. Add a pet above.</span>
-                    )}
-                  </div>
+              {/* STEPPER PROGRESS HEADER BAR */}
+              <div className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-[24px] p-4 flex flex-col gap-3 shadow-2xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#2D4536]">
+                    Step {wizardStep} of 3
+                  </span>
+                  <span className="text-xs font-bold text-[#1C1A17]">
+                    {wizardStep === 1 && 'Consultation & Companion'}
+                    {wizardStep === 2 && 'Schedule Date & Time'}
+                    {wizardStep === 3 && 'Review & Payment'}
+                  </span>
                 </div>
 
-
-                {/* Concerns */}
-                <div className="px-5 pt-3 pb-4">
-                  <h3 className="text-[12px] font-extrabold text-charcoal uppercase tracking-wider mb-2.5">Concerns</h3>
-                  
-                  <div className="flex flex-wrap gap-1.5 select-none">
-                    {['Anxiety', 'Aggression', 'Hyperactivity', 'Eating habits', 'Injury recovery', 'Grooming', 'Post-Surgery', 'Diet plan'].map(tag => {
-                      const isSelected = selectedConcerns.includes(tag);
-                      return (
-                        <button
-                          key={tag}
-                          type="button"
-                          onClick={() => {
-                            if (isSelected) {
-                              setSelectedConcerns(selectedConcerns.filter(t => t !== tag));
-                            } else {
-                              setSelectedConcerns([...selectedConcerns, tag]);
-                            }
-                          }}
-                          className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all ${
-                            isSelected 
-                              ? 'bg-[#E8F0EA] border-[#2D4536]/30 text-[#2D4536]' 
-                              : 'bg-[#FAF8F5] border-[#F0EBE1] text-stone-500 hover:border-stone-300'
-                          }`}
-                        >
-                          {tag}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <textarea
-                    rows={2}
-                    value={concernText}
-                    onChange={(e) => setConcernText(e.target.value)}
-                    placeholder="Additional notes or symptoms..."
-                    className="w-full mt-3 bg-[#FAF8F5] border border-[#F0EBE1] rounded-xl p-3 text-[11px] font-semibold text-charcoal focus:outline-none focus:border-[#2D4536]/40 placeholder:text-stone-400 resize-none"
+                {/* Visual Step Progress Line */}
+                <div className="w-full bg-[#E5E0D8] h-2 rounded-full overflow-hidden relative">
+                  <div
+                    className="bg-gradient-to-r from-[#2D4536] to-[#4A5D4E] h-full rounded-full transition-all duration-300 ease-out"
+                    style={{ width: `${(wizardStep / 3) * 100}%` }}
                   />
                 </div>
 
-                {/* Medical Report Upload */}
-                <div className="px-5 pt-3 pb-4 border-t border-stone-100/60">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <h3 className="text-[12px] font-extrabold text-charcoal uppercase tracking-wider">
-                      📄 Medical Report / Previous Prescription (Optional)
-                    </h3>
-                    <span className="text-[9px] text-stone-400 font-semibold">Image/PDF</span>
+                {/* Step Indicators Grid */}
+                <div className="grid grid-cols-3 text-center text-[10px] font-bold pt-1">
+                  <div className={`flex items-center justify-center gap-1.5 ${wizardStep >= 1 ? 'text-[#2D4536]' : 'text-stone-400'}`}>
+                    <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] ${wizardStep >= 1 ? 'bg-[#2D4536] text-white' : 'bg-stone-300 text-stone-600'}`}>1</span>
+                    <span>Companion</span>
                   </div>
-                  <p className="text-[10px] text-stone-500 font-medium mb-2.5">
-                    Upload old medical reports or history for {selectedExpert.name} to review.
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <label className="px-3.5 py-2 bg-[#FAF8F5] border border-[#F0EBE1] hover:bg-white text-stone-700 text-[11px] font-bold rounded-xl cursor-pointer transition-all flex items-center gap-1.5 shadow-2xs">
-                      <span>📤 Choose File</span>
-                      <input 
-                        type="file" 
-                        accept="image/*,.pdf" 
-                        className="hidden" 
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            setMedicalReportName(file.name);
-                            const reader = new FileReader();
-                            reader.onload = (event) => {
-                              setMedicalReportBase64(event.target?.result as string);
-                            };
-                            reader.readAsDataURL(file);
-                          }
-                        }} 
-                      />
-                    </label>
-                    {medicalReportName && (
-                      <div className="flex items-center gap-2 text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-xl truncate max-w-[180px]">
-                        <span>✓ {medicalReportName}</span>
-                        <button 
-                          type="button" 
-                          onClick={() => { setMedicalReportBase64(''); setMedicalReportName(''); }}
-                          className="text-stone-400 hover:text-rose-500 font-extrabold ml-1 cursor-pointer"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    )}
+                  <div className={`flex items-center justify-center gap-1.5 ${wizardStep >= 2 ? 'text-[#2D4536]' : 'text-stone-400'}`}>
+                    <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] ${wizardStep >= 2 ? 'bg-[#2D4536] text-white' : 'bg-stone-300 text-stone-600'}`}>2</span>
+                    <span>Date & Time</span>
+                  </div>
+                  <div className={`flex items-center justify-center gap-1.5 ${wizardStep >= 3 ? 'text-[#2D4536]' : 'text-stone-400'}`}>
+                    <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] ${wizardStep >= 3 ? 'bg-[#2D4536] text-white' : 'bg-stone-300 text-stone-600'}`}>3</span>
+                    <span>Review & Pay</span>
                   </div>
                 </div>
               </div>
 
-              {/* ── Section 3: Select Date & Select Time (Vet Consultation matching layout) ── */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-5 w-full bg-[#FAF8F5] border border-[#E8E2D8] rounded-[26px] p-5 shadow-2xs">
-                
-                {/* SELECT DATE (Left 7 Cols) */}
-                <div className="md:col-span-7 flex flex-col gap-3">
-                  <label className="text-[10.5px] font-extrabold text-stone-500 uppercase tracking-widest">SELECT DATE</label>
+              {/* PROMINENT DOCTOR PROFILE BANNER WITH BIO (VISIBLE ON ALL STEPS) */}
+              <div className="bg-[#FAF6F0] border border-[#EBE3D5] rounded-[24px] p-4 sm:p-5 shadow-2xs flex flex-col gap-3.5">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden bg-white border border-[#D5CEBF] shrink-0 shadow-2xs">
+                      {selectedExpert.photo ? (
+                        <img src={selectedExpert.photo} alt={selectedExpert.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-[#2D4536] to-[#4A5D4E] flex items-center justify-center text-white font-serif font-bold text-lg">
+                          {selectedExpert.name ? selectedExpert.name.charAt(0).toUpperCase() : 'E'}
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-serif text-base sm:text-xl font-bold text-[#1C1A17] leading-tight truncate">
+                        {selectedExpert.name}
+                      </h3>
+                      <p className="text-xs sm:text-sm font-semibold text-[#2D4536] mt-0.5 truncate">
+                        {selectedExpert.specialisation}
+                      </p>
+                    </div>
+                  </div>
 
-                  {/* Month Header & Nav */}
-                  <div className="flex items-center justify-between pt-1">
-                    <span className="font-serif text-sm font-bold text-[#1C1A17]">
-                      {monthNames[calendarMonth]} {calendarYear}
-                    </span>
-                    <div className="flex items-center gap-1">
-                      <button 
-                        type="button" 
-                        onClick={prevMonth}
-                        className="w-6 h-6 rounded-full hover:bg-stone-200 text-stone-600 flex items-center justify-center transition-all cursor-pointer font-bold text-xs"
+                  <div className="text-right bg-white/90 backdrop-blur-sm border border-[#E5DEC3] rounded-2xl px-3.5 py-2 shrink-0 shadow-2xs">
+                    <span className="font-sans text-base sm:text-xl font-extrabold text-[#2D4536] block leading-none">₹{selectedExpert.fee}</span>
+                    <span className="text-[9px] sm:text-[10px] text-stone-500 font-bold uppercase tracking-widest block mt-1">Fee</span>
+                  </div>
+                </div>
+
+                {/* DOCTOR BIO / DESCRIPTION DISPLAY */}
+                <div className="bg-white/80 backdrop-blur-sm border border-[#EBE3D5] rounded-2xl p-3.5 shadow-2xs">
+                  <div className="flex items-center gap-1.5 text-[10px] font-extrabold text-stone-500 uppercase tracking-widest mb-1">
+                    <svg className="w-3.5 h-3.5 text-[#2D4536]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                      <circle cx="9" cy="7" r="4" />
+                      <path d="M22 21v-2a4 4 0 0 3-3.87" />
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                    <span>ABOUT THE SPECIALIST</span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-stone-700 font-medium leading-relaxed font-sans">
+                    {selectedExpert.bio || "Dedicated specialist providing holistic care, gentle treatments, and health consultations for your pet companions."}
+                  </p>
+                </div>
+              </div>
+
+              {/* STEP 1: CONSULTATION MODE, SELECT PET & UPLOAD REPORT */}
+              {wizardStep === 1 && (
+                <div className="flex flex-col gap-5 w-full animate-fadeIn">
+                  {/* Consultation Mode Picker */}
+                  <div className="flex flex-col gap-2.5">
+                    <label className="text-[10.5px] font-extrabold text-stone-500 uppercase tracking-widest px-1">1. CONSULTATION MODE</label>
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4 w-full">
+                      <button
+                        type="button"
+                        onClick={() => setBookingMode('in-clinic')}
+                        className={`p-4 sm:p-5 rounded-2xl sm:rounded-[22px] text-left transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[120px] ${bookingMode === 'in-clinic' || bookingMode === 'in-person'
+                            ? 'bg-[#F4F0EA] border-2 border-[#2D4536] shadow-sm'
+                            : 'bg-[#F9F6F0] border border-[#E5E0D8] hover:bg-[#F5F1EA]'
+                          }`}
                       >
-                        ‹
+                        <div className="flex items-start justify-between w-full">
+                          <svg className="w-7 h-7 sm:w-8 sm:h-8 text-[#2D4536]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 21h18" />
+                            <path d="M5 21V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v14" />
+                            <path d="M9 21v-4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4" />
+                            <path d="M10 9h4" />
+                            <path d="M12 7v4" />
+                          </svg>
+                          <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-all ${bookingMode === 'in-clinic' || bookingMode === 'in-person' ? 'bg-[#2D4536] border-2 border-[#2D4536]' : 'border-2 border-stone-300'
+                            }`}>
+                            {(bookingMode === 'in-clinic' || bookingMode === 'in-person') && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                          </div>
+                        </div>
+                        <div className="mt-3">
+                          <h4 className="font-serif text-sm sm:text-base font-bold text-[#1C1A17] leading-tight">In-clinic / In-person</h4>
+                          <p className="text-[11px] sm:text-xs text-stone-500 font-medium mt-0.5">Visit clinic or home visit</p>
+                        </div>
                       </button>
-                      <button 
-                        type="button" 
-                        onClick={nextMonth}
-                        className="w-6 h-6 rounded-full hover:bg-stone-200 text-stone-600 flex items-center justify-center transition-all cursor-pointer font-bold text-xs"
+
+                      <button
+                        type="button"
+                        onClick={() => setBookingMode('tele-consult')}
+                        className={`p-4 sm:p-5 rounded-2xl sm:rounded-[22px] text-left transition-all duration-200 cursor-pointer flex flex-col justify-between min-h-[120px] ${bookingMode === 'tele-consult' || bookingMode === 'video'
+                            ? 'bg-[#F4F0EA] border-2 border-[#2D4536] shadow-sm'
+                            : 'bg-[#F9F6F0] border border-[#E5E0D8] hover:bg-[#F5F1EA]'
+                          }`}
                       >
-                        ›
+                        <div className="flex items-start justify-between w-full">
+                          <svg className="w-7 h-7 sm:w-8 sm:h-8 text-[#2D4536]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="2" y="6" width="14" height="12" rx="3" />
+                            <path d="M16 10l5-3v10l-5-3" />
+                          </svg>
+                          <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-all ${bookingMode === 'tele-consult' || bookingMode === 'video' ? 'bg-[#2D4536] border-2 border-[#2D4536]' : 'border-2 border-stone-300'
+                            }`}>
+                            {(bookingMode === 'tele-consult' || bookingMode === 'video') && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                          </div>
+                        </div>
+                        <div className="mt-3">
+                          <h4 className="font-serif text-sm sm:text-base font-bold text-[#1C1A17] leading-tight">Tele-consult</h4>
+                          <p className="text-[11px] sm:text-xs text-stone-500 font-medium mt-0.5">Online video call</p>
+                        </div>
                       </button>
                     </div>
                   </div>
 
-                  {/* Day Headers */}
-                  <div className="grid grid-cols-7 text-center">
-                    {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(d => (
-                      <span key={d} className="text-[9px] font-bold text-stone-400 uppercase py-1">{d}</span>
-                    ))}
-                  </div>
+                  {/* SELECT PET SECTION */}
+                  <div className="flex flex-col gap-2.5 w-full">
+                    <label className="text-[10.5px] font-extrabold text-stone-500 uppercase tracking-widest px-1">2. SELECT PET COMPANION</label>
+                    {(() => {
+                      const currentPet = user?.pets?.find((p: any) => p.name === selectedPetName) || user?.pets?.[0];
+                      const petName = newPetInput ? customPetName : (selectedPetName || currentPet?.name);
 
-                  {/* Days Grid */}
-                  <div className="grid grid-cols-7 gap-y-1 text-center">
-                    {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-                      <span key={`blank-${i}`} />
-                    ))}
-                    {Array.from({ length: daysInMonth }).map((_, i) => {
-                      const day = i + 1;
-                      const isPast = isCurrentMonth && day < todayDate;
-                      const isSelected = calendarSelectedDay === day;
-                      
+                      if (!petName && !currentPet) {
+                        return (
+                          <div className="bg-[#F4F0EA] border border-[#E5E0D8] rounded-[22px] p-4 flex items-center justify-between w-full shadow-2xs">
+                            <div className="flex items-center gap-3.5 min-w-0">
+                              <div className="w-12 h-12 rounded-full overflow-hidden bg-stone-200 border border-[#D5CEBF] shrink-0 flex items-center justify-center text-stone-500">
+                                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                </svg>
+                              </div>
+                              <div className="min-w-0">
+                                <h4 className="font-serif text-base font-bold text-[#1C1A17] leading-tight">No Pet Selected</h4>
+                                <p className="text-xs text-stone-500 font-medium mt-0.5">Click "+ Add another pet" below to add your pet profile</p>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      const petBreed = currentPet?.breed || (currentPet?.type ? `${currentPet.type}` : '');
+                      const petAge = currentPet?.age ? `${currentPet.age} yrs` : '';
+                      const petGender = currentPet?.gender && currentPet.gender !== 'unknown' ? currentPet.gender : '';
+                      const detailsString = [petBreed, petAge, petGender].filter(Boolean).join(' • ') || (currentPet?.type || 'Pet');
+
                       return (
-                        <div key={day} className="flex flex-col items-center justify-center">
-                          <button
-                            type="button"
-                            disabled={isPast}
-                            onClick={() => {
-                              setCalendarSelectedDay(day);
-                              const label = getDateLabel(day);
-                              setSelectedDate(label);
-                              const firstSlot = availableSlots.find(s => s.date === label);
-                              if (firstSlot) setSelectedSlot(firstSlot);
-                            }}
-                            className={`w-8 h-8 rounded-full text-xs font-bold transition-all flex items-center justify-center ${
-                              isPast 
-                                ? 'text-stone-300 cursor-not-allowed'
-                                : isSelected
-                                  ? 'bg-[#2D4536] text-white shadow-sm font-extrabold'
-                                  : 'text-[#1C1A17] hover:bg-[#F4F0EA] cursor-pointer'
+                        <div
+                          onClick={() => {
+                            if (user?.pets && user.pets.length > 1) {
+                              const currentIndex = user.pets.findIndex((p: any) => p.name === (selectedPetName || currentPet?.name));
+                              const nextPet = user.pets[(currentIndex + 1) % user.pets.length];
+                              if (nextPet) {
+                                setSelectedPetName(nextPet.name);
+                                setNewPetInput(false);
+                              }
+                            }
+                          }}
+                          className={`bg-[#F4F0EA] border border-[#E5E0D8] rounded-[22px] p-4 flex items-center justify-between w-full shadow-2xs ${user?.pets && user.pets.length > 1 ? 'cursor-pointer hover:border-[#D5CEBF]' : ''
                             }`}
-                          >
-                            {day}
-                          </button>
+                        >
+                          <div className="flex items-center gap-3.5 min-w-0">
+                            <div className="w-12 h-12 rounded-full overflow-hidden bg-stone-200 border border-[#D5CEBF] shrink-0 flex items-center justify-center text-[#2D4536]">
+                              {currentPet?.photo ? (
+                                <img src={currentPet.photo} alt={petName || 'Pet'} className="w-full h-full object-cover" />
+                              ) : (
+                                <svg className="w-6 h-6 stroke-[1.8]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                </svg>
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <h4 className="font-serif text-base font-bold text-[#1C1A17] leading-tight truncate">{petName}</h4>
+                              <p className="text-xs text-stone-500 font-medium mt-0.5 truncate capitalize">{detailsString}</p>
+                            </div>
+                          </div>
+                          {user?.pets && user.pets.length > 1 && (
+                            <div className="w-6 h-6 text-stone-600 flex items-center justify-center shrink-0" title="Click to cycle pets">
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </div>
+                          )}
                         </div>
                       );
-                    })}
-                  </div>
-                </div>
+                    })()}
 
-                {/* Vertical Separator for Desktop */}
-                <div className="hidden md:block w-px bg-[#E8E2D8] self-stretch" />
-
-                {/* SELECT TIME (Right 4 Cols) */}
-                <div className="md:col-span-4 flex flex-col gap-3 border-t md:border-t-0 pt-4 md:pt-0">
-                  <label className="text-[10.5px] font-extrabold text-stone-500 uppercase tracking-widest">SELECT TIME</label>
-
-                  <div className="flex flex-col gap-2.5">
-                    {(slotsForActiveDate.length > 0 ? slotsForActiveDate : availableSlots.slice(0, 4)).map((slot, sIdx) => {
-                      const isSelectedSlot = selectedSlot?._id === slot._id || (!selectedSlot && sIdx === 0);
-                      return (
-                        <button
-                          key={slot._id || sIdx}
-                          type="button"
-                          onClick={() => {
-                            setSelectedSlot(slot);
-                            setSelectedDate(slot.date);
-                          }}
-                          className={`w-full py-3 rounded-2xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer text-center ${
-                            isSelectedSlot
-                              ? 'bg-[#2D4536] text-white shadow-sm border border-[#2D4536]'
-                              : 'bg-[#F9F6F0] border border-[#E5E0D8] text-[#1C1A17] hover:bg-[#F4F0EA]'
-                          }`}
-                        >
-                          {slot.time}
-                        </button>
-                      );
-                    })}
-
-                    {/* Custom Time Selection Option Card */}
-                    <div 
-                      className={`w-full rounded-2xl p-3 transition-all border flex flex-col gap-2 ${
-                        isChangingTimezone
-                          ? 'bg-[#2D4536] text-white border-[#2D4536] shadow-sm'
-                          : 'bg-[#F9F6F0] border-[#E5E0D8] text-[#1C1A17] hover:bg-[#F4F0EA]'
-                      }`}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPetError(null);
+                        setPetForm({ name: '', type: 'Dog', photo: '', breed: '', age: undefined, gender: 'unknown', notes: '' });
+                        setIsPetModalOpen(true);
+                      }}
+                      className="w-full py-3 px-4 border-2 border-dashed border-[#DCD5C7] rounded-[22px] bg-transparent hover:bg-[#F5F2EC] text-[#1C1A17] text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer"
                     >
-                      <div 
-                        onClick={() => setIsChangingTimezone(!isChangingTimezone)}
-                        className="flex items-center justify-between px-1 cursor-pointer font-extrabold text-xs sm:text-sm select-none"
-                      >
-                        <span className="flex items-center gap-1.5">
-                          <svg className="w-4 h-4 text-current" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
-                            <circle cx="12" cy="12" r="10" />
-                            <polyline points="12 6 12 12 16 14" />
-                          </svg>
-                          <span>Custom Time</span>
-                        </span>
-                      </div>
+                      <span className="text-base font-bold">+</span>
+                      <span>Add another pet</span>
+                    </button>
+                  </div>
 
-                      {isChangingTimezone && (
-                        <div className="pt-1 flex items-center gap-2">
-                          <input
-                            type="time"
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              if (val) {
-                                const [hStr, mStr] = val.split(':');
-                                let h = parseInt(hStr, 10);
-                                const m = parseInt(mStr, 10);
-                                const ampm = h >= 12 ? 'PM' : 'AM';
-                                h = h % 12;
-                                h = h ? h : 12;
-                                const formattedTime = `${h}:${m < 10 ? '0' : ''}${m} ${ampm}`;
-                                const customSlot = {
-                                  _id: `custom_${Date.now()}`,
-                                  date: activeDateLabel,
-                                  time: formattedTime,
-                                  isBooked: false
-                                };
-                                setSelectedSlot(customSlot);
-                              }
-                            }}
-                            className="w-full bg-white text-charcoal border border-[#E5E0D8] rounded-xl px-3 py-2 text-xs font-extrabold outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer shadow-inner"
-                          />
+                  {/* UPLOAD OLD MEDICAL REPORT SECTION */}
+                  <div className="flex flex-col gap-2.5 w-full bg-[#FAF8F5] border border-[#E8E2D8] rounded-[24px] p-4 shadow-2xs">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10.5px] font-extrabold text-stone-500 uppercase tracking-widest flex items-center gap-1.5">
+                        <svg className="w-3.5 h-3.5 text-stone-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                          <line x1="16" y1="13" x2="8" y2="13" />
+                          <line x1="16" y1="17" x2="8" y2="17" />
+                        </svg>
+                        <span>UPLOAD MEDICAL HISTORY (OPTIONAL)</span>
+                      </label>
+                      <span className="text-[9px] text-stone-400 font-semibold">Image or PDF</span>
+                    </div>
+                    <p className="text-[11px] text-stone-500 font-medium">Share your pet's past records with {selectedExpert.name} in advance for better consultation context.</p>
+                    <div className="flex items-center gap-3">
+                      <label className="px-4 py-2.5 bg-white border border-[#D5CEBF] hover:bg-[#F5F2EC] text-[#1C1A17] text-xs font-bold rounded-xl cursor-pointer transition-all flex items-center gap-2 shadow-2xs">
+                        <svg className="w-4 h-4 text-[#2D4536]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                          <polyline points="17 8 12 3 7 8" />
+                          <line x1="12" y1="3" x2="12" y2="15" />
+                        </svg>
+                        <span>Choose File</span>
+                        <input
+                          type="file"
+                          accept="image/*,.pdf"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              setMedicalReportName(file.name);
+                              const reader = new FileReader();
+                              reader.onload = (event) => {
+                                setMedicalReportBase64(event.target?.result as string);
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                      </label>
+                      {medicalReportName && (
+                        <div className="flex items-center gap-2 text-xs font-bold text-[#2D4536] bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl truncate max-w-[200px]">
+                          <span>✓ {medicalReportName}</span>
+                          <button
+                            type="button"
+                            onClick={() => { setMedicalReportBase64(''); setMedicalReportName(''); }}
+                            className="text-stone-400 hover:text-rose-500 font-extrabold ml-1 cursor-pointer"
+                          >
+                            ✕
+                          </button>
                         </div>
                       )}
                     </div>
                   </div>
+
+                  {/* STEP 1 NEXT BUTTON */}
+                  <div className="flex justify-end pt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const petName = newPetInput ? customPetName : (selectedPetName || user?.pets?.[0]?.name);
+                        if (!petName || !petName.trim()) {
+                          alert('Please specify the name of your pet companion.');
+                          return;
+                        }
+                        setWizardStep(2);
+                      }}
+                      className="w-full sm:w-auto px-7 py-3 bg-[#2D4536] hover:bg-[#1E2E24] active:scale-[0.98] text-white text-xs sm:text-sm font-extrabold rounded-full shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <span>Next</span>
+                    </button>
+                  </div>
                 </div>
+              )}
 
-              </div>
-            </div>
+              {/* STEP 2: SELECT DATE & TIME SLOT */}
+              {wizardStep === 2 && (
+                <div className="flex flex-col gap-5 w-full animate-fadeIn">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-5 w-full bg-[#FAF8F5] border border-[#E8E2D8] rounded-[26px] p-5 shadow-2xs">
 
-            {/* ─── RIGHT COLUMN ─── */}
-            <div className="flex flex-col gap-4 md:sticky md:top-4 h-fit">
-              
-              {/* Specialist Card */}
-              <div className="bg-white border border-[#EBE3D5] rounded-2xl shadow-sm p-4 flex items-center gap-3">
-                <div className="w-11 h-11 rounded-full overflow-hidden bg-stone-100 border border-[#F0EBE1] shrink-0">
-                  {selectedExpert.photo ? (
-                    <img src={selectedExpert.photo} alt={selectedExpert.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-stone-200 to-stone-300 flex items-center justify-center text-stone-600 font-bold text-[11px]">
-                      {selectedExpert.name[0]}
+                    {/* SELECT DATE (Left 7 Cols) */}
+                    <div className="md:col-span-7 flex flex-col gap-3">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[10.5px] font-extrabold text-stone-500 uppercase tracking-widest">SELECT DATE</label>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1">
+                        <span className="font-serif text-sm font-bold text-[#1C1A17]">
+                          {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][calendarMonth]} {calendarYear}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (calendarMonth === 11) {
+                              setCalendarMonth(0);
+                              setCalendarYear(prev => prev + 1);
+                            } else {
+                              setCalendarMonth(prev => prev + 1);
+                            }
+                          }}
+                          className="w-6 h-6 rounded-full hover:bg-stone-200 text-stone-600 flex items-center justify-center transition-all cursor-pointer font-bold text-xs"
+                        >
+                          ›
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-7 text-center">
+                        {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(d => (
+                          <span key={d} className="text-[9px] font-bold text-stone-400 uppercase py-1">{d}</span>
+                        ))}
+                      </div>
+
+                      <div className="grid grid-cols-7 gap-y-1 text-center">
+                        {Array.from({ length: new Date(calendarYear, calendarMonth, 1).getDay() }).map((_, i) => (
+                          <span key={`blank-${i}`} />
+                        ))}
+                        {Array.from({ length: new Date(calendarYear, calendarMonth + 1, 0).getDate() }).map((_, i) => {
+                          const dayNum = i + 1;
+                          const isSelected = calendarSelectedDay === dayNum;
+                          const isPast = new Date().getMonth() === calendarMonth && new Date().getFullYear() === calendarYear && dayNum < new Date().getDate();
+
+                          return (
+                            <div key={dayNum} className="flex flex-col items-center justify-center">
+                              <button
+                                type="button"
+                                disabled={isPast}
+                                onClick={() => {
+                                  setCalendarSelectedDay(dayNum);
+                                  const mName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][calendarMonth];
+                                  const dateStr = `${mName} ${dayNum}`;
+                                  setSelectedSlot({
+                                    _id: `slot_${dayNum}`,
+                                    date: dateStr,
+                                    time: selectedTimeSlot,
+                                    isBooked: false
+                                  });
+                                }}
+                                className={`w-8 h-8 rounded-full text-xs font-bold transition-all flex items-center justify-center ${isPast
+                                    ? 'text-stone-300 cursor-not-allowed'
+                                    : isSelected
+                                      ? 'bg-[#2D4536] text-white shadow-sm font-extrabold'
+                                      : 'text-[#1C1A17] hover:bg-[#F4F0EA] cursor-pointer'
+                                  }`}
+                              >
+                                {dayNum}
+                              </button>
+                              {!isPast && (
+                                <span className={`w-1 h-1 rounded-full mt-0.5 ${isSelected ? 'bg-emerald-400' : 'bg-stone-400'}`} />
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-[12px] font-bold text-charcoal truncate leading-tight">{selectedExpert.name}</h4>
-                  <span className="text-[10px] text-stone-500 font-semibold truncate block">{selectedExpert.specialisation}</span>
-                </div>
-                <div className="bg-[#E8F0EA] border border-[#2D4536]/20 text-[#2D4536] text-[8px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 shrink-0">
-                  <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  </svg>
-                  Private
-                </div>
-              </div>
 
-              {/* Invoice & CTA */}
-              <div className="bg-white border border-[#EBE3D5] rounded-2xl shadow-sm overflow-hidden">
-                <div className="px-4 pt-4 pb-2">
-                  <h3 className="text-[12px] font-extrabold text-charcoal uppercase tracking-wider">Booking Summary</h3>
-                </div>
+                    <div className="hidden md:block w-px bg-[#E8E2D8] self-stretch" />
 
-                <div className="px-4 pb-3">
-                  <div className="divide-y divide-stone-100">
-                    {[
-                      { label: 'Mode', value: bookingMode, capitalize: true },
-                      { label: 'Pet', value: (newPetInput ? customPetName : selectedPetName) || '—' },
-                      { label: 'Date & Time', value: selectedSlot ? `${selectedSlot.date} · ${selectedSlot.time}` : '—', highlight: !!selectedSlot },
-                      { label: 'Focus', value: selectedConcerns.length > 0 ? selectedConcerns.join(', ') : 'General' },
-                    ].map((row, i) => (
-                      <div key={i} className="flex justify-between items-center py-2.5">
-                        <span className="text-[11px] text-stone-400 font-semibold">{row.label}</span>
-                        <span className={`text-[11px] font-bold text-right max-w-[140px] truncate ${
-                          row.highlight ? 'text-emerald-700' : 'text-charcoal'
-                        } ${row.capitalize ? 'capitalize' : ''}`}>
-                          {row.value}
+                    {/* SELECT TIME (Right 5 Cols) */}
+                    <div className="md:col-span-4 flex flex-col gap-3 border-t md:border-t-0 pt-4 md:pt-0">
+                      <label className="text-[10.5px] font-extrabold text-stone-500 uppercase tracking-widest">SELECT TIME</label>
+                      <div className="flex flex-col gap-2.5">
+                        {['10:30 AM', '1:00 PM', '3:30 PM', '5:00 PM'].map(timeStr => {
+                          const isTimeSelected = selectedTimeSlot === timeStr && !isChangingTimezone;
+                          return (
+                            <button
+                              key={timeStr}
+                              type="button"
+                              onClick={() => {
+                                setSelectedTimeSlot(timeStr);
+                                setIsChangingTimezone(false);
+                                const mName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][calendarMonth];
+                                setSelectedSlot({
+                                  _id: `slot_${calendarSelectedDay}`,
+                                  date: `${mName} ${calendarSelectedDay}`,
+                                  time: timeStr,
+                                  isBooked: false
+                                });
+                              }}
+                              className={`w-full py-3 rounded-2xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer text-center ${isTimeSelected
+                                  ? 'bg-[#2D4536] text-white shadow-sm border border-[#2D4536]'
+                                  : 'bg-[#F9F6F0] border border-[#E5E0D8] text-[#1C1A17] hover:bg-[#F4F0EA]'
+                                }`}
+                            >
+                              {timeStr}
+                            </button>
+                          );
+                        })}
+
+                        <div
+                          className={`w-full rounded-2xl p-3 transition-all border flex flex-col gap-2 ${isChangingTimezone
+                              ? 'bg-[#2D4536] text-white border-[#2D4536] shadow-sm'
+                              : 'bg-[#F9F6F0] border-[#E5E0D8] text-[#1C1A17] hover:bg-[#F4F0EA]'
+                            }`}
+                        >
+                          <div
+                            onClick={() => setIsChangingTimezone(true)}
+                            className="flex items-center justify-between px-1 cursor-pointer font-extrabold text-xs sm:text-sm select-none"
+                          >
+                            <span className="flex items-center gap-1.5">
+                              <svg className="w-4 h-4 text-current" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
+                                <circle cx="12" cy="12" r="10" />
+                                <polyline points="12 6 12 12 16 14" />
+                              </svg>
+                              <span>Custom Time</span>
+                            </span>
+                          </div>
+
+                          {isChangingTimezone && (
+                            <div className="pt-1 flex items-center gap-2">
+                              <input
+                                type="time"
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  if (val) {
+                                    const [hStr, mStr] = val.split(':');
+                                    let h = parseInt(hStr, 10);
+                                    const m = parseInt(mStr, 10);
+                                    const ampm = h >= 12 ? 'PM' : 'AM';
+                                    h = h % 12;
+                                    h = h ? h : 12;
+                                    const formattedTime = `${h}:${m < 10 ? '0' : ''}${m} ${ampm}`;
+                                    setSelectedTimeSlot(formattedTime);
+                                    const mName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][calendarMonth];
+                                    setSelectedSlot({
+                                      _id: `slot_${calendarSelectedDay}`,
+                                      date: `${mName} ${calendarSelectedDay}`,
+                                      time: formattedTime,
+                                      isBooked: false
+                                    });
+                                  }
+                                }}
+                                className="w-full bg-white text-charcoal border border-[#E5E0D8] rounded-xl px-3 py-2 text-xs font-extrabold outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer shadow-inner"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* STEP 2 NAV BUTTONS */}
+                  <div className="flex items-center justify-between gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setWizardStep(1)}
+                      className="px-5 py-2.5 bg-white border border-[#D5CEBF] hover:bg-[#FAF8F5] text-[#1C1A17] text-xs sm:text-sm font-bold rounded-full transition-all cursor-pointer shadow-2xs"
+                    >
+                      ← Back
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setWizardStep(3)}
+                      className="px-7 py-3 bg-[#2D4536] hover:bg-[#1E2E24] active:scale-[0.98] text-white text-xs sm:text-sm font-extrabold rounded-full shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+                    >
+                      <span>Next</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 3: REVIEW & PAYMENT CONFIRMATION */}
+              {wizardStep === 3 && (
+                <div className="flex flex-col gap-5 w-full animate-fadeIn">
+                  {/* Booking Summary Card */}
+                  <div className="bg-white/95 backdrop-blur-sm border border-[#E2DBD0] rounded-[24px] p-5 sm:p-6 flex flex-col gap-1 shadow-sm">
+                    <h3 className="text-[10.5px] font-extrabold text-stone-400 uppercase tracking-[0.15em] border-b border-[#F0EBE1] pb-3 mb-1">FINAL BOOKING SUMMARY</h3>
+
+                    <div className="divide-y divide-[#F5F2EB]">
+                      <div className="flex justify-between items-center py-3">
+                        <span className="text-xs sm:text-sm font-medium text-stone-500">Specialist</span>
+                        <span className="font-serif text-sm sm:text-base font-bold text-[#1C1A17]">{selectedExpert.name}</span>
+                      </div>
+
+                      <div className="flex justify-between items-center py-3">
+                        <span className="text-xs sm:text-sm font-medium text-stone-400">Scheduled Date & Time</span>
+                        <span className="font-extrabold text-[#0D7855] text-xs sm:text-sm">
+                          {selectedSlot?.date || 'Today'} • {selectedSlot?.time || selectedTimeSlot}
                         </span>
                       </div>
-                    ))}
-                    <div className="flex justify-between items-center py-3">
-                      <span className="text-[12px] text-charcoal font-extrabold">Total</span>
-                      <span className="text-base font-extrabold text-[#2D4536]">₹{selectedExpert.fee}</span>
+
+                      <div className="flex justify-between items-center py-3">
+                        <span className="text-xs sm:text-sm font-medium text-stone-400">Consultation Mode</span>
+                        <span className="font-extrabold text-[#1C1A17] text-xs sm:text-sm capitalize">
+                          {bookingMode === 'tele-consult' || bookingMode === 'video' ? 'Tele-consult (Video Call)' : 'In-Clinic / In-Person Visit'}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between items-center py-3">
+                        <span className="text-xs sm:text-sm font-medium text-stone-400">Pet Companion</span>
+                        <span className="font-extrabold text-[#1C1A17] text-xs sm:text-sm capitalize">
+                          {newPetInput ? customPetName : (selectedPetName || user?.pets?.[0]?.name)}
+                        </span>
+                      </div>
+
+                      {medicalReportName && (
+                        <div className="flex justify-between items-center py-3">
+                          <span className="text-xs sm:text-sm font-medium text-stone-400">Attached History</span>
+                          <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-lg truncate max-w-[180px]">
+                            ✓ {medicalReportName}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="flex justify-between items-center py-3">
+                        <span className="text-xs sm:text-sm font-medium text-stone-500">Consultation Fee</span>
+                        <span className="font-sans text-sm sm:text-base font-extrabold text-[#1C1A17]">₹{selectedExpert.fee}</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-2 pt-3.5 border-t-2 border-[#F0EBE1] flex items-center justify-between">
+                      <span className="font-sans text-base sm:text-lg font-extrabold text-[#1C1A17]">Total Payable Amount</span>
+                      <span className="font-sans text-xl sm:text-2xl font-extrabold text-[#2D4536]">₹{selectedExpert.fee}</span>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-col gap-2.5 mt-1">
+                    <button
+                      onClick={() => {
+                        const petName = newPetInput ? customPetName : (selectedPetName || user?.pets?.[0]?.name);
+                        processRazorpayPayment({
+                          amount: selectedExpert.fee,
+                          receipt: `receipt_exp_${Date.now()}`,
+                          name: `Specialist Consult - ${selectedExpert.name}`,
+                          description: `Session fee for ${petName}`,
+                          prefill: {
+                            name: user?.fullName || '',
+                            email: user?.email || '',
+                            contact: user?.phone || '',
+                          },
+                          onSuccess: () => {
+                            handleConfirmBooking();
+                          }
+                        });
+                      }}
+                      className="w-full py-3.5 bg-[#2D4536] hover:bg-[#1E2E24] active:scale-[0.98] text-white text-xs sm:text-sm md:text-base font-extrabold rounded-full shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <span>Proceed to Pay ₹{selectedExpert.fee}</span>
+                    </button>
+
+                    <div className="flex items-center justify-between gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() => setWizardStep(2)}
+                        className="px-5 py-2.5 bg-white border border-[#D5CEBF] hover:bg-[#FAF8F5] text-[#1C1A17] text-xs sm:text-sm font-bold rounded-full transition-all cursor-pointer shadow-2xs shrink-0"
+                      >
+                        ← Back
+                      </button>
+                      <button
+                        onClick={handleConfirmBooking}
+                        className="flex-1 py-2.5 px-4 bg-white border border-[#DCD5C7] hover:bg-[#FAF8F5] active:scale-[0.98] text-[#1C1A17] text-xs sm:text-sm font-bold rounded-full shadow-2xs transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
+                      >
+                        Confirm Booking (Pay Later)
+                      </button>
                     </div>
                   </div>
                 </div>
+              )}
 
-                <div className="px-4 pb-4 flex flex-col gap-2">
-                  <button
-                    onClick={() => {
-                      if (!selectedSlot || !(newPetInput ? customPetName : selectedPetName).trim()) return;
-                      const petName = newPetInput ? customPetName : selectedPetName;
-                      processRazorpayPayment({
-                        amount: selectedExpert.fee,
-                        receipt: `receipt_exp_${Date.now()}`,
-                        name: `Specialist Consult - ${selectedExpert.name}`,
-                        description: `Session fee for ${petName} (${selectedExpert.specialisation})`,
-                        prefill: {
-                          name: user?.fullName || '',
-                          email: user?.email || '',
-                          contact: user?.phone || '',
-                        },
-                        onSuccess: () => {
-                          handleConfirmBooking();
-                        }
-                      });
-                    }}
-                    disabled={!selectedSlot || !(newPetInput ? customPetName : selectedPetName).trim()}
-                    className="w-full py-3 bg-[#2D4536] hover:bg-[#1E2E24] disabled:bg-stone-200 disabled:text-stone-400 disabled:cursor-not-allowed text-white text-xs font-extrabold rounded-2xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    💳 Proceed to Pay ₹{selectedExpert.fee} Online <span>→</span>
-                  </button>
-                  
-                  <button
-                    onClick={handleConfirmBooking}
-                    disabled={!selectedSlot || !(newPetInput ? customPetName : selectedPetName).trim()}
-                    className="w-full py-2.5 bg-white border border-[#EBE3D5] hover:bg-stone-50 disabled:bg-stone-200 disabled:text-stone-400 disabled:cursor-not-allowed text-stone-600 text-xs font-bold rounded-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    Confirm Booking (Pay Later)
-                  </button>
-                </div>
-              </div>
-              
             </div>
-            
-          </div>
-        );
-      })()}
-      
-      {/* ==================== SCREEN 4: BOOKING CONFIRMED SUCCESS SCREEN ==================== */}
+          )}
       {currentView === 'confirmed' && confirmedAppt && (
         <div className="flex flex-col items-center justify-center text-center gap-6 py-6 w-full animate-fadeIn select-none">
           
@@ -1944,7 +2044,6 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
               Back to Home
             </button>
           </div>
-
         </div>
       )}
 

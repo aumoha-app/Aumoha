@@ -3570,6 +3570,53 @@ app.put('/api/provider/slots', authMiddleware, async (req: Request, res: Respons
 });
 
 /**
+ * PUT /api/provider/profile
+ * Allows logged-in provider to update their profile bio, fee, experience, and specialization.
+ */
+app.put('/api/provider/profile', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userEmail = req.user?.email;
+    const { providerId, bio, fee, experience, specialisation, photo } = req.body;
+
+    if (mongoose.connection.readyState !== 1) {
+      const vet = fallbackVets.find(v => (providerId && v._id === providerId) || (v.email && userEmail && v.email.toLowerCase() === userEmail.toLowerCase()));
+      if (vet) {
+        if (bio !== undefined) vet.bio = bio;
+        if (fee !== undefined) vet.fee = Number(fee);
+        if (experience !== undefined) vet.experience = Number(experience);
+        if (specialisation !== undefined) vet.specialisation = specialisation;
+        if (photo !== undefined) vet.photo = photo;
+        return res.json({ status: 'success', provider: vet });
+      }
+      return res.status(404).json({ status: 'error', message: 'Provider profile not found' });
+    }
+
+    let vet = null;
+    if (providerId) {
+      vet = await Vet.findById(providerId);
+    } else if (userEmail) {
+      vet = await Vet.findOne({ email: { $regex: new RegExp(`^${userEmail}$`, 'i') } });
+    }
+
+    if (!vet) {
+      return res.status(404).json({ status: 'error', message: 'Provider profile not found' });
+    }
+
+    if (bio !== undefined) vet.bio = bio;
+    if (fee !== undefined) vet.fee = Number(fee);
+    if (experience !== undefined) vet.experience = Number(experience);
+    if (specialisation !== undefined) vet.specialisation = specialisation;
+    if (photo !== undefined) vet.photo = photo;
+    await vet.save();
+
+    return res.json({ status: 'success', provider: vet });
+  } catch (error) {
+    console.error('Error in PUT /api/provider/profile:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
  * PUT /api/provider/availability
  * Toggles the vet/expert's isOnline status.
  * Body: { isOnline: boolean }

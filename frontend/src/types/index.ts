@@ -31,7 +31,7 @@ export interface UserProfile {
   phone: string;
   address: string;
   profilePic?: string;
-  role?: 'normal' | 'admin' | 'rescuer' | 'doctor' | 'expert' | 'feeder' | 'volunteer' | 'paravet' | string;
+  role?: 'normal' | 'admin' | 'rescuer' | 'doctor' | 'expert' | 'feeder' | 'volunteer' | 'paravet' | 'ngo' | string;
   rescueCount?: number;
   pets?: Pet[];
   createdAt?: string;
@@ -67,7 +67,7 @@ export interface SosReport {
   updatedAt?: string;
 }
 
-export type MemberRole = 'all' | 'feeder' | 'rescuer' | 'volunteer' | 'paravet' | 'adopter' | 'normal' | 'official';
+export type MemberRole = 'all' | 'feeder' | 'rescuer' | 'volunteer' | 'paravet' | 'adopter' | 'normal' | 'official' | 'ngo';
 
 export interface CircleMember {
   id: string;

@@ -20,6 +20,8 @@ export default function BlogDetailView({
   
   const getRoleColors = (role: MemberRole) => {
     switch (role) {
+      case 'ngo':
+        return { bg: 'bg-[#E8F5E9]', text: 'text-[#2D4536]', border: 'border-[#C8E6C9]', label: 'NGO' };
       case 'feeder':
         return { bg: 'bg-[#E8F5E9]', text: 'text-[#2D4536]', border: 'border-[#C8E6C9]', label: 'Feeder' };
       case 'rescuer':
