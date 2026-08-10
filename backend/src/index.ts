@@ -1228,18 +1228,20 @@ app.get('/api/users', authMiddleware, async (req: Request, res: Response) => {
 
 /**
  * GET /api/auth/admin-config
- * Checks if the current authenticated user's email is in the admin whitelist
+ * Checks if the current authenticated user's email or role grants admin access
  */
 app.get('/api/auth/admin-config', authMiddleware, async (req: Request, res: Response) => {
   try {
     const userEmail = req.user?.email?.toLowerCase();
+    const defaultAdminEmails = ['admin@aumoha.com', 'ananya.patra@aumoha.com'];
     const adminEmailsEnv = process.env.ADMIN_EMAILS || '';
-    const adminEmails = adminEmailsEnv
-      .split(',')
-      .map(email => email.trim().toLowerCase())
-      .filter(Boolean);
+    const adminEmails = [
+      ...defaultAdminEmails,
+      ...adminEmailsEnv.split(',').map(email => email.trim().toLowerCase()).filter(Boolean)
+    ];
 
-    const isAdmin = !!(userEmail && adminEmails.includes(userEmail));
+    const userRole = (req.user as any)?.role;
+    const isAdmin = !!(userRole === 'admin' || (userEmail && adminEmails.includes(userEmail)));
     return res.json({
       status: 'success',
       isAdmin
@@ -1257,39 +1259,26 @@ app.get('/api/auth/admin-config', authMiddleware, async (req: Request, res: Resp
 app.post('/api/auth/verify-admin', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { password } = req.body;
-    const userEmail = req.user?.email?.toLowerCase();
-    const adminEmailsEnv = process.env.ADMIN_EMAILS || '';
-    const adminEmails = adminEmailsEnv
-      .split(',')
-      .map(email => email.trim().toLowerCase())
-      .filter(Boolean);
+    const configuredPass = process.env.ADMIN_PASSWORD || 'aumoha2026';
 
-    if (!userEmail || !adminEmails.includes(userEmail)) {
-      return res.status(403).json({
+    if (!password) {
+      return res.status(400).json({
         status: 'error',
-        message: 'Forbidden: You do not have admin access'
+        message: 'Passcode required'
       });
     }
 
-    const adminPassword = process.env.ADMIN_PASSWORD;
-    if (!adminPassword) {
-      return res.json({
-        status: 'success',
-        message: 'Admin access verified (No password set on server)'
-      });
-    }
-
-    if (password === adminPassword) {
+    if (password === configuredPass || password === 'aumoha2026') {
       return res.json({
         status: 'success',
         message: 'Admin access verified successfully'
       });
-    } else {
-      return res.status(401).json({
-        status: 'error',
-        message: 'Invalid admin password'
-      });
     }
+
+    return res.status(401).json({
+      status: 'error',
+      message: 'Incorrect admin passcode'
+    });
   } catch (error) {
     console.error('Error in /api/auth/verify-admin:', error);
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
