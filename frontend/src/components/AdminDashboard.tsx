@@ -1018,13 +1018,19 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
             setCurrentTab('users');
             fetchAdminUsers();
           }}
-          className={`px-5 py-2.5 text-xs font-bold transition-all border-b-2 cursor-pointer flex items-center gap-1.5 ${
+          className={`px-4 py-2.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
             currentTab === 'users'
-              ? 'border-purple-600 text-purple-700'
-              : 'border-transparent text-stone-400 hover:text-purple-700'
+              ? 'bg-[#2D4536] text-white shadow-md scale-[1.02]'
+              : 'bg-stone-100/80 hover:bg-stone-200/70 text-stone-600'
           }`}
         >
-          <span>👤 Assign Roles</span>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="8.5" cy="7" r="4" />
+            <line x1="20" y1="8" x2="20" y2="14" />
+            <line x1="17" y1="11" x2="23" y2="11" />
+          </svg>
+          <span>Assign Roles</span>
         </button>
       </div>
 
@@ -2161,17 +2167,17 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
       {currentTab === 'users' && (
         <div className="space-y-6 animate-fadeIn">
           {/* Header Banner */}
-          <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 text-white rounded-3xl p-6 sm:p-7 shadow-lg relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="bg-gradient-to-r from-[#1C1A17] via-[#2D4536] to-[#4A5D4E] text-white rounded-3xl p-6 sm:p-7 shadow-lg relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex flex-col gap-1.5 relative z-10 max-w-xl">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider bg-purple-500/20 text-purple-200 border border-purple-400/30 px-3 py-0.5 rounded-full">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider bg-white/15 text-emerald-200 border border-white/20 px-3 py-0.5 rounded-full">
                   User Permissions & Access Control
                 </span>
               </div>
               <h2 className="font-serif text-2xl sm:text-3xl font-semibold tracking-tight text-white">
                 Assign User Roles
               </h2>
-              <p className="text-xs text-purple-200/80 leading-relaxed font-medium">
+              <p className="text-xs text-stone-200/90 leading-relaxed font-medium">
                 Grant specialized roles (Veterinarians, Certified Rescuers, Community Feeders, NGOs, Administrators) to enable provider dashboards and administrative capabilities across the platform.
               </p>
             </div>
@@ -2212,7 +2218,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                   placeholder="e.g. doctor@aumoha.com"
                   value={roleAssignEmail}
                   onChange={(e) => setRoleAssignEmail(e.target.value)}
-                  className="w-full bg-white border border-[#D5CEBF] focus:border-purple-600 rounded-xl px-3.5 py-2.5 text-xs text-[#1C1A17] outline-none font-medium shadow-2xs"
+                  className="w-full bg-white border border-[#D5CEBF] focus:border-[#2D4536] rounded-xl px-3.5 py-2.5 text-xs text-[#1C1A17] outline-none font-medium shadow-2xs"
                   required
                 />
               </div>
@@ -2222,7 +2228,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                 <select
                   value={roleAssignRole}
                   onChange={(e) => setRoleAssignRole(e.target.value)}
-                  className="w-full bg-white border border-[#D5CEBF] focus:border-purple-600 rounded-xl px-3.5 py-2.5 text-xs text-[#1C1A17] outline-none font-bold cursor-pointer shadow-2xs"
+                  className="w-full bg-white border border-[#D5CEBF] focus:border-[#2D4536] rounded-xl px-3.5 py-2.5 text-xs text-[#1C1A17] outline-none font-bold cursor-pointer shadow-2xs"
                 >
                   <option value="doctor">🩺 Doctor / Veterinarian (Full Medical Dashboard)</option>
                   <option value="expert">🎓 Veterinary Specialist / Care Expert</option>
@@ -2239,7 +2245,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                 <button
                   type="submit"
                   disabled={isAssigningRole || !roleAssignEmail.trim()}
-                  className="w-full py-2.5 bg-purple-700 hover:bg-purple-800 active:scale-[0.98] disabled:opacity-50 text-white font-extrabold text-xs rounded-xl shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full py-2.5 bg-[#2D4536] hover:bg-[#1F3325] active:scale-[0.98] disabled:opacity-50 text-white font-extrabold text-xs rounded-xl shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2"
                 >
                   {isAssigningRole ? (
                     <>
@@ -2273,13 +2279,13 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {usersList.map((usr: any) => {
                   const roleColors: Record<string, string> = {
-                    admin: 'bg-purple-100 text-purple-900 border-purple-300',
+                    admin: 'bg-[#2D4536]/15 text-[#2D4536] border-[#2D4536]/30',
                     doctor: 'bg-emerald-100 text-emerald-900 border-emerald-300',
                     expert: 'bg-teal-100 text-teal-900 border-teal-300',
                     rescuer: 'bg-red-100 text-red-900 border-red-300',
                     feeder: 'bg-amber-100 text-amber-900 border-amber-300',
                     ngo: 'bg-blue-100 text-blue-900 border-blue-300',
-                    volunteer: 'bg-indigo-100 text-indigo-900 border-indigo-300',
+                    volunteer: 'bg-emerald-50 text-emerald-800 border-emerald-200',
                     normal: 'bg-stone-100 text-stone-700 border-stone-300'
                   };
                   const currentRoleColor = roleColors[usr.role] || roleColors.normal;
@@ -2291,7 +2297,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-indigo-700 text-white font-bold flex items-center justify-center text-sm shrink-0 shadow-xs">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2D4536] to-[#4A5D4E] text-white font-bold flex items-center justify-center text-sm shrink-0 shadow-xs">
                             {usr.fullName ? usr.fullName[0].toUpperCase() : 'U'}
                           </div>
                           <div className="flex flex-col min-w-0">
@@ -2320,7 +2326,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                         <select
                           value={usr.role || 'normal'}
                           onChange={(e) => handleAssignRole(usr.email, e.target.value)}
-                          className="bg-[#FAF8F5] border border-[#D5CEBF] rounded-xl text-xs font-bold text-[#1C1A17] py-1.5 px-2.5 outline-none cursor-pointer hover:border-purple-600 transition-colors"
+                          className="bg-[#FAF8F5] border border-[#D5CEBF] rounded-xl text-xs font-bold text-[#1C1A17] py-1.5 px-2.5 outline-none cursor-pointer hover:border-[#2D4536] transition-colors"
                         >
                           <option value="normal">Member</option>
                           <option value="doctor">Doctor</option>
