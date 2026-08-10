@@ -1893,6 +1893,45 @@ app.get('/api/sos/resolved', authMiddleware, async (req: Request, res: Response)
 });
 
 /**
+ * GET /api/sos/stats
+ * Public endpoint to retrieve real live SOS impact metrics
+ */
+app.get('/api/sos/stats', async (req: Request, res: Response) => {
+  try {
+    let reports: any[] = [];
+    if (mongoose.connection.readyState === 1) {
+      reports = await SosReport.find();
+    }
+    const allReports = [...fallbackSosReports, ...reports];
+    
+    const rescued = allReports.filter(r => r.status === 'resolved').length;
+    const active = allReports.filter(r => r.status === 'dispatched' || r.status === 'in_progress').length;
+    const pending = allReports.filter(r => r.status === 'active' || r.status === 'pending').length;
+
+    return res.json({
+      status: 'success',
+      stats: {
+        rescued,
+        active,
+        pending,
+        total: allReports.length
+      }
+    });
+  } catch (error) {
+    console.error('Error in GET /api/sos/stats:', error);
+    return res.json({
+      status: 'success',
+      stats: {
+        rescued: 0,
+        active: 0,
+        pending: 0,
+        total: 0
+      }
+    });
+  }
+});
+
+/**
  * GET /api/sos
  * Admin endpoint to retrieve all SOS reports from MongoDB
  */

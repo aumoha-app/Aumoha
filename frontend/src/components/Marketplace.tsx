@@ -369,11 +369,11 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
       {isMounted && selectedProduct && createPortal(
         <div 
           onClick={() => setSelectedProduct(null)}
-          className="fixed inset-0 bg-black/75 z-[100000] backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fadeIn select-none"
+          className="fixed inset-0 bg-black/75 z-[100000] backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto scrollbar-hide animate-fadeIn select-none"
         >
           <div 
             onClick={(e) => e.stopPropagation()}
-            className="bg-[#FAF8F5] border border-[#D5CEBF] rounded-[32px] max-w-lg w-full p-5 sm:p-7 shadow-2xl relative max-h-[85vh] sm:max-h-[88vh] overflow-y-auto flex flex-col gap-5 font-sans my-auto"
+            className="bg-[#FAF8F5] border border-[#D5CEBF] rounded-[32px] max-w-lg w-full p-5 sm:p-7 shadow-2xl relative max-h-[85vh] sm:max-h-[88vh] overflow-y-auto scrollbar-hide flex flex-col gap-5 font-sans my-auto"
           >
             
             {/* Modal Header */}

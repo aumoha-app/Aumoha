@@ -29,31 +29,37 @@ export default function MinimalHome({
 
   // Impact Section Live metrics state
   const [impactCounts, setImpactCounts] = useState({
-    rescued: 142,
-    active: 8,
-    pending: 3
+    rescued: 0,
+    active: 0,
+    pending: 0
   });
 
   useEffect(() => {
     const fetchImpact = async () => {
       try {
-        const res = await fetch(`${API_BASE}/sos`);
+        const res = await fetch(`${API_BASE}/sos/stats`);
         if (res.ok) {
           const data = await res.json();
-          const reports = data.reports || [];
-          if (reports.length > 0) {
-            const resolved = reports.filter((r: any) => r.status === 'resolved').length;
-            const dispatched = reports.filter((r: any) => r.status === 'dispatched').length;
-            const active = reports.filter((r: any) => r.status === 'active').length;
-            setImpactCounts({
-              rescued: 140 + resolved,
-              active: dispatched > 0 ? dispatched : 8,
-              pending: active > 0 ? active : 3
-            });
+          if (data.stats) {
+            setImpactCounts(data.stats);
+            return;
           }
         }
+        // Public fallback using active and resolved endpoints
+        const [activeRes, resolvedRes] = await Promise.all([
+          fetch(`${API_BASE}/sos/active`).then(r => r.ok ? r.json() : { reports: [] }),
+          fetch(`${API_BASE}/sos/resolved`).then(r => r.ok ? r.json() : { reports: [] })
+        ]);
+        const activeReports = activeRes.reports || [];
+        const resolvedReports = resolvedRes.reports || [];
+
+        setImpactCounts({
+          rescued: resolvedReports.length,
+          active: activeReports.filter((r: any) => r.status === 'dispatched' || r.status === 'in_progress').length,
+          pending: activeReports.filter((r: any) => r.status === 'active' || r.status === 'pending').length
+        });
       } catch (err) {
-        console.warn('Using baseline impact metrics:', err);
+        console.warn('Error fetching live impact stats:', err);
       }
     };
     fetchImpact();
@@ -150,7 +156,7 @@ export default function MinimalHome({
               </svg>
             </div>
             <span className="font-serif text-xl sm:text-2xl font-extrabold text-[#1C1A17] leading-none">
-              {impactCounts.rescued}+
+              {impactCounts.rescued}
             </span>
             <span className="text-[11px] sm:text-xs font-extrabold text-[#2D4536] mt-1 leading-tight">
               Rescued
