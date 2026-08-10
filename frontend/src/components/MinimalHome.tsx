@@ -90,9 +90,9 @@ export default function MinimalHome({
       {/* 2. SEARCH BAR */}
       <div 
         onClick={onExpertSupportClick}
-        className="relative z-10 w-full cursor-pointer group"
+        className="relative z-10 w-full cursor-pointer group flex items-center"
       >
-        <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-stone-700 group-hover:text-[#1C1A17] transition-colors">
+        <span className="absolute left-3.5 flex items-center pointer-events-none text-stone-600 group-hover:text-[#1C1A17] transition-colors z-10">
           <svg className="w-4.5 h-4.5 stroke-[2.4]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -105,8 +105,19 @@ export default function MinimalHome({
           onClick={onExpertSupportClick}
           onFocus={onExpertSupportClick}
           placeholder="Search care, experts, services..."
-          className="w-full pl-11 pr-4 py-3.5 bg-[#EFEAE2] hover:bg-[#E6E0D6] border border-[#D5CEBF] focus:border-[#C85341] rounded-2xl text-xs sm:text-sm text-[#1C1A17] placeholder-stone-600 focus:outline-none transition-all font-sans font-bold shadow-2xs cursor-pointer"
+          className="w-full pl-11 pr-14 py-3.5 bg-[#EFEAE2] hover:bg-[#E6E0D6] border border-[#D5CEBF] focus:border-[#2D4536] rounded-2xl text-xs sm:text-sm text-[#1C1A17] placeholder-stone-600 focus:outline-none transition-all font-sans font-bold shadow-2xs cursor-pointer"
         />
+        <button 
+          type="button"
+          onClick={onExpertSupportClick}
+          className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl bg-[#2D4536] hover:bg-[#1F3325] text-white flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-95"
+          aria-label="Search care, experts, services"
+        >
+          <svg className="w-4.5 h-4.5 stroke-[2.4]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+        </button>
       </div>
 
       {/* 3. SOS • EMERGENCY SECTION */}
@@ -199,7 +210,7 @@ export default function MinimalHome({
               Pending
             </span>
             <span className="text-[9.5px] sm:text-[10.5px] text-stone-600 font-bold block leading-tight mt-0.5">
-              Queued response
+              Queued
             </span>
           </div>
         </div>
