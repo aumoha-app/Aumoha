@@ -168,7 +168,7 @@ export default function MinimalHome({
 
           {/* Metric 2: Active */}
           <div className="bg-[#FAF8F5] border border-[#D5CEBF] rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 flex flex-col items-center justify-center shadow-2xs">
-            <div className="w-7 h-7 sm:w-8.5 sm:h-8.5 rounded-full bg-[#C85341]/10 text-[#C85341] flex items-center justify-center mb-1.5">
+            <div className="w-7 h-7 sm:w-8.5 sm:h-8.5 rounded-full bg-[#2D4536]/10 text-[#2D4536] flex items-center justify-center mb-1.5">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
               </svg>
@@ -176,7 +176,7 @@ export default function MinimalHome({
             <span className="font-serif text-xl sm:text-2xl font-extrabold text-[#1C1A17] leading-none">
               {impactCounts.active}
             </span>
-            <span className="text-[11px] sm:text-xs font-extrabold text-[#C85341] mt-1 leading-tight">
+            <span className="text-[11px] sm:text-xs font-extrabold text-[#2D4536] mt-1 leading-tight">
               Active
             </span>
             <span className="text-[9.5px] sm:text-[10.5px] text-stone-600 font-bold block leading-tight mt-0.5">
@@ -186,7 +186,7 @@ export default function MinimalHome({
 
           {/* Metric 3: Pending */}
           <div className="bg-[#FAF8F5] border border-[#D5CEBF] rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 flex flex-col items-center justify-center shadow-2xs">
-            <div className="w-7 h-7 sm:w-8.5 sm:h-8.5 rounded-full bg-[#D97706]/10 text-[#D97706] flex items-center justify-center mb-1.5">
+            <div className="w-7 h-7 sm:w-8.5 sm:h-8.5 rounded-full bg-[#2D4536]/10 text-[#2D4536] flex items-center justify-center mb-1.5">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10" />
                 <polyline points="12 6 12 12 16 14" />
@@ -195,7 +195,7 @@ export default function MinimalHome({
             <span className="font-serif text-xl sm:text-2xl font-extrabold text-[#1C1A17] leading-none">
               {impactCounts.pending}
             </span>
-            <span className="text-[11px] sm:text-xs font-extrabold text-[#D97706] mt-1 leading-tight">
+            <span className="text-[11px] sm:text-xs font-extrabold text-[#2D4536] mt-1 leading-tight">
               Pending
             </span>
             <span className="text-[9.5px] sm:text-[10.5px] text-stone-600 font-bold block leading-tight mt-0.5">
