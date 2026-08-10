@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { LayoutGrid, Shield, Utensils, Stethoscope, Home, Heart, Search, PhoneCall, Building2 } from 'lucide-react';
 import { CircleMember, MemberRole } from '../types';
 import RadiusSelector from './RadiusSelector';
@@ -24,6 +25,11 @@ export default function MohallaNetwork({
 }: MohallaNetworkProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProfileMember, setSelectedProfileMember] = useState<CircleMember | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Lock background scrolling when member profile modal is active
   useEffect(() => {
@@ -277,14 +283,14 @@ export default function MohallaNetwork({
       </div>
 
       {/* MEMBER PROFILE MODAL */}
-      {selectedProfileMember && (
+      {isMounted && selectedProfileMember && createPortal(
         <div 
           onClick={() => setSelectedProfileMember(null)}
-          className="fixed inset-0 z-[4000] bg-[#1C1A17]/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
+          className="fixed inset-0 z-[10000] bg-[#1C1A17]/65 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto select-none"
         >
           <div 
             onClick={(e) => e.stopPropagation()}
-            className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-[32px] max-w-md w-full max-h-[82vh] sm:max-h-[85vh] overflow-y-auto shadow-2xl animate-in fade-in zoom-in duration-200 text-left relative flex flex-col my-auto"
+            className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-[32px] max-w-md w-full max-h-[85vh] overflow-y-auto shadow-2xl animate-in fade-in zoom-in duration-200 text-left relative flex flex-col my-auto"
           >
             
             {/* Header Banner */}
@@ -390,7 +396,8 @@ export default function MohallaNetwork({
 
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

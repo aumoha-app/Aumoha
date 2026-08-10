@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE } from '../lib/api';
 import { processRazorpayPayment } from '../lib/razorpay';
@@ -339,6 +340,11 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
 
   // Admin form state
   const [expertFormName, setExpertFormName] = useState('');
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   const [expertFormSpecialty, setExpertFormSpecialty] = useState('');
   const [expertFormCategory, setExpertFormCategory] = useState('Nutritionist');
   const [expertFormEmail, setExpertFormEmail] = useState('');
@@ -1076,9 +1082,9 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
       )}
 
       {/* INTERACTIVE MATCH QUIZ DIALOG */}
-      {isQuizOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-end md:items-center justify-center px-4 transition-all">
-          <div className="bg-white rounded-t-3xl md:rounded-3xl p-6 w-full max-w-sm flex flex-col gap-5 shadow-xl border border-warmBeige animate-scaleIn">
+      {isMounted && isQuizOpen && createPortal(
+        <div className="fixed inset-0 bg-black/65 backdrop-blur-md z-[10000] flex items-center justify-center px-4 transition-all">
+          <div className="bg-white rounded-3xl p-6 w-full max-w-sm flex flex-col gap-5 shadow-xl border border-warmBeige animate-scaleIn my-auto relative">
             <div className="flex justify-between items-center pb-2 border-b border-stone-100">
               <h3 className="text-xs font-extrabold text-stone-500 uppercase tracking-wider">Find My Expert Quiz</h3>
               <button 
@@ -1131,7 +1137,8 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ==================== SCREEN 2: CONFIG-DRIVEN CATEGORY LISTING PAGE ==================== */}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { CommunityUpdate, MemberRole } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { ClockIcon } from './icons/PetIcons';
@@ -34,6 +35,11 @@ export default function MohallaUpdates({
   onSelectRadius
 }: MohallaUpdatesProps) {
   const { token } = useAuth();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Modal States
   const [showActivityModal, setShowActivityModal] = useState<boolean>(false);
@@ -501,11 +507,11 @@ export default function MohallaUpdates({
       </div>
 
       {/* --- START COMMUNITY ACTIVITY MODAL --- */}
-      {showActivityModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-end md:items-center justify-center px-4 pb-24 md:pb-0 transition-all">
+      {isMounted && showActivityModal && createPortal(
+        <div className="fixed inset-0 bg-black/65 backdrop-blur-md z-[10000] flex items-center justify-center p-4 transition-all">
           <form
             onSubmit={handleCreateActivity}
-            className="bg-white w-full max-w-lg rounded-2xl md:rounded-[32px] p-6 shadow-2xl flex flex-col gap-5 max-h-[80vh] overflow-y-auto animate-scaleIn select-none pb-8"
+            className="bg-white w-full max-w-lg rounded-2xl md:rounded-[32px] p-6 shadow-2xl flex flex-col gap-5 max-h-[85vh] overflow-y-auto animate-scaleIn select-none my-auto relative"
           >
             {/* Header */}
             <div className="flex justify-between items-center border-b border-[#F0EBE1] pb-3.5">
@@ -732,7 +738,8 @@ export default function MohallaUpdates({
               </button>
             </div>
           </form>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* FAB (Floating Plus) Button */}
