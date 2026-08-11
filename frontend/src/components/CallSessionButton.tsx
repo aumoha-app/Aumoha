@@ -28,8 +28,8 @@ export default function CallSessionButton({ appointment, onJoinCall, className }
         const data = await res.json();
         setSession(data.session);
       }
-    } catch (err) {
-      console.error('Error fetching call status:', err);
+    } catch {
+      // Silent catch during background polling or server restarts
     } finally {
       setLoading(false);
     }
