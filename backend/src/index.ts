@@ -3353,9 +3353,39 @@ app.get('/api/appointments/:id/token', authMiddleware, async (req: Request, res:
     const { id } = req.params;
     const appId = process.env.AGORA_APP_ID;
     const appCertificate = process.env.AGORA_APP_CERTIFICATE;
+    const userEmail = req.user?.email;
+
+    if (!userEmail) {
+      return res.status(401).json({ status: 'error', message: 'Authentication required' });
+    }
 
     if (!appId) {
       return res.status(500).json({ status: 'error', message: 'AGORA_APP_ID is not configured on the backend' });
+    }
+
+    // Verify participant authorization
+    let appt: any = null;
+    if (mongoose.connection.readyState !== 1) {
+      appt = fallbackAppointments.find((a: any) => a._id === id || a.bookingId === id);
+    } else {
+      appt = await Appointment.findOne({ $or: [{ _id: mongoose.Types.ObjectId.isValid(id) ? id : null }, { bookingId: id }] });
+    }
+
+    if (appt) {
+      const isParent = appt.userEmail === userEmail;
+      let isDoctor = false;
+      if (mongoose.connection.readyState === 1) {
+        const vet = await Vet.findOne({ email: userEmail });
+        if (vet && (vet._id.toString() === appt.vetId || vet.email === userEmail)) isDoctor = true;
+      } else {
+        const vet = fallbackVets.find((v: any) => v.email === userEmail);
+        if (vet && (vet._id === appt.vetId || vet.email === userEmail)) isDoctor = true;
+      }
+      const isAdminPass = req.headers['x-admin-password'] === process.env.ADMIN_PORTAL_PASSWORD;
+
+      if (!isParent && !isDoctor && !isAdminPass) {
+        return res.status(403).json({ status: 'error', message: 'Access denied: Only appointment participants can access video call tokens' });
+      }
     }
 
     // Verify or auto-create call session
@@ -3637,13 +3667,13 @@ app.put('/api/appointments/:id/cancel', authMiddleware, async (req: Request, res
 });
 
 /**
- * PUT /api/appointments/:id/notes
- * Add/update pet parent notes on a booking
+ * PUT /api/appointments/:id/medical-document
+ * Attach/upload past medical history document (base64) to booking
  */
-app.put('/api/appointments/:id/notes', authMiddleware, async (req: Request, res: Response) => {
+app.put('/api/appointments/:id/medical-document', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { notes } = req.body;
+    const { medicalDocument } = req.body;
     const userEmail = req.user?.email;
 
     if (!userEmail) {
@@ -3651,18 +3681,65 @@ app.put('/api/appointments/:id/notes', authMiddleware, async (req: Request, res:
     }
 
     if (mongoose.connection.readyState !== 1) {
-      const appt = fallbackAppointments.find((a: any) => a._id === id && a.userEmail === userEmail);
+      const appt = fallbackAppointments.find((a: any) => (a._id === id || a.bookingId === id) && a.userEmail === userEmail);
       if (!appt) {
         return res.status(404).json({ status: 'error', message: 'Appointment not found' });
       }
-      appt.notes = notes || '';
+      appt.medicalDocument = medicalDocument || '';
       appt.updatedAt = new Date().toISOString();
       return res.json({ status: 'success', appointment: appt });
     }
 
     const appt = await Appointment.findOneAndUpdate(
-      { _id: id, userEmail },
-      { notes: notes || '' },
+      { $or: [{ _id: mongoose.Types.ObjectId.isValid(id) ? id : null }, { bookingId: id }], userEmail },
+      { medicalDocument: medicalDocument || '' },
+      { new: true }
+    );
+    if (!appt) {
+      return res.status(404).json({ status: 'error', message: 'Appointment not found' });
+    }
+
+    return res.json({ status: 'success', appointment: appt });
+  } catch (error) {
+    console.error('Error updating medical document:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * PUT /api/appointments/:id/notes
+ * Add/update pet parent notes or doctor e-prescriptions on a booking
+ */
+app.put('/api/appointments/:id/notes', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { notes, prescription, prescriptionNotes } = req.body;
+    const userEmail = req.user?.email;
+
+    if (!userEmail) {
+      return res.status(401).json({ status: 'error', message: 'Authentication required' });
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      const appt = fallbackAppointments.find((a: any) => a._id === id || a.bookingId === id);
+      if (!appt) {
+        return res.status(404).json({ status: 'error', message: 'Appointment not found' });
+      }
+      if (notes !== undefined) appt.notes = notes;
+      if (prescription !== undefined) appt.prescription = prescription;
+      if (prescriptionNotes !== undefined) appt.prescriptionNotes = prescriptionNotes;
+      appt.updatedAt = new Date().toISOString();
+      return res.json({ status: 'success', appointment: appt });
+    }
+
+    const updateFields: any = {};
+    if (notes !== undefined) updateFields.notes = notes;
+    if (prescription !== undefined) updateFields.prescription = prescription;
+    if (prescriptionNotes !== undefined) updateFields.prescriptionNotes = prescriptionNotes;
+
+    const appt = await Appointment.findOneAndUpdate(
+      { $or: [{ _id: mongoose.Types.ObjectId.isValid(id) ? id : null }, { bookingId: id }] },
+      { $set: updateFields },
       { new: true }
     );
     if (!appt) {

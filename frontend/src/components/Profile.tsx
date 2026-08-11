@@ -1285,21 +1285,30 @@ function ProfileBookingHistory({ token, API_BASE }: { token: string | null; API_
   return (
     <div className="flex flex-col gap-3">
       {appointments.map((appt) => (
-        <div key={appt._id} className="bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl p-4 flex flex-col gap-3">
+        <div key={appt._id} className="bg-white border border-[#EBE3D5] rounded-3xl p-5 flex flex-col gap-3 shadow-xs hover:border-terracotta transition-all">
           <div className="flex justify-between items-start">
-            <div>
+            <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="font-serif text-sm font-semibold text-[#1C1A17]">{appt.vetName}</span>
-                <span className="text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-stone-100 text-stone-500">
-                  {appt.mode}
+                <span className="font-serif text-sm font-extrabold text-charcoal">{appt.vetName}</span>
+                <span className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${
+                  appt.mode === 'tele-consult' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
+                }`}>
+                  {appt.mode === 'tele-consult' ? 'Tele-Consult' : 'In-Clinic'}
                 </span>
               </div>
-              <p className="text-[10px] text-stone-400 font-medium mt-0.5">{appt.date} • {appt.time}</p>
-              <p className="text-[10px] text-stone-600 font-bold mt-1">Pet: {appt.petName}</p>
+              <p className="text-[11px] text-stone-500 font-bold flex items-center gap-2">
+                <span>📅 {appt.date}</span>
+                <span>⏰ {appt.time}</span>
+              </p>
+              <p className="text-xs text-charcoal font-black">Pet: {appt.petName}</p>
             </div>
             <div className="text-right">
-              <span className="text-xs font-extrabold text-[#2D4536]">₹{appt.fee}</span>
-              <p className="text-[9px] text-stone-400 mt-1 uppercase font-bold tracking-wider">{appt.status}</p>
+              <span className="text-sm font-black text-terracotta">₹{appt.fee}</span>
+              <p className={`text-[9px] mt-1 font-extrabold uppercase tracking-wider ${
+                appt.status === 'confirmed' ? 'text-emerald-600' : 'text-stone-400'
+              }`}>
+                {appt.status}
+              </p>
             </div>
           </div>
 
@@ -1307,32 +1316,41 @@ function ProfileBookingHistory({ token, API_BASE }: { token: string | null; API_
             {/* Client Medical Reports */}
             <div className="flex items-center gap-1.5">
               {appt.medicalDocument ? (
-                <div className="flex items-center gap-1">
-                  <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100 flex items-center gap-1">
-                    ✓ Medical Info Uploaded
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-emerald-700 font-extrabold bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-200 flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Medical History Uploaded
                   </span>
                   <button
                     onClick={() => handleDownload(appt.medicalDocument, `${appt.petName}_medical_history.jpg`)}
-                    className="p-1 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 text-stone-600 text-[10px] font-extrabold cursor-pointer"
+                    className="px-2.5 py-1 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 text-[10px] font-extrabold cursor-pointer flex items-center gap-1 shadow-2xs"
                     title="Download Report"
                   >
-                    ⬇
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Download
                   </button>
                   <button
                     onClick={() => handleDocumentUpload(appt._id)}
-                    className="p-1 rounded-lg border border-stone-200 bg-white hover:bg-stone-50 text-stone-500 text-[10px] cursor-pointer"
+                    className="px-2 py-1 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-500 text-[10px] font-bold cursor-pointer"
                     title="Replace Report"
                   >
-                    ✎ Change
+                    Change
                   </button>
                 </div>
               ) : (
                 <button
                   onClick={() => handleDocumentUpload(appt._id)}
                   disabled={uploadingId === appt._id}
-                  className="px-2.5 py-1 bg-white hover:bg-[#FAF6F0] border border-[#EBE3D5] text-[#1C1A17] font-bold text-[10px] rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                  className="px-3 py-1.5 bg-[#FCFAF7] hover:bg-white border border-stone-200 text-charcoal font-extrabold text-[10px] rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
                 >
-                  {uploadingId === appt._id ? 'Uploading...' : '+ Upload Medical History'}
+                  <svg className="w-3.5 h-3.5 text-terracotta" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  {uploadingId === appt._id ? 'Uploading...' : 'Upload Medical History'}
                 </button>
               )}
             </div>
@@ -1341,25 +1359,31 @@ function ProfileBookingHistory({ token, API_BASE }: { token: string | null; API_
             <div>
               {appt.prescription ? (
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-[#C86D51] font-extrabold bg-[#FAF2EE] border border-[#F5DFD8] px-2 py-1 rounded-lg">
-                    💊 Prescription Ready
+                  <span className="text-[10px] text-terracotta font-extrabold bg-terracotta/10 border border-terracotta/20 px-2.5 py-1 rounded-xl flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5 text-terracotta" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Prescription Ready
                   </span>
                   <button
                     onClick={() => handleDownload(appt.prescription, `${appt.petName}_prescription.jpg`)}
-                    className="px-2.5 py-1 bg-[#2D4536] hover:bg-[#1E2E24] text-white font-bold text-[10px] rounded-lg cursor-pointer"
+                    className="px-3 py-1 bg-charcoal hover:bg-stone-800 text-white font-extrabold text-[10px] rounded-xl cursor-pointer shadow-2xs flex items-center gap-1"
                   >
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
                     Download Prescription
                   </button>
                 </div>
               ) : (
-                <span className="text-[10px] text-stone-400 font-semibold italic">Prescription pending</span>
+                <span className="text-[10px] text-stone-400 font-bold italic">Prescription pending</span>
               )}
             </div>
           </div>
 
           {appt.prescriptionNotes && (
-            <div className="bg-[#FAF8F5] border-l-2 border-[#2D4536] p-2 rounded text-[10.5px] text-stone-600 italic">
-              <strong>Advice:</strong> "{appt.prescriptionNotes}"
+            <div className="bg-[#FCFAF7] border-l-2 border-terracotta p-3 rounded-2xl text-xs text-stone-600 font-medium leading-relaxed">
+              <strong className="text-charcoal font-black">Doctor's Advice:</strong> "{appt.prescriptionNotes}"
             </div>
           )}
 
