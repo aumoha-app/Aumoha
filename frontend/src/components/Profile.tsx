@@ -1248,20 +1248,10 @@ function ProfileBookingHistory({ token, API_BASE }: { token: string | null; API_
           if (res.ok && data.status === 'success') {
             setAppointments(prev => prev.map(a => a._id === apptId ? { ...a, medicalDocument: base64 } : a));
           } else {
-            openConfirmation({
-              title: 'Upload Failed',
-              message: data.message || 'Failed to upload medical document.',
-              confirmText: 'OK',
-              onConfirm: () => {}
-            });
+            console.error('Upload Failed:', data.message || 'Failed to upload medical document.');
           }
-        } catch {
-          openConfirmation({
-            title: 'Network Error',
-            message: 'Network error. Failed to upload medical document.',
-            confirmText: 'OK',
-            onConfirm: () => {}
-          });
+        } catch (err) {
+          console.error('Network error uploading medical document:', err);
         } finally {
           setUploadingId(null);
         }
