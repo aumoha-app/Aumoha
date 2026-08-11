@@ -245,6 +245,7 @@ export default function ProviderDashboard() {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify({
+          name: editName,
           specialisation: editSpecialisation,
           category: editCategory,
           fee: Number(editFee),
@@ -668,6 +669,18 @@ export default function ProviderDashboard() {
                     )}
                   </div>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-extrabold text-stone-600 uppercase mb-1">Full Name & Title</label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={e => setEditName(e.target.value)}
+                  className="w-full px-4 py-3 bg-[#FCFAF7] border border-stone-200 rounded-2xl text-xs font-bold focus:outline-none focus:border-terracotta"
+                  placeholder="e.g. Dr. Ananya Patra"
+                  required
+                />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

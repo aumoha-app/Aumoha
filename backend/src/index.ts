@@ -2998,7 +2998,7 @@ app.get('/api/provider/me', authMiddleware, async (req: Request, res: Response) 
 app.put('/api/provider/me/profile', authMiddleware, async (req: Request, res: Response) => {
   try {
     const userEmail = req.user?.email;
-    const { fee, specialisation, bio, phone, photo, isOnline, availableSlots, specialtyTags, category } = req.body;
+    const { name, fee, specialisation, bio, phone, photo, isOnline, availableSlots, specialtyTags, category } = req.body;
 
     if (!userEmail) {
       return res.status(401).json({ status: 'error', message: 'Authentication required' });
@@ -3012,6 +3012,7 @@ app.put('/api/provider/me/profile', authMiddleware, async (req: Request, res: Re
         return res.status(404).json({ status: 'error', message: 'Doctor profile not found' });
       }
 
+      if (name !== undefined && name.trim()) vet.name = name.trim();
       if (fee !== undefined) vet.fee = Number(fee);
       if (specialisation !== undefined) vet.specialisation = specialisation;
       if (bio !== undefined) vet.bio = bio;
@@ -3028,6 +3029,7 @@ app.put('/api/provider/me/profile', authMiddleware, async (req: Request, res: Re
       if (!vet) {
         return res.status(404).json({ status: 'error', message: 'Doctor profile not found' });
       }
+      if (name !== undefined && name.trim()) vet.name = name.trim();
       if (fee !== undefined) vet.fee = Number(fee);
       if (specialisation !== undefined) vet.specialisation = specialisation;
       if (bio !== undefined) vet.bio = bio;
@@ -3127,16 +3129,23 @@ app.post('/api/provider/me/slots/bulk', authMiddleware, async (req: Request, res
  */
 app.get('/api/admin/vets/pending', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
-    let pendingVets = [];
+    let pendingVets: any[] = [];
     if (mongoose.connection.readyState === 1) {
       pendingVets = await Vet.find({ isApproved: false, isRejected: { $ne: true } }).sort({ createdAt: -1 });
-    } else {
-      pendingVets = fallbackVets.filter((v: any) => v.isApproved === false && !v.isRejected);
     }
+    // Include fallback pending vets that are not in MongoDB yet
+    const fbPending = fallbackVets.filter((v: any) => v.isApproved === false && !v.isRejected);
+    const existingIds = new Set(pendingVets.map(v => v._id?.toString()));
+    fbPending.forEach(fv => {
+      if (!existingIds.has(fv._id)) {
+        pendingVets.push(fv);
+      }
+    });
+
     return res.json({ status: 'success', pendingVets });
   } catch (error) {
     console.error('Error fetching pending vets:', error);
-    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+    return res.json({ status: 'success', pendingVets: fallbackVets.filter((v: any) => v.isApproved === false && !v.isRejected) });
   }
 });
 
@@ -3150,40 +3159,54 @@ app.put('/api/admin/vets/:id/approve', authMiddleware, adminMiddleware, async (r
     const { isApproved } = req.body;
     const approvedFlag = isApproved !== false;
 
+    // Always update in-memory fallback list if present
+    const fbVet = fallbackVets.find((v: any) => v._id === id);
+    if (fbVet) {
+      fbVet.isApproved = approvedFlag;
+      fbVet.isRejected = !approvedFlag;
+    }
+
     if (mongoose.connection.readyState === 1) {
       const query = mongoose.Types.ObjectId.isValid(id)
         ? { $or: [{ _id: id }, { _id: id.toString() }] }
         : { _id: id };
 
-      const vet = await Vet.findOneAndUpdate(
+      let vet = await Vet.findOneAndUpdate(
         query,
         { isApproved: approvedFlag, isRejected: !approvedFlag },
         { new: true }
       );
 
-      if (!vet) {
+      // If not in DB but was in fallback list, persist it to DB
+      if (!vet && fbVet) {
+        vet = await Vet.create({
+          ...fbVet,
+          _id: undefined,
+          isApproved: approvedFlag,
+          isRejected: !approvedFlag
+        });
+      }
+
+      if (!vet && !fbVet) {
         return res.status(404).json({ status: 'error', message: 'Doctor profile not found' });
       }
 
-      if (vet.email) {
-        const targetRole = approvedFlag ? (vet.category === 'expert' ? 'expert' : 'doctor') : 'normal';
-        await User.findOneAndUpdate({ email: vet.email }, { role: targetRole });
+      const targetVet = vet || fbVet;
+      if (targetVet && targetVet.email) {
+        const targetRole = approvedFlag ? (targetVet.category === 'expert' ? 'expert' : 'doctor') : 'normal';
+        await User.findOneAndUpdate({ email: targetVet.email }, { role: targetRole });
       }
-      return res.json({ status: 'success', vet });
+      return res.json({ status: 'success', vet: targetVet });
     } else {
-      const vet = fallbackVets.find((v: any) => v._id === id);
-      if (!vet) {
+      if (!fbVet) {
         return res.status(404).json({ status: 'error', message: 'Doctor profile not found' });
       }
-      vet.isApproved = approvedFlag;
-      vet.isRejected = !approvedFlag;
-
-      const fbUser = fallbackUsers.find((u: any) => u.email && u.email.toLowerCase() === vet.email?.toLowerCase());
+      const fbUser = fallbackUsers.find((u: any) => u.email && u.email.toLowerCase() === fbVet.email?.toLowerCase());
       if (fbUser) {
-        fbUser.role = approvedFlag ? (vet.category === 'expert' ? 'expert' : 'doctor') : 'normal';
+        fbUser.role = approvedFlag ? (fbVet.category === 'expert' ? 'expert' : 'doctor') : 'normal';
       }
 
-      return res.json({ status: 'success', vet });
+      return res.json({ status: 'success', vet: fbVet });
     }
   } catch (error: any) {
     console.error('Error approving vet:', error);
