@@ -481,7 +481,13 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
           slotId: selectedSlot._id,
           mode: bookingMode,
           petName: petName.trim(),
-          medicalDocument: medicalReportBase64
+          medicalDocument: medicalReportBase64,
+          vetName: selectedVet.name,
+          vetSpecialisation: selectedVet.specialisation,
+          vetPhoto: selectedVet.photo,
+          fee: selectedVet.fee,
+          date: selectedSlot.date,
+          time: selectedSlot.time
         })
       });
 
