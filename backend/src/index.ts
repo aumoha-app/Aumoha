@@ -2705,14 +2705,7 @@ app.post('/api/appointments', authMiddleware, async (req: Request, res: Response
         html: emailHtml
       });
 
-      let docEmail = '';
-      if (mongoose.connection.readyState !== 1 || !isVetObjId) {
-        const vet = fallbackVets.find((v: any) => v._id === vetId);
-        docEmail = vet?.email || '';
-      } else {
-        const vet = await Vet.findById(vetId);
-        docEmail = vet?.email || '';
-      }
+      const docEmail = vet?.email || '';
 
       if (docEmail) {
         await sendEmail({
