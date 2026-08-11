@@ -268,6 +268,45 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
     }
   };
 
+  const [pendingVets, setPendingVets] = useState<any[]>([]);
+
+  const fetchPendingVets = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/admin/vets/pending`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Admin-Password': adminPassword
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPendingVets(data.pendingVets || []);
+      }
+    } catch (err) {
+      console.error('Error fetching pending vets:', err);
+    }
+  };
+
+  const handleApproveVet = async (id: string, isApproved: boolean) => {
+    try {
+      const res = await fetch(`${API_BASE}/admin/vets/${id}/approve`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'X-Admin-Password': adminPassword
+        },
+        body: JSON.stringify({ isApproved })
+      });
+      if (res.ok) {
+        fetchPendingVets();
+        fetchVets();
+      }
+    } catch (err) {
+      console.error('Error approving vet:', err);
+    }
+  };
+
   const fetchProducts = async (password: string) => {
     setIsLoading(true);
     setErrorMessage(null);
@@ -515,8 +554,10 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
       fetchCheckoutSettings();
       fetchActivities(true);
       fetchVets();
+      fetchPendingVets();
       const interval = setInterval(() => {
         fetchSosReports(false);
+        fetchPendingVets();
       }, 10000); // Poll every 10 seconds
       return () => clearInterval(interval);
     }
@@ -2187,6 +2228,59 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
               Refresh Users List
             </button>
           </div>
+
+          {/* Doctor Verification Queue */}
+          {pendingVets.length > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-[28px] p-5 sm:p-7 shadow-xs flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-serif text-lg font-bold text-amber-900 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-amber-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    Pending Doctor Verifications ({pendingVets.length})
+                  </h3>
+                  <p className="text-xs text-amber-700 font-medium">Review and verify credentials before approving new doctor accounts for public booking.</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {pendingVets.map(pv => (
+                  <div key={pv._id} className="bg-white p-4 rounded-2xl border border-amber-200 shadow-sm flex flex-col justify-between gap-3">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-extrabold text-charcoal">{pv.name}</h4>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-amber-100 text-amber-800">
+                          {pv.category === 'expert' ? 'Specialist' : 'Vet Surgeon'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-stone-500 font-bold mt-0.5">{pv.specialisation} • Fee: ₹{pv.fee}</p>
+                      {pv.email && <p className="text-[11px] text-stone-400 font-medium mt-0.5">Email: {pv.email}</p>}
+                      {pv.bio && <p className="text-xs text-stone-600 bg-stone-50 p-2.5 rounded-xl border border-stone-200 mt-2 italic">"{pv.bio}"</p>}
+                    </div>
+
+                    <div className="flex gap-2 pt-2 border-t border-stone-100">
+                      <button
+                        onClick={() => handleApproveVet(pv._id, true)}
+                        className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl transition-all shadow-xs flex items-center justify-center gap-1"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Approve Doctor
+                      </button>
+                      <button
+                        onClick={() => handleApproveVet(pv._id, false)}
+                        className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-extrabold text-xs rounded-xl transition-all"
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Quick Role Assignment Form Card */}
           <div className="bg-[#FAF8F5] border border-[#E8E2D8] rounded-[28px] p-5 sm:p-7 shadow-xs flex flex-col gap-4">

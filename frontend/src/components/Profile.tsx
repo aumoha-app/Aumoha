@@ -40,8 +40,20 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
     isDestructive?: boolean;
   } | null>(null);
 
-  const openConfirmation = (config: any) => {
-    setConfirmConfig(config);
+  const openConfirmation = (config: {
+    title: string;
+    message: string;
+    onConfirm?: () => void;
+    confirmText?: string;
+    cancelText?: string;
+    isDestructive?: boolean;
+  }) => {
+    setConfirmConfig({
+      confirmText: 'OK',
+      cancelText: 'Cancel',
+      onConfirm: () => {},
+      ...config
+    });
     setIsConfirmOpen(true);
   };
 

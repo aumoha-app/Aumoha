@@ -2957,6 +2957,222 @@ app.put('/api/appointments/:id/call/end', authMiddleware, async (req: Request, r
 });
 
 /**
+ * GET /api/provider/me
+ * Auto-load doctor/expert profile by authenticated email token (or query providerId)
+ */
+app.get('/api/provider/me', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userEmail = req.user?.email;
+    const { providerId } = req.query;
+
+    let vet: any = null;
+
+    if (mongoose.connection.readyState === 1) {
+      if (userEmail) {
+        vet = await Vet.findOne({ email: userEmail });
+      }
+      if (!vet && providerId) {
+        vet = await Vet.findOne({ $or: [{ _id: mongoose.Types.ObjectId.isValid(String(providerId)) ? String(providerId) : null }, { email: String(providerId) }] });
+      }
+    }
+
+    if (!vet) {
+      vet = fallbackVets.find((v: any) => v.email === userEmail || v._id === providerId || v.email === providerId);
+    }
+
+    if (!vet) {
+      return res.status(404).json({ status: 'error', message: 'Doctor profile not found for this account' });
+    }
+
+    return res.json({ status: 'success', vet });
+  } catch (error) {
+    console.error('Error in GET /api/provider/me:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * PUT /api/provider/me/profile
+ * Doctor self-service update endpoint (Fee, Specialisation, Bio, Phone, Photo, Online Status)
+ */
+app.put('/api/provider/me/profile', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userEmail = req.user?.email;
+    const { fee, specialisation, bio, phone, photo, isOnline, availableSlots, specialtyTags, category } = req.body;
+
+    if (!userEmail) {
+      return res.status(401).json({ status: 'error', message: 'Authentication required' });
+    }
+
+    let vet: any = null;
+
+    if (mongoose.connection.readyState === 1) {
+      vet = await Vet.findOne({ email: userEmail });
+      if (!vet) {
+        return res.status(404).json({ status: 'error', message: 'Doctor profile not found' });
+      }
+
+      if (fee !== undefined) vet.fee = Number(fee);
+      if (specialisation !== undefined) vet.specialisation = specialisation;
+      if (bio !== undefined) vet.bio = bio;
+      if (phone !== undefined) vet.phone = phone;
+      if (photo !== undefined) vet.photo = photo;
+      if (isOnline !== undefined) vet.isOnline = isOnline;
+      if (availableSlots !== undefined) vet.availableSlots = availableSlots;
+      if (specialtyTags !== undefined) vet.specialtyTags = specialtyTags;
+      if (category !== undefined) vet.category = category;
+
+      await vet.save();
+    } else {
+      vet = fallbackVets.find((v: any) => v.email === userEmail);
+      if (!vet) {
+        return res.status(404).json({ status: 'error', message: 'Doctor profile not found' });
+      }
+      if (fee !== undefined) vet.fee = Number(fee);
+      if (specialisation !== undefined) vet.specialisation = specialisation;
+      if (bio !== undefined) vet.bio = bio;
+      if (phone !== undefined) vet.phone = phone;
+      if (photo !== undefined) vet.photo = photo;
+      if (isOnline !== undefined) vet.isOnline = isOnline;
+      if (availableSlots !== undefined) vet.availableSlots = availableSlots;
+      if (specialtyTags !== undefined) vet.specialtyTags = specialtyTags;
+      if (category !== undefined) vet.category = category;
+    }
+
+    return res.json({ status: 'success', vet });
+  } catch (error) {
+    console.error('Error in PUT /api/provider/me/profile:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * POST /api/provider/me/slots/bulk
+ * Bulk generate recurring time slots for doctor availability
+ */
+app.post('/api/provider/me/slots/bulk', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userEmail = req.user?.email;
+    const { dates, startTime, endTime, intervalMinutes } = req.body;
+    // dates: string[] e.g. ['2026-08-12', '2026-08-13']
+    // startTime: '09:00', endTime: '17:00', intervalMinutes: 30
+
+    if (!userEmail) {
+      return res.status(401).json({ status: 'error', message: 'Authentication required' });
+    }
+    if (!Array.isArray(dates) || dates.length === 0 || !startTime || !endTime) {
+      return res.status(400).json({ status: 'error', message: 'Invalid bulk slot parameters' });
+    }
+
+    const interval = Number(intervalMinutes) || 30;
+    const [startH, startM] = startTime.split(':').map(Number);
+    const [endH, endM] = endTime.split(':').map(Number);
+
+    const startTotal = startH * 60 + startM;
+    const endTotal = endH * 60 + endM;
+
+    if (endTotal <= startTotal) {
+      return res.status(400).json({ status: 'error', message: 'End time must be after start time' });
+    }
+
+    const generatedSlots: any[] = [];
+
+    dates.forEach((dateStr: string) => {
+      let current = startTotal;
+      while (current + interval <= endTotal) {
+        const h = Math.floor(current / 60);
+        const m = current % 60;
+        const period = h >= 12 ? 'PM' : 'AM';
+        const formattedH = h % 12 === 0 ? 12 : h % 12;
+        const formattedM = m < 10 ? `0${m}` : `${m}`;
+        const timeLabel = `${formattedH}:${formattedM} ${period}`;
+
+        generatedSlots.push({
+          _id: `slot_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+          date: dateStr,
+          time: timeLabel,
+          isBooked: false
+        });
+
+        current += interval;
+      }
+    });
+
+    let vet: any = null;
+    if (mongoose.connection.readyState === 1) {
+      vet = await Vet.findOne({ email: userEmail });
+      if (!vet) {
+        return res.status(404).json({ status: 'error', message: 'Doctor profile not found' });
+      }
+      vet.availableSlots = [...vet.availableSlots, ...generatedSlots];
+      await vet.save();
+    } else {
+      vet = fallbackVets.find((v: any) => v.email === userEmail);
+      if (!vet) {
+        return res.status(404).json({ status: 'error', message: 'Doctor profile not found' });
+      }
+      vet.availableSlots = [...vet.availableSlots, ...generatedSlots];
+    }
+
+    return res.json({ status: 'success', vet, addedCount: generatedSlots.length });
+  } catch (error) {
+    console.error('Error in POST /api/provider/me/slots/bulk:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * ADMIN: GET /api/admin/vets/pending
+ * List pending doctor/expert registrations requiring verification
+ */
+app.get('/api/admin/vets/pending', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    let pendingVets = [];
+    if (mongoose.connection.readyState === 1) {
+      pendingVets = await Vet.find({ isApproved: false }).sort({ createdAt: -1 });
+    } else {
+      pendingVets = fallbackVets.filter((v: any) => v.isApproved === false);
+    }
+    return res.json({ status: 'success', pendingVets });
+  } catch (error) {
+    console.error('Error fetching pending vets:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * ADMIN: PUT /api/admin/vets/:id/approve
+ * Approve or reject a pending doctor profile
+ */
+app.put('/api/admin/vets/:id/approve', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { isApproved } = req.body;
+
+    if (mongoose.connection.readyState === 1) {
+      const vet = await Vet.findByIdAndUpdate(id, { isApproved: isApproved !== false }, { new: true });
+      if (!vet) {
+        return res.status(404).json({ status: 'error', message: 'Doctor profile not found' });
+      }
+      if (vet.email) {
+        await User.findOneAndUpdate({ email: vet.email }, { role: vet.category === 'expert' ? 'expert' : 'vet' });
+      }
+      return res.json({ status: 'success', vet });
+    } else {
+      const vet = fallbackVets.find((v: any) => v._id === id);
+      if (!vet) {
+        return res.status(404).json({ status: 'error', message: 'Doctor profile not found' });
+      }
+      vet.isApproved = isApproved !== false;
+      return res.json({ status: 'success', vet });
+    }
+  } catch (error) {
+    console.error('Error approving vet:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
  * ADMIN: GET /api/admin/calls
  * List all call sessions for admin review
  */
