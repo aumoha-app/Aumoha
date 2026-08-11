@@ -485,14 +485,6 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
 
         <div className="flex items-center gap-2">
           {/* Quick Action Buttons */}
-          {(user?.role === 'doctor' || user?.role === 'expert') && (
-            <Link
-              href="/provider"
-              className="px-3 py-1.5 text-xs font-bold rounded-xl border border-emerald-200 bg-[#2D4536] hover:bg-[#1E2E24] text-white transition-all duration-200 cursor-pointer whitespace-nowrap shadow-xs flex items-center gap-1.5"
-            >
-              <span>🩺 Dashboard</span>
-            </Link>
-          )}
           {(user?.role === 'admin' || isAdmin) && onOpenAdmin && (
             <button
               onClick={onOpenAdmin}
