@@ -146,18 +146,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           checkProviderStatus(idToken || '');
         }
       } else {
-        console.error('Failed to sync profile from MongoDB backend');
         if (res.status === 401) {
           handleCacheClear();
         }
       }
     } catch (error: any) {
       clearTimeout(timeoutId);
-      if (error.name === 'AbortError') {
-        console.warn('Profile sync timed out. Operating on cached local data.');
-      } else {
-        console.warn('Profile sync failed. Operating on cached local data:', error.message || error);
-      }
+      // Auto-retry once after 3s if backend server is still initializing
+      setTimeout(() => {
+        syncProfile();
+      }, 3000);
     }
   };
 
