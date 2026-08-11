@@ -3129,9 +3129,9 @@ app.get('/api/admin/vets/pending', authMiddleware, adminMiddleware, async (req: 
   try {
     let pendingVets = [];
     if (mongoose.connection.readyState === 1) {
-      pendingVets = await Vet.find({ isApproved: false }).sort({ createdAt: -1 });
+      pendingVets = await Vet.find({ isApproved: false, isRejected: { $ne: true } }).sort({ createdAt: -1 });
     } else {
-      pendingVets = fallbackVets.filter((v: any) => v.isApproved === false);
+      pendingVets = fallbackVets.filter((v: any) => v.isApproved === false && !v.isRejected);
     }
     return res.json({ status: 'success', pendingVets });
   } catch (error) {
@@ -3148,14 +3148,26 @@ app.put('/api/admin/vets/:id/approve', authMiddleware, adminMiddleware, async (r
   try {
     const { id } = req.params;
     const { isApproved } = req.body;
+    const approvedFlag = isApproved !== false;
 
     if (mongoose.connection.readyState === 1) {
-      const vet = await Vet.findByIdAndUpdate(id, { isApproved: isApproved !== false }, { new: true });
+      const query = mongoose.Types.ObjectId.isValid(id)
+        ? { $or: [{ _id: id }, { _id: id.toString() }] }
+        : { _id: id };
+
+      const vet = await Vet.findOneAndUpdate(
+        query,
+        { isApproved: approvedFlag, isRejected: !approvedFlag },
+        { new: true }
+      );
+
       if (!vet) {
         return res.status(404).json({ status: 'error', message: 'Doctor profile not found' });
       }
+
       if (vet.email) {
-        await User.findOneAndUpdate({ email: vet.email }, { role: vet.category === 'expert' ? 'expert' : 'vet' });
+        const targetRole = approvedFlag ? (vet.category === 'expert' ? 'expert' : 'doctor') : 'normal';
+        await User.findOneAndUpdate({ email: vet.email }, { role: targetRole });
       }
       return res.json({ status: 'success', vet });
     } else {
@@ -3163,12 +3175,19 @@ app.put('/api/admin/vets/:id/approve', authMiddleware, adminMiddleware, async (r
       if (!vet) {
         return res.status(404).json({ status: 'error', message: 'Doctor profile not found' });
       }
-      vet.isApproved = isApproved !== false;
+      vet.isApproved = approvedFlag;
+      vet.isRejected = !approvedFlag;
+
+      const fbUser = fallbackUsers.find((u: any) => u.email && u.email.toLowerCase() === vet.email?.toLowerCase());
+      if (fbUser) {
+        fbUser.role = approvedFlag ? (vet.category === 'expert' ? 'expert' : 'doctor') : 'normal';
+      }
+
       return res.json({ status: 'success', vet });
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error approving vet:', error);
-    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+    return res.status(500).json({ status: 'error', message: error?.message || 'Internal Server Error' });
   }
 });
 

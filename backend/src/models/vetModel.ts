@@ -38,6 +38,7 @@ const SlotSchema = new Schema({
 
 const VetSchema = new Schema(
   {
+    _id: { type: Schema.Types.Mixed },
     name: { type: String, required: true },
     photo: { type: String, default: '' },
     specialisation: { type: String, required: true },
@@ -50,6 +51,7 @@ const VetSchema = new Schema(
     reviewCount: { type: Number, default: 10 },
     isOnline: { type: Boolean, default: false },
     isApproved: { type: Boolean, default: true },
+    isRejected: { type: Boolean, default: false },
     availableSlots: { type: [SlotSchema], default: [] },
     email: { type: String, default: '' },
     phone: { type: String, default: '' },
