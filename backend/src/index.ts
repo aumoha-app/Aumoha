@@ -2712,7 +2712,7 @@ app.post('/api/appointments', authMiddleware, async (req: Request, res: Response
 
     // Create Appointment Document
     appointmentData = {
-      _id: `appt_${Date.now()}`,
+      _id: new mongoose.Types.ObjectId().toString(),
       userEmail,
       vetId,
       vetName: vet.name,

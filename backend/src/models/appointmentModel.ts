@@ -25,6 +25,7 @@ export interface IAppointment extends Document {
 
 const AppointmentSchema = new Schema(
   {
+    _id: { type: Schema.Types.Mixed },
     userEmail: { type: String, required: true, lowercase: true, trim: true },
     vetId: { type: String, required: true },
     vetName: { type: String, required: true },
