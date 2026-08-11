@@ -849,19 +849,17 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
 
   const handleDeleteExpert = async (id: string) => {
     if (!token) return;
-    openConfirmation({
+    setPopupConfig({
       title: 'Remove Specialist Profile?',
       message: 'Are you sure you want to remove this specialist profile? This action cannot be undone.',
       confirmText: 'Remove Specialist',
-      cancelText: 'Cancel',
-      isDestructive: true,
+      type: 'warning',
       onConfirm: async () => {
         try {
           const res = await fetch(`${API_BASE}/vets/${id}`, {
             method: 'DELETE',
             headers: {
               Authorization: `Bearer ${token}`,
-              'x-[#x-admin-password]': adminPassword,
               'x-admin-password': adminPassword
             }
           });
@@ -879,12 +877,11 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
     if (!token) return;
     const currentApproval = exp.isApproved !== false;
     const nextApproval = !currentApproval;
-    openConfirmation({
+    setPopupConfig({
       title: `${nextApproval ? 'Approve' : 'Unapprove'} Specialist?`,
       message: `Are you sure you want to ${nextApproval ? 'approve' : 'unapprove'} ${exp.name}?`,
       confirmText: nextApproval ? 'Approve' : 'Unapprove',
-      cancelText: 'Cancel',
-      isDestructive: !nextApproval,
+      type: 'warning',
       onConfirm: async () => {
         try {
           const res = await fetch(`${API_BASE}/vets/${exp._id}`, {
