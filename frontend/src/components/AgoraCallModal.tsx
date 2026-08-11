@@ -212,6 +212,18 @@ export default function AgoraCallModal({ appointmentId, channelName, appointment
   const [loadingToken, setLoadingToken] = useState<boolean>(true);
   const originalGetUserMediaRef = useRef<any>(null);
 
+  // Track body class for active video call to hide bottom nav
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.body.classList.add('video-call-active');
+    }
+    return () => {
+      if (typeof document !== 'undefined') {
+        document.body.classList.remove('video-call-active');
+      }
+    };
+  }, []);
+
   // 1. Fetch Agora dynamic token from backend
   useEffect(() => {
     const fetchAgoraToken = async () => {

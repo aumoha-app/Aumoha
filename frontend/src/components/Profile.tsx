@@ -216,27 +216,26 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
 
   // Check if current user is admin whitelisted & fetch real user activity counts
   useEffect(() => {
+    let isMounted = true;
     if (token) {
       fetch(`${API_BASE}/auth/admin-config`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` }
       })
-      .then(res => res.json())
+      .then(res => (res.ok ? res.json() : null))
       .then(data => {
-        if (data.status === 'success') {
+        if (isMounted && data && data.status === 'success') {
           setIsAdmin(data.isAdmin);
         }
       })
-      .catch(err => console.error('Failed to retrieve admin configuration in Profile:', err));
+      .catch(() => {});
 
       // Fetch real SOS reports count for user
       fetch(`${API_BASE}/sos/my`, {
         headers: { Authorization: `Bearer ${token}` }
       })
-      .then(res => res.json())
+      .then(res => (res.ok ? res.json() : null))
       .then(data => {
-        if (data.reports) {
+        if (isMounted && data && data.reports) {
           setUserSosCount(data.reports.length);
         }
       })
@@ -246,9 +245,9 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
       fetch(`${API_BASE}/appointments`, {
         headers: { Authorization: `Bearer ${token}` }
       })
-      .then(res => res.json())
+      .then(res => (res.ok ? res.json() : null))
       .then(data => {
-        if (data.status === 'success' && data.appointments) {
+        if (isMounted && data && data.status === 'success' && data.appointments) {
           setUserApptCount(data.appointments.length);
         }
       })
@@ -256,6 +255,7 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
     } else {
       setIsAdmin(false);
     }
+    return () => { isMounted = false; };
   }, [token]);
 
   // Initialize editedProfile when user is fetched

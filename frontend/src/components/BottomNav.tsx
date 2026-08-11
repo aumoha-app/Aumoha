@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -12,6 +13,20 @@ interface BottomNavProps {
 
 export default function BottomNav({ activeTab: propActiveTab, setActiveTab }: BottomNavProps) {
   const pathname = usePathname();
+  const [isVideoCallActive, setIsVideoCallActive] = useState(false);
+
+  useEffect(() => {
+    const checkCall = () => {
+      if (typeof document !== 'undefined') {
+        setIsVideoCallActive(document.body.classList.contains('video-call-active'));
+      }
+    };
+    checkCall();
+    const interval = setInterval(checkCall, 400);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (isVideoCallActive) return null;
 
   // Determine active tab from current URL pathname or fallback prop
   let currentTab: TabType = 'home';

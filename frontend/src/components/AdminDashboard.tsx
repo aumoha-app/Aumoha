@@ -868,7 +868,6 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
             <span className="text-[10px] font-extrabold uppercase tracking-widest bg-[#4A5D4E]/10 text-[#4A5D4E] px-2.5 py-0.5 rounded-full border border-[#4A5D4E]/20">
               Admin Portal
             </span>
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           </div>
           <h1 className="font-serif text-2xl sm:text-3xl text-[#1C1A17] font-normal tracking-tight">Admin Control Panel</h1>
           <p className="text-xs text-stone-400 font-medium mt-0.5">Manage rescue alerts, product catalog, vets, calls, community & checkout settings</p>
