@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE } from '../lib/api';
 import CallSessionButton from './CallSessionButton';
@@ -82,8 +82,48 @@ export default function ProviderDashboard() {
   const [editFee, setEditFee] = useState<number | string>(500);
   const [editPhone, setEditPhone] = useState('');
   const [editBio, setEditBio] = useState('');
+  const [editPhoto, setEditPhoto] = useState('');
   const [editTags, setEditTags] = useState('');
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 300;
+        const MAX_HEIGHT = 300;
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          setEditPhoto(canvas.toDataURL('image/jpeg', 0.8));
+        } else {
+          setEditPhoto(event.target?.result as string);
+        }
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Slots Management State
   const [slots, setSlots] = useState<Slot[]>([]);
@@ -128,6 +168,7 @@ export default function ProviderDashboard() {
         setEditFee(vet.fee ?? 500);
         setEditPhone(vet.phone || '');
         setEditBio(vet.bio || '');
+        setEditPhoto(vet.photo || '');
         setEditTags(vet.specialtyTags?.join(', ') || '');
 
         // Fetch appointments for this doctor
@@ -209,6 +250,7 @@ export default function ProviderDashboard() {
           fee: Number(editFee),
           phone: editPhone,
           bio: editBio,
+          photo: editPhoto,
           specialtyTags: editTags.split(',').map(t => t.trim()).filter(Boolean)
         })
       });
@@ -583,6 +625,51 @@ export default function ProviderDashboard() {
             <p className="text-xs text-stone-500 font-medium mb-6">Update your public consultation fee, bio, phone number, and specialisations.</p>
 
             <form onSubmit={handleSaveProfile} className="space-y-5">
+              {/* Doctor Profile Avatar Upload Section */}
+              <div className="flex flex-col sm:flex-row items-center gap-5 p-4 bg-[#FCFAF7] border border-stone-200 rounded-3xl mb-6">
+                <div className="relative w-20 h-20 rounded-2xl overflow-hidden border-2 border-terracotta shadow-sm bg-stone-100 shrink-0">
+                  <img
+                    src={editPhoto || provider.photo || '/sairaj_avatar.png'}
+                    alt={provider.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex flex-col gap-2 text-center sm:text-left">
+                  <div>
+                    <h4 className="text-xs font-black text-charcoal">Doctor Profile Photo</h4>
+                    <p className="text-[11px] text-stone-500 font-medium">Upload a clear professional photo for patient booking cards.</p>
+                  </div>
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                    className="hidden"
+                  />
+                  <div className="flex gap-2 justify-center sm:justify-start">
+                    <button
+                      type="button"
+                      onClick={() => photoInputRef.current?.click()}
+                      className="px-3.5 py-1.5 bg-white hover:bg-stone-50 border border-stone-300 text-charcoal text-xs font-extrabold rounded-xl shadow-2xs cursor-pointer flex items-center gap-1.5"
+                    >
+                      <svg className="w-4 h-4 text-terracotta" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      Change Photo
+                    </button>
+                    {editPhoto && (
+                      <button
+                        type="button"
+                        onClick={() => setEditPhoto(provider.photo || '/sairaj_avatar.png')}
+                        className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold rounded-xl cursor-pointer"
+                      >
+                        Reset
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-extrabold text-stone-600 uppercase mb-1">Consultation Fee (₹)</label>
