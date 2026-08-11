@@ -135,8 +135,8 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
         const data = await res.json();
         setCallSessions(data.sessions || []);
       }
-    } catch (err) {
-      console.error('Error fetching call sessions:', err);
+    } catch {
+      // Silent catch during server hot-reloads or transient network flaps
     }
   };
 
