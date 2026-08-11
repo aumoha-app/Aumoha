@@ -2779,12 +2779,44 @@ app.get('/api/appointments', authMiddleware, async (req: Request, res: Response)
       return res.status(401).json({ status: 'error', message: 'Authentication required' });
     }
 
+    const { vetId } = req.query;
+
     if (mongoose.connection.readyState !== 1) {
-      const userAppts = fallbackAppointments.filter(a => a.userEmail === userEmail);
-      return res.json({ status: 'success', appointments: userAppts });
+      let appts = [];
+      if (vetId) {
+        appts = fallbackAppointments.filter(a => String(a.vetId) === String(vetId));
+      } else {
+        const vetProfile = fallbackVets.find(v => v.email && v.email.toLowerCase() === userEmail.toLowerCase());
+        if (vetProfile) {
+          appts = fallbackAppointments.filter(a => String(a.vetId) === String(vetProfile._id) || a.userEmail === userEmail);
+        } else {
+          appts = fallbackAppointments.filter(a => a.userEmail === userEmail);
+        }
+      }
+      return res.json({ status: 'success', appointments: appts });
     }
 
-    const appointments = await Appointment.find({ userEmail }).sort({ createdAt: -1 });
+    let filter: any = {};
+    if (vetId) {
+      filter = { $or: [{ vetId: vetId }, { vetId: String(vetId) }] };
+    } else {
+      // Check if logged-in user is a Doctor/Provider
+      const escapedUserEmail = userEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const vetProfile = await Vet.findOne({ email: { $regex: new RegExp(`^${escapedUserEmail}$`, 'i') } });
+      if (vetProfile) {
+        filter = {
+          $or: [
+            { userEmail: userEmail },
+            { vetId: vetProfile._id },
+            { vetId: String(vetProfile._id) }
+          ]
+        };
+      } else {
+        filter = { userEmail };
+      }
+    }
+
+    const appointments = await Appointment.find(filter).sort({ createdAt: -1 });
     return res.json({ status: 'success', appointments });
   } catch (error) {
     console.error('Error in GET /api/appointments:', error);
