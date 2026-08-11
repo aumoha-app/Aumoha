@@ -750,7 +750,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
         body: JSON.stringify({
           vetId: selectedExpert._id,
           slotId: selectedSlot._id,
-          mode: bookingMode === 'in-person' ? 'in-clinic' : 'tele-consult',
+          mode: (bookingMode === 'in-clinic' || bookingMode === 'in-person') ? 'in-clinic' : 'tele-consult',
           petName: petName.trim(),
           type: 'expert',
           medicalDocument: medicalReportBase64

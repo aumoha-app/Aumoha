@@ -204,7 +204,7 @@ interface AgoraCallModalProps {
 
 export default function AgoraCallModal({ appointmentId, channelName, appointment, onClose }: AgoraCallModalProps) {
   const { token: authToken } = useAuth();
-  const targetApptId = appointmentId || channelName || (appointment ? (appointment._id || appointment.bookingId) : '');
+  const targetApptId = appointmentId || channelName || (appointment ? (appointment.bookingId || appointment._id) : '');
   const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || '';
   const [permissionState, setPermissionState] = useState<'checking' | 'granted' | 'denied'>('checking');
   const [permissionError, setPermissionError] = useState<string>('');

@@ -16,9 +16,12 @@ export default function CallSessionButton({ appointment, onJoinCall, className }
   const [loading, setLoading] = useState<boolean>(true);
   const [requesting, setRequesting] = useState<boolean>(false);
 
+  const targetId = appointment ? (appointment.bookingId || appointment._id) : '';
+
   const fetchSessionStatus = async () => {
+    if (!targetId) return;
     try {
-      const res = await fetch(`${API_BASE}/appointments/${appointment._id}/call`, {
+      const res = await fetch(`${API_BASE}/appointments/${targetId}/call`, {
         headers: token ? { 'Authorization': `Bearer ${token}` } : {}
       });
       if (res.ok) {
@@ -41,9 +44,10 @@ export default function CallSessionButton({ appointment, onJoinCall, className }
   }, [appointment, token]);
 
   const handleRequestCall = async () => {
+    if (!targetId) return;
     setRequesting(true);
     try {
-      const res = await fetch(`${API_BASE}/appointments/${appointment._id}/call/request`, {
+      const res = await fetch(`${API_BASE}/appointments/${targetId}/call/request`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

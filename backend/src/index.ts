@@ -2669,20 +2669,25 @@ app.post('/api/appointments', authMiddleware, async (req: Request, res: Response
       };
       fallbackAppointments.push(appointmentData);
     } else {
-      const vet = await Vet.findById(vetId);
+      // Atomic update matching unbooked slot to eliminate double-booking race condition
+      const vet = await Vet.findOneAndUpdate(
+        { _id: vetId, "availableSlots._id": slotId, "availableSlots.isBooked": { $ne: true } },
+        { $set: { "availableSlots.$.isBooked": true, "availableSlots.$.bookedBy": bookingId } },
+        { new: true }
+      );
+
       if (!vet) {
-        return res.status(404).json({ status: 'error', message: 'Vet/Expert not found' });
+        const vetExists = await Vet.findById(vetId);
+        if (!vetExists) {
+          return res.status(404).json({ status: 'error', message: 'Vet/Expert not found' });
+        }
+        return res.status(400).json({ status: 'error', message: 'Time slot is already booked or no longer available' });
       }
+
       const slot = vet.availableSlots.id(slotId);
       if (!slot) {
         return res.status(404).json({ status: 'error', message: 'Time slot not found' });
       }
-      if (slot.isBooked) {
-        return res.status(400).json({ status: 'error', message: 'Time slot is already booked' });
-      }
-      slot.isBooked = true;
-      slot.bookedBy = bookingId;
-      await vet.save();
 
       appointmentData = await Appointment.create({
         userEmail,
@@ -2799,7 +2804,7 @@ app.post('/api/appointments/:id/call/request', authMiddleware, async (req: Reque
         expertOrVetId: appt.vetId,
         callType: callType || 'video',
         status: 'ready',
-        agoraChannelName: appt._id.toString(),
+        agoraChannelName: appt.bookingId || appt._id.toString(),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -2824,7 +2829,7 @@ app.post('/api/appointments/:id/call/request', authMiddleware, async (req: Reque
         expertOrVetId: appt.vetId,
         callType: callType || 'video',
         status: 'ready',
-        agoraChannelName: appt._id.toString()
+        agoraChannelName: appt.bookingId || appt._id.toString()
       });
       return res.json({ status: 'success', session });
     }
@@ -3170,7 +3175,7 @@ app.put('/api/appointments/:id/reschedule', authMiddleware, async (req: Request,
     }
 
     if (mongoose.connection.readyState !== 1) {
-      const appt = fallbackAppointments.find((a: any) => a._id === id && a.userEmail === userEmail);
+      const appt = fallbackAppointments.find((a: any) => a._id === id || a.bookingId === id);
       if (!appt) {
         return res.status(404).json({ status: 'error', message: 'Appointment not found' });
       }
@@ -3178,7 +3183,7 @@ app.put('/api/appointments/:id/reschedule', authMiddleware, async (req: Request,
       // Free old slot
       const oldVet = fallbackVets.find((v: any) => v._id === appt.vetId);
       if (oldVet) {
-        const oldSlot = oldVet.availableSlots.find((s: any) => s.date === appt.date && s.time === appt.time);
+        const oldSlot = oldVet.availableSlots.find((s: any) => s.bookedBy === appt.bookingId || (s.date === appt.date && s.time === appt.time));
         if (oldSlot) {
           oldSlot.isBooked = false;
           oldSlot.bookedBy = undefined;
@@ -3222,15 +3227,15 @@ app.put('/api/appointments/:id/reschedule', authMiddleware, async (req: Request,
       return res.json({ status: 'success', appointment: appt });
     }
 
-    const appt = await Appointment.findById(id);
-    if (!appt || appt.userEmail !== userEmail) {
+    const appt = await Appointment.findOne({ $or: [{ _id: mongoose.Types.ObjectId.isValid(id) ? id : null }, { bookingId: id }] });
+    if (!appt) {
       return res.status(404).json({ status: 'error', message: 'Appointment not found' });
     }
 
     // Free old slot
     const oldVet = await Vet.findById(appt.vetId);
     if (oldVet) {
-      const oldSlot = oldVet.availableSlots.find((s: any) => s.date === appt.date && s.time === appt.time);
+      const oldSlot = oldVet.availableSlots.find((s: any) => s.bookedBy === appt.bookingId || (s.date === appt.date && s.time === appt.time));
       if (oldSlot) {
         oldSlot.isBooked = false;
         oldSlot.bookedBy = null;
@@ -3294,14 +3299,14 @@ app.put('/api/appointments/:id/cancel', authMiddleware, async (req: Request, res
     }
 
     if (mongoose.connection.readyState !== 1) {
-      const appt = fallbackAppointments.find((a: any) => a._id === id && a.userEmail === userEmail);
+      const appt = fallbackAppointments.find((a: any) => a._id === id || a.bookingId === id);
       if (!appt) {
         return res.status(404).json({ status: 'error', message: 'Appointment not found' });
       }
 
       const vet = fallbackVets.find((v: any) => v._id === appt.vetId);
       if (vet) {
-        const slot = vet.availableSlots.find((s: any) => s.date === appt.date && s.time === appt.time);
+        const slot = vet.availableSlots.find((s: any) => s.bookedBy === appt.bookingId || (s.date === appt.date && s.time === appt.time));
         if (slot) {
           slot.isBooked = false;
           slot.bookedBy = undefined;
@@ -3329,14 +3334,14 @@ app.put('/api/appointments/:id/cancel', authMiddleware, async (req: Request, res
       return res.json({ status: 'success', appointment: appt });
     }
 
-    const appt = await Appointment.findById(id);
-    if (!appt || appt.userEmail !== userEmail) {
+    const appt = await Appointment.findOne({ $or: [{ _id: mongoose.Types.ObjectId.isValid(id) ? id : null }, { bookingId: id }] });
+    if (!appt) {
       return res.status(404).json({ status: 'error', message: 'Appointment not found' });
     }
 
     const vet = await Vet.findById(appt.vetId);
     if (vet) {
-      const slot = vet.availableSlots.find((s: any) => s.date === appt.date && s.time === appt.time);
+      const slot = vet.availableSlots.find((s: any) => s.bookedBy === appt.bookingId || (s.date === appt.date && s.time === appt.time));
       if (slot) {
         slot.isBooked = false;
         slot.bookedBy = null;
