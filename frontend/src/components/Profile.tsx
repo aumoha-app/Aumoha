@@ -1236,10 +1236,20 @@ function ProfileBookingHistory({ token, API_BASE }: { token: string | null; API_
           if (res.ok && data.status === 'success') {
             setAppointments(prev => prev.map(a => a._id === apptId ? { ...a, medicalDocument: base64 } : a));
           } else {
-            alert(data.message || 'Failed to upload medical document.');
+            openConfirmation({
+              title: 'Upload Failed',
+              message: data.message || 'Failed to upload medical document.',
+              confirmText: 'OK',
+              onConfirm: () => {}
+            });
           }
         } catch {
-          alert('Network error. Failed to upload medical document.');
+          openConfirmation({
+            title: 'Network Error',
+            message: 'Network error. Failed to upload medical document.',
+            confirmText: 'OK',
+            onConfirm: () => {}
+          });
         } finally {
           setUploadingId(null);
         }

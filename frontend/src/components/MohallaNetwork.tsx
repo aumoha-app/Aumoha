@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { LayoutGrid, Shield, Utensils, Stethoscope, Home, Heart, Search, PhoneCall, Building2 } from 'lucide-react';
 import { CircleMember, MemberRole } from '../types';
 import RadiusSelector from './RadiusSelector';
+import PopupModal from './PopupModal';
 
 interface MohallaNetworkProps {
   computedMembers: CircleMember[];
@@ -26,6 +27,7 @@ export default function MohallaNetwork({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProfileMember, setSelectedProfileMember] = useState<CircleMember | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [popupConfig, setPopupConfig] = useState<any>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -260,7 +262,7 @@ export default function MohallaNetwork({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      alert(`Calling rescue responder ${member.name}...`);
+                      setPopupConfig({ title: 'Connecting Call', message: `Calling rescue responder ${member.name}...`, type: 'info' });
                     }}
                     className="p-3 bg-white/80 text-[#2D4536] hover:bg-[#2D4536] hover:text-white rounded-full transition-all duration-200 shadow-xs shrink-0 active:scale-95 border border-white/60 cursor-pointer"
                     aria-label={`Call ${member.name}`}
@@ -378,7 +380,7 @@ export default function MohallaNetwork({
               <div className="flex items-center gap-3 pt-1">
                 <button
                   onClick={() => {
-                    alert(`Connecting call to ${selectedProfileMember.name}...`);
+                    setPopupConfig({ title: 'Connecting Call', message: `Connecting call to ${selectedProfileMember.name}...`, type: 'info' });
                   }}
                   className="flex-1 py-3 bg-[#2D4536] hover:bg-[#1E2E24] text-white text-xs font-extrabold rounded-2xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
@@ -399,6 +401,8 @@ export default function MohallaNetwork({
         </div>,
         document.body
       )}
+      {/* Popup Alert Modal */}
+      <PopupModal config={popupConfig} onClose={() => setPopupConfig(null)} />
     </div>
   );
 }

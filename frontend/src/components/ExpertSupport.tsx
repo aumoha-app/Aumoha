@@ -8,6 +8,7 @@ import { processRazorpayPayment } from '../lib/razorpay';
 import AgoraCallModal from './AgoraCallModal';
 import CallSessionButton from './CallSessionButton';
 import PaymentModal from './PaymentModal';
+import PopupModal, { PopupConfig } from './PopupModal';
 
 
 // Interfaces matching backend models
@@ -264,6 +265,11 @@ const CATEGORY_CONFIGS: Record<string, {
 
 export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
   const { token, user, syncProfile } = useAuth();
+  const [popupConfig, setPopupConfig] = useState<PopupConfig | null>(null);
+
+  const showPopup = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info', title?: string) => {
+    setPopupConfig({ message, type, title });
+  };
 
   // Navigation states
   const [currentView, setCurrentView] = useState<'home' | 'listing' | 'wizard' | 'confirmed' | 'admin'>('home');
@@ -730,7 +736,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
 
     const petName = newPetInput ? customPetName : selectedPetName;
     if (!petName.trim()) {
-      alert('Please specify your pet’s name.');
+      showPopup('Please specify your pet’s name.', 'warning');
       return;
     }
 
@@ -760,11 +766,11 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
         setMedicalReportName('');
         fetchExperts();
       } else {
-        alert(data.message || 'Failed to confirm expert booking.');
+        showPopup(data.message || 'Failed to confirm expert booking.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('Connection error confirming reservation.');
+      showPopup('Connection error confirming reservation.', 'error');
     }
   };
 
@@ -817,11 +823,11 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
         fetchExperts();
       } else {
         const d = await res.json();
-        alert(d.message || 'Action failed.');
+        showPopup(d.message || 'Action failed.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('Error updating expert registry.');
+      showPopup('Error updating expert registry.', 'error');
     }
   };
 
@@ -843,53 +849,66 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
 
   const handleDeleteExpert = async (id: string) => {
     if (!token) return;
-    const confirm = window.confirm('Are you sure you want to remove this specialist profile?');
-    if (!confirm) return;
-
-    try {
-      const res = await fetch(`${API_BASE}/vets/${id}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'x-admin-password': adminPassword
+    openConfirmation({
+      title: 'Remove Specialist Profile?',
+      message: 'Are you sure you want to remove this specialist profile? This action cannot be undone.',
+      confirmText: 'Remove Specialist',
+      cancelText: 'Cancel',
+      isDestructive: true,
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`${API_BASE}/vets/${id}`, {
+            method: 'DELETE',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'x-[#x-admin-password]': adminPassword,
+              'x-admin-password': adminPassword
+            }
+          });
+          if (res.ok) {
+            fetchExperts();
+          }
+        } catch (err) {
+          console.error(err);
         }
-      });
-      if (res.ok) {
-        fetchExperts();
       }
-    } catch (err) {
-      console.error(err);
-    }
+    });
   };
 
   const handleToggleApproveExpert = async (exp: Expert) => {
     if (!token) return;
     const currentApproval = exp.isApproved !== false;
     const nextApproval = !currentApproval;
-    const confirm = window.confirm(`Are you sure you want to ${nextApproval ? 'approve' : 'unapprove'} ${exp.name}?`);
-    if (!confirm) return;
-
-    try {
-      const res = await fetch(`${API_BASE}/vets/${exp._id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-          'x-admin-password': adminPassword
-        },
-        body: JSON.stringify({
-          isApproved: nextApproval
-        })
-      });
-      if (res.ok) {
-        fetchExperts();
-      } else {
-        const d = await res.json();
-        alert(d.message || 'Action failed.');
+    openConfirmation({
+      title: `${nextApproval ? 'Approve' : 'Unapprove'} Specialist?`,
+      message: `Are you sure you want to ${nextApproval ? 'approve' : 'unapprove'} ${exp.name}?`,
+      confirmText: nextApproval ? 'Approve' : 'Unapprove',
+      cancelText: 'Cancel',
+      isDestructive: !nextApproval,
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`${API_BASE}/vets/${exp._id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+              'x-admin-password': adminPassword
+            },
+            body: JSON.stringify({
+              isApproved: nextApproval
+            })
+          });
+          if (res.ok) {
+            fetchExperts();
+          } else {
+            const d = await res.json();
+            showPopup(d.message || 'Action failed.', 'error');
+          }
+        } catch (err) {
+          console.error(err);
+        }
       }
-    } catch (err) {
-      console.error(err);
-    }
+    });
   };
 
   const resetExpertForm = () => {
@@ -1607,7 +1626,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                       onClick={() => {
                         const petName = newPetInput ? customPetName : (selectedPetName || user?.pets?.[0]?.name);
                         if (!petName || !petName.trim()) {
-                          alert('Please specify the name of your pet companion.');
+                          showPopup('Please specify the name of your pet companion.', 'warning');
                           return;
                         }
                         setWizardStep(2);
@@ -2470,6 +2489,9 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
           </div>
         </div>
       )}
+
+      {/* Popup Alert Modal */}
+      <PopupModal config={popupConfig} onClose={() => setPopupConfig(null)} />
     </>
   );
 }

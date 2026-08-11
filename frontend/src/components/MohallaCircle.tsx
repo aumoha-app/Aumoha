@@ -18,6 +18,7 @@ import BlogDetailView from './BlogDetailView';
 import MohallaImpact from './MohallaImpact';
 import { loadLeaflet } from '../lib/leafletLoader';
 import { CalendarIcon, SyringeIcon, LeafIcon, HouseIcon } from './icons/PetIcons';
+import PopupModal, { PopupConfig } from './PopupModal';
 import { MapPinOff, AlertTriangle, Users, PlusCircle, CalendarDays } from 'lucide-react';
 import { API_BASE } from '../lib/api';
 import RadiusSelector from './RadiusSelector';
@@ -170,12 +171,18 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
     }
   }, []);
 
+  const [popupConfig, setPopupConfig] = useState<PopupConfig | null>(null);
+
   const toggleJoinEvent = (eventId: string, eventTitle: string) => {
     setJoinedEvents(prev => {
       const isJoined = prev.includes(eventId);
       const updated = isJoined ? prev.filter(id => id !== eventId) : [...prev, eventId];
       localStorage.setItem('joinedEvents', JSON.stringify(updated));
-      alert(isJoined ? `Unregistered from ${eventTitle}` : `Successfully registered for ${eventTitle}!`);
+      setPopupConfig({
+        title: isJoined ? 'Event Unregistered' : 'Event Registered!',
+        message: isJoined ? `Unregistered from ${eventTitle}` : `Successfully registered for ${eventTitle}!`,
+        type: 'success'
+      });
       return updated;
     });
   };
@@ -1374,6 +1381,8 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
         />
       )}
 
+      {/* Popup Alert Modal */}
+      <PopupModal config={popupConfig} onClose={() => setPopupConfig(null)} />
     </div>
   );
 }

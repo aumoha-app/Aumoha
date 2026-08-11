@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { CircleMember } from '../types';
 import { API_BASE } from '../lib/api';
 import RadiusSelector from './RadiusSelector';
+import PopupModal, { PopupConfig } from './PopupModal';
 import { 
   Users, 
   AlertTriangle, 
@@ -38,6 +39,7 @@ export default function MohallaImpact({
 }: MohallaImpactProps) {
   const [checkoutCountryCode, setCheckoutCountryCode] = useState('');
   const [checkoutPhone, setCheckoutPhone] = useState('');
+  const [popupConfig, setPopupConfig] = useState<PopupConfig | null>(null);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -124,7 +126,7 @@ export default function MohallaImpact({
     } else {
       try {
         await navigator.clipboard.writeText(shareUrl);
-        alert('Aumoha Circle link copied to clipboard! Share it with your neighbors.');
+        setPopupConfig({ title: 'Link Copied!', message: 'Aumoha Circle link copied to clipboard! Share it with your neighbors.', type: 'success' });
       } catch (copyErr) {
         window.prompt('Copy this link to invite your neighbors:', shareUrl);
       }
@@ -151,7 +153,7 @@ export default function MohallaImpact({
     } else {
       try {
         await navigator.clipboard.writeText(shareUrl);
-        alert('Impact dashboard link copied to clipboard!');
+        setPopupConfig({ title: 'Link Copied!', message: 'Impact dashboard link copied to clipboard!', type: 'success' });
       } catch (copyErr) {
         window.prompt('Copy this link to share the impact dashboard:', shareUrl);
       }
@@ -332,6 +334,8 @@ export default function MohallaImpact({
         </button>
       </div>
 
+      {/* Popup Alert Modal */}
+      <PopupModal config={popupConfig} onClose={() => setPopupConfig(null)} />
     </div>
   );
 }

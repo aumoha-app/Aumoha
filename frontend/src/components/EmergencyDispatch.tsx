@@ -296,11 +296,21 @@ export default function EmergencyDispatch({
         fetchMyReports();
       } else {
         const errData = await response.json();
-        alert(errData.message || 'Failed to update status.');
+        openConfirmation({
+          title: 'Action Failed',
+          message: errData.message || 'Failed to update status.',
+          confirmText: 'OK',
+          onConfirm: () => {}
+        });
       }
     } catch (err) {
       console.error('Error updating report status:', err);
-      alert('Network error. Unable to update status.');
+      openConfirmation({
+        title: 'Network Error',
+        message: 'Network error. Unable to update status.',
+        confirmText: 'OK',
+        onConfirm: () => {}
+      });
     }
   };
 

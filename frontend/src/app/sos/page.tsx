@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AppShell from '../../components/AppShell';
 import EmergencyDispatch from '../../components/EmergencyDispatch';
+import PopupModal, { PopupConfig } from '../../components/PopupModal';
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE } from '../../lib/api';
 
@@ -14,6 +15,7 @@ export default function SosPage() {
   const [sosReason, setSosReason] = useState<string>('');
   const [sosSent, setSosSent] = useState<boolean>(false);
   const [emergencyType, setEmergencyType] = useState<string>('General');
+  const [popupConfig, setPopupConfig] = useState<PopupConfig | null>(null);
 
   const triggerSOS = async (
     category: string,
@@ -44,11 +46,11 @@ export default function SosPage() {
         setSosSent(true);
       } else {
         const err = await response.json();
-        alert(err.message || 'Failed to submit SOS alert.');
+        setPopupConfig({ message: err.message || 'Failed to submit SOS alert.', type: 'error' });
       }
     } catch (err) {
       console.error('Error submitting SOS:', err);
-      alert('Network error submitting SOS report.');
+      setPopupConfig({ message: 'Network error submitting SOS report.', type: 'error' });
     }
   };
 
@@ -67,6 +69,7 @@ export default function SosPage() {
           router.push('/');
         }}
       />
+      <PopupModal config={popupConfig} onClose={() => setPopupConfig(null)} />
     </AppShell>
   );
 }

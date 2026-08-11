@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { processRazorpayPayment } from '../lib/razorpay';
+import PopupModal, { PopupConfig } from './PopupModal';
 
 
 interface CartItem {
@@ -66,6 +67,7 @@ export default function CartDrawer({
   }, 0);
 
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [popupConfig, setPopupConfig] = useState<PopupConfig | null>(null);
 
   const handleRazorpayPay = () => {
     if (subtotal <= 0) return;
@@ -83,9 +85,16 @@ export default function CartDrawer({
       },
       onSuccess: (paymentData) => {
         setIsProcessingPayment(false);
-        alert(`🎉 Payment Successful!\nPayment ID: ${paymentData.payment_id}\nOrder ID: ${paymentData.order_id}`);
-        onClearCart();
-        onClose();
+        setPopupConfig({
+          title: '🎉 Payment Successful!',
+          message: `Payment ID: ${paymentData.payment_id}\nOrder ID: ${paymentData.order_id}`,
+          type: 'success',
+          confirmText: 'Done',
+          onConfirm: () => {
+            onClearCart();
+            onClose();
+          }
+        });
       },
       onFailure: () => {
         setIsProcessingPayment(false);
@@ -371,6 +380,9 @@ Please confirm my order. Thank you!`;
           </div>
         )}
       </div>
+
+      {/* Popup Alert Modal */}
+      <PopupModal config={popupConfig} onClose={() => setPopupConfig(null)} />
     </>
   );
 }

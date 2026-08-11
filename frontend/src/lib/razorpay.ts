@@ -55,8 +55,8 @@ export interface RazorpayOptions {
 export const processRazorpayPayment = async (options: RazorpayOptions): Promise<void> => {
   const isLoaded = await loadRazorpayScript();
   if (!isLoaded) {
-    alert('Failed to load Razorpay SDK. Please check your internet connection.');
-    if (options.onFailure) options.onFailure(new Error('Razorpay SDK failed to load'));
+    console.warn('Failed to load Razorpay SDK. Please check your internet connection.');
+    if (options.onFailure) options.onFailure(new Error('Failed to load Razorpay SDK. Please check your internet connection.'));
     return;
   }
 
@@ -130,13 +130,13 @@ export const processRazorpayPayment = async (options: RazorpayOptions): Promise<
               payment_id: response.razorpay_payment_id,
             });
           } else {
-            alert(verifyData.message || 'Payment signature verification failed.');
-            if (options.onFailure) options.onFailure(new Error(verifyData.message));
+            const errMsg = verifyData.message || 'Payment signature verification failed.';
+            console.warn(errMsg);
+            if (options.onFailure) options.onFailure(new Error(errMsg));
           }
         } catch (verifyErr: any) {
           console.error('Payment verification error:', verifyErr);
-          alert('Network error verifying payment signature.');
-          if (options.onFailure) options.onFailure(verifyErr);
+          if (options.onFailure) options.onFailure(new Error('Network error verifying payment signature.'));
         }
       },
       modal: {
@@ -161,7 +161,6 @@ export const processRazorpayPayment = async (options: RazorpayOptions): Promise<
   } catch (error: any) {
     console.warn('Error initiating Razorpay checkout:', error);
     const msg = error?.message || 'Unable to start payment checkout.';
-    alert(msg);
     if (options.onFailure) options.onFailure(error);
   }
 };

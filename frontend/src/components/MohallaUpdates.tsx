@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { CommunityUpdate, MemberRole } from '../types';
 import { useAuth } from '../context/AuthContext';
@@ -8,6 +8,7 @@ import { ClockIcon } from './icons/PetIcons';
 import { MapPinOff } from 'lucide-react';
 import { API_BASE } from '../lib/api';
 import RadiusSelector from './RadiusSelector';
+import PopupModal, { PopupConfig } from './PopupModal';
 
 interface MohallaUpdatesProps {
   computedUpdates: CommunityUpdate[];
@@ -76,15 +77,15 @@ export default function MohallaUpdates({
   const handleCreateActivity = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token) {
-      alert('You must be logged in to post updates.');
+      showPopup('You must be logged in to post updates.', 'warning');
       return;
     }
     if (!activityTitle || !activityLocation || !activityTime || !activityDesc) {
-      alert('Please fill out all required fields (Category, Title, Location/Venue, Time, and Description).');
+      showPopup('Please fill out all required fields (Category, Title, Location/Venue, Time, and Description).', 'warning');
       return;
     }
     if (!activityPhotoPreview) {
-      alert('Photo is mandatory! Please select and upload a photo or banner.');
+      showPopup('Photo is mandatory! Please select and upload a photo or banner.', 'warning');
       return;
     }
 
@@ -106,7 +107,7 @@ export default function MohallaUpdates({
       });
 
       if (response.ok) {
-        alert(editingActivityId ? 'Community activity updated successfully!' : 'Community activity started successfully!');
+        showPopup(editingActivityId ? 'Community activity updated successfully!' : 'Community activity started successfully!', 'success');
         
         // Reset states
         setActivityTitle('');
@@ -122,11 +123,11 @@ export default function MohallaUpdates({
         refreshUpdates();
       } else {
         const errorData = await response.json();
-        alert(errorData.message || 'Failed to save community activity.');
+        showPopup(errorData.message || 'Failed to save community activity.', 'error');
       }
     } catch (err) {
       console.error('Error saving activity:', err);
-      alert('Network error. Failed to save community activity.');
+      showPopup('Network error. Failed to save community activity.', 'error');
     }
   };
 
@@ -165,15 +166,15 @@ export default function MohallaUpdates({
       });
 
       if (response.ok) {
-        alert(category === 'help' ? 'Emergency report canceled successfully!' : 'Community activity deleted successfully!');
+        showPopup(category === 'help' ? 'Emergency report canceled successfully!' : 'Community activity deleted successfully!', 'success');
         refreshUpdates();
       } else {
         const errData = await response.json();
-        alert(errData.message || 'Failed to delete post.');
+        showPopup(errData.message || 'Failed to delete post.', 'error');
       }
     } catch (err) {
       console.error('Error deleting post:', err);
-      alert('Network error. Failed to delete post.');
+      showPopup('Network error. Failed to delete post.', 'error');
     }
   };
 
@@ -744,6 +745,9 @@ export default function MohallaUpdates({
 
       {/* FAB (Floating Plus) Button */}
       <DraggableFAB onTrigger={() => setShowActivityModal(true)} />
+
+      {/* Popup Alert Modal */}
+      <PopupModal config={popupConfig} onClose={() => setPopupConfig(null)} />
     </div>
   );
 }

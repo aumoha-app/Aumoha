@@ -8,6 +8,7 @@ import { processRazorpayPayment } from '../lib/razorpay';
 import AgoraCallModal from './AgoraCallModal';
 import CallSessionButton from './CallSessionButton';
 import PaymentModal from './PaymentModal';
+import PopupModal, { PopupConfig } from './PopupModal';
 
 
 // Define Interface types
@@ -66,6 +67,11 @@ interface VetConsultationProps {
 
 export default function VetConsultation({ setActiveTab }: VetConsultationProps) {
   const { token, user } = useAuth();
+  const [popupConfig, setPopupConfig] = useState<PopupConfig | null>(null);
+
+  const showPopup = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info', title?: string) => {
+    setPopupConfig({ message, type, title });
+  };
 
   // Navigation tabs
   const [subTab, setSubTab] = useState<'book' | 'tele' | 'my-appts' | 'admin'>('book');
@@ -459,7 +465,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
 
     const petName = newPetInput ? customPetName : selectedPetName;
     if (!petName.trim()) {
-      alert('Please specify the name of your pet.');
+      showPopup('Please specify the name of your pet.', 'warning');
       return;
     }
 
@@ -488,11 +494,11 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
         fetchVets();
         fetchAppointments();
       } else {
-        alert(data.message || 'Failed to complete booking.');
+        showPopup(data.message || 'Failed to complete booking.', 'error');
       }
     } catch (err) {
       console.error(err);
-      alert('Network connection error booking appointment.');
+      showPopup('Network connection error booking appointment.', 'error');
     }
   };
 
@@ -513,7 +519,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
       if (res.ok) {
         setAppointments(prev => prev.map(a => a._id === apptId ? { ...a, medicalDocument: base64Data } : a));
       } else {
-        alert(data.message || 'Failed to upload report.');
+        showPopup(data.message || 'Failed to upload report.', 'error');
       }
     } catch (err) {
       console.error('Error uploading medical doc:', err);
@@ -635,7 +641,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
         fetchVets();
       } else {
         const d = await res.json();
-        alert(d.message || 'Action failed.');
+        showPopup(d.message || 'Action failed.', 'error');
       }
     } catch (err) {
       console.error(err);
@@ -686,7 +692,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
         fetchVets();
       } else {
         const d = await res.json();
-        alert(d.message || 'Action failed.');
+        showPopup(d.message || 'Action failed.', 'error');
       }
     } catch (err) {
       console.error(err);
@@ -1414,7 +1420,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                     onClick={() => {
                       const petName = newPetInput ? customPetName : (selectedPetName || user?.pets?.[0]?.name);
                       if (!petName || !petName.trim()) {
-                        alert('Please specify the name of your pet companion.');
+                        showPopup('Please specify the name of your pet companion.', 'warning');
                         return;
                       }
                       setBookingStep(2);
@@ -2745,6 +2751,9 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
           </div>
         )}
       </div>
+
+      {/* Custom Alert Popup Modal */}
+      <PopupModal config={popupConfig} onClose={() => setPopupConfig(null)} />
     </>
   );
 }

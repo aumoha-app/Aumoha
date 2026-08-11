@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { API_BASE } from '../lib/api';
 import CallSessionButton from './CallSessionButton';
 import AgoraCallModal from './AgoraCallModal';
+import PopupModal, { PopupConfig } from './PopupModal';
 
 interface Slot {
   _id?: string;
@@ -59,6 +60,7 @@ type Tab = 'overview' | 'appointments' | 'slots';
 
 export default function ProviderDashboard() {
   const { user, token } = useAuth();
+  const [popupConfig, setPopupConfig] = useState<PopupConfig | null>(null);
 
   const [provider, setProvider] = useState<ProviderProfile | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -125,10 +127,10 @@ export default function ProviderDashboard() {
         } : prev);
         setIsEditingProfileModal(false);
       } else {
-        alert(data.message || 'Failed to update profile.');
+        setPopupConfig({ message: data.message || 'Failed to update profile.', type: 'error' });
       }
     } catch {
-      alert('Network error updating profile.');
+      setPopupConfig({ message: 'Network error updating profile.', type: 'error' });
     } finally {
       setIsSavingProfile(false);
     }
@@ -639,10 +641,10 @@ export default function ProviderDashboard() {
                         setAppointments(prev => prev.map(a => a._id === selectedApptForPrescription._id ? { ...a, prescription: prescriptionPhotoBase64, prescriptionNotes: prescriptionNotesText } : a));
                         setSelectedApptForPrescription(null);
                       } else {
-                        alert(data.message || 'Failed to save prescription.');
+                        setPopupConfig({ message: data.message || 'Failed to save prescription.', type: 'error' });
                       }
                     } catch {
-                      alert('Network error. Failed to save prescription.');
+                      setPopupConfig({ message: 'Network error. Failed to save prescription.', type: 'error' });
                     } finally {
                       setIsSavingPrescription(false);
                     }
@@ -760,6 +762,9 @@ export default function ProviderDashboard() {
           }}
         />
       )}
+
+      {/* Popup Alert Modal */}
+      <PopupModal config={popupConfig} onClose={() => setPopupConfig(null)} />
     </div>
   );
 }
