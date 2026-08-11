@@ -18,7 +18,7 @@ export interface IUser extends Document {
   phone: string;
   address: string;
   profilePic?: string;
-  role: 'rescuer' | 'normal' | 'admin';
+  role: 'normal' | 'doctor' | 'expert' | 'rescuer' | 'feeder' | 'volunteer' | 'ngo' | 'admin' | 'paravet';
   rescueCount: number;
   pets: IPet[];
   createdAt: Date;
@@ -45,10 +45,10 @@ const UserSchema: Schema = new Schema(
     firebaseUid: { type: String, required: true, unique: true, index: true },
     fullName: { type: String, required: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    phone: { type: String, required: true, trim: true },
-    address: { type: String, required: true },
+    phone: { type: String, default: '', trim: true },
+    address: { type: String, default: '' },
     profilePic: { type: String, default: '' },
-    role: { type: String, enum: ['rescuer', 'normal', 'admin'], default: 'normal' },
+    role: { type: String, enum: ['normal', 'doctor', 'expert', 'rescuer', 'feeder', 'volunteer', 'ngo', 'admin', 'paravet'], default: 'normal' },
     rescueCount: { type: Number, default: 0 },
     pets: { type: [PetSchema], default: [] },
   },
