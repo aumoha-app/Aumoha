@@ -2631,12 +2631,15 @@ app.post('/api/appointments', authMiddleware, async (req: Request, res: Response
     const bookingId = `AMC-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
     let appointmentData: any = null;
 
-    if (mongoose.connection.readyState !== 1) {
-      const vet = fallbackVets.find((v: any) => v._id === vetId);
+    const isVetObjId = mongoose.Types.ObjectId.isValid(vetId);
+    const isSlotObjId = mongoose.Types.ObjectId.isValid(slotId);
+
+    if (mongoose.connection.readyState !== 1 || !isVetObjId) {
+      const vet = fallbackVets.find((v: any) => v._id === vetId) || (isVetObjId ? await Vet.findById(vetId) : null);
       if (!vet) {
         return res.status(404).json({ status: 'error', message: 'Vet/Expert not found' });
       }
-      const slot = vet.availableSlots.find((s: any) => s._id === slotId);
+      const slot = vet.availableSlots.find((s: any) => String(s._id) === String(slotId) || s.id === slotId);
       if (!slot) {
         return res.status(404).json({ status: 'error', message: 'Time slot not found' });
       }
@@ -2645,6 +2648,9 @@ app.post('/api/appointments', authMiddleware, async (req: Request, res: Response
       }
       slot.isBooked = true;
       slot.bookedBy = bookingId;
+      if (typeof vet.save === 'function') {
+        await vet.save();
+      }
 
       appointmentData = {
         _id: `appt_${Date.now()}`,
@@ -2667,26 +2673,47 @@ app.post('/api/appointments', authMiddleware, async (req: Request, res: Response
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
-      fallbackAppointments.push(appointmentData);
+      if (mongoose.connection.readyState === 1) {
+        appointmentData = await Appointment.create(appointmentData);
+      } else {
+        fallbackAppointments.push(appointmentData);
+      }
     } else {
-      // Atomic update matching unbooked slot to eliminate double-booking race condition
-      const vet = await Vet.findOneAndUpdate(
-        { _id: vetId, "availableSlots._id": slotId, "availableSlots.isBooked": { $ne: true } },
-        { $set: { "availableSlots.$.isBooked": true, "availableSlots.$.bookedBy": bookingId } },
-        { new: true }
-      );
+      let vet: any = null;
+      let slot: any = null;
 
-      if (!vet) {
-        const vetExists = await Vet.findById(vetId);
-        if (!vetExists) {
+      if (isSlotObjId) {
+        // Atomic update matching unbooked slot to eliminate double-booking race condition
+        vet = await Vet.findOneAndUpdate(
+          { _id: vetId, "availableSlots._id": slotId, "availableSlots.isBooked": { $ne: true } },
+          { $set: { "availableSlots.$.isBooked": true, "availableSlots.$.bookedBy": bookingId } },
+          { new: true }
+        );
+
+        if (!vet) {
+          const vetExists = await Vet.findById(vetId);
+          if (!vetExists) {
+            return res.status(404).json({ status: 'error', message: 'Vet/Expert not found' });
+          }
+          return res.status(400).json({ status: 'error', message: 'Time slot is already booked or no longer available' });
+        }
+        slot = vet.availableSlots.id(slotId);
+      } else {
+        // Custom string slot ID handling (e.g. mock slots)
+        vet = await Vet.findById(vetId);
+        if (!vet) {
           return res.status(404).json({ status: 'error', message: 'Vet/Expert not found' });
         }
-        return res.status(400).json({ status: 'error', message: 'Time slot is already booked or no longer available' });
-      }
-
-      const slot = vet.availableSlots.id(slotId);
-      if (!slot) {
-        return res.status(404).json({ status: 'error', message: 'Time slot not found' });
+        slot = vet.availableSlots.find((s: any) => String(s._id) === String(slotId) || s.id === slotId);
+        if (!slot) {
+          return res.status(404).json({ status: 'error', message: 'Time slot not found' });
+        }
+        if (slot.isBooked) {
+          return res.status(400).json({ status: 'error', message: 'Time slot is already booked' });
+        }
+        slot.isBooked = true;
+        slot.bookedBy = bookingId;
+        await vet.save();
       }
 
       appointmentData = await Appointment.create({
@@ -2709,30 +2736,33 @@ app.post('/api/appointments', authMiddleware, async (req: Request, res: Response
       });
     }
 
-    // Trigger transactional email
-    const emailHtml = generateBookingEmailHtml(appointmentData, 'confirm');
-    await sendEmail({
-      to: userEmail,
-      subject: `Aumoha Booking Confirmed: ${appointmentData.vetName} on ${appointmentData.date}`,
-      html: emailHtml
-    });
-
-    // Also send copy notification to doctor/expert if they have email configured
-    let docEmail = '';
-    if (mongoose.connection.readyState !== 1) {
-      const vet = fallbackVets.find((v: any) => v._id === vetId);
-      docEmail = vet?.email || '';
-    } else {
-      const vet = await Vet.findById(vetId);
-      docEmail = vet?.email || '';
-    }
-
-    if (docEmail) {
+    // Trigger transactional email in a non-blocking try...catch block
+    try {
+      const emailHtml = generateBookingEmailHtml(appointmentData, 'confirm');
       await sendEmail({
-        to: docEmail,
-        subject: `New Booking Notification: Client appointment for ${appointmentData.petName} on ${appointmentData.date}`,
+        to: userEmail,
+        subject: `Aumoha Booking Confirmed: ${appointmentData.vetName} on ${appointmentData.date}`,
         html: emailHtml
       });
+
+      let docEmail = '';
+      if (mongoose.connection.readyState !== 1 || !isVetObjId) {
+        const vet = fallbackVets.find((v: any) => v._id === vetId);
+        docEmail = vet?.email || '';
+      } else {
+        const vet = await Vet.findById(vetId);
+        docEmail = vet?.email || '';
+      }
+
+      if (docEmail) {
+        await sendEmail({
+          to: docEmail,
+          subject: `New Booking Notification: Client appointment for ${appointmentData.petName} on ${appointmentData.date}`,
+          html: emailHtml
+        });
+      }
+    } catch (emailErr) {
+      console.warn('Non-blocking confirmation email delivery error:', emailErr);
     }
 
     return res.json({ status: 'success', appointment: appointmentData });
@@ -3209,19 +3239,23 @@ app.put('/api/appointments/:id/reschedule', authMiddleware, async (req: Request,
       appt.time = newSlot.time;
       appt.updatedAt = new Date().toISOString();
 
-      const emailHtml = generateBookingEmailHtml(appt, 'reschedule');
-      await sendEmail({
-        to: userEmail,
-        subject: `Aumoha Booking Rescheduled: ${appt.vetName} on ${appt.date}`,
-        html: emailHtml
-      });
-
-      if (newVet && newVet.email) {
+      try {
+        const emailHtml = generateBookingEmailHtml(appt, 'reschedule');
         await sendEmail({
-          to: newVet.email,
-          subject: `Booking Rescheduled Notification: ${appt.petName} on ${appt.date}`,
+          to: userEmail,
+          subject: `Aumoha Booking Rescheduled: ${appt.vetName} on ${appt.date}`,
           html: emailHtml
         });
+
+        if (newVet && newVet.email) {
+          await sendEmail({
+            to: newVet.email,
+            subject: `Booking Rescheduled Notification: ${appt.petName} on ${appt.date}`,
+            html: emailHtml
+          });
+        }
+      } catch (emailErr) {
+        console.warn('Non-blocking reschedule email delivery error:', emailErr);
       }
 
       return res.json({ status: 'success', appointment: appt });
@@ -3263,19 +3297,23 @@ app.put('/api/appointments/:id/reschedule', authMiddleware, async (req: Request,
     appt.time = newSlot.time;
     await appt.save();
 
-    const emailHtml = generateBookingEmailHtml(appt, 'reschedule');
-    await sendEmail({
-      to: userEmail,
-      subject: `Aumoha Booking Rescheduled: ${appt.vetName} on ${appt.date}`,
-      html: emailHtml
-    });
-
-    if (newVet && newVet.email) {
+    try {
+      const emailHtml = generateBookingEmailHtml(appt, 'reschedule');
       await sendEmail({
-        to: newVet.email,
-        subject: `Booking Rescheduled Notification: ${appt.petName} on ${appt.date}`,
+        to: userEmail,
+        subject: `Aumoha Booking Rescheduled: ${appt.vetName} on ${appt.date}`,
         html: emailHtml
       });
+
+      if (newVet && newVet.email) {
+        await sendEmail({
+          to: newVet.email,
+          subject: `Booking Rescheduled Notification: ${appt.petName} on ${appt.date}`,
+          html: emailHtml
+        });
+      }
+    } catch (emailErr) {
+      console.warn('Non-blocking reschedule email delivery error:', emailErr);
     }
 
     return res.json({ status: 'success', appointment: appt });
@@ -3316,19 +3354,23 @@ app.put('/api/appointments/:id/cancel', authMiddleware, async (req: Request, res
       appt.status = 'cancelled';
       appt.updatedAt = new Date().toISOString();
 
-      const emailHtml = generateBookingEmailHtml(appt, 'cancel');
-      await sendEmail({
-        to: userEmail,
-        subject: `Aumoha Booking Cancelled: ${appt.vetName}`,
-        html: emailHtml
-      });
-
-      if (vet && vet.email) {
+      try {
+        const emailHtml = generateBookingEmailHtml(appt, 'cancel');
         await sendEmail({
-          to: vet.email,
-          subject: `Booking Cancelled Notification: Client appointment for ${appt.petName}`,
+          to: userEmail,
+          subject: `Aumoha Booking Cancelled: ${appt.vetName}`,
           html: emailHtml
         });
+
+        if (vet && vet.email) {
+          await sendEmail({
+            to: vet.email,
+            subject: `Booking Cancelled Notification: Client appointment for ${appt.petName}`,
+            html: emailHtml
+          });
+        }
+      } catch (emailErr) {
+        console.warn('Non-blocking cancel email delivery error:', emailErr);
       }
 
       return res.json({ status: 'success', appointment: appt });
@@ -3352,19 +3394,23 @@ app.put('/api/appointments/:id/cancel', authMiddleware, async (req: Request, res
     appt.status = 'cancelled';
     await appt.save();
 
-    const emailHtml = generateBookingEmailHtml(appt, 'cancel');
-    await sendEmail({
-      to: userEmail,
-      subject: `Aumoha Booking Cancelled: ${appt.vetName}`,
-      html: emailHtml
-    });
-
-    if (vet && vet.email) {
+    try {
+      const emailHtml = generateBookingEmailHtml(appt, 'cancel');
       await sendEmail({
-        to: vet.email,
-        subject: `Booking Cancelled Notification: Client appointment for ${appt.petName}`,
+        to: userEmail,
+        subject: `Aumoha Booking Cancelled: ${appt.vetName}`,
         html: emailHtml
       });
+
+      if (vet && vet.email) {
+        await sendEmail({
+          to: vet.email,
+          subject: `Booking Cancelled Notification: Client appointment for ${appt.petName}`,
+          html: emailHtml
+        });
+      }
+    } catch (emailErr) {
+      console.warn('Non-blocking cancel email delivery error:', emailErr);
     }
 
     return res.json({ status: 'success', appointment: appt });

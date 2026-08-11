@@ -36,6 +36,12 @@ export default function MohallaUpdates({
   onSelectRadius
 }: MohallaUpdatesProps) {
   const { token } = useAuth();
+  const [popupConfig, setPopupConfig] = useState<PopupConfig | null>(null);
+
+  const showPopup = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info', title?: string) => {
+    setPopupConfig({ message, type, title });
+  };
+
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
