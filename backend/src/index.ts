@@ -3088,7 +3088,7 @@ app.post('/api/provider/me/slots/bulk', authMiddleware, async (req: Request, res
         const timeLabel = `${formattedH}:${formattedM} ${period}`;
 
         generatedSlots.push({
-          _id: `slot_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+          _id: new mongoose.Types.ObjectId().toString(),
           date: dateStr,
           time: timeLabel,
           isBooked: false
@@ -3338,14 +3338,14 @@ app.post('/api/admin/users/assign-role', authMiddleware, adminMiddleware, async 
       }
     }
 
-    // Auto-Create or Approve Doctor/Specialist profile if role is doctor or expert
+    // Create Pending Doctor/Specialist profile if role is doctor or expert
     if (role === 'doctor' || role === 'expert') {
       const isExpert = role === 'expert';
       if (mongoose.connection.readyState === 1) {
         const existingVet = await Vet.findOne({ email: { $regex: new RegExp(`^${escapedEmail}$`, 'i') } });
         if (existingVet) {
-          existingVet.isApproved = true;
           existingVet.category = isExpert ? 'expert' : 'vet';
+          if (existingVet.isApproved === undefined) existingVet.isApproved = false;
           await existingVet.save();
         } else {
           await Vet.create({
@@ -3357,19 +3357,19 @@ app.post('/api/admin/users/assign-role', authMiddleware, adminMiddleware, async 
             specialtyTags: isExpert ? ['Specialist', 'Care Consultant'] : ['General Medicine', 'Surgery'],
             experience: 5,
             fee: isExpert ? 450 : 400,
-            bio: 'Certified practitioner dedicated to high-quality animal health and consultation.',
+            bio: 'Certified practitioner awaiting admin verification.',
             rating: 5.0,
-            reviewCount: 1,
-            isOnline: true,
-            isApproved: true,
+            reviewCount: 0,
+            isOnline: false,
+            isApproved: false, // Default to false so it lands in Pending Doctor Verifications queue
             availableSlots: []
           });
         }
       } else {
         const fbVet = fallbackVets.find((v: any) => v.email && v.email.toLowerCase() === cleanEmail);
         if (fbVet) {
-          fbVet.isApproved = true;
           fbVet.category = isExpert ? 'expert' : 'vet';
+          if (fbVet.isApproved === undefined) fbVet.isApproved = false;
         } else {
           fallbackVets.push({
             _id: `vet_${Date.now()}`,
@@ -3381,11 +3381,11 @@ app.post('/api/admin/users/assign-role', authMiddleware, adminMiddleware, async 
             specialtyTags: isExpert ? ['Specialist', 'Care Consultant'] : ['General Medicine', 'Surgery'],
             experience: 5,
             fee: isExpert ? 450 : 400,
-            bio: 'Certified practitioner dedicated to high-quality animal health and consultation.',
+            bio: 'Certified practitioner awaiting admin verification.',
             rating: 5.0,
-            reviewCount: 1,
-            isOnline: true,
-            isApproved: true,
+            reviewCount: 0,
+            isOnline: false,
+            isApproved: false, // Default to false so it lands in Pending Doctor Verifications queue
             availableSlots: []
           });
         }

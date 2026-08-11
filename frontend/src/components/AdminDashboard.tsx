@@ -109,6 +109,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
         setRoleMsg({ type: 'success', text: data.message });
         setRoleAssignEmail('');
         fetchAdminUsers();
+        fetchPendingVets();
       } else {
         setRoleMsg({ type: 'error', text: data.message || 'Failed to assign role.' });
       }

@@ -29,10 +29,11 @@ export interface IVet extends Document {
 }
 
 const SlotSchema = new Schema({
+  _id: { type: Schema.Types.Mixed, default: () => new mongoose.Types.ObjectId().toString() },
   date: { type: String, required: true },
   time: { type: String, required: true },
   isBooked: { type: Boolean, default: false },
-  bookedBy: { type: String, default: null }
+  bookedBy: { type: Schema.Types.Mixed, default: null }
 });
 
 const VetSchema = new Schema(
