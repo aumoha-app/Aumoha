@@ -463,26 +463,11 @@ export default function ProviderDashboard() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Online / Offline Switch */}
-            <button
-              onClick={toggleOnlineStatus}
-              disabled={isTogglingOnline}
-              className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-extrabold transition-all border shadow-sm ${
-                provider.isOnline
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
-                  : 'bg-stone-100 text-stone-600 border-stone-200 hover:bg-stone-200'
-              }`}
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              {provider.isOnline ? 'Online for Consultations' : 'Offline'}
-            </button>
           </div>
         </div>
 
         {/* Tab Selector */}
-        <div className="max-w-6xl mx-auto px-4 flex gap-2 overflow-x-auto border-t border-stone-100 pt-2 pb-1">
+        <div className="max-w-6xl mx-auto px-4 flex gap-2 overflow-x-auto no-scrollbar scrollbar-hide border-t border-stone-100 pt-2 pb-1">
           {[
             { id: 'overview', label: 'Overview & Analytics', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
             { id: 'settings', label: 'Profile & Settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
@@ -985,35 +970,75 @@ export default function ProviderDashboard() {
                 </div>
               ) : (
                 filteredAppts.map(a => (
-                  <div key={a._id} className="bg-white p-6 rounded-3xl border border-warmBeige shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-terracotta transition-all">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-3">
-                        <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800">
-                          {a.bookingId || a._id.slice(-6)}
+                  <div key={a._id} className="bg-white p-5 md:p-6 rounded-2xl border border-[#EBE3D5] shadow-xs hover:shadow-md hover:border-[#2D4536]/30 transition-all space-y-4">
+                    {/* Card Header Bar */}
+                    <div className="flex items-center justify-between gap-3 flex-wrap border-b border-[#F0E4D4] pb-3">
+                      <div className="flex items-center gap-2.5 flex-wrap">
+                        <span className="px-2.5 py-1 rounded-md text-[11px] font-mono font-bold bg-[#FAF4EC] text-[#2D4536] border border-[#E5DBCB] tracking-tight whitespace-nowrap">
+                          {a.bookingId || `#${a._id.slice(-6)}`}
                         </span>
-                        <span className="text-xs font-black text-charcoal">Patient: {a.petName}</span>
-                        <span className="text-[11px] font-bold text-stone-400">• Mode: {a.mode}</span>
+                        <h3 className="text-sm font-bold text-[#1C1A17] font-serif">
+                          Pet: <span className="text-[#C86D51] font-semibold">{a.petName}</span>
+                        </h3>
                       </div>
 
-                      <div className="text-xs font-semibold text-stone-600 flex items-center gap-4">
-                        <span>📅 Date: {a.date}</span>
-                        <span>⏰ Time: {a.time}</span>
-                        <span>💰 Fee: ₹{a.fee}</span>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide border whitespace-nowrap ${
+                          a.mode === 'tele-consult'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : 'bg-amber-50 text-amber-800 border-amber-200'
+                        }`}>
+                          {a.mode === 'tele-consult' ? 'Tele-Consult' : 'In-Clinic'}
+                        </span>
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide border whitespace-nowrap ${
+                          a.status === 'confirmed' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-stone-100 text-stone-700 border-stone-200'
+                        }`}>
+                          {a.status}
+                        </span>
                       </div>
-
-                      {a.notes && (
-                        <p className="text-xs text-stone-500 bg-[#FCFAF7] p-3 rounded-2xl border border-stone-200 italic">
-                          "Client Notes: {a.notes}"
-                        </p>
-                      )}
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3 shrink-0">
+                    {/* Card Details Row with SVG icons */}
+                    <div className="grid grid-cols-3 gap-2 py-1 text-xs text-stone-600 font-medium bg-[#FAF6F0] p-3 rounded-xl border border-[#F0E4D4]">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <svg className="w-3.5 h-3.5 text-[#C86D51] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                          <line x1="16" y1="2" x2="16" y2="6" />
+                          <line x1="8" y1="2" x2="8" y2="6" />
+                          <line x1="3" y1="10" x2="21" y2="10" />
+                        </svg>
+                        <span className="truncate">{a.date}</span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <svg className="w-3.5 h-3.5 text-[#C86D51] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <circle cx="12" cy="12" r="10" />
+                          <polyline points="12 6 12 12 16 14" />
+                        </svg>
+                        <span className="truncate">{a.time}</span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <svg className="w-3.5 h-3.5 text-[#2D4536] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+                        </svg>
+                        <span className="font-bold text-[#1C1A17]">₹{a.fee}</span>
+                      </div>
+                    </div>
+
+                    {a.notes && (
+                      <p className="text-xs text-stone-600 bg-[#FCFAF7] p-3 rounded-xl border border-stone-200/80 italic">
+                        <span className="font-bold not-italic text-stone-700">Notes:</span> {a.notes}
+                      </p>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex flex-wrap items-center justify-end gap-2.5 pt-1">
                       {a.mode === 'tele-consult' && (
                         <CallSessionButton
                           appointment={a}
                           onJoinCall={() => setActiveCallAppt(a)}
-                          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl transition-all shadow-sm"
+                          className="px-4 py-2 bg-[#2D4536] hover:bg-[#1E2E24] text-white font-bold text-xs rounded-xl transition-all shadow-xs"
                         />
                       )}
 
@@ -1023,12 +1048,12 @@ export default function ProviderDashboard() {
                           setPrescriptionNotesText(a.prescriptionNotes || '');
                           setPrescriptionPhotoBase64(a.prescription || '');
                         }}
-                        className="px-4 py-2 bg-[#FCFAF7] hover:bg-stone-100 text-charcoal border border-stone-200 text-xs font-extrabold rounded-xl transition-all flex items-center gap-2"
+                        className="px-3.5 py-2 bg-white hover:bg-[#FAF6F0] text-[#1C1A17] border border-[#E5DBCB] text-xs font-semibold rounded-xl transition-all flex items-center gap-1.5 shadow-xs"
                       >
-                        <svg className="w-4 h-4 text-terracotta" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        <svg className="w-4 h-4 text-[#C86D51]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        E-Prescription
+                        <span>E-Prescription</span>
                       </button>
                     </div>
                   </div>

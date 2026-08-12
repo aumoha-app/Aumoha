@@ -607,6 +607,40 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
         )}
       </div>
 
+      {/* DOCTOR / PROVIDER DASHBOARD BANNER */}
+      {(user?.role === 'doctor' || user?.role === 'expert') && (
+        <Link
+          href="/provider"
+          className="w-full bg-[#FAF4EC] hover:bg-[#F5ECE0] border border-[#F0E4D4] hover:border-[#2D4536]/40 rounded-2xl p-4 flex items-center justify-between shadow-xs transition-all duration-200 cursor-pointer select-none group text-left"
+        >
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-[#2D4536]/15 text-[#2D4536] border border-[#2D4536]/30 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                <rect x="14" y="14" width="7" height="7" rx="1.5" />
+                <rect x="3" y="14" width="7" height="7" rx="1.5" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-[#1C1A17] font-serif group-hover:text-[#2D4536] transition-colors">
+                Doctor Dashboard
+              </h3>
+              <p className="text-xs text-stone-500 font-medium mt-0.5">
+                Manage appointment slots, consultations & doctor profile
+              </p>
+            </div>
+          </div>
+
+          <div className="px-3.5 py-1.5 bg-[#2D4536] group-hover:bg-[#1E2E24] text-[#FDFBF7] text-xs font-semibold rounded-xl shadow-xs transition-colors flex items-center gap-1 shrink-0">
+            <span>Open</span>
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </div>
+        </Link>
+      )}
+
       {/* 3. EDIT PROFILE CARD BUTTON */}
       <button 
         type="button"
