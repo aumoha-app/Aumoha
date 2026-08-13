@@ -12,7 +12,7 @@ interface MinimalHomeProps {
   onVetCareClick: () => void;
   onExpertSupportClick: () => void;
   onPetServicesClick: () => void;
-  onCommunityClick: () => void;
+  onCommunityClick: (view?: string) => void;
   onMarketplaceClick?: () => void;
 }
 
@@ -88,7 +88,7 @@ export default function MinimalHome({
       </div>
 
       {/* 2. SEARCH BAR */}
-      <div 
+      <div
         onClick={onExpertSupportClick}
         className="relative z-10 w-full cursor-pointer group"
       >
@@ -110,7 +110,7 @@ export default function MinimalHome({
       </div>
 
       {/* 3. SOS • EMERGENCY SECTION */}
-      <div 
+      <div
         onClick={onSosClick}
         className="w-full relative z-10 py-2 sm:py-3 flex flex-row items-center justify-between gap-4 cursor-pointer group select-none min-h-[180px] sm:min-h-[210px]"
       >
@@ -268,7 +268,7 @@ export default function MinimalHome({
 
         {/* Tile 4: Community */}
         <div
-          onClick={onCommunityClick}
+          onClick={() => onCommunityClick('home')}
           className="bg-[#EFEAE2] hover:bg-[#E6E0D6] border border-[#D5CEBF] rounded-2xl sm:rounded-[24px] p-3.5 sm:p-5 flex flex-row items-center gap-2.5 sm:gap-4 h-full min-h-[88px] sm:min-h-[108px] transition-all duration-200 cursor-pointer shadow-2xs group"
         >
           <div className="w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center text-[#2D4536] shrink-0 group-hover:scale-105 transition-transform">
@@ -289,7 +289,7 @@ export default function MinimalHome({
       <NeighborhoodRadar onEnterCircle={onCommunityClick} />
 
       {/* 8. MARKETPLACE QUICK ACTIONS */}
-      <MarketplaceCategories onExploreMoreClick={onMarketplaceClick || (() => {})} />
+      <MarketplaceCategories onExploreMoreClick={onMarketplaceClick || (() => { })} />
     </div>
   );
 }

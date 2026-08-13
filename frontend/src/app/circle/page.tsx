@@ -1,13 +1,18 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import AppShell from '../../components/AppShell';
 import MohallaCircle from '../../components/MohallaCircle';
 import { useAuth } from '../../context/AuthContext';
 
-export default function CirclePage() {
+function CircleContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
+  const rawView = searchParams.get('view');
+  const validViews = ['home', 'members', 'impact', 'updates'];
+  const viewParam = (rawView && validViews.includes(rawView) ? rawView : 'home') as 'home' | 'members' | 'impact' | 'updates';
 
   const handleNavigate = (tab: string) => {
     if (tab === 'home') router.push('/');
@@ -18,8 +23,16 @@ export default function CirclePage() {
   };
 
   return (
+    <MohallaCircle setActiveTab={handleNavigate} userAddress={user?.address} view={viewParam} />
+  );
+}
+
+export default function CirclePage() {
+  return (
     <AppShell>
-      <MohallaCircle setActiveTab={handleNavigate} userAddress={user?.address} />
+      <Suspense fallback={<div className="p-8 text-center text-stone-600 font-bold font-serif">Loading Mohalla Circle...</div>}>
+        <CircleContent />
+      </Suspense>
     </AppShell>
   );
 }
