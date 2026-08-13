@@ -135,16 +135,22 @@ export default function MinimalHome({
 
       {/* 4. SUBTLE LANDING PAGE IMPACT SECTION */}
       <div className="w-full bg-[#EFEAE2] border border-[#D5CEBF] rounded-2xl sm:rounded-[24px] p-4 sm:p-5 flex flex-col gap-3.5 shadow-2xs font-sans select-none">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
             <h3 className="font-serif text-base sm:text-lg font-extrabold text-[#1C1A17] tracking-tight">
               Community Impact
             </h3>
           </div>
-          <span className="text-[10px] sm:text-xs font-extrabold uppercase bg-[#EAE4D8] text-[#2D4536] px-2.5 py-1 rounded-full border border-[#D5CEBF]">
-            Live Overview
-          </span>
+          <button
+            type="button"
+            onClick={onCommunityClick}
+            className="text-[11px] sm:text-xs text-[#C85341] hover:text-[#A93E2D] font-extrabold cursor-pointer flex items-center gap-1.5 bg-[#FAF8F5] hover:bg-white px-3 py-1.5 rounded-full border border-[#D5CEBF] shadow-2xs transition-all active:scale-95 shrink-0"
+            title="View detailed Mohalla Circle updates"
+          >
+            <span>Detailed Updates</span>
+            <span className="text-xs font-extrabold">→</span>
+          </button>
         </div>
 
         <div className="grid grid-cols-3 gap-2 sm:gap-3 text-center pt-0.5">
