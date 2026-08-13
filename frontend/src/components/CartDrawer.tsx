@@ -154,7 +154,7 @@ Please confirm my order. Thank you!`;
       {/* Drawer panel */}
       <div
         ref={drawerRef}
-        className={`fixed top-0 right-0 z-[9999] h-full w-full max-w-md bg-[#FDFBF7] shadow-2xl flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+        className={`fixed top-0 right-0 z-[9999] h-full max-h-screen w-full sm:max-w-md bg-[#FDFBF7] shadow-2xl flex flex-col overflow-hidden transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
         role="dialog"
@@ -162,7 +162,7 @@ Please confirm my order. Thank you!`;
         aria-label="Shopping cart"
       >
         {/* --- Header --- */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#EBE3D5]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#EBE3D5] shrink-0 bg-[#FAF8F5]">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-[#4A5D4E] flex items-center justify-center">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#FDFBF7" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -191,8 +191,8 @@ Please confirm my order. Thank you!`;
           </button>
         </div>
 
-        {/* --- Cart Items --- */}
-        <div className="flex-1 overflow-y-auto px-5 py-4">
+        {/* --- Cart Items Scroll Container --- */}
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-5 py-4 overscroll-contain">
           {items.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full gap-4 select-none">
               {/* Empty cart illustration */}
@@ -215,7 +215,7 @@ Please confirm my order. Thank you!`;
               </button>
             </div>
           ) : (
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 pb-2">
               {/* Clear all button */}
               <div className="flex justify-end">
                 <button
@@ -237,7 +237,7 @@ Please confirm my order. Thank you!`;
                   className="bg-white border border-[#F0EBE1] rounded-2xl p-3 flex gap-3 group hover:shadow-sm transition-all duration-200"
                 >
                   {/* Product thumbnail */}
-                  <div className="w-[72px] h-[72px] rounded-xl bg-[#FAF6F0] overflow-hidden shrink-0">
+                  <div className="w-[68px] h-[68px] rounded-xl bg-[#FAF6F0] overflow-hidden shrink-0">
                     <img
                       src={item.imageUrl}
                       alt={item.title}
@@ -248,13 +248,13 @@ Please confirm my order. Thank you!`;
                   {/* Product details */}
                   <div className="flex flex-col flex-1 min-w-0 justify-between">
                     <div className="flex items-start justify-between gap-2">
-                      <h4 className="font-serif text-sm text-[#1C1A17] font-normal leading-tight truncate">
+                      <h4 className="font-serif text-xs sm:text-sm text-[#1C1A17] font-semibold leading-tight truncate">
                         {item.title}
                       </h4>
                       {/* Remove button */}
                       <button
                         onClick={() => onRemoveItem(item.id)}
-                        className="w-6 h-6 rounded-lg flex items-center justify-center text-stone-300 hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer shrink-0 opacity-0 group-hover:opacity-100"
+                        className="w-6 h-6 rounded-lg flex items-center justify-center text-stone-400 hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer shrink-0"
                         aria-label={`Remove ${item.title}`}
                       >
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -278,7 +278,7 @@ Please confirm my order. Thank you!`;
                       </div>
 
                       {/* Quantity controls */}
-                      <div className="flex items-center gap-0.5 bg-[#F5F3EF] rounded-lg overflow-hidden">
+                      <div className="flex items-center gap-0.5 bg-[#F5F3EF] rounded-lg overflow-hidden border border-[#EBE3D5]">
                         <button
                           onClick={() => onUpdateQuantity(item.id, -1)}
                           className="w-7 h-7 flex items-center justify-center text-[#1C1A17] hover:bg-[#EBE3D5] transition-colors cursor-pointer text-sm font-bold"
@@ -305,13 +305,13 @@ Please confirm my order. Thank you!`;
           )}
         </div>
 
-        {/* --- Footer / Checkout --- */}
+        {/* --- Sticky Footer / Checkout Bar --- */}
         {items.length > 0 && (
-          <div className="border-t border-[#EBE3D5] px-5 py-4 bg-white/80 backdrop-blur-sm">
+          <div className="border-t border-[#EBE3D5] px-4 py-3 sm:px-5 sm:py-4 bg-[#FAF8F5] shrink-0 shadow-lg pb-6 sm:pb-5">
             {/* Savings banner */}
             {totalSavings > 0 && (
-              <div className="flex items-center gap-2 bg-[#E8F5E9] border border-[#C8E6C9] rounded-xl px-3 py-2 mb-3">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2E7D32" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <div className="flex items-center gap-2 bg-[#E8F5E9] border border-[#C8E6C9] rounded-xl px-3 py-1.5 mb-2.5">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#2E7D32" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
                   <line x1="7" y1="7" x2="7.01" y2="7" />
                 </svg>
@@ -322,24 +322,24 @@ Please confirm my order. Thank you!`;
             )}
 
             {/* Price breakdown */}
-            <div className="flex flex-col gap-1.5 mb-4">
+            <div className="flex flex-col gap-1 mb-3">
               <div className="flex justify-between text-xs text-stone-500">
                 <span>Subtotal ({totalItems} item{totalItems !== 1 ? 's' : ''})</span>
                 <span className="font-semibold text-[#1C1A17]">₹{subtotal}</span>
               </div>
-              <div className="h-px bg-[#EBE3D5] my-1" />
+              <div className="h-px bg-[#EBE3D5] my-0.5" />
               <div className="flex justify-between">
-                <span className="text-sm font-bold text-[#1C1A17]">Total</span>
-                <span className="text-sm font-extrabold text-[#1C1A17]">₹{subtotal}</span>
+                <span className="text-xs sm:text-sm font-bold text-[#1C1A17]">Total</span>
+                <span className="text-sm sm:text-base font-extrabold text-[#1C1A17]">₹{subtotal}</span>
               </div>
             </div>
 
             {/* Checkout buttons */}
-            <div className="flex flex-col gap-2.5">
+            <div className="flex flex-col gap-2">
               <button 
                 onClick={handleRazorpayPay}
                 disabled={isProcessingPayment}
-                className="w-full py-3.5 bg-[#2D4536] hover:bg-[#1E2E24] disabled:bg-stone-300 active:scale-[0.98] text-white font-extrabold text-xs rounded-2xl transition-all duration-200 cursor-pointer shadow-md flex items-center justify-center gap-2"
+                className="w-full py-3 sm:py-3.5 bg-[#2D4536] hover:bg-[#1E2E24] disabled:bg-stone-300 active:scale-[0.98] text-white font-extrabold text-xs rounded-xl sm:rounded-2xl transition-all duration-200 cursor-pointer shadow-sm flex items-center justify-center gap-2"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <rect x="2" y="5" width="20" height="14" rx="2" />
@@ -351,7 +351,7 @@ Please confirm my order. Thank you!`;
               {checkoutPhone && (
                 <button 
                   onClick={handleCheckout}
-                  className="w-full py-3 bg-[#2A3E31] hover:bg-[#1E2E24] active:scale-[0.98] text-white font-bold text-xs rounded-2xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full py-2.5 sm:py-3 bg-[#2A3E31] hover:bg-[#1E2E24] active:scale-[0.98] text-white font-bold text-xs rounded-xl sm:rounded-2xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-2"
                 >
                   <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -364,7 +364,7 @@ Please confirm my order. Thank you!`;
             {/* Continue shopping link */}
             <button
               onClick={onClose}
-              className="w-full mt-2 py-2 text-xs text-stone-500 hover:text-[#4A5D4E] font-semibold transition-colors cursor-pointer"
+              className="w-full mt-1.5 py-1.5 text-xs text-stone-500 hover:text-[#4A5D4E] font-semibold transition-colors cursor-pointer text-center"
             >
               ← Continue Shopping
             </button>
