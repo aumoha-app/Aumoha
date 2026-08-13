@@ -10,7 +10,9 @@ function CircleContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
-  const viewParam = (searchParams.get('view') as 'home' | 'members' | 'impact' | 'updates' | null) || 'home';
+  const rawView = searchParams.get('view');
+  const validViews = ['home', 'members', 'impact', 'updates'];
+  const viewParam = (rawView && validViews.includes(rawView) ? rawView : 'home') as 'home' | 'members' | 'impact' | 'updates';
 
   const handleNavigate = (tab: string) => {
     if (tab === 'home') router.push('/');
