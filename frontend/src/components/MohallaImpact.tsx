@@ -183,11 +183,11 @@ export default function MohallaImpact({
 
         <div className="grid grid-cols-3 gap-2 sm:gap-3 text-center mt-0.5 select-none">
           {/* Members Metric */}
-          <div className="flex flex-col items-center">
-            <span className="mb-1 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#EFEBE3] border border-[#EBE3D5] text-[#2D4536] shadow-2xs">
-              <Users className="w-4 h-4 text-[#2D4536]" />
+          <div className="bg-[#FAF8F5] hover:bg-[#FDFBF7] border border-[#EBE3D5] hover:border-[#2D4536]/30 rounded-2xl p-3 flex flex-col items-center justify-center transition-all duration-300 group shadow-2xs hover:shadow-xs hover:-translate-y-0.5">
+            <span className="mb-1 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#EFEBE3] group-hover:bg-[#2D4536] group-hover:text-white text-[#2D4536] border border-[#EBE3D5] shadow-2xs transition-all duration-300">
+              <Users className="w-4 h-4 text-current transition-colors" />
             </span>
-            <span className="font-serif text-2xl sm:text-3xl font-extrabold text-[#2D4536] mt-0.5 leading-none">
+            <span className="font-serif text-2xl sm:text-3xl font-extrabold text-[#2D4536] mt-0.5 leading-none group-hover:scale-105 transition-transform">
               {nearbyHelpers.length}
             </span>
             <span className="font-serif text-xs sm:text-sm text-[#2D4536] font-bold block mt-1 leading-tight">Helpers</span>
@@ -195,21 +195,21 @@ export default function MohallaImpact({
           </div>
           
           {/* Active SOS Metric */}
-          <div className="flex flex-col items-center">
-            <span className="mb-1 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#EFEBE3] border border-[#EBE3D5] text-[#2D4536] shadow-2xs">
-              <AlertTriangle className="w-4 h-4 text-[#2D4536]" />
+          <div className="bg-[#FAF8F5] hover:bg-[#FDFBF7] border border-[#EBE3D5] hover:border-[#2D4536]/30 rounded-2xl p-3 flex flex-col items-center justify-center transition-all duration-300 group shadow-2xs hover:shadow-xs hover:-translate-y-0.5">
+            <span className="mb-1 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#EFEBE3] group-hover:bg-[#2D4536] group-hover:text-white text-[#2D4536] border border-[#EBE3D5] shadow-2xs transition-all duration-300">
+              <AlertTriangle className="w-4 h-4 text-current transition-colors" />
             </span>
-            <span className="font-serif text-2xl sm:text-3xl font-extrabold text-[#2D4536] mt-0.5 leading-none">{activeSosCount}</span>
+            <span className="font-serif text-2xl sm:text-3xl font-extrabold text-[#2D4536] mt-0.5 leading-none group-hover:scale-105 transition-transform">{activeSosCount}</span>
             <span className="font-serif text-xs sm:text-sm text-[#2D4536] font-bold block mt-1 leading-tight">Emergencies</span>
             <span className="font-serif text-[10px] text-stone-600 font-medium block leading-tight mt-0.5">active SOS</span>
           </div>
 
           {/* Ongoing Care Metric */}
-          <div className="flex flex-col items-center">
-            <span className="mb-1 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#EFEBE3] border border-[#EBE3D5] text-[#2D4536] shadow-2xs">
-              <Activity className="w-4 h-4 text-[#2D4536]" />
+          <div className="bg-[#FAF8F5] hover:bg-[#FDFBF7] border border-[#EBE3D5] hover:border-[#2D4536]/30 rounded-2xl p-3 flex flex-col items-center justify-center transition-all duration-300 group shadow-2xs hover:shadow-xs hover:-translate-y-0.5">
+            <span className="mb-1 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#EFEBE3] group-hover:bg-[#2D4536] group-hover:text-white text-[#2D4536] border border-[#EBE3D5] shadow-2xs transition-all duration-300">
+              <Activity className="w-4 h-4 text-current transition-colors" />
             </span>
-            <span className="font-serif text-2xl sm:text-3xl font-extrabold text-[#2D4536] mt-0.5 leading-none">{ongoingCareCount}</span>
+            <span className="font-serif text-2xl sm:text-3xl font-extrabold text-[#2D4536] mt-0.5 leading-none group-hover:scale-105 transition-transform">{ongoingCareCount}</span>
             <span className="font-serif text-xs sm:text-sm text-[#2D4536] font-bold block mt-1 leading-tight">Ongoing Care</span>
             <span className="font-serif text-[10px] text-stone-600 font-medium block leading-tight mt-0.5">dispatched</span>
           </div>

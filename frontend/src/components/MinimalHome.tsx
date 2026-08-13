@@ -147,9 +147,10 @@ export default function MinimalHome({
           </h3>
           <button
             onClick={() => onCommunityClick('updates')}
-            className="text-xs text-[#2D4536] font-bold hover:underline cursor-pointer flex items-center gap-1"
+            className="bg-[#E89552]/10 hover:bg-[#E89552]/20 border border-[#E89552]/40 text-[#9A4B1A] text-xs font-extrabold px-3 py-1 rounded-full flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs hover:scale-105 active:scale-95"
           >
-            Detailed Updates <span className="text-xs">→</span>
+            <span>Detailed Updates</span>
+            <span className="text-xs font-bold">→</span>
           </button>
         </div>
 
