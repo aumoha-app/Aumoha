@@ -145,6 +145,12 @@ export default function MinimalHome({
           <h3 className="font-serif text-base sm:text-lg font-extrabold text-[#1C1A17] tracking-tight">
             Community Impact
           </h3>
+          <button
+            onClick={() => onCommunityClick('updates')}
+            className="text-xs text-[#2D4536] font-bold hover:underline cursor-pointer flex items-center gap-1"
+          >
+            Detailed Updates <span className="text-xs">→</span>
+          </button>
         </div>
 
         <div className="grid grid-cols-3 gap-2 sm:gap-3 text-center pt-0.5">
