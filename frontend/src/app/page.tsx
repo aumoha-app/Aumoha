@@ -19,7 +19,7 @@ export default function Home() {
           onVetCareClick={() => router.push('/vet-consult')}
           onExpertSupportClick={() => router.push('/expert-support')}
           onPetServicesClick={() => router.push('/pet-care')}
-          onCommunityClick={() => router.push('/circle')}
+          onCommunityClick={(view?: string) => router.push(view ? `/circle?view=${view}` : '/circle')}
           onMarketplaceClick={() => router.push('/marketplace')}
         />
       </main>
