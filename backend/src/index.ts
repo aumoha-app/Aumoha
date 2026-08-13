@@ -152,20 +152,21 @@ export const fallbackVets: any[] = [
     _id: 'vet4',
     name: 'Dr. Sima Rath',
     photo: '/warden-3.png',
-    specialisation: 'Exotic & Wildlife',
+    specialisation: 'Veterinary Surgeon & Pet Care Specialist',
     category: 'vet',
-    specialtyTags: ['Exotics', 'Reptiles'],
-    experience: 7,
+    specialtyTags: ['Exotics', 'Small Animals', 'Surgery'],
+    experience: 8,
     fee: 500,
-    bio: 'Passionate about reptiles, birds, pocket pets, and native wildlife rehabilitation.',
-    rating: 4.7,
-    reviewCount: 74,
+    bio: 'Specialist in companion animal medicine, soft tissue surgery, and preventive pet healthcare.',
+    rating: 4.9,
+    reviewCount: 48,
     isOnline: true,
+    email: 'abhijeetkhelechess@gmail.com',
     availableSlots: [
-      { _id: 'slot16', date: 'Today', time: '12:00 PM', isBooked: false },
-      { _id: 'slot17', date: 'Today', time: '4:00 PM', isBooked: false },
-      { _id: 'slot18', date: 'Tomorrow', time: '10:00 AM', isBooked: false },
-      { _id: 'slot19', date: 'Tomorrow', time: '2:00 PM', isBooked: false }
+      { _id: 'slot16', date: 'Today', time: '10:30 AM', isBooked: true },
+      { _id: 'slot17', date: 'Today', time: '12:00 PM', isBooked: true },
+      { _id: 'slot18', date: 'Today', time: '02:30 PM', isBooked: true },
+      { _id: 'slot19', date: 'Today', time: '05:00 PM', isBooked: true }
     ]
   },
   {
@@ -432,7 +433,68 @@ export const fallbackVets: any[] = [
   }
 ];
 
-export const fallbackAppointments: any[] = [];
+export const fallbackAppointments: any[] = [
+  {
+    _id: 'sima_booking_1',
+    bookingId: 'AMC-109842',
+    userEmail: 'priya.petparent@gmail.com',
+    vetId: 'vet4',
+    petName: 'Bruno (Golden Retriever • 4 yrs • Male)',
+    date: 'Today',
+    time: '10:30 AM',
+    fee: 500,
+    mode: 'tele-consult',
+    type: 'vet',
+    status: 'confirmed',
+    notes: 'Severe skin irritation, itching around paws and belly. Requesting video diagnosis.',
+    createdAt: new Date().toISOString()
+  },
+  {
+    _id: 'sima_booking_2',
+    bookingId: 'AMC-109843',
+    userEmail: 'rohit.doglover@gmail.com',
+    vetId: 'vet4',
+    petName: 'Milo (Labrador • 3 yrs • Male)',
+    date: 'Today',
+    time: '12:00 PM',
+    fee: 500,
+    mode: 'tele-consult',
+    type: 'vet',
+    status: 'confirmed',
+    notes: 'Routine dietary consultation and post-vaccination follow-up check.',
+    createdAt: new Date().toISOString()
+  },
+  {
+    _id: 'sima_booking_3',
+    bookingId: 'AMC-109844',
+    userEmail: 'ananya.poodle@gmail.com',
+    vetId: 'vet4',
+    petName: 'Coco (Poodle • 5 yrs • Female)',
+    date: 'Today',
+    time: '02:30 PM',
+    fee: 500,
+    mode: 'tele-consult',
+    type: 'vet',
+    status: 'confirmed',
+    notes: 'Ear infection symptoms, mild discharge and head shaking.',
+    createdAt: new Date().toISOString()
+  },
+  {
+    _id: 'sima_booking_4',
+    bookingId: 'AMC-109845',
+    userEmail: 'sunita.catparent@gmail.com',
+    vetId: 'vet4',
+    petName: 'Bella (Persian Cat • 2 yrs • Female)',
+    date: 'Today',
+    time: '05:00 PM',
+    fee: 500,
+    mode: 'in-clinic',
+    type: 'vet',
+    status: 'confirmed',
+    notes: 'Annual booster vaccination & general dental checkup.',
+    createdAt: new Date().toISOString()
+  }
+];
 export const fallbackCallSessions: any[] = [];
 export const fallbackUsers: any[] = [
   {
@@ -4127,7 +4189,92 @@ app.get('/api/provider/me', authMiddleware, async (req: Request, res: Response) 
       if (providerId && mongoose.Types.ObjectId.isValid(providerId)) {
         vetProfile = await Vet.findById(providerId).lean();
       } else {
-        vetProfile = await Vet.findOne({ email: { $regex: new RegExp(`^${userEmail}$`, 'i') } }).lean();
+        vetProfile = await Vet.findOne({ email: { $regex: new RegExp(`^${userEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } }).lean();
+      }
+
+      // Auto-heal / create Dr. Sima Rath profile for abhijeetkhelechess@gmail.com if missing in DB
+      if (!vetProfile && userEmail.toLowerCase() === 'abhijeetkhelechess@gmail.com') {
+        const createdVet = await Vet.create({
+          name: 'Dr. Sima Rath',
+          email: 'abhijeetkhelechess@gmail.com',
+          photo: '/warden-3.png',
+          specialisation: 'Veterinary Surgeon & Pet Care Specialist',
+          category: 'vet',
+          specialtyTags: ['Exotics', 'Small Animals', 'Surgery'],
+          experience: 8,
+          fee: 500,
+          bio: 'Specialist in companion animal medicine, soft tissue surgery, and preventive pet healthcare.',
+          rating: 4.9,
+          reviewCount: 48,
+          isOnline: true,
+          availableSlots: [
+            { _id: new mongoose.Types.ObjectId(), date: 'Today', time: '10:30 AM', isBooked: true },
+            { _id: new mongoose.Types.ObjectId(), date: 'Today', time: '12:00 PM', isBooked: true },
+            { _id: new mongoose.Types.ObjectId(), date: 'Today', time: '02:30 PM', isBooked: true },
+            { _id: new mongoose.Types.ObjectId(), date: 'Today', time: '05:00 PM', isBooked: true }
+          ]
+        });
+        vetProfile = createdVet.toObject();
+
+        // Seed sample bookings for this doctor in MongoDB
+        await Appointment.insertMany([
+          {
+            bookingId: 'AMC-109842',
+            userEmail: 'priya.petparent@gmail.com',
+            vetId: String(vetProfile._id),
+            petName: 'Bruno (Golden Retriever • 4 yrs • Male)',
+            date: 'Today',
+            time: '10:30 AM',
+            fee: 500,
+            mode: 'tele-consult',
+            type: 'vet',
+            status: 'confirmed',
+            notes: 'Severe skin irritation, itching around paws and belly. Requesting video diagnosis.',
+            createdAt: new Date()
+          },
+          {
+            bookingId: 'AMC-109843',
+            userEmail: 'rohit.doglover@gmail.com',
+            vetId: String(vetProfile._id),
+            petName: 'Milo (Labrador • 3 yrs • Male)',
+            date: 'Today',
+            time: '12:00 PM',
+            fee: 500,
+            mode: 'tele-consult',
+            type: 'vet',
+            status: 'confirmed',
+            notes: 'Routine dietary consultation and post-vaccination follow-up check.',
+            createdAt: new Date()
+          },
+          {
+            bookingId: 'AMC-109844',
+            userEmail: 'ananya.poodle@gmail.com',
+            vetId: String(vetProfile._id),
+            petName: 'Coco (Poodle • 5 yrs • Female)',
+            date: 'Today',
+            time: '02:30 PM',
+            fee: 500,
+            mode: 'tele-consult',
+            type: 'vet',
+            status: 'confirmed',
+            notes: 'Ear infection symptoms, mild discharge and head shaking.',
+            createdAt: new Date()
+          },
+          {
+            bookingId: 'AMC-109845',
+            userEmail: 'sunita.catparent@gmail.com',
+            vetId: String(vetProfile._id),
+            petName: 'Bella (Persian Cat • 2 yrs • Female)',
+            date: 'Today',
+            time: '05:00 PM',
+            fee: 500,
+            mode: 'in-clinic',
+            type: 'vet',
+            status: 'confirmed',
+            notes: 'Annual booster vaccination & general dental checkup.',
+            createdAt: new Date()
+          }
+        ]);
       }
     }
     
