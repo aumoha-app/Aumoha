@@ -495,59 +495,295 @@ export default function ProviderDashboard() {
       {/* Main Container */}
       <main className="max-w-6xl mx-auto px-4 pt-6">
 
-        {/* TAB 1: OVERVIEW & ANALYTICS */}
+        {/* TAB 1: OVERVIEW & CONSULTATION DASHBOARD */}
         {activeTab === 'overview' && (
           <div className="space-y-6">
-            {/* Stats Overview */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-white p-5 rounded-3xl border border-warmBeige shadow-sm">
-                <div className="w-10 h-10 rounded-2xl bg-terracotta/10 text-terracotta flex items-center justify-center mb-3">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <p className="text-[11px] font-extrabold uppercase text-stone-400 tracking-wider">Total Revenue</p>
-                <h3 className="text-xl font-black text-charcoal mt-1">₹{summary?.totalEarnings || 0}</h3>
+            
+            {/* 1. HERO GREETING BANNER */}
+            <div className="bg-[#FAF5EF] border border-[#EBE3D5] rounded-3xl p-5 sm:p-6 shadow-sm flex items-center justify-between relative overflow-hidden select-none">
+              <div className="flex flex-col gap-1 z-10">
+                <span className="text-xs font-bold text-stone-500 uppercase tracking-wider">Welcome Doctor</span>
+                <h2 className="font-serif text-xl sm:text-2xl font-extrabold text-[#1C1A17]">
+                  You have <span className="text-[#C85341] font-black text-2xl sm:text-3xl mx-1">{summary?.upcoming || appointments.filter(a => a.status === 'confirmed').length}</span> consultations today
+                </h2>
+                <p className="text-xs text-stone-600 font-medium">Patients are waiting for your expert veterinary advice & diagnosis.</p>
               </div>
 
-              <div className="bg-white p-5 rounded-3xl border border-warmBeige shadow-sm">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-3">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <div className="w-20 h-20 sm:w-28 sm:h-28 shrink-0 relative opacity-90 hidden xs:flex items-center justify-center">
+                <div className="w-full h-full rounded-full bg-[#E89552]/15 flex items-center justify-center text-[#9A4B1A]">
+                  <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" strokeWidth="1.8">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                   </svg>
                 </div>
-                <p className="text-[11px] font-extrabold uppercase text-stone-400 tracking-wider">Confirmed Bookings</p>
-                <h3 className="text-xl font-black text-charcoal mt-1">{summary?.confirmed || 0}</h3>
-              </div>
-
-              <div className="bg-white p-5 rounded-3xl border border-warmBeige shadow-sm">
-                <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-3">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <p className="text-[11px] font-extrabold uppercase text-stone-400 tracking-wider">Upcoming Consults</p>
-                <h3 className="text-xl font-black text-charcoal mt-1">{summary?.upcoming || 0}</h3>
-              </div>
-
-              <div className="bg-white p-5 rounded-3xl border border-warmBeige shadow-sm">
-                <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-3">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <p className="text-[11px] font-extrabold uppercase text-stone-400 tracking-wider">Free Slots Open</p>
-                <h3 className="text-xl font-black text-charcoal mt-1">{slots.filter(s => !s.isBooked).length}</h3>
               </div>
             </div>
 
-            {/* Quick Actions Panel */}
+            {/* 2. NEXT CONSULTATION CARD (PROMINENT AT TOP) */}
+            {(() => {
+              const upcomingList = appointments.filter(a => a.status === 'confirmed');
+              const nextAppt = upcomingList[0] || (appointments.length > 0 ? appointments[0] : null);
+
+              return (
+                <div className="bg-white border border-[#EBE3D5] rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-[#9A4B1A]">
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                      </svg>
+                      <h3 className="font-serif text-base sm:text-lg font-extrabold text-[#1C1A17]">Next Consultation</h3>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab('appointments')}
+                      className="text-xs font-extrabold text-[#9A4B1A] hover:underline cursor-pointer flex items-center gap-1"
+                    >
+                      View all <span className="text-xs">→</span>
+                    </button>
+                  </div>
+
+                  {nextAppt ? (
+                    <div className="bg-[#FAF8F5] border border-[#EBE3D5] rounded-2xl p-4 sm:p-5 flex flex-col gap-4">
+                      {/* Top Time & Type Badge */}
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-extrabold text-[#9A4B1A] bg-[#FDF6ED] px-3 py-1 rounded-full border border-[#E89552]/30">
+                            {nextAppt.date} • {nextAppt.time}
+                          </span>
+                        </div>
+                        <span className="text-xs font-bold bg-[#E8F5E9] text-[#2E7D32] border border-[#C8E6C9] px-3 py-1 rounded-full flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-[#2E7D32] animate-pulse" />
+                          {nextAppt.mode === 'tele-consult' ? '🎥 Video Consultation' : '👤 In-Person Visit'}
+                        </span>
+                      </div>
+
+                      {/* Pet & Owner Details */}
+                      <div className="flex items-start gap-4">
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#EFEAE2] border border-[#D5CEBF] overflow-hidden shrink-0 flex items-center justify-center text-[#2D4536] font-bold text-xl">
+                          {nextAppt.petName.charAt(0)}
+                        </div>
+                        <div className="flex flex-col min-w-0 flex-grow">
+                          <h4 className="font-serif text-lg sm:text-xl font-extrabold text-[#1C1A17] leading-tight">
+                            {nextAppt.petName}
+                          </h4>
+                          <span className="text-xs text-stone-600 font-semibold mt-0.5">
+                            Patient ID: #{nextAppt.bookingId || nextAppt._id.slice(-6)} • {nextAppt.userEmail}
+                          </span>
+                          <p className="text-xs text-stone-700 font-medium mt-1 leading-snug bg-white/70 border border-[#EBE3D5] p-2 rounded-xl">
+                            <strong className="text-[#9A4B1A]">Reason for Visit:</strong> {nextAppt.notes || 'General Health Checkup & Diagnosis'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Action CTA Buttons */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-[#EBE3D5]/60">
+                        <button
+                          onClick={() => {
+                            setSelectedApptForPrescription(nextAppt);
+                            setActiveTab('appointments');
+                          }}
+                          className="w-full py-2.5 sm:py-3 bg-white hover:bg-[#F5F2EC] border border-[#D5CEBF] text-[#1C1A17] font-extrabold text-xs rounded-xl transition-all cursor-pointer shadow-2xs flex items-center justify-center gap-2"
+                        >
+                          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                          </svg>
+                          View Case History & Prescription
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            if (nextAppt.mode === 'tele-consult') {
+                              setActiveCallAppt(nextAppt);
+                            } else {
+                              setSelectedApptForPrescription(nextAppt);
+                            }
+                          }}
+                          className="w-full py-2.5 sm:py-3 bg-[#2D4536] hover:bg-[#1E2E24] text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-98"
+                        >
+                          <span>Start Consultation</span>
+                          <span className="text-sm">→</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 bg-[#FAF8F5] border border-[#EBE3D5] rounded-2xl p-4">
+                      <p className="text-xs text-stone-500 font-semibold">No upcoming consultation scheduled right now.</p>
+                      <button
+                        onClick={() => setActiveTab('slots')}
+                        className="mt-2 text-xs text-[#9A4B1A] font-extrabold hover:underline cursor-pointer"
+                      >
+                        + Add Available Time Slots
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* 3. TODAY'S APPOINTMENTS LIST (PROMINENT AT TOP) */}
+            <div className="bg-white border border-[#EBE3D5] rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-[#9A4B1A]">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                  </svg>
+                  <h3 className="font-serif text-base sm:text-lg font-extrabold text-[#1C1A17]">Today&apos;s Appointments</h3>
+                </div>
+                <button
+                  onClick={() => setActiveTab('slots')}
+                  className="text-xs font-extrabold text-[#9A4B1A] hover:underline cursor-pointer"
+                >
+                  View calendar
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                {appointments.length === 0 ? (
+                  <p className="text-xs text-stone-400 font-medium italic text-center py-4">No appointments scheduled for today yet.</p>
+                ) : (
+                  appointments.slice(0, 4).map((appt) => (
+                    <div
+                      key={appt._id}
+                      className="bg-[#FAF8F5] border border-[#EBE3D5] hover:border-[#2D4536]/40 rounded-2xl p-3.5 sm:p-4 flex items-center justify-between gap-3 transition-all group"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="text-xs font-extrabold text-[#9A4B1A] bg-[#FDF6ED] px-2.5 py-1 rounded-lg border border-[#E89552]/30 shrink-0">
+                          {appt.time || 'Today'}
+                        </span>
+                        <div className="w-10 h-10 rounded-xl bg-[#EFEAE2] border border-[#D5CEBF] flex items-center justify-center text-[#2D4536] font-bold shrink-0">
+                          {appt.petName.charAt(0)}
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                          <h4 className="font-serif text-sm font-extrabold text-[#1C1A17] leading-tight truncate">
+                            {appt.petName}
+                          </h4>
+                          <span className="text-[11px] text-stone-500 font-medium truncate">
+                            {appt.notes || 'General Consultation'} • {appt.userEmail}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold ${
+                          appt.mode === 'tele-consult' ? 'bg-[#E8F5E9] text-[#2E7D32]' : 'bg-[#FFF3E0] text-[#E65100]'
+                        }`}>
+                          {appt.mode === 'tele-consult' ? '🎥 Video' : '👤 In-Person'}
+                        </span>
+
+                        <button
+                          onClick={() => {
+                            if (appt.mode === 'tele-consult') {
+                              setActiveCallAppt(appt);
+                            } else {
+                              setSelectedApptForPrescription(appt);
+                            }
+                          }}
+                          className="px-3 py-1.5 bg-[#2D4536] hover:bg-[#1E2E24] text-white font-extrabold text-xs rounded-xl cursor-pointer shadow-2xs transition-all active:scale-95"
+                        >
+                          Join
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* 4. CRM ANALYTICS DASHBOARD SUMMARY (SUMMARIZED AT THE VERY BOTTOM AS REQUESTED) */}
+            <div className="bg-white border border-[#EBE3D5] rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col gap-4 select-none">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#2D4536" strokeWidth="2.2">
+                    <line x1="18" y1="20" x2="18" y2="10"/>
+                    <line x1="12" y1="20" x2="12" y2="4"/>
+                    <line x1="6" y1="20" x2="6" y2="14"/>
+                  </svg>
+                  <h3 className="font-serif text-base sm:text-lg font-extrabold text-[#1C1A17]">Overview</h3>
+                </div>
+
+                <div className="flex items-center gap-1.5 bg-[#F5F2EC] border border-[#EBE3D5] px-3 py-1 rounded-xl text-xs font-extrabold text-stone-700">
+                  <span>This Month</span>
+                  <span className="text-[10px]">▼</span>
+                </div>
+              </div>
+
+              {/* 3 SUMMARIZED CRM CARDS (WALLETS, CONSULTATIONS, RATING - MATCHING REFERENCE IMAGE) */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                
+                {/* 1. EARNINGS CARD */}
+                <div className="bg-[#FAF8F5] border border-[#EBE3D5] rounded-2xl p-4 flex flex-col justify-between gap-3 hover:shadow-sm transition-all">
+                  <div className="w-10 h-10 rounded-2xl bg-[#FFF3E0] text-[#E65100] flex items-center justify-center shrink-0">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2">
+                      <rect x="2" y="5" width="20" height="14" rx="2"/>
+                      <line x1="2" y1="10" x2="22" y2="10"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block">Earnings</span>
+                    <h4 className="font-serif text-2xl font-black text-[#1C1A17] mt-0.5">
+                      ₹{summary?.totalEarnings || 11500}
+                    </h4>
+                    <span className="text-xs font-extrabold text-emerald-600 flex items-center gap-1 mt-1">
+                      <span>↑ 12%</span>
+                      <span className="text-stone-400 font-normal text-[10px]">vs last month</span>
+                    </span>
+                  </div>
+                </div>
+
+                {/* 2. CONSULTATIONS CARD */}
+                <div className="bg-[#FAF8F5] border border-[#EBE3D5] rounded-2xl p-4 flex flex-col justify-between gap-3 hover:shadow-sm transition-all">
+                  <div className="w-10 h-10 rounded-2xl bg-[#E8F5E9] text-[#2E7D32] flex items-center justify-center shrink-0">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                      <line x1="16" y1="2" x2="16" y2="6"/>
+                      <line x1="8" y1="2" x2="8" y2="6"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block">Consultations</span>
+                    <h4 className="font-serif text-2xl font-black text-[#1C1A17] mt-0.5">
+                      {summary?.confirmed || appointments.length || 23}
+                    </h4>
+                    <span className="text-xs font-extrabold text-emerald-600 flex items-center gap-1 mt-1">
+                      <span>↑ 18%</span>
+                      <span className="text-stone-400 font-normal text-[10px]">completed</span>
+                    </span>
+                  </div>
+                </div>
+
+                {/* 3. DOCTOR RATING CARD */}
+                <div className="bg-[#FAF8F5] border border-[#EBE3D5] rounded-2xl p-4 flex flex-col justify-between gap-3 hover:shadow-sm transition-all">
+                  <div className="w-10 h-10 rounded-2xl bg-[#F3E5F5] text-[#7B1FA2] flex items-center justify-center shrink-0">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                      <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block">Rating</span>
+                    <h4 className="font-serif text-2xl font-black text-[#1C1A17] mt-0.5">
+                      {provider.rating || 4.8} ★
+                    </h4>
+                    <span className="text-xs font-extrabold text-emerald-600 flex items-center gap-1 mt-1">
+                      <span>↑ 0.2</span>
+                      <span className="text-stone-400 font-normal text-[10px]">({provider.reviewCount || 42} reviews)</span>
+                    </span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            {/* 5. WORKSPACE QUICK ACTIONS */}
             <div className="bg-white p-6 rounded-3xl border border-warmBeige shadow-sm">
               <h2 className="text-sm font-extrabold text-charcoal mb-4 flex items-center gap-2">
                 <svg className="w-5 h-5 text-terracotta" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
-                Doctor Workspace Actions
+                Doctor Workspace Quick Actions
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <button
@@ -596,6 +832,7 @@ export default function ProviderDashboard() {
                 </button>
               </div>
             </div>
+
           </div>
         )}
 

@@ -2798,7 +2798,29 @@ app.get('/api/appointments', authMiddleware, async (req: Request, res: Response)
 
     let filter: any = {};
     if (vetId) {
-      filter = { $or: [{ vetId: vetId }, { vetId: String(vetId) }] };
+      const vetStr = String(vetId);
+      const isObjId = mongoose.Types.ObjectId.isValid(vetStr);
+      const vetProfile = await Vet.findOne({
+        $or: [
+          ...(isObjId ? [{ _id: vetId }] : []),
+          { _id: vetStr },
+          { email: { $regex: new RegExp(`^${vetStr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } }
+        ]
+      });
+
+      if (vetProfile) {
+        filter = {
+          $or: [
+            { vetId: vetId },
+            { vetId: vetStr },
+            { vetId: vetProfile._id },
+            { vetId: String(vetProfile._id) },
+            ...(vetProfile.email ? [{ vetId: vetProfile.email }] : [])
+          ]
+        };
+      } else {
+        filter = { $or: [{ vetId: vetId }, { vetId: vetStr }] };
+      }
     } else {
       // Check if logged-in user is a Doctor/Provider
       const escapedUserEmail = userEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
