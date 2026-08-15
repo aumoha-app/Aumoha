@@ -19,6 +19,9 @@ export interface IAppointment extends Document {
   prescription?: string;      // base64 or URL or text
   prescriptionNotes?: string; // doctor notes
   bookingId: string;
+  razorpayPaymentId?: string;
+  razorpayOrderId?: string;
+  razorpaySignature?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -43,7 +46,10 @@ const AppointmentSchema = new Schema(
     medicalDocument: { type: String, default: '' },
     prescription: { type: String, default: '' },
     prescriptionNotes: { type: String, default: '' },
-    bookingId: { type: String, required: true, unique: true }
+    bookingId: { type: String, required: true, unique: true },
+    razorpayPaymentId: { type: String, default: '' },
+    razorpayOrderId: { type: String, default: '' },
+    razorpaySignature: { type: String, default: '' }
   },
   {
     timestamps: true

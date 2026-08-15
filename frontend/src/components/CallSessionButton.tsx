@@ -71,7 +71,7 @@ export default function CallSessionButton({ appointment, onJoinCall, className }
     setRequesting(true);
     try {
       if (!session || session.status === 'requested') {
-        const res = await fetch(`${API_BASE}/appointments/${appointment._id}/call/request`, {
+        const res = await fetch(`${API_BASE}/appointments/${targetId}/call/request`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
