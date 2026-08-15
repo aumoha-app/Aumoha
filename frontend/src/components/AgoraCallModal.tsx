@@ -10,13 +10,14 @@ function AgoraUIKit({ rtcProps, callbacks }: { rtcProps: any; callbacks: any }) 
   const [muted, setMuted] = useState<boolean>(false);
   const [videoOff, setVideoOff] = useState<boolean>(false);
 
+  const streamRef = useRef<MediaStream | null>(null);
+
   useEffect(() => {
-    let localStream: MediaStream | null = null;
     if (typeof window !== 'undefined' && navigator.mediaDevices?.getUserMedia) {
       navigator.mediaDevices
         .getUserMedia({ video: true, audio: true })
         .then((stream) => {
-          localStream = stream;
+          streamRef.current = stream;
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
           }
@@ -28,11 +29,27 @@ function AgoraUIKit({ rtcProps, callbacks }: { rtcProps: any; callbacks: any }) 
     }
 
     return () => {
-      if (localStream) {
-        localStream.getTracks().forEach((track) => track.stop());
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (streamRef.current) {
+      streamRef.current.getAudioTracks().forEach((track) => {
+        track.enabled = !muted;
+      });
+    }
+  }, [muted]);
+
+  useEffect(() => {
+    if (streamRef.current) {
+      streamRef.current.getVideoTracks().forEach((track) => {
+        track.enabled = !videoOff;
+      });
+    }
+  }, [videoOff]);
 
   return (
     <div className="relative w-full h-full min-h-[360px] bg-[#09090B] flex flex-col items-center justify-center overflow-hidden">
