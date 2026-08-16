@@ -9,6 +9,7 @@ import AgoraCallModal from './AgoraCallModal';
 import CallSessionButton from './CallSessionButton';
 import PaymentModal from './PaymentModal';
 import PopupModal, { PopupConfig } from './PopupModal';
+import { getAppointmentDisplayStatus, isAppointmentExpired, isSlotTimePast } from '../lib/appointmentUtils';
 import { Calendar, Clock, Sunrise, Sun, Moon, CheckCircle2, Lock, Check, X, ChevronRight, ChevronLeft } from 'lucide-react';
 
 
@@ -253,6 +254,24 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
     }
   };
 
+  const handleDeleteAppointment = async (apptId: string) => {
+    if (!confirm('Are you sure you want to delete this appointment?')) return;
+    try {
+      const res = await fetch(`${API_BASE}/appointments/${apptId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (res.ok) {
+        setAppointments(prev => prev.filter(a => a._id !== apptId && a.bookingId !== apptId));
+        showPopup('Appointment deleted successfully', 'success');
+      }
+    } catch (err) {
+      console.error('Error deleting appointment:', err);
+    }
+  };
+
   // 2. Fetch User Appointments
   const fetchAppointments = async () => {
     if (!token) return;
@@ -326,7 +345,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
     if (cachedPass) {
       verifyAdminPass(cachedPass);
     }
-  }, [token]);
+  }, [token, subTab, currentView]);
 
   // Setup default pet from user context
   useEffect(() => {
@@ -1577,13 +1596,45 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                   {/* 3. TIME PERIOD SHOWTIMES (MORNING, AFTERNOON, EVENING) */}
                   <div className="bg-white border border-[#E8E2D8] rounded-2xl p-4 flex flex-col gap-4 max-h-[260px] overflow-y-auto">
                     {(() => {
-                      const morningTimes = ['09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM'];
-                      const afternoonTimes = ['12:00 PM', '01:00 PM', '02:00 PM', '03:30 PM'];
-                      const eveningTimes = ['04:30 PM', '05:00 PM', '06:00 PM', '07:00 PM'];
+                      const parseTimeToMinutes = (timeStr: string) => {
+                        if (!timeStr) return 0;
+                        const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+                        if (!match) return 0;
+                        let hours = parseInt(match[1], 10);
+                        const minutes = parseInt(match[2], 10);
+                        const ampm = match[3].toUpperCase();
+                        if (ampm === 'PM' && hours < 12) hours += 12;
+                        if (ampm === 'AM' && hours === 12) hours = 0;
+                        return hours * 60 + minutes;
+                      };
+
+                      const doctorAvailableSlots = selectedVet?.availableSlots || [];
+                      const todayNum = new Date().getDate();
+                      const selectedDayVal = selectedCalendarDay || todayNum;
+
+                      const dateMatchedSlots = doctorAvailableSlots.filter((s: any) => {
+                        if (!s.date) return true;
+                        const dLower = s.date.toLowerCase();
+                        if (selectedDayVal === todayNum && dLower.includes('today')) return true;
+                        if (selectedDayVal === todayNum + 1 && dLower.includes('tomorrow')) return true;
+                        if (s.date.includes(String(selectedDayVal))) return true;
+                        return false;
+                      });
+
+                      const activeSlots = dateMatchedSlots.length > 0 ? dateMatchedSlots : doctorAvailableSlots;
+                      const openedTimes = Array.from(new Set(activeSlots.map((s: any) => s.time)))
+                        .filter(Boolean)
+                        .filter(t => !isSlotTimePast(t, selectedDayVal));
+
+                      const morningTimes = openedTimes.filter(t => parseTimeToMinutes(t) < 720);
+                      const afternoonTimes = openedTimes.filter(t => {
+                        const m = parseTimeToMinutes(t);
+                        return m >= 720 && m < 960;
+                      });
+                      const eveningTimes = openedTimes.filter(t => parseTimeToMinutes(t) >= 960);
 
                       const checkIsSlotBooked = (timeStr: string) => {
-                        const slots = selectedVet?.availableSlots || [];
-                        const matched = slots.find((s: any) => s.time === timeStr);
+                        const matched = activeSlots.find((s: any) => s.time === timeStr);
                         return matched ? matched.isBooked : false;
                       };
 
@@ -1602,53 +1653,64 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                         }
                       };
 
-                      const renderSlotGroup = (title: string, times: string[], IconComp: any) => (
-                        <div className="flex flex-col gap-2">
-                          <div className="flex items-center gap-1.5 text-xs font-bold text-stone-500 uppercase tracking-wider">
-                            <IconComp className="w-3.5 h-3.5 text-[#C86D51]" />
-                            <span>{title}</span>
-                          </div>
-                          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                            {times.map((t) => {
-                              const isBooked = checkIsSlotBooked(t);
-                              const isSelected = selectedTimeSlot === t && !isCustomTimeActive;
+                      const renderSlotGroup = (title: string, times: string[], IconComp: any) => {
+                        if (times.length === 0) return null;
+                        return (
+                          <div className="flex flex-col gap-2">
+                            <div className="flex items-center gap-1.5 text-xs font-bold text-stone-500 uppercase tracking-wider">
+                              <IconComp className="w-3.5 h-3.5 text-[#C86D51]" />
+                              <span>{title}</span>
+                            </div>
+                            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                              {times.map((t) => {
+                                const isBooked = checkIsSlotBooked(t);
+                                const isSelected = selectedTimeSlot === t && !isCustomTimeActive;
 
-                              if (isBooked) {
+                                if (isBooked) {
+                                  return (
+                                    <div
+                                      key={t}
+                                      className="bg-[#EAE6DF] border border-stone-300 text-stone-400 py-2.5 px-2.5 rounded-xl text-xs font-semibold text-center cursor-not-allowed select-none line-through opacity-80"
+                                      title="This slot is already booked"
+                                    >
+                                      {t}
+                                    </div>
+                                  );
+                                }
+
                                 return (
-                                  <div
+                                  <button
                                     key={t}
-                                    className="bg-[#EAE6DF] border border-stone-300 text-stone-400 py-2.5 px-2.5 rounded-xl text-xs font-semibold text-center cursor-not-allowed select-none line-through opacity-80"
-                                    title="This showtime is already booked"
+                                    type="button"
+                                    onClick={() => handleChooseSlotTime(t)}
+                                    className={`py-2.5 px-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer text-center ${
+                                      isSelected
+                                        ? 'bg-[#2D4536] text-white border border-[#2D4536] shadow-sm'
+                                        : 'bg-white border border-[#E5E0D8] text-[#1C1A17] hover:border-[#2D4536] hover:bg-[#F4F0EA]'
+                                    }`}
                                   >
                                     {t}
-                                  </div>
+                                  </button>
                                 );
-                              }
-
-                              return (
-                                <button
-                                  key={t}
-                                  type="button"
-                                  onClick={() => handleChooseSlotTime(t)}
-                                  className={`py-2.5 px-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer text-center ${
-                                    isSelected
-                                      ? 'bg-[#2D4536] text-white border border-[#2D4536] shadow-sm'
-                                      : 'bg-white border border-[#E5E0D8] text-[#1C1A17] hover:border-[#2D4536] hover:bg-[#F4F0EA]'
-                                  }`}
-                                >
-                                  {t}
-                                </button>
-                              );
-                            })}
+                              })}
+                            </div>
                           </div>
-                        </div>
-                      );
+                        );
+                      };
+
+                      if (openedTimes.length === 0) {
+                        return (
+                          <div className="text-center py-6 text-xs text-stone-500 font-medium italic">
+                            No open slots available for {selectedVet?.name || 'this doctor'} on the selected date.
+                          </div>
+                        );
+                      }
 
                       return (
                         <div className="flex flex-col gap-4">
-                          {renderSlotGroup('Morning Showtimes', morningTimes, Sunrise)}
-                          {renderSlotGroup('Afternoon Showtimes', afternoonTimes, Sun)}
-                          {renderSlotGroup('Evening Showtimes', eveningTimes, Moon)}
+                          {renderSlotGroup('Morning', morningTimes, Sunrise)}
+                          {renderSlotGroup('Afternoon', afternoonTimes, Sun)}
+                          {renderSlotGroup('Evening', eveningTimes, Moon)}
                         </div>
                       );
                     })()}
@@ -1962,14 +2024,26 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                         <span className="text-[10px] text-stone-500 font-semibold block mt-0.5">{appt.vetSpecialisation}</span>
                       </div>
 
-                      <span className={`px-2.5 py-0.5 rounded-full text-[8.5px] font-extrabold uppercase ${appt.status === 'cancelled'
-                          ? 'bg-rose-50 text-rose-600 border border-rose-100'
-                          : appt.status === 'confirmed'
-                            ? 'bg-[#FAF2EE] text-terracotta border border-[#F5DFD8]'
-                            : 'bg-amber-50 text-amber-700 border border-amber-100'
-                        }`}>
-                        {appt.status}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        {(() => {
+                          const displayStatus = getAppointmentDisplayStatus(appt);
+                          return (
+                            <span className={`px-2.5 py-0.5 rounded-full text-[8.5px] font-extrabold uppercase border ${displayStatus.statusClass}`}>
+                              {displayStatus.label}
+                            </span>
+                          );
+                        })()}
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteAppointment(appt._id || appt.bookingId)}
+                          title="Delete appointment"
+                          className="w-6 h-6 rounded-full bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                        >
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
 
                     {/* Metadata Row with High Quality SVGs */}
@@ -2092,54 +2166,69 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                       </div>
                     ) : null}
 
-                    {/* Booking Actions Row with Vector SVGs */}
-                    {appt.status !== 'cancelled' && (
-                      <div className="grid grid-cols-3 gap-2.5 pt-2 border-t border-stone-100">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIsReschedulingAppt(appt);
-                            const originalVet = vets.find(v => v.name === appt.vetName);
-                            if (originalVet) {
-                              setSelectedVet(originalVet);
-                            }
-                          }}
-                          className="py-2 border border-warmBeige text-terracotta hover:bg-stone-50 rounded-xl text-[9px] font-extrabold text-center transition-all active:scale-95 flex items-center justify-center gap-1.5"
-                        >
-                          <svg className="w-3 h-3 text-terracotta" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <circle cx="12" cy="12" r="10" />
-                            <polyline points="12 6 12 12 16 14" />
-                          </svg>
-                          Reschedule
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIsAddingNotesAppt(appt);
-                            setNoteText(appt.notes || '');
-                          }}
-                          className="py-2 border border-warmBeige text-stone-600 hover:bg-stone-50 rounded-xl text-[9px] font-extrabold text-center transition-all active:scale-95 flex items-center justify-center gap-1.5"
-                        >
-                          <svg className="w-3 h-3 text-stone-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                            <polyline points="14 2 14 8 20 8" />
-                          </svg>
-                          Add Notes
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleCancelAppointment(appt)}
-                          className="py-2 border border-rose-100 text-rose-600 hover:bg-rose-50 rounded-xl text-[9px] font-extrabold text-center transition-all active:scale-95 flex items-center justify-center gap-1.5"
-                        >
-                          <svg className="w-3 h-3 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <polyline points="3 6 5 6 21 6" />
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-                          </svg>
-                          Cancel
-                        </button>
-                      </div>
-                    )}
-                    {appt.status === 'confirmed' && appt.mode === 'tele-consult' && (
+                    {/* Booking Actions Row */}
+                    {(() => {
+                      const displayStatus = getAppointmentDisplayStatus(appt);
+                      if (displayStatus.isExpired && appt.status !== 'cancelled') {
+                        return (
+                          <div className="pt-2 border-t border-stone-100 flex items-center justify-between text-xs text-stone-600 font-bold">
+                            <span className="flex items-center gap-1.5 text-slate-700 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 font-extrabold">
+                              ✓ Consultation Completed (Happened)
+                            </span>
+                          </div>
+                        );
+                      }
+                      if (appt.status !== 'cancelled') {
+                        return (
+                          <div className="grid grid-cols-3 gap-2.5 pt-2 border-t border-stone-100">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsReschedulingAppt(appt);
+                                const originalVet = vets.find(v => v.name === appt.vetName);
+                                if (originalVet) {
+                                  setSelectedVet(originalVet);
+                                }
+                              }}
+                              className="py-2 border border-warmBeige text-terracotta hover:bg-stone-50 rounded-xl text-[9px] font-extrabold text-center transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                            >
+                              <svg className="w-3 h-3 text-terracotta" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <circle cx="12" cy="12" r="10" />
+                                <polyline points="12 6 12 12 16 14" />
+                              </svg>
+                              Reschedule
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsAddingNotesAppt(appt);
+                                setNoteText(appt.notes || '');
+                              }}
+                              className="py-2 border border-warmBeige text-stone-600 hover:bg-stone-50 rounded-xl text-[9px] font-extrabold text-center transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                            >
+                              <svg className="w-3 h-3 text-stone-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <polyline points="14 2 14 8 20 8" />
+                              </svg>
+                              Add Notes
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleCancelAppointment(appt)}
+                              className="py-2 border border-rose-100 text-rose-600 hover:bg-rose-50 rounded-xl text-[9px] font-extrabold text-center transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                            >
+                              <svg className="w-3 h-3 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                <polyline points="3 6 5 6 21 6" />
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                              </svg>
+                              Cancel
+                            </button>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
+                    {appt.status === 'confirmed' && appt.mode === 'tele-consult' && !isAppointmentExpired(appt) && (
                       <CallSessionButton
                         appointment={appt}
                         onJoinCall={(a) => setActiveCallAppt(a)}
@@ -2724,7 +2813,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                     <Calendar className="w-5 h-5 text-[#2D4536]" />
                   </div>
                   <div>
-                    <h3 className="font-serif text-base font-bold text-[#1C1A17]">Select Showtime & Date</h3>
+                    <h3 className="font-serif text-base font-bold text-[#1C1A17]">Select Date & Time</h3>
                     <p className="text-xs text-stone-500 font-medium mt-0.5">Doctor: <strong className="text-[#2D4536]">{isViewingAllSlotsVet.name}</strong> • Fee: ₹{isViewingAllSlotsVet.fee}</p>
                   </div>
                 </div>
@@ -2794,63 +2883,106 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
               {/* 3. TIME PERIOD SHOWTIMES (MORNING, AFTERNOON, EVENING) */}
               <div className="bg-white border border-[#E8E2D8] rounded-2xl p-4 flex flex-col gap-4 max-h-[260px] overflow-y-auto">
                 {(() => {
-                  const morningTimes = ['09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM'];
-                  const afternoonTimes = ['12:00 PM', '01:00 PM', '02:00 PM', '03:30 PM'];
-                  const eveningTimes = ['04:30 PM', '05:00 PM', '06:00 PM', '07:00 PM'];
+                  const parseTimeToMinutes = (timeStr: string) => {
+                    if (!timeStr) return 0;
+                    const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+                    if (!match) return 0;
+                    let hours = parseInt(match[1], 10);
+                    const minutes = parseInt(match[2], 10);
+                    const ampm = match[3].toUpperCase();
+                    if (ampm === 'PM' && hours < 12) hours += 12;
+                    if (ampm === 'AM' && hours === 12) hours = 0;
+                    return hours * 60 + minutes;
+                  };
+
+                  const doctorAvailableSlots = isViewingAllSlotsVet?.availableSlots || [];
+                  const todayNum = new Date().getDate();
+                  const selectedDayVal = selectedCalendarDay || todayNum;
+
+                  const dateMatchedSlots = doctorAvailableSlots.filter((s: any) => {
+                    if (!s.date) return true;
+                    const dLower = s.date.toLowerCase();
+                    if (selectedDayVal === todayNum && dLower.includes('today')) return true;
+                    if (selectedDayVal === todayNum + 1 && dLower.includes('tomorrow')) return true;
+                    if (s.date.includes(String(selectedDayVal))) return true;
+                    return false;
+                  });
+
+                  const activeSlots = dateMatchedSlots.length > 0 ? dateMatchedSlots : doctorAvailableSlots;
+                  const openedTimes = Array.from(new Set(activeSlots.map((s: any) => s.time)))
+                    .filter(Boolean)
+                    .filter(t => !isSlotTimePast(t, selectedDayVal));
+
+                  const morningTimes = openedTimes.filter(t => parseTimeToMinutes(t) < 720);
+                  const afternoonTimes = openedTimes.filter(t => {
+                    const m = parseTimeToMinutes(t);
+                    return m >= 720 && m < 960;
+                  });
+                  const eveningTimes = openedTimes.filter(t => parseTimeToMinutes(t) >= 960);
 
                   const checkIsSlotBooked = (timeStr: string) => {
-                    const slots = isViewingAllSlotsVet?.availableSlots || [];
-                    const matched = slots.find((s: any) => s.time === timeStr);
+                    const matched = activeSlots.find((s: any) => s.time === timeStr);
                     return matched ? matched.isBooked : false;
                   };
 
-                  const renderSlotGroup = (title: string, times: string[], IconComp: any) => (
-                    <div className="flex flex-col gap-2">
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-stone-500 uppercase tracking-wider">
-                        <IconComp className="w-3.5 h-3.5 text-[#C86D51]" />
-                        <span>{title}</span>
-                      </div>
-                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                        {times.map((t) => {
-                          const isBooked = checkIsSlotBooked(t);
-                          const isSelected = selectedTimeSlot === t;
+                  const renderSlotGroup = (title: string, times: string[], IconComp: any) => {
+                    if (times.length === 0) return null;
+                    return (
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-stone-500 uppercase tracking-wider">
+                          <IconComp className="w-3.5 h-3.5 text-[#C86D51]" />
+                          <span>{title}</span>
+                        </div>
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                          {times.map((t) => {
+                            const isBooked = checkIsSlotBooked(t);
+                            const isSelected = selectedTimeSlot === t;
 
-                          if (isBooked) {
+                            if (isBooked) {
+                              return (
+                                <div
+                                  key={t}
+                                  className="bg-[#EAE6DF] border border-stone-300 text-stone-400 py-2.5 px-2.5 rounded-xl text-xs font-semibold text-center cursor-not-allowed select-none line-through opacity-80"
+                                  title="This slot is already booked"
+                                >
+                                  {t}
+                                </div>
+                              );
+                            }
+
                             return (
-                              <div
+                              <button
                                 key={t}
-                                className="bg-[#EAE6DF] border border-stone-300 text-stone-400 py-2.5 px-2.5 rounded-xl text-xs font-semibold text-center cursor-not-allowed select-none line-through opacity-80"
-                                title="This showtime is already booked"
+                                type="button"
+                                onClick={() => setSelectedTimeSlot(t)}
+                                className={`py-2.5 px-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer text-center ${
+                                  isSelected
+                                    ? 'bg-[#2D4536] text-white border border-[#2D4536] shadow-sm'
+                                    : 'bg-white border border-[#E5E0D8] text-[#1C1A17] hover:border-[#2D4536] hover:bg-[#F4F0EA]'
+                                }`}
                               >
                                 {t}
-                              </div>
+                              </button>
                             );
-                          }
-
-                          return (
-                            <button
-                              key={t}
-                              type="button"
-                              onClick={() => setSelectedTimeSlot(t)}
-                              className={`py-2.5 px-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer text-center ${
-                                isSelected
-                                  ? 'bg-[#2D4536] text-white border border-[#2D4536] shadow-sm'
-                                  : 'bg-white border border-[#E5E0D8] text-[#1C1A17] hover:border-[#2D4536] hover:bg-[#F4F0EA]'
-                              }`}
-                            >
-                              {t}
-                            </button>
-                          );
-                        })}
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  );
+                    );
+                  };
+
+                  if (openedTimes.length === 0) {
+                    return (
+                      <div className="text-center py-6 text-xs text-stone-500 font-medium italic">
+                        No open slots available for {isViewingAllSlotsVet?.name || 'this doctor'} on the selected date.
+                      </div>
+                    );
+                  }
 
                   return (
                     <div className="flex flex-col gap-4">
-                      {renderSlotGroup('Morning Showtimes', morningTimes, Sunrise)}
-                      {renderSlotGroup('Afternoon Showtimes', afternoonTimes, Sun)}
-                      {renderSlotGroup('Evening Showtimes', eveningTimes, Moon)}
+                      {renderSlotGroup('Morning', morningTimes, Sunrise)}
+                      {renderSlotGroup('Afternoon', afternoonTimes, Sun)}
+                      {renderSlotGroup('Evening', eveningTimes, Moon)}
                     </div>
                   );
                 })()}

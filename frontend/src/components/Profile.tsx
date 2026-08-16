@@ -1296,6 +1296,29 @@ function ProfileBookingHistory({ token, API_BASE }: { token: string | null; API_
     document.body.removeChild(link);
   };
 
+  const handleDeleteAppointment = (apptId: string) => {
+    openConfirmation({
+      title: 'Delete Appointment Record',
+      message: 'Are you sure you want to delete this appointment record?',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      isDestructive: true,
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`${API_BASE}/appointments/${apptId}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (res.ok) {
+            setAppointments(prev => prev.filter(a => a._id !== apptId && a.bookingId !== apptId));
+          }
+        } catch (err) {
+          console.error('Error deleting appointment:', err);
+        }
+      }
+    });
+  };
+
   if (isLoading) {
     return <div className="text-stone-400 text-xs py-4 text-center">Loading booking history...</div>;
   }
@@ -1322,19 +1345,45 @@ function ProfileBookingHistory({ token, API_BASE }: { token: string | null; API_
                   {appt.mode === 'tele-consult' ? 'Tele-Consult' : 'In-Clinic'}
                 </span>
               </div>
-              <p className="text-[11px] text-stone-500 font-bold flex items-center gap-2">
-                <span>📅 {appt.date}</span>
-                <span>⏰ {appt.time}</span>
-              </p>
-              <p className="text-xs text-charcoal font-black">Pet: {appt.petName}</p>
+              <div className="flex items-center gap-3 text-[11px] text-stone-500 font-bold pt-0.5">
+                <span className="flex items-center gap-1">
+                  <svg className="w-3.5 h-3.5 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
+                  {appt.date}
+                </span>
+                <span className="flex items-center gap-1">
+                  <svg className="w-3.5 h-3.5 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                  {appt.time}
+                </span>
+              </div>
+              <p className="text-xs text-charcoal font-black pt-0.5">Pet: {appt.petName}</p>
             </div>
-            <div className="text-right">
-              <span className="text-sm font-black text-terracotta">₹{appt.fee}</span>
-              <p className={`text-[9px] mt-1 font-extrabold uppercase tracking-wider ${
-                appt.status === 'confirmed' ? 'text-emerald-600' : 'text-stone-400'
-              }`}>
-                {appt.status}
-              </p>
+            <div className="flex items-center gap-2">
+              <div className="text-right">
+                <span className="text-sm font-black text-terracotta">₹{appt.fee}</span>
+                <p className={`text-[9px] mt-0.5 font-extrabold uppercase tracking-wider ${
+                  appt.status === 'confirmed' ? 'text-emerald-600' : 'text-stone-400'
+                }`}>
+                  {appt.status}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleDeleteAppointment(appt._id || appt.bookingId)}
+                title="Delete appointment"
+                className="w-7 h-7 rounded-full bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 flex items-center justify-center transition-all cursor-pointer shadow-2xs ml-1"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
             </div>
           </div>
 

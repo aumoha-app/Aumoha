@@ -9,6 +9,7 @@ import AgoraCallModal from './AgoraCallModal';
 import CallSessionButton from './CallSessionButton';
 import PaymentModal from './PaymentModal';
 import PopupModal, { PopupConfig } from './PopupModal';
+import { isSlotTimePast } from '../lib/appointmentUtils';
 import { Calendar, Clock, Sunrise, Sun, Moon, CheckCircle2, Lock, Check, X, ChevronRight, ChevronLeft } from 'lucide-react';
 
 
@@ -1709,31 +1710,65 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
 
                     {/* 3. TIME PERIOD SHOWTIMES (MORNING, AFTERNOON, EVENING) */}
                     <div className="bg-white border border-[#E8E2D8] rounded-2xl p-4 flex flex-col gap-4 max-h-[260px] overflow-y-auto">
-                      {(() => {
-                        const morningTimes = ['09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM'];
-                        const afternoonTimes = ['12:00 PM', '01:00 PM', '02:00 PM', '03:30 PM'];
-                        const eveningTimes = ['04:30 PM', '05:00 PM', '06:00 PM', '07:00 PM'];
+                    {(() => {
+                      const parseTimeToMinutes = (timeStr: string) => {
+                        if (!timeStr) return 0;
+                        const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+                        if (!match) return 0;
+                        let hours = parseInt(match[1], 10);
+                        const minutes = parseInt(match[2], 10);
+                        const ampm = match[3].toUpperCase();
+                        if (ampm === 'PM' && hours < 12) hours += 12;
+                        if (ampm === 'AM' && hours === 12) hours = 0;
+                        return hours * 60 + minutes;
+                      };
 
-                        const checkIsSlotBooked = (timeStr: string) => {
-                          const slots = selectedExpert?.availableSlots || [];
-                          const matched = slots.find((s: any) => s.time === timeStr);
-                          return matched ? matched.isBooked : false;
-                        };
+                      const doctorAvailableSlots = selectedExpert?.availableSlots || [];
+                      const todayNum = new Date().getDate();
+                      const selectedDayVal = calendarSelectedDay || todayNum;
 
-                        const handleChooseSlotTime = (t: string) => {
-                          setSelectedTimeSlot(t);
-                          setIsChangingTimezone(false);
-                          const dayVal = calendarSelectedDay || new Date().getDate();
-                          const mName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][calendarMonth];
-                          setSelectedSlot({
-                            _id: `slot_${dayVal}_${t}`,
-                            date: `${mName} ${dayVal}`,
-                            time: t,
-                            isBooked: false
-                          });
-                        };
+                      const dateMatchedSlots = doctorAvailableSlots.filter((s: any) => {
+                        if (!s.date) return true;
+                        const dLower = s.date.toLowerCase();
+                        if (selectedDayVal === todayNum && dLower.includes('today')) return true;
+                        if (selectedDayVal === todayNum + 1 && dLower.includes('tomorrow')) return true;
+                        if (s.date.includes(String(selectedDayVal))) return true;
+                        return false;
+                      });
 
-                        const renderSlotGroup = (title: string, times: string[], IconComp: any) => (
+                      const activeSlots = dateMatchedSlots.length > 0 ? dateMatchedSlots : doctorAvailableSlots;
+                      const openedTimes = Array.from(new Set(activeSlots.map((s: any) => s.time)))
+                        .filter(Boolean)
+                        .filter(t => !isSlotTimePast(t, selectedDayVal));
+
+                      const morningTimes = openedTimes.filter(t => parseTimeToMinutes(t) < 720);
+                      const afternoonTimes = openedTimes.filter(t => {
+                        const m = parseTimeToMinutes(t);
+                        return m >= 720 && m < 960;
+                      });
+                      const eveningTimes = openedTimes.filter(t => parseTimeToMinutes(t) >= 960);
+
+                      const checkIsSlotBooked = (timeStr: string) => {
+                        const matched = activeSlots.find((s: any) => s.time === timeStr);
+                        return matched ? matched.isBooked : false;
+                      };
+
+                      const handleChooseSlotTime = (t: string) => {
+                        setSelectedTimeSlot(t);
+                        setIsChangingTimezone(false);
+                        const dayVal = calendarSelectedDay || new Date().getDate();
+                        const mName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][calendarMonth];
+                        setSelectedSlot({
+                          _id: `slot_${dayVal}_${t}`,
+                          date: `${mName} ${dayVal}`,
+                          time: t,
+                          isBooked: false
+                        });
+                      };
+
+                      const renderSlotGroup = (title: string, times: string[], IconComp: any) => {
+                        if (times.length === 0) return null;
+                        return (
                           <div className="flex flex-col gap-2">
                             <div className="flex items-center gap-1.5 text-xs font-bold text-stone-500 uppercase tracking-wider">
                               <IconComp className="w-3.5 h-3.5 text-[#C86D51]" />
@@ -1749,7 +1784,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                                     <div
                                       key={t}
                                       className="bg-[#EAE6DF] border border-stone-300 text-stone-400 py-2.5 px-2.5 rounded-xl text-xs font-semibold text-center cursor-not-allowed select-none line-through opacity-80"
-                                      title="This showtime is already booked"
+                                      title="This slot is already booked"
                                     >
                                       {t}
                                     </div>
@@ -1774,15 +1809,24 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                             </div>
                           </div>
                         );
+                      };
 
+                      if (openedTimes.length === 0) {
                         return (
-                          <div className="flex flex-col gap-4">
-                            {renderSlotGroup('Morning Showtimes', morningTimes, Sunrise)}
-                            {renderSlotGroup('Afternoon Showtimes', afternoonTimes, Sun)}
-                            {renderSlotGroup('Evening Showtimes', eveningTimes, Moon)}
+                          <div className="text-center py-6 text-xs text-stone-500 font-medium italic">
+                            No open slots available for {selectedExpert?.name || 'this specialist'} on the selected date.
                           </div>
                         );
-                      })()}
+                      }
+
+                      return (
+                        <div className="flex flex-col gap-4">
+                          {renderSlotGroup('Morning', morningTimes, Sunrise)}
+                          {renderSlotGroup('Afternoon', afternoonTimes, Sun)}
+                          {renderSlotGroup('Evening', eveningTimes, Moon)}
+                        </div>
+                      );
+                    })()}
                     </div>
 
                     {/* OPTIONAL CUSTOM TIME INPUT */}

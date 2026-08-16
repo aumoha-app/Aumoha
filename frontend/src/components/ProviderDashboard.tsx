@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE } from '../lib/api';
 import CallSessionButton from './CallSessionButton';
 import AgoraCallModal from './AgoraCallModal';
 import PopupModal, { PopupConfig } from './PopupModal';
+import { getAppointmentDisplayStatus, isAppointmentExpired } from '../lib/appointmentUtils';
 
 interface Slot {
   _id?: string;
@@ -203,9 +205,8 @@ export default function ProviderDashboard() {
         // Compute active summary metrics connected to live bookings
         const activeAppts = appts.filter(a => a.status !== 'cancelled');
         const confirmed = activeAppts.length;
-        const upcoming = appts.filter(a => a.status === 'confirmed').length;
+        const upcoming = appts.filter(a => a.status === 'confirmed' && !isAppointmentExpired(a)).length;
         const totalEarnings = activeAppts.reduce((sum, a) => sum + (Number(a.fee) || Number(provider?.fee) || 500), 0);
-
         setSummary({
           total: appts.length,
           confirmed,
@@ -215,6 +216,21 @@ export default function ProviderDashboard() {
       }
     } catch (err) {
       console.error('Error fetching appointments:', err);
+    }
+  };
+
+  const handleDeleteAppointment = async (apptId: string) => {
+    if (!confirm('Are you sure you want to delete this appointment record?')) return;
+    try {
+      const res = await fetch(`${API_BASE}/appointments/${apptId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      if (res.ok) {
+        setAppointments(prev => prev.filter(a => a._id !== apptId && a.bookingId !== apptId));
+      }
+    } catch (err) {
+      console.error('Error deleting appointment:', err);
     }
   };
 
@@ -289,41 +305,49 @@ export default function ProviderDashboard() {
     }
   };
 
-  const handleAddSlot = () => {
-    if (!newSlotDate || !newSlotTime) return;
-    if (slots.some(s => s.date === newSlotDate && s.time === newSlotTime)) {
-      setSlotMsg({ type: 'error', text: 'This time slot already exists.' });
-      return;
+  const normalizeTimeFormat = (rawTime: string): string => {
+    if (!rawTime) return '';
+    const trimmed = rawTime.trim();
+
+    // 12-hour format e.g. 9:00 AM, 09:30 pm
+    const ampmMatch = trimmed.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (ampmMatch) {
+      let h = parseInt(ampmMatch[1], 10);
+      const m = ampmMatch[2];
+      const p = ampmMatch[3].toUpperCase();
+      if (h > 12) h = h % 12;
+      if (h === 0) h = 12;
+      return `${h}:${m} ${p}`;
     }
-    const newSlotItem: Slot = {
-      _id: `slot_${Date.now()}`,
-      date: newSlotDate,
-      time: newSlotTime,
-      isBooked: false
-    };
-    setSlots(prev => [...prev, newSlotItem]);
-    setNewSlotDate('');
-    setNewSlotTime('');
-    setSlotMsg(null);
+
+    // 24-hour format e.g. 09:00, 14:30
+    const time24Match = trimmed.match(/^(\d{1,2}):(\d{2})$/);
+    if (time24Match) {
+      let h = parseInt(time24Match[1], 10);
+      const m = time24Match[2];
+      const p = h >= 12 ? 'PM' : 'AM';
+      h = h % 12;
+      if (h === 0) h = 12;
+      return `${h}:${m} ${p}`;
+    }
+
+    return trimmed;
   };
 
-  const handleRemoveSlot = (index: number) => {
-    setSlots(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const handleSaveSlots = async () => {
+  const saveSlotsToBackend = async (updatedSlots: Slot[]) => {
     setIsSavingSlots(true);
     setSlotMsg(null);
     try {
       const res = await fetch(`${API_BASE}/provider/me/profile`, {
         method: 'PUT',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ availableSlots: slots })
+        body: JSON.stringify({ availableSlots: updatedSlots })
       });
       const data = await res.json();
       if (res.ok) {
         setSlotMsg({ type: 'success', text: 'Available time slots updated live!' });
         if (data.vet?.availableSlots) setSlots(data.vet.availableSlots);
+        else setSlots(updatedSlots);
       } else {
         setSlotMsg({ type: 'error', text: data.message || 'Failed to save slots.' });
       }
@@ -334,31 +358,53 @@ export default function ProviderDashboard() {
     }
   };
 
+  const handleAddSlot = () => {
+    if (!newSlotTime || !newSlotTime.trim()) return;
+    const formattedTime = normalizeTimeFormat(newSlotTime);
+    if (!formattedTime) return;
+
+    if (slots.some(s => s.time === formattedTime)) {
+      setSlotMsg({ type: 'error', text: 'This time slot already exists.' });
+      return;
+    }
+    const newSlotItem: Slot = {
+      _id: `slot_${Date.now()}`,
+      date: 'Daily',
+      time: formattedTime,
+      isBooked: false
+    };
+    const updatedSlots = [...slots, newSlotItem];
+    setSlots(updatedSlots);
+    setNewSlotTime('');
+    saveSlotsToBackend(updatedSlots);
+  };
+
+  const handleRemoveSlot = (index: number) => {
+    const updatedSlots = slots.filter((_, i) => i !== index);
+    setSlots(updatedSlots);
+    saveSlotsToBackend(updatedSlots);
+  };
+
+  const handleSaveSlots = async () => {
+    saveSlotsToBackend(slots);
+  };
+
   const handleGenerateBulkSlots = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!bulkStartDate || !bulkEndDate || !bulkStartTime || !bulkEndTime) {
-      setSlotMsg({ type: 'error', text: 'Please specify start/end dates and times.' });
+    if (!bulkStartTime || !bulkEndTime) {
+      setSlotMsg({ type: 'error', text: 'Please specify start and end working hours.' });
       return;
     }
 
     setIsGeneratingBulk(true);
     setSlotMsg(null);
 
-    // Compute date array between start & end
-    const dateList: string[] = [];
-    let curr = new Date(bulkStartDate);
-    const end = new Date(bulkEndDate);
-    while (curr <= end) {
-      dateList.push(curr.toISOString().split('T')[0]);
-      curr.setDate(curr.getDate() + 1);
-    }
-
     try {
       const res = await fetch(`${API_BASE}/provider/me/slots/bulk`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({
-          dates: dateList,
+          dates: ['Daily'],
           startTime: bulkStartTime,
           endTime: bulkEndTime,
           intervalMinutes: Number(bulkInterval)
@@ -367,12 +413,42 @@ export default function ProviderDashboard() {
       const data = await res.json();
       if (res.ok && data.status === 'success') {
         setSlots(data.vet.availableSlots || []);
-        setSlotMsg({ type: 'success', text: `Generated ${data.addedCount} time slots successfully!` });
+        setSlotMsg({ type: 'success', text: `Generated ${data.addedCount} daily time slots successfully!` });
       } else {
-        setSlotMsg({ type: 'error', text: data.message || 'Failed to generate bulk slots.' });
+        setSlotMsg({ type: 'error', text: data.message || 'Failed to generate slots.' });
       }
     } catch (err) {
-      setSlotMsg({ type: 'error', text: 'Connection error while generating bulk schedule.' });
+      const interval = Number(bulkInterval) || 30;
+      const [startH, startM] = bulkStartTime.split(':').map(Number);
+      const [endH, endM] = bulkEndTime.split(':').map(Number);
+      const startTotal = startH * 60 + startM;
+      const endTotal = endH * 60 + endM;
+
+      if (endTotal <= startTotal) {
+        setSlotMsg({ type: 'error', text: 'End time must be after start time' });
+        setIsGeneratingBulk(false);
+        return;
+      }
+
+      const generated: Slot[] = [];
+      let current = startTotal;
+      while (current + interval <= endTotal) {
+        const h = Math.floor(current / 60);
+        const m = current % 60;
+        const period = h >= 12 ? 'PM' : 'AM';
+        const formattedH = h % 12 === 0 ? 12 : h % 12;
+        const formattedM = m < 10 ? `0${m}` : `${m}`;
+        const timeLabel = `${formattedH}:${formattedM} ${period}`;
+        generated.push({
+          _id: `slot_${Date.now()}_${current}`,
+          date: 'Daily',
+          time: timeLabel,
+          isBooked: false
+        });
+        current += interval;
+      }
+      setSlots(prev => [...prev, ...generated]);
+      setSlotMsg({ type: 'success', text: `Generated ${generated.length} daily time slots!` });
     } finally {
       setIsGeneratingBulk(false);
     }
@@ -454,36 +530,54 @@ export default function ProviderDashboard() {
 
       {/* Dashboard Top Navigation Header */}
       <header className="bg-white border-b border-warmBeige sticky top-0 z-40 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              {provider.photo ? (
-                <img src={provider.photo} alt={provider.name} className="w-12 h-12 rounded-2xl object-cover border border-warmBeige" />
-              ) : (
-                <div className="w-12 h-12 rounded-2xl bg-terracotta/10 text-terracotta font-extrabold flex items-center justify-center text-lg">
-                  {provider.name.charAt(0)}
-                </div>
-              )}
-              <span className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${provider.isOnline ? 'bg-emerald-500' : 'bg-stone-300'}`} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-base font-extrabold text-charcoal">{provider.name}</h1>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold tracking-wider uppercase bg-terracotta/10 text-terracotta">
-                  {provider.category === 'expert' ? 'Specialist Expert' : 'Veterinary Surgeon'}
-                </span>
-                {provider.isApproved === false && (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold tracking-wider uppercase bg-amber-100 text-amber-700">
-                    Pending Verification
-                  </span>
+        <div className="max-w-6xl mx-auto px-4 py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          
+          {/* Left Block: Back Button + Doctor Profile Info */}
+          <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
+            <Link
+              href="/"
+              className="px-3 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl bg-[#FCFAF7] hover:bg-[#F4F0EA] border border-warmBeige text-stone-700 hover:text-charcoal text-xs font-extrabold flex items-center gap-1.5 transition-all shadow-2xs shrink-0 cursor-pointer group"
+              title="Back to Main App"
+            >
+              <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              <span>Back</span>
+            </Link>
+
+            <div className="h-7 w-px bg-stone-200 shrink-0 hidden xs:block" />
+
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+              <div className="relative shrink-0">
+                {provider.photo ? (
+                  <img src={provider.photo} alt={provider.name} className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl object-cover border border-warmBeige shadow-2xs" />
+                ) : (
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-terracotta/10 text-terracotta font-extrabold flex items-center justify-center text-base sm:text-lg border border-warmBeige">
+                    {provider.name.charAt(0)}
+                  </div>
                 )}
+                <span className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border-2 border-white ${provider.isOnline ? 'bg-emerald-500' : 'bg-stone-300'}`} />
               </div>
-              <p className="text-xs text-stone-500 font-medium mt-0.5">{provider.specialisation} • Fee: ₹{provider.fee}</p>
+
+              <div className="flex flex-col min-w-0">
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                  <h1 className="text-sm sm:text-base font-extrabold text-charcoal truncate">{provider.name}</h1>
+                  <span className="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-extrabold tracking-wider uppercase bg-terracotta/10 text-terracotta whitespace-nowrap shrink-0 border border-terracotta/20">
+                    {provider.category === 'expert' ? 'Specialist Expert' : 'Veterinary Surgeon'}
+                  </span>
+                  {provider.isApproved === false && (
+                    <span className="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-extrabold tracking-wider uppercase bg-amber-100 text-amber-700 whitespace-nowrap shrink-0 border border-amber-200">
+                      Pending Verification
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] sm:text-xs text-stone-500 font-semibold mt-0.5 truncate">
+                  {provider.specialisation} <span className="text-stone-300">•</span> Fee: <strong className="text-charcoal font-black">₹{provider.fee}</strong>
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-          </div>
         </div>
 
         {/* Tab Selector */}
@@ -524,7 +618,7 @@ export default function ProviderDashboard() {
               <div className="flex flex-col gap-1 z-10">
                 <span className="text-xs font-bold text-stone-500 uppercase tracking-wider">Welcome Doctor</span>
                 <h2 className="font-serif text-xl sm:text-2xl font-extrabold text-[#1C1A17]">
-                  You have <span className="text-[#C85341] font-black text-2xl sm:text-3xl mx-1">{summary?.upcoming || appointments.filter(a => a.status === 'confirmed').length}</span> consultations today
+                  You have <span className="text-[#C85341] font-black text-2xl sm:text-3xl mx-1">{appointments.filter(a => a.status === 'confirmed' && !isAppointmentExpired(a)).length}</span> upcoming consultations
                 </h2>
                 <p className="text-xs text-stone-600 font-medium">Patients are waiting for your expert veterinary advice & diagnosis.</p>
               </div>
@@ -540,8 +634,8 @@ export default function ProviderDashboard() {
 
             {/* 2. NEXT CONSULTATION CARD (PROMINENT AT TOP) */}
             {(() => {
-              const upcomingList = appointments.filter(a => a.status === 'confirmed');
-              const nextAppt = upcomingList[0] || (appointments.length > 0 ? appointments[0] : null);
+              const upcomingList = appointments.filter(a => a.status === 'confirmed' && !isAppointmentExpired(a));
+              const nextAppt = upcomingList[0] || null;
 
               return (
                 <div className="bg-white border border-[#EBE3D5] rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col gap-4">
@@ -665,50 +759,54 @@ export default function ProviderDashboard() {
                 {appointments.length === 0 ? (
                   <p className="text-xs text-stone-400 font-medium italic text-center py-4">No appointments scheduled for today yet.</p>
                 ) : (
-                  appointments.slice(0, 4).map((appt) => (
-                    <div
-                      key={appt._id}
-                      className="bg-[#FAF8F5] border border-[#EBE3D5] hover:border-[#2D4536]/40 rounded-2xl p-3.5 sm:p-4 flex items-center justify-between gap-3 transition-all group"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <span className="text-xs font-extrabold text-[#9A4B1A] bg-[#FDF6ED] px-2.5 py-1 rounded-lg border border-[#E89552]/30 shrink-0">
-                          {appt.time || 'Today'}
-                        </span>
-                        <div className="w-10 h-10 rounded-xl bg-[#EFEAE2] border border-[#D5CEBF] flex items-center justify-center text-[#2D4536] font-bold shrink-0">
-                          {appt.petName.charAt(0)}
-                        </div>
-                        <div className="flex flex-col min-w-0">
-                          <h4 className="font-serif text-sm font-extrabold text-[#1C1A17] leading-tight truncate">
-                            {appt.petName}
-                          </h4>
-                          <span className="text-[11px] text-stone-500 font-medium truncate">
-                            {appt.notes || 'General Consultation'} • {appt.userEmail}
+                  appointments.slice(0, 4).map((appt) => {
+                    const displayStatus = getAppointmentDisplayStatus(appt);
+                    return (
+                      <div
+                        key={appt._id}
+                        className="bg-[#FAF8F5] border border-[#EBE3D5] hover:border-[#2D4536]/40 rounded-2xl p-3.5 sm:p-4 flex items-center justify-between gap-3 transition-all group"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="text-xs font-extrabold text-[#9A4B1A] bg-[#FDF6ED] px-2.5 py-1 rounded-lg border border-[#E89552]/30 shrink-0">
+                            {appt.time || 'Today'}
                           </span>
+                          <div className="w-10 h-10 rounded-xl bg-[#EFEAE2] border border-[#D5CEBF] flex items-center justify-center text-[#2D4536] font-bold shrink-0">
+                            {appt.petName.charAt(0)}
+                          </div>
+                          <div className="flex flex-col min-w-0">
+                            <h4 className="font-serif text-sm font-extrabold text-[#1C1A17] leading-tight truncate">
+                              {appt.petName}
+                            </h4>
+                            <span className="text-[11px] text-stone-500 font-medium truncate">
+                              {appt.notes || 'General Consultation'} • {appt.userEmail}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${displayStatus.statusClass}`}>
+                            {displayStatus.label}
+                          </span>
+
+                          {!displayStatus.isExpired && appt.mode === 'tele-consult' ? (
+                            <button
+                              onClick={() => setActiveCallAppt(appt)}
+                              className="px-3 py-1.5 bg-[#2D4536] hover:bg-[#1E2E24] text-white font-extrabold text-xs rounded-xl cursor-pointer shadow-2xs transition-all active:scale-95"
+                            >
+                              Join
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => setSelectedApptForPrescription(appt)}
+                              className="px-3 py-1.5 bg-white border border-[#D5CEBF] text-stone-700 font-bold text-xs rounded-xl cursor-pointer hover:bg-stone-50"
+                            >
+                              Details
+                            </button>
+                          )}
                         </div>
                       </div>
-
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold ${
-                          appt.mode === 'tele-consult' ? 'bg-[#E8F5E9] text-[#2E7D32]' : 'bg-[#FFF3E0] text-[#E65100]'
-                        }`}>
-                          {appt.mode === 'tele-consult' ? '🎥 Video' : '👤 In-Person'}
-                        </span>
-
-                        <button
-                          onClick={() => {
-                            if (appt.mode === 'tele-consult') {
-                              setActiveCallAppt(appt);
-                            } else {
-                              setSelectedApptForPrescription(appt);
-                            }
-                          }}
-                          className="px-3 py-1.5 bg-[#2D4536] hover:bg-[#1E2E24] text-white font-extrabold text-xs rounded-xl cursor-pointer shadow-2xs transition-all active:scale-95"
-                        >
-                          Join
-                        </button>
-                      </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </div>
@@ -1072,46 +1170,24 @@ export default function ProviderDashboard() {
         {/* TAB 3: BULK AVAILABILITY & TIME SLOTS */}
         {activeTab === 'slots' && (
           <div className="space-y-6">
-            {/* Bulk Schedule Generator Form */}
+            {/* Daily Schedule Generator Form */}
             <div className="bg-white p-6 md:p-8 rounded-3xl border border-warmBeige shadow-sm">
               <h2 className="text-base font-extrabold text-charcoal mb-2 flex items-center gap-2">
                 <svg className="w-5 h-5 text-terracotta" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 9 0 0118 0z" />
                 </svg>
-                Bulk Weekly Schedule Generator
+                Daily Schedule Generator
               </h2>
-              <p className="text-xs text-stone-500 font-medium mb-6">Select date range, daily working hours, and interval duration to generate recurring consultation slots in bulk.</p>
+              <p className="text-xs text-stone-500 font-medium mb-6">Select daily working hours and interval duration to generate recurring consultation slots available across all days.</p>
 
-              <form onSubmit={handleGenerateBulkSlots} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-                <div>
-                  <label className="block text-[11px] font-extrabold text-stone-600 uppercase mb-1">Start Date</label>
-                  <input
-                    type="date"
-                    value={bulkStartDate}
-                    onChange={e => setBulkStartDate(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-[#FCFAF7] border border-stone-200 rounded-xl text-xs font-bold focus:outline-none focus:border-terracotta"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-extrabold text-stone-600 uppercase mb-1">End Date</label>
-                  <input
-                    type="date"
-                    value={bulkEndDate}
-                    onChange={e => setBulkEndDate(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-[#FCFAF7] border border-stone-200 rounded-xl text-xs font-bold focus:outline-none focus:border-terracotta"
-                    required
-                  />
-                </div>
-
+              <form onSubmit={handleGenerateBulkSlots} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                 <div>
                   <label className="block text-[11px] font-extrabold text-stone-600 uppercase mb-1">Start Time</label>
                   <input
                     type="time"
                     value={bulkStartTime}
                     onChange={e => setBulkStartTime(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-[#FCFAF7] border border-stone-200 rounded-xl text-xs font-bold focus:outline-none focus:border-terracotta"
+                    className="w-full px-3.5 py-2.5 bg-[#FCFAF7] border border-stone-200 rounded-xl text-xs font-bold focus:outline-none focus:border-terracotta"
                     required
                   />
                 </div>
@@ -1122,7 +1198,7 @@ export default function ProviderDashboard() {
                     type="time"
                     value={bulkEndTime}
                     onChange={e => setBulkEndTime(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-[#FCFAF7] border border-stone-200 rounded-xl text-xs font-bold focus:outline-none focus:border-terracotta"
+                    className="w-full px-3.5 py-2.5 bg-[#FCFAF7] border border-stone-200 rounded-xl text-xs font-bold focus:outline-none focus:border-terracotta"
                     required
                   />
                 </div>
@@ -1132,7 +1208,7 @@ export default function ProviderDashboard() {
                   <select
                     value={bulkInterval}
                     onChange={e => setBulkInterval(Number(e.target.value))}
-                    className="w-full px-3 py-2.5 bg-[#FCFAF7] border border-stone-200 rounded-xl text-xs font-bold focus:outline-none focus:border-terracotta"
+                    className="w-full px-3.5 py-2.5 bg-[#FCFAF7] border border-stone-200 rounded-xl text-xs font-bold focus:outline-none focus:border-terracotta"
                   >
                     <option value={15}>15 Minutes</option>
                     <option value={30}>30 Minutes</option>
@@ -1141,13 +1217,13 @@ export default function ProviderDashboard() {
                   </select>
                 </div>
 
-                <div className="md:col-span-5 pt-2">
+                <div className="md:col-span-3 pt-2">
                   <button
                     type="submit"
                     disabled={isGeneratingBulk}
-                    className="w-full py-3 bg-terracotta hover:bg-[#c2502f] text-white text-xs font-extrabold rounded-2xl shadow-sm transition-all flex items-center justify-center gap-2"
+                    className="w-full py-3.5 bg-terracotta hover:bg-[#c2502f] text-white text-xs font-extrabold rounded-2xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    {isGeneratingBulk ? 'Generating Slots...' : 'Generate Recurring Bulk Slots'}
+                    {isGeneratingBulk ? 'Generating Slots...' : 'Generate Daily Available Slots'}
                   </button>
                 </div>
               </form>
@@ -1164,7 +1240,7 @@ export default function ProviderDashboard() {
                 <button
                   onClick={handleSaveSlots}
                   disabled={isSavingSlots}
-                  className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow-sm flex items-center gap-2"
+                  className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -1182,21 +1258,15 @@ export default function ProviderDashboard() {
               {/* Add Custom Single Slot */}
               <div className="flex flex-col md:flex-row items-center gap-3 p-4 bg-[#FCFAF7] border border-stone-200 rounded-2xl mb-6">
                 <input
-                  type="date"
-                  value={newSlotDate}
-                  onChange={e => setNewSlotDate(e.target.value)}
-                  className="w-full md:w-48 px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs font-bold"
-                />
-                <input
                   type="text"
                   placeholder="e.g. 10:00 AM"
                   value={newSlotTime}
                   onChange={e => setNewSlotTime(e.target.value)}
-                  className="w-full md:w-48 px-3 py-2 bg-white border border-stone-200 rounded-xl text-xs font-bold"
+                  className="w-full md:flex-1 px-4 py-2.5 bg-white border border-stone-200 rounded-xl text-xs font-bold focus:outline-none focus:border-terracotta"
                 />
                 <button
                   onClick={handleAddSlot}
-                  className="w-full md:w-auto px-5 py-2 bg-charcoal hover:bg-stone-800 text-white text-xs font-extrabold rounded-xl transition-all"
+                  className="w-full md:w-auto px-6 py-2.5 bg-charcoal hover:bg-stone-800 text-white text-xs font-extrabold rounded-xl transition-all cursor-pointer whitespace-nowrap"
                 >
                   Add Single Slot
                 </button>
@@ -1205,7 +1275,7 @@ export default function ProviderDashboard() {
               {/* Slots Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
                 {slots.length === 0 ? (
-                  <p className="col-span-full text-xs text-stone-400 italic text-center py-6">No time slots created yet. Use the bulk generator above to create slots.</p>
+                  <p className="col-span-full text-xs text-stone-400 italic text-center py-6">No time slots created yet. Use the daily schedule generator above to create slots.</p>
                 ) : (
                   slots.map((s, idx) => (
                     <div
@@ -1216,7 +1286,6 @@ export default function ProviderDashboard() {
                           : 'bg-[#FCFAF7] border-stone-200 text-charcoal hover:border-terracotta'
                       }`}
                     >
-                      <span className="block text-[10px] font-extrabold uppercase text-stone-400">{s.date}</span>
                       <span className="block text-xs font-black mt-0.5">{s.time}</span>
                       <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase mt-1 ${s.isBooked ? 'bg-rose-200 text-rose-800' : 'bg-emerald-100 text-emerald-700'}`}>
                         {s.isBooked ? 'Booked' : 'Free'}
@@ -1295,11 +1364,14 @@ export default function ProviderDashboard() {
                         }`}>
                           {a.mode === 'tele-consult' ? 'Tele-Consult' : 'In-Clinic'}
                         </span>
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide border whitespace-nowrap ${
-                          a.status === 'confirmed' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-stone-100 text-stone-700 border-stone-200'
-                        }`}>
-                          {a.status}
-                        </span>
+                        {(() => {
+                          const displayStatus = getAppointmentDisplayStatus(a);
+                          return (
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide border whitespace-nowrap ${displayStatus.statusClass}`}>
+                              {displayStatus.label}
+                            </span>
+                          );
+                        })()}
                       </div>
                     </div>
 
@@ -1337,11 +1409,17 @@ export default function ProviderDashboard() {
                     {/* Actions */}
                     <div className="flex flex-wrap items-center justify-end gap-2.5 pt-1">
                       {a.mode === 'tele-consult' && (
-                        <CallSessionButton
-                          appointment={a}
-                          onJoinCall={() => setActiveCallAppt(a)}
-                          className="px-4 py-2 bg-[#2D4536] hover:bg-[#1E2E24] text-white font-bold text-xs rounded-xl transition-all shadow-xs"
-                        />
+                        isAppointmentExpired(a) ? (
+                          <span className="px-3.5 py-2 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-extrabold rounded-xl">
+                            ✓ Meeting Ended (Happened)
+                          </span>
+                        ) : (
+                          <CallSessionButton
+                            appointment={a}
+                            onJoinCall={() => setActiveCallAppt(a)}
+                            className="px-4 py-2 bg-[#2D4536] hover:bg-[#1E2E24] text-white font-bold text-xs rounded-xl transition-all shadow-xs"
+                          />
+                        )
                       )}
 
                       <button
@@ -1350,12 +1428,22 @@ export default function ProviderDashboard() {
                           setPrescriptionNotesText(a.prescriptionNotes || '');
                           setPrescriptionPhotoBase64(a.prescription || '');
                         }}
-                        className="px-3.5 py-2 bg-white hover:bg-[#FAF6F0] text-[#1C1A17] border border-[#E5DBCB] text-xs font-semibold rounded-xl transition-all flex items-center gap-1.5 shadow-xs"
+                        className="px-3.5 py-2 bg-white hover:bg-[#FAF6F0] text-[#1C1A17] border border-[#E5DBCB] text-xs font-semibold rounded-xl transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
                       >
                         <svg className="w-4 h-4 text-[#C86D51]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                         <span>E-Prescription</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleDeleteAppointment(a._id || a.bookingId)}
+                        className="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold rounded-xl transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
+                      >
+                        <svg className="w-4 h-4 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        <span>Delete</span>
                       </button>
                     </div>
                   </div>

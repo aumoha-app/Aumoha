@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE } from '../lib/api';
+import { isAppointmentExpired } from '../lib/appointmentUtils';
 
 interface CallSessionButtonProps {
   appointment: any;
@@ -101,6 +102,16 @@ export default function CallSessionButton({ appointment, onJoinCall, className }
     return (
       <div className={`py-2.5 px-4 bg-stone-100 text-stone-400 text-xs font-bold rounded-2xl text-center animate-pulse ${className || ''}`}>
         Checking call status...
+      </div>
+    );
+  }
+
+  const isExpired = isAppointmentExpired(appointment);
+
+  if (isExpired) {
+    return (
+      <div className={`w-full py-2.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-2xl text-center border border-slate-200 ${className || ''}`}>
+        ✓ Meeting Ended (Happened)
       </div>
     );
   }
