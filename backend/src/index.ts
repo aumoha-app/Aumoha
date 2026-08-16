@@ -33,6 +33,47 @@ const razorpay = new Razorpay({
   key_secret: razorpayKeySecret,
 });
 
+/**
+ * SECURITY HELPER: Cryptographically verify Razorpay Payment Signatures
+ */
+function verifyRazorpaySignature(orderId: string, paymentId: string, signature: string): boolean {
+  if (!orderId || !paymentId || !signature) {
+    return false;
+  }
+  try {
+    const generatedSignature = crypto
+      .createHmac('sha256', razorpayKeySecret)
+      .update(`${orderId}|${paymentId}`)
+      .digest('hex');
+    return generatedSignature === signature;
+  } catch (err) {
+    console.error('Security error during Razorpay signature verification:', err);
+    return false;
+  }
+}
+
+/**
+ * SECURITY HELPER: Verify if authenticated user is a legitimate participant of an appointment
+ */
+async function isUserAppointmentParticipant(appt: any, userEmail: string, adminPassHeader?: string): Promise<boolean> {
+  if (!appt || !userEmail) return false;
+  if (adminPassHeader && adminPassHeader === process.env.ADMIN_PORTAL_PASSWORD) return true;
+  if (appt.userEmail && appt.userEmail.toLowerCase() === userEmail.toLowerCase()) return true;
+
+  if (mongoose.connection.readyState === 1) {
+    const vet = await Vet.findOne({ email: userEmail.toLowerCase() });
+    if (vet && (vet._id.toString() === String(appt.vetId) || (vet.email && vet.email.toLowerCase() === userEmail.toLowerCase()))) {
+      return true;
+    }
+  } else {
+    const vet = fallbackVets.find((v: any) => v.email && v.email.toLowerCase() === userEmail.toLowerCase());
+    if (vet && (vet._id === appt.vetId || (vet.email && vet.email.toLowerCase() === userEmail.toLowerCase()))) {
+      return true;
+    }
+  }
+  return false;
+}
+
 
 // Initialize Firebase Admin (Supports service account cert or public certificate key verification)
 const projectId = process.env.FIREBASE_PROJECT_ID || 'aumoha-2a158';
@@ -2677,7 +2718,7 @@ app.get('/api/vets', async (req: Request, res: Response) => {
  */
 app.post('/api/appointments', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const { vetId, slotId, mode, petName, petId, type, notes, medicalDocument, vetName, vetSpecialisation, vetPhoto, fee, date, time } = req.body;
+    const { vetId, slotId, mode, petName, petId, type, notes, medicalDocument, vetName, vetSpecialisation, vetPhoto, fee, date, time, razorpayPaymentId, razorpayOrderId, razorpaySignature } = req.body;
     const userEmail = req.user?.email;
 
     if (!userEmail) {
@@ -2685,6 +2726,14 @@ app.post('/api/appointments', authMiddleware, async (req: Request, res: Response
     }
     if (!vetId || !slotId || !petName) {
       return res.status(400).json({ status: 'error', message: 'Missing required booking parameters' });
+    }
+
+    // Cryptographic Razorpay Signature Verification
+    if (razorpayPaymentId && razorpaySignature) {
+      const isValidPayment = verifyRazorpaySignature(razorpayOrderId || '', razorpayPaymentId, razorpaySignature);
+      if (!isValidPayment) {
+        return res.status(400).json({ status: 'error', message: 'Payment verification failed: Invalid transaction signature' });
+      }
     }
 
     const bookingId = `AMC-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
@@ -2701,6 +2750,12 @@ app.post('/api/appointments', authMiddleware, async (req: Request, res: Response
     if (!vet) {
       vet = fallbackVets.find((v: any) => v._id === vetId || v.email === vetId);
     }
+
+    // Self-Booking Validation: Prevent doctor from booking an appointment with themselves
+    if (vet && vet.email && vet.email.toLowerCase() === userEmail.toLowerCase()) {
+      return res.status(400).json({ status: 'error', message: 'You cannot book an appointment with yourself' });
+    }
+
     // Universal Auto-Healing: Create Vet profile from User record if missing
     if (!vet && mongoose.connection.readyState === 1) {
       const userDoc = await User.findOne({
@@ -2711,6 +2766,9 @@ app.post('/api/appointments', authMiddleware, async (req: Request, res: Response
         ]
       });
       if (userDoc) {
+        if (userDoc.email && userDoc.email.toLowerCase() === userEmail.toLowerCase()) {
+          return res.status(400).json({ status: 'error', message: 'You cannot book an appointment with yourself' });
+        }
         vet = await Vet.create({
           _id: userDoc._id,
           name: userDoc.fullName || vetName || 'Doctor',
@@ -2768,6 +2826,9 @@ app.post('/api/appointments', authMiddleware, async (req: Request, res: Response
     // Mark slot booked
     slot.isBooked = true;
     slot.bookedBy = bookingId;
+    if (typeof vet.markModified === 'function') {
+      vet.markModified('availableSlots');
+    }
     if (typeof vet.save === 'function') {
       await vet.save();
     }
@@ -2791,6 +2852,9 @@ app.post('/api/appointments', authMiddleware, async (req: Request, res: Response
       notes: notes || '',
       medicalDocument: medicalDocument || '',
       bookingId,
+      razorpayPaymentId: razorpayPaymentId || '',
+      razorpayOrderId: razorpayOrderId || '',
+      razorpaySignature: razorpaySignature || '',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -2932,6 +2996,11 @@ app.post('/api/appointments/:id/call/request', authMiddleware, async (req: Reque
       return res.status(404).json({ status: 'error', message: 'Appointment not found' });
     }
 
+    const isAuthorized = await isUserAppointmentParticipant(appt, req.user?.email || '', req.headers['x-admin-password'] as string);
+    if (!isAuthorized) {
+      return res.status(403).json({ status: 'error', message: 'Access denied: Only appointment participants can request call sessions' });
+    }
+
     // Check if an active non-ended call session already exists for this appointment
     if (mongoose.connection.readyState !== 1) {
       let session = fallbackCallSessions.find((s: any) => s.bookingId === appt.bookingId && s.status !== 'ended' && s.status !== 'cancelled');
@@ -3013,6 +3082,23 @@ app.get('/api/appointments/:id/call', authMiddleware, async (req: Request, res: 
 app.put('/api/appointments/:id/call/join', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const userEmail = req.user?.email || '';
+
+    // Verify appointment participant authorization
+    let appt: any = null;
+    if (mongoose.connection.readyState !== 1) {
+      appt = fallbackAppointments.find((a: any) => a._id === id || a.bookingId === id);
+    } else {
+      appt = await Appointment.findOne({ $or: [{ _id: mongoose.Types.ObjectId.isValid(id) ? id : null }, { bookingId: id }] });
+    }
+
+    if (appt) {
+      const isAuthorized = await isUserAppointmentParticipant(appt, userEmail, req.headers['x-admin-password'] as string);
+      if (!isAuthorized) {
+        return res.status(403).json({ status: 'error', message: 'Access denied: Only appointment participants can join call sessions' });
+      }
+    }
+
     if (mongoose.connection.readyState !== 1) {
       const session = fallbackCallSessions.find(
         (s: any) => (s.agoraChannelName === id || s.bookingId === id) && (s.status === 'ready' || s.status === 'ongoing' || s.status === 'requested')
@@ -3043,7 +3129,23 @@ app.put('/api/appointments/:id/call/join', authMiddleware, async (req: Request, 
 app.put('/api/appointments/:id/call/end', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const userEmail = req.user?.email || '';
     const now = new Date();
+
+    // Verify appointment participant authorization
+    let appt: any = null;
+    if (mongoose.connection.readyState !== 1) {
+      appt = fallbackAppointments.find((a: any) => a._id === id || a.bookingId === id);
+    } else {
+      appt = await Appointment.findOne({ $or: [{ _id: mongoose.Types.ObjectId.isValid(id) ? id : null }, { bookingId: id }] });
+    }
+
+    if (appt) {
+      const isAuthorized = await isUserAppointmentParticipant(appt, userEmail, req.headers['x-admin-password'] as string);
+      if (!isAuthorized) {
+        return res.status(403).json({ status: 'error', message: 'Access denied: Only appointment participants can end call sessions' });
+      }
+    }
     if (mongoose.connection.readyState !== 1) {
       const session = fallbackCallSessions.find(
         (s: any) => (s.agoraChannelName === id || s.bookingId === id) && s.status !== 'ended'
@@ -3584,21 +3686,13 @@ app.get('/api/appointments/:id/token', authMiddleware, async (req: Request, res:
       appt = await Appointment.findOne({ $or: [{ _id: mongoose.Types.ObjectId.isValid(id) ? id : null }, { bookingId: id }] });
     }
 
-    if (appt) {
-      const isParent = appt.userEmail === userEmail;
-      let isDoctor = false;
-      if (mongoose.connection.readyState === 1) {
-        const vet = await Vet.findOne({ email: userEmail });
-        if (vet && (vet._id.toString() === appt.vetId || vet.email === userEmail)) isDoctor = true;
-      } else {
-        const vet = fallbackVets.find((v: any) => v.email === userEmail);
-        if (vet && (vet._id === appt.vetId || vet.email === userEmail)) isDoctor = true;
-      }
-      const isAdminPass = req.headers['x-admin-password'] === process.env.ADMIN_PORTAL_PASSWORD;
+    if (!appt) {
+      return res.status(404).json({ status: 'error', message: 'Appointment not found' });
+    }
 
-      if (!isParent && !isDoctor && !isAdminPass) {
-        return res.status(403).json({ status: 'error', message: 'Access denied: Only appointment participants can access video call tokens' });
-      }
+    const isAuthorized = await isUserAppointmentParticipant(appt, userEmail, req.headers['x-admin-password'] as string);
+    if (!isAuthorized) {
+      return res.status(403).json({ status: 'error', message: 'Access denied: Only appointment participants can access video call tokens' });
     }
 
     // Verify or auto-create call session
@@ -3725,6 +3819,11 @@ app.put('/api/appointments/:id/reschedule', authMiddleware, async (req: Request,
       return res.status(404).json({ status: 'error', message: 'Appointment not found' });
     }
 
+    const isAuthorized = await isUserAppointmentParticipant(appt, userEmail, req.headers['x-admin-password'] as string);
+    if (!isAuthorized) {
+      return res.status(403).json({ status: 'error', message: 'Access denied: Only appointment participants can reschedule this booking' });
+    }
+
     // Free old slot
     const oldVet = await Vet.findById(appt.vetId);
     if (oldVet) {
@@ -3732,6 +3831,9 @@ app.put('/api/appointments/:id/reschedule', authMiddleware, async (req: Request,
       if (oldSlot) {
         oldSlot.isBooked = false;
         oldSlot.bookedBy = null;
+        if (typeof oldVet.markModified === 'function') {
+          oldVet.markModified('availableSlots');
+        }
         await oldVet.save();
       }
     }
@@ -3741,7 +3843,9 @@ app.put('/api/appointments/:id/reschedule', authMiddleware, async (req: Request,
     if (!newVet) {
       return res.status(404).json({ status: 'error', message: 'Vet not found' });
     }
-    const newSlot = newVet.availableSlots.id(newSlotId);
+    const newSlot = (newVet.availableSlots || []).find(
+      (s: any) => String(s._id) === String(newSlotId) || s.id === newSlotId
+    );
     if (!newSlot) {
       return res.status(404).json({ status: 'error', message: 'New slot not found' });
     }
@@ -3750,6 +3854,9 @@ app.put('/api/appointments/:id/reschedule', authMiddleware, async (req: Request,
     }
     newSlot.isBooked = true;
     newSlot.bookedBy = appt.bookingId;
+    if (typeof newVet.markModified === 'function') {
+      newVet.markModified('availableSlots');
+    }
     await newVet.save();
 
     appt.date = newSlot.date;
@@ -3840,12 +3947,20 @@ app.put('/api/appointments/:id/cancel', authMiddleware, async (req: Request, res
       return res.status(404).json({ status: 'error', message: 'Appointment not found' });
     }
 
+    const isAuthorized = await isUserAppointmentParticipant(appt, userEmail, req.headers['x-admin-password'] as string);
+    if (!isAuthorized) {
+      return res.status(403).json({ status: 'error', message: 'Access denied: Only appointment participants can cancel this booking' });
+    }
+
     const vet = await Vet.findById(appt.vetId);
     if (vet) {
       const slot = vet.availableSlots.find((s: any) => s.bookedBy === appt.bookingId || (s.date === appt.date && s.time === appt.time));
       if (slot) {
         slot.isBooked = false;
         slot.bookedBy = null;
+        if (typeof vet.markModified === 'function') {
+          vet.markModified('availableSlots');
+        }
         await vet.save();
       }
     }

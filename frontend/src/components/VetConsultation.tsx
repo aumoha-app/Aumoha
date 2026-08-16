@@ -9,6 +9,7 @@ import AgoraCallModal from './AgoraCallModal';
 import CallSessionButton from './CallSessionButton';
 import PaymentModal from './PaymentModal';
 import PopupModal, { PopupConfig } from './PopupModal';
+import { Calendar, Clock, Sunrise, Sun, Moon, CheckCircle2, Lock, Check, X, ChevronRight, ChevronLeft } from 'lucide-react';
 
 
 // Define Interface types
@@ -460,7 +461,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
   };
 
   // Action: Confirm Appointment Book Request
-  const handleConfirmAppointment = async () => {
+  const handleConfirmAppointment = async (paymentDetails?: { razorpayPaymentId?: string; razorpayOrderId?: string; razorpaySignature?: string }) => {
     if (!token || !selectedVet || !selectedSlot) return;
 
     const petName = newPetInput ? customPetName : selectedPetName;
@@ -487,7 +488,10 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
           vetPhoto: selectedVet.photo,
           fee: selectedVet.fee,
           date: selectedSlot.date,
-          time: selectedSlot.time
+          time: selectedSlot.time,
+          razorpayPaymentId: paymentDetails?.razorpayPaymentId || '',
+          razorpayOrderId: paymentDetails?.razorpayOrderId || '',
+          razorpaySignature: paymentDetails?.razorpaySignature || ''
         })
       });
 
@@ -1439,177 +1443,207 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
               </div>
             )}
 
-            {/* STEP 2: SELECT DATE & TIME SLOT */}
+            {/* STEP 2: SELECT DATE & TIME SLOT (BOOK MY SHOW STYLE FOR VET CARE) */}
             {bookingStep === 2 && (
               <div className="flex flex-col gap-5 w-full animate-fadeIn">
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-5 w-full bg-[#FAF8F5] border border-[#E8E2D8] rounded-[26px] p-5 shadow-2xs">
+                <div className="flex flex-col gap-5 w-full bg-[#FAF8F5] border border-[#E8E2D8] rounded-[26px] p-5 shadow-2xs">
 
-                  {/* SELECT DATE (Left 7 Cols) */}
-                  <div className="md:col-span-7 flex flex-col gap-3">
-                    <div className="flex items-center justify-between">
-                      <label className="text-[10.5px] font-extrabold text-stone-500 uppercase tracking-widest">SELECT DATE</label>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-1">
-                      <span className="font-serif text-sm font-bold text-[#1C1A17]">
-                        {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][bookingMonth]} {bookingYear}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (bookingMonth === 11) {
-                            setBookingMonth(0);
-                            setBookingYear(prev => prev + 1);
-                          } else {
-                            setBookingMonth(prev => prev + 1);
-                          }
-                        }}
-                        className="w-6 h-6 rounded-full hover:bg-stone-200 text-stone-600 flex items-center justify-center transition-all cursor-pointer font-bold text-xs"
-                      >
-                        ›
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-7 text-center">
-                      {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(d => (
-                        <span key={d} className="text-[9px] font-bold text-stone-400 uppercase py-1">{d}</span>
-                      ))}
-                    </div>
-
-                    <div className="grid grid-cols-7 gap-y-1 text-center">
-                      {Array.from({ length: new Date(bookingYear, bookingMonth, 1).getDay() }).map((_, i) => (
-                        <span key={`blank-${i}`} />
-                      ))}
-                      {Array.from({ length: new Date(bookingYear, bookingMonth + 1, 0).getDate() }).map((_, i) => {
-                        const dayNum = i + 1;
-                        const isSelected = selectedCalendarDay === dayNum;
-                        const isPast = new Date().getMonth() === bookingMonth && new Date().getFullYear() === bookingYear && dayNum < new Date().getDate();
-
-                        return (
-                          <div key={dayNum} className="flex flex-col items-center justify-center">
+                  {/* 1. HORIZONTAL DATE RIBBON (BOOKMYSHOW DATES STRIP) */}
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[10px] font-extrabold text-stone-400 uppercase tracking-widest flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-[#C86D51]" />
+                      <span>Choose Consultation Date</span>
+                    </label>
+                    <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar scrollbar-none">
+                      {(() => {
+                        const dates = [];
+                        const today = new Date();
+                        for (let i = 0; i < 7; i++) {
+                          const d = new Date(today);
+                          d.setDate(today.getDate() + i);
+                          const dayName = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getDay()];
+                          const mName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getMonth()];
+                          const dateNum = d.getDate();
+                          const dateStr = `${mName} ${dateNum}`;
+                          dates.push({ label: dayName, dateStr, dateNum });
+                        }
+                        return dates.map((item, idx) => {
+                          const isSelected = selectedCalendarDay === item.dateNum || (idx === 0 && !selectedCalendarDay);
+                          return (
                             <button
+                              key={idx}
                               type="button"
-                              disabled={isPast}
                               onClick={() => {
-                                setSelectedCalendarDay(dayNum);
-                                const mName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][bookingMonth];
-                                const dateStr = `${mName} ${dayNum}`;
+                                setSelectedCalendarDay(item.dateNum);
                                 if (selectedVet) {
                                   setSelectedSlot({
-                                    _id: `slot_${dayNum}`,
-                                    date: dateStr,
-                                    time: selectedTimeSlot,
+                                    _id: `slot_${item.dateNum}`,
+                                    date: item.dateStr,
+                                    time: selectedTimeSlot || '10:30 AM',
                                     isBooked: false
                                   });
                                 }
                               }}
-                              className={`w-8 h-8 rounded-full text-xs font-bold transition-all flex items-center justify-center ${isPast
-                                  ? 'text-stone-300 cursor-not-allowed'
-                                  : isSelected
-                                    ? 'bg-[#2D4536] text-white shadow-sm font-extrabold'
-                                    : 'text-[#1C1A17] hover:bg-[#F4F0EA] cursor-pointer'
-                                }`}
+                              className={`py-2.5 px-4 rounded-2xl text-xs font-bold transition-all shrink-0 flex flex-col items-center min-w-[85px] cursor-pointer ${
+                                isSelected
+                                  ? 'bg-[#2D4536] text-white shadow-sm border border-[#2D4536]'
+                                  : 'bg-white border border-[#E8E2D8] text-stone-700 hover:bg-[#F4F0EA]'
+                              }`}
                             >
-                              {dayNum}
+                              <span className="text-[10px] uppercase font-bold opacity-80">{item.label}</span>
+                              <span className="text-xs font-extrabold mt-0.5">{item.dateStr}</span>
                             </button>
-                            {!isPast && (
-                              <span className={`w-1 h-1 rounded-full mt-0.5 ${isSelected ? 'bg-emerald-400' : 'bg-stone-400'}`} />
-                            )}
-                          </div>
-                        );
-                      })}
+                          );
+                        });
+                      })()}
                     </div>
                   </div>
 
-                  <div className="hidden md:block w-px bg-[#E8E2D8] self-stretch" />
+                  {/* 2. LEGEND BAR (CLEAN TEXT BADGES - NO SYMBOLS) */}
+                  <div className="bg-white border border-[#E8E2D8] rounded-2xl p-3 flex items-center justify-around text-xs font-semibold">
+                    <span className="px-3 py-1 bg-white border border-[#E5E0D8] text-[#1C1A17] rounded-lg text-xs font-extrabold shadow-2xs">
+                      Available
+                    </span>
+                    <span className="px-3 py-1 bg-[#EAE6DF] border border-stone-300 text-stone-400 rounded-lg text-xs font-bold line-through">
+                      Booked
+                    </span>
+                    <span className="px-3 py-1 bg-[#2D4536] text-white rounded-lg text-xs font-extrabold shadow-xs">
+                      Selected
+                    </span>
+                  </div>
 
-                  {/* SELECT TIME (Right 5 Cols) */}
-                  <div className="md:col-span-4 flex flex-col gap-3 border-t md:border-t-0 pt-4 md:pt-0">
-                    <label className="text-[10.5px] font-extrabold text-stone-500 uppercase tracking-widest">SELECT TIME</label>
-                    <div className="flex flex-col gap-2.5">
-                      {['10:30 AM', '1:00 PM', '3:30 PM', '5:00 PM'].map(timeStr => {
-                        const isTimeSelected = selectedTimeSlot === timeStr && !isCustomTimeActive;
-                        return (
-                          <button
-                            key={timeStr}
-                            type="button"
-                            onClick={() => {
-                              setSelectedTimeSlot(timeStr);
-                              setIsCustomTimeActive(false);
+                  {/* 3. TIME PERIOD SHOWTIMES (MORNING, AFTERNOON, EVENING) */}
+                  <div className="bg-white border border-[#E8E2D8] rounded-2xl p-4 flex flex-col gap-4 max-h-[260px] overflow-y-auto">
+                    {(() => {
+                      const morningTimes = ['09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM'];
+                      const afternoonTimes = ['12:00 PM', '01:00 PM', '02:00 PM', '03:30 PM'];
+                      const eveningTimes = ['04:30 PM', '05:00 PM', '06:00 PM', '07:00 PM'];
+
+                      const checkIsSlotBooked = (timeStr: string) => {
+                        const slots = selectedVet?.availableSlots || [];
+                        const matched = slots.find((s: any) => s.time === timeStr);
+                        return matched ? matched.isBooked : false;
+                      };
+
+                      const handleChooseSlotTime = (t: string) => {
+                        setSelectedTimeSlot(t);
+                        setIsCustomTimeActive(false);
+                        const dayVal = selectedCalendarDay || new Date().getDate();
+                        const mName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][bookingMonth];
+                        if (selectedVet) {
+                          setSelectedSlot({
+                            _id: `slot_${dayVal}_${t}`,
+                            date: `${mName} ${dayVal}`,
+                            time: t,
+                            isBooked: false
+                          });
+                        }
+                      };
+
+                      const renderSlotGroup = (title: string, times: string[], IconComp: any) => (
+                        <div className="flex flex-col gap-2">
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-stone-500 uppercase tracking-wider">
+                            <IconComp className="w-3.5 h-3.5 text-[#C86D51]" />
+                            <span>{title}</span>
+                          </div>
+                          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                            {times.map((t) => {
+                              const isBooked = checkIsSlotBooked(t);
+                              const isSelected = selectedTimeSlot === t && !isCustomTimeActive;
+
+                              if (isBooked) {
+                                return (
+                                  <div
+                                    key={t}
+                                    className="bg-[#EAE6DF] border border-stone-300 text-stone-400 py-2.5 px-2.5 rounded-xl text-xs font-semibold text-center cursor-not-allowed select-none line-through opacity-80"
+                                    title="This showtime is already booked"
+                                  >
+                                    {t}
+                                  </div>
+                                );
+                              }
+
+                              return (
+                                <button
+                                  key={t}
+                                  type="button"
+                                  onClick={() => handleChooseSlotTime(t)}
+                                  className={`py-2.5 px-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer text-center ${
+                                    isSelected
+                                      ? 'bg-[#2D4536] text-white border border-[#2D4536] shadow-sm'
+                                      : 'bg-white border border-[#E5E0D8] text-[#1C1A17] hover:border-[#2D4536] hover:bg-[#F4F0EA]'
+                                  }`}
+                                >
+                                  {t}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+
+                      return (
+                        <div className="flex flex-col gap-4">
+                          {renderSlotGroup('Morning Showtimes', morningTimes, Sunrise)}
+                          {renderSlotGroup('Afternoon Showtimes', afternoonTimes, Sun)}
+                          {renderSlotGroup('Evening Showtimes', eveningTimes, Moon)}
+                        </div>
+                      );
+                    })()}
+                  </div>
+
+                  {/* OPTIONAL CUSTOM TIME INPUT */}
+                  <div
+                    className={`w-full rounded-2xl p-3 transition-all border flex flex-col gap-2 ${
+                      isCustomTimeActive
+                        ? 'bg-[#2D4536] text-white border-[#2D4536] shadow-sm'
+                        : 'bg-white border-[#E8E2D8] text-[#1C1A17] hover:bg-[#F9F6F0]'
+                    }`}
+                  >
+                    <div
+                      onClick={() => setIsCustomTimeActive(true)}
+                      className="flex items-center justify-between px-1 cursor-pointer font-bold text-xs select-none"
+                    >
+                      <span className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-current" />
+                        <span>Specify Custom Time</span>
+                      </span>
+                    </div>
+
+                    {isCustomTimeActive && (
+                      <div className="pt-1 flex items-center gap-2">
+                        <input
+                          type="time"
+                          value={customTimeValRaw}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setCustomTimeValRaw(val);
+                            if (val) {
+                              const [hStr, mStr] = val.split(':');
+                              let h = parseInt(hStr, 10);
+                              const m = parseInt(mStr, 10);
+                              const ampm = h >= 12 ? 'PM' : 'AM';
+                              h = h % 12;
+                              h = h ? h : 12;
+                              const formattedTime = `${h}:${m < 10 ? '0' : ''}${m} ${ampm}`;
+                              setCustomTimeValue(formattedTime);
+                              setSelectedTimeSlot(formattedTime);
                               if (selectedVet) {
                                 const mName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][bookingMonth];
+                                const dayVal = selectedCalendarDay || new Date().getDate();
                                 setSelectedSlot({
-                                  _id: `slot_${selectedCalendarDay}`,
-                                  date: `${mName} ${selectedCalendarDay}`,
-                                  time: timeStr,
+                                  _id: `slot_${dayVal}_${formattedTime}`,
+                                  date: `${mName} ${dayVal}`,
+                                  time: formattedTime,
                                   isBooked: false
                                 });
                               }
-                            }}
-                            className={`w-full py-3 rounded-2xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer text-center ${isTimeSelected
-                                ? 'bg-[#2D4536] text-white shadow-sm border border-[#2D4536]'
-                                : 'bg-[#F9F6F0] border border-[#E5E0D8] text-[#1C1A17] hover:bg-[#F4F0EA]'
-                              }`}
-                          >
-                            {timeStr}
-                          </button>
-                        );
-                      })}
-
-                      <div
-                        className={`w-full rounded-2xl p-3 transition-all border flex flex-col gap-2 ${isCustomTimeActive
-                            ? 'bg-[#2D4536] text-white border-[#2D4536] shadow-sm'
-                            : 'bg-[#F9F6F0] border-[#E5E0D8] text-[#1C1A17] hover:bg-[#F4F0EA]'
-                          }`}
-                      >
-                        <div
-                          onClick={() => setIsCustomTimeActive(true)}
-                          className="flex items-center justify-between px-1 cursor-pointer font-extrabold text-xs sm:text-sm select-none"
-                        >
-                          <span className="flex items-center gap-1.5">
-                            <svg className="w-4 h-4 text-current" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
-                              <circle cx="12" cy="12" r="10" />
-                              <polyline points="12 6 12 12 16 14" />
-                            </svg>
-                            <span>Custom Time</span>
-                          </span>
-                        </div>
-
-                        {isCustomTimeActive && (
-                          <div className="pt-1 flex items-center gap-2">
-                            <input
-                              type="time"
-                              value={customTimeValRaw}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                setCustomTimeValRaw(val);
-                                if (val) {
-                                  const [hStr, mStr] = val.split(':');
-                                  let h = parseInt(hStr, 10);
-                                  const m = parseInt(mStr, 10);
-                                  const ampm = h >= 12 ? 'PM' : 'AM';
-                                  h = h % 12;
-                                  h = h ? h : 12;
-                                  const formattedTime = `${h}:${m < 10 ? '0' : ''}${m} ${ampm}`;
-                                  setCustomTimeValue(formattedTime);
-                                  setSelectedTimeSlot(formattedTime);
-                                  if (selectedVet) {
-                                    const mName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][bookingMonth];
-                                    setSelectedSlot({
-                                      _id: `slot_${selectedCalendarDay}`,
-                                      date: `${mName} ${selectedCalendarDay}`,
-                                      time: formattedTime,
-                                      isBooked: false
-                                    });
-                                  }
-                                }
-                              }}
-                              className="w-full bg-white text-charcoal border border-[#E5E0D8] rounded-xl px-3 py-2 text-xs font-extrabold outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer shadow-inner"
-                            />
-                          </div>
-                        )}
+                            }
+                          }}
+                          className="w-full bg-white text-[#1C1A17] border border-[#E5E0D8] rounded-xl px-3 py-2 text-xs font-extrabold outline-none cursor-pointer shadow-inner"
+                        />
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
 
@@ -1618,16 +1652,18 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                   <button
                     type="button"
                     onClick={() => setBookingStep(1)}
-                    className="px-7 py-3.5 bg-white border border-[#D5CEBF] hover:bg-[#FAF8F5] text-[#1C1A17] text-sm sm:text-base font-bold rounded-2xl transition-all cursor-pointer shadow-2xs"
+                    className="px-5 py-2.5 bg-white border border-[#D5CEBF] hover:bg-[#FAF8F5] text-[#1C1A17] text-xs sm:text-sm font-bold rounded-full transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
                   >
-                    ← Back
+                    <ChevronLeft className="w-4 h-4 text-stone-600" />
+                    <span>Back</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setBookingStep(3)}
-                    className="px-9 py-4 bg-[#2D4536] hover:bg-[#1E2E24] active:scale-[0.98] text-white text-base sm:text-lg md:text-xl font-extrabold rounded-2xl shadow-sm transition-all flex items-center gap-2.5 cursor-pointer"
+                    className="px-7 py-3 bg-[#2D4536] hover:bg-[#1E2E24] active:scale-[0.98] text-white text-xs sm:text-sm font-extrabold rounded-full shadow-sm transition-all flex items-center gap-2 cursor-pointer"
                   >
                     <span>Next</span>
+                    <ChevronRight className="w-4 h-4 text-white" />
                   </button>
                 </div>
               </div>
@@ -1704,8 +1740,12 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                             email: user?.email || '',
                             contact: user?.phone || '',
                           },
-                          onSuccess: () => {
-                            handleConfirmAppointment();
+                          onSuccess: (paymentResp: any) => {
+                            handleConfirmAppointment({
+                              razorpayPaymentId: paymentResp?.razorpay_payment_id,
+                              razorpayOrderId: paymentResp?.razorpay_order_id,
+                              razorpaySignature: paymentResp?.razorpay_signature
+                            });
                           }
                         });
                       }}
@@ -1723,7 +1763,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                         ← Back
                       </button>
                       <button
-                        onClick={handleConfirmAppointment}
+                        onClick={() => handleConfirmAppointment()}
                         className="flex-1 py-2.5 px-4 bg-white border border-[#DCD5C7] hover:bg-[#FAF8F5] active:scale-[0.98] text-[#1C1A17] text-xs sm:text-sm font-bold rounded-full shadow-2xs transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
                       >
                         Confirm Booking (Pay Later)
@@ -2443,7 +2483,8 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
 
         {activeCallAppt && (
           <AgoraCallModal
-            appointmentId={activeCallAppt._id}
+            appointmentId={activeCallAppt.bookingId || activeCallAppt._id}
+            appointment={activeCallAppt}
             onClose={() => setActiveCallAppt(null)}
           />
         )}
@@ -2609,119 +2650,148 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
           </div>
         )}
 
-        {/* VIEW ALL AVAILABLE SLOTS & CALENDAR DATE/TIME PICKER MODAL (GLOBAL ROOT LEVEL) */}
+        {/* VIEW ALL AVAILABLE SLOTS & SHOWTIME PICKER MODAL (BOOK MY SHOW STYLE) */}
         {isViewingAllSlotsVet && (
           <div className="fixed inset-0 bg-[#1C1A17]/65 backdrop-blur-md z-[2000] flex items-center justify-center p-4 transition-all animate-fadeIn">
-            <div className="bg-[#FAF8F5] border border-[#EFEAE2] w-full max-w-lg rounded-[28px] shadow-2xl p-6 flex flex-col gap-4">
+            <div className="bg-[#FAF8F5] border border-[#EFEAE2] w-full max-w-xl rounded-[28px] shadow-2xl p-6 flex flex-col gap-5 max-h-[90vh] overflow-y-auto">
 
               {/* Modal Header */}
               <div className="flex justify-between items-center pb-3 border-b border-[#E8E2D8]">
-                <div>
-                  <h3 className="font-serif text-base font-bold text-[#1C1A17]">Select Date & Time</h3>
-                  <p className="text-xs text-stone-500 font-medium mt-0.5">Booking with <strong className="text-[#2D4536]">{isViewingAllSlotsVet.name}</strong></p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-[#2D4536]/10 text-[#2D4536] flex items-center justify-center shrink-0">
+                    <Calendar className="w-5 h-5 text-[#2D4536]" />
+                  </div>
+                  <div>
+                    <h3 className="font-serif text-base font-bold text-[#1C1A17]">Select Showtime & Date</h3>
+                    <p className="text-xs text-stone-500 font-medium mt-0.5">Doctor: <strong className="text-[#2D4536]">{isViewingAllSlotsVet.name}</strong> • Fee: ₹{isViewingAllSlotsVet.fee}</p>
+                  </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setIsViewingAllSlotsVet(null)}
-                  className="w-8 h-8 rounded-full bg-stone-200/60 hover:bg-stone-300/80 text-stone-600 font-extrabold text-xs flex items-center justify-center transition-all cursor-pointer"
+                  className="w-8 h-8 rounded-full bg-stone-200/70 hover:bg-stone-300 text-stone-600 font-bold text-xs flex items-center justify-center transition-all cursor-pointer"
                 >
-                  ✕
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
-              {/* SELECT DATE & TIME GRID */}
-              <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 w-full bg-white border border-[#E8E2D8] rounded-[22px] p-4">
-
-                {/* SELECT DATE (Left 7 Cols) */}
-                <div className="sm:col-span-7 flex flex-col gap-2.5">
-                  <label className="text-[10.5px] font-extrabold text-stone-500 uppercase tracking-widest">SELECT DATE</label>
-
-                  {/* Month Header */}
-                  <div className="flex items-center justify-between">
-                    <span className="font-serif text-xs font-bold text-[#1C1A17]">
-                      {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][bookingMonth]} {bookingYear}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (bookingMonth === 11) {
-                          setBookingMonth(0);
-                          setBookingYear(prev => prev + 1);
-                        } else {
-                          setBookingMonth(prev => prev + 1);
-                        }
-                      }}
-                      className="w-5 h-5 rounded-full hover:bg-stone-100 text-stone-600 flex items-center justify-center transition-all cursor-pointer font-bold text-xs"
-                    >
-                      ›
-                    </button>
-                  </div>
-
-                  {/* Day Headers */}
-                  <div className="grid grid-cols-7 text-center">
-                    {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(d => (
-                      <span key={d} className="text-[8.5px] font-bold text-stone-400 uppercase py-0.5">{d}</span>
-                    ))}
-                  </div>
-
-                  {/* Days Grid */}
-                  <div className="grid grid-cols-7 gap-y-1 text-center">
-                    {Array.from({ length: new Date(bookingYear, bookingMonth, 1).getDay() }).map((_, i) => (
-                      <span key={`blank-${i}`} />
-                    ))}
-                    {Array.from({ length: new Date(bookingYear, bookingMonth + 1, 0).getDate() }).map((_, i) => {
-                      const dayNum = i + 1;
-                      const isSelected = selectedCalendarDay === dayNum;
-                      const isPast = new Date().getMonth() === bookingMonth && new Date().getFullYear() === bookingYear && dayNum < new Date().getDate();
-
-                      return (
-                        <div key={dayNum} className="flex flex-col items-center justify-center">
-                          <button
-                            type="button"
-                            disabled={isPast}
-                            onClick={() => setSelectedCalendarDay(dayNum)}
-                            className={`w-7 h-7 rounded-full text-[11px] font-bold transition-all flex items-center justify-center ${isPast
-                                ? 'text-stone-300 cursor-not-allowed'
-                                : isSelected
-                                  ? 'bg-[#2D4536] text-white shadow-2xs font-extrabold'
-                                  : 'text-[#1C1A17] hover:bg-[#F4F0EA] cursor-pointer'
-                              }`}
-                          >
-                            {dayNum}
-                          </button>
-                          {!isPast && (
-                            <span className={`w-1 h-1 rounded-full mt-0.5 ${isSelected ? 'bg-emerald-400' : 'bg-stone-400'}`} />
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* SELECT TIME (Right 5 Cols) */}
-                <div className="sm:col-span-5 flex flex-col gap-2.5 border-t sm:border-t-0 sm:border-l border-[#E8E2D8] pt-3 sm:pt-0 sm:pl-3">
-                  <label className="text-[10.5px] font-extrabold text-stone-500 uppercase tracking-widest">SELECT TIME</label>
-
-                  <div className="flex flex-col gap-2">
-                    {['10:30 AM', '1:00 PM', '3:30 PM', '5:00 PM'].map(timeStr => {
-                      const isTimeSelected = selectedTimeSlot === timeStr;
+              {/* 1. HORIZONTAL DATE RIBBON (BOOKMYSHOW DATES STRIP) */}
+              <div className="flex flex-col gap-2">
+                <label className="text-[10px] font-extrabold text-stone-400 uppercase tracking-widest flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-[#C86D51]" />
+                  <span>Choose Consultation Date</span>
+                </label>
+                <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar scrollbar-none">
+                  {(() => {
+                    const dates = [];
+                    const today = new Date();
+                    for (let i = 0; i < 7; i++) {
+                      const d = new Date(today);
+                      d.setDate(today.getDate() + i);
+                      const dayName = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getDay()];
+                      const mName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getMonth()];
+                      const dateNum = d.getDate();
+                      const dateStr = `${mName} ${dateNum}`;
+                      dates.push({ label: dayName, dateStr, dateNum });
+                    }
+                    return dates.map((item, idx) => {
+                      const isSelected = selectedCalendarDay === item.dateNum || (idx === 0 && !selectedCalendarDay);
                       return (
                         <button
-                          key={timeStr}
+                          key={idx}
                           type="button"
-                          onClick={() => setSelectedTimeSlot(timeStr)}
-                          className={`w-full py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer text-center ${isTimeSelected
+                          onClick={() => setSelectedCalendarDay(item.dateNum)}
+                          className={`py-2.5 px-4 rounded-2xl text-xs font-bold transition-all shrink-0 flex flex-col items-center min-w-[85px] cursor-pointer ${
+                            isSelected
                               ? 'bg-[#2D4536] text-white shadow-sm border border-[#2D4536]'
-                              : 'bg-[#F9F6F0] border border-[#E5E0D8] text-[#1C1A17] hover:bg-[#F4F0EA]'
-                            }`}
+                              : 'bg-white border border-[#E8E2D8] text-stone-700 hover:bg-[#F4F0EA]'
+                          }`}
                         >
-                          {timeStr}
+                          <span className="text-[10px] uppercase font-bold opacity-80">{item.label}</span>
+                          <span className="text-xs font-extrabold mt-0.5">{item.dateStr}</span>
                         </button>
                       );
-                    })}
-                  </div>
+                    });
+                  })()}
                 </div>
+              </div>
 
+              {/* 2. LEGEND BAR (CLEAN TEXT BADGES - NO SYMBOLS) */}
+              <div className="bg-white border border-[#E8E2D8] rounded-2xl p-3 flex items-center justify-around text-xs font-semibold">
+                <span className="px-3 py-1 bg-white border border-[#E5E0D8] text-[#1C1A17] rounded-lg text-xs font-extrabold shadow-2xs">
+                  Available
+                </span>
+                <span className="px-3 py-1 bg-[#EAE6DF] border border-stone-300 text-stone-400 rounded-lg text-xs font-bold line-through">
+                  Booked
+                </span>
+                <span className="px-3 py-1 bg-[#2D4536] text-white rounded-lg text-xs font-extrabold shadow-xs">
+                  Selected
+                </span>
+              </div>
+
+              {/* 3. TIME PERIOD SHOWTIMES (MORNING, AFTERNOON, EVENING) */}
+              <div className="bg-white border border-[#E8E2D8] rounded-2xl p-4 flex flex-col gap-4 max-h-[260px] overflow-y-auto">
+                {(() => {
+                  const morningTimes = ['09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM'];
+                  const afternoonTimes = ['12:00 PM', '01:00 PM', '02:00 PM', '03:30 PM'];
+                  const eveningTimes = ['04:30 PM', '05:00 PM', '06:00 PM', '07:00 PM'];
+
+                  const checkIsSlotBooked = (timeStr: string) => {
+                    const slots = isViewingAllSlotsVet?.availableSlots || [];
+                    const matched = slots.find((s: any) => s.time === timeStr);
+                    return matched ? matched.isBooked : false;
+                  };
+
+                  const renderSlotGroup = (title: string, times: string[], IconComp: any) => (
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-stone-500 uppercase tracking-wider">
+                        <IconComp className="w-3.5 h-3.5 text-[#C86D51]" />
+                        <span>{title}</span>
+                      </div>
+                      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                        {times.map((t) => {
+                          const isBooked = checkIsSlotBooked(t);
+                          const isSelected = selectedTimeSlot === t;
+
+                          if (isBooked) {
+                            return (
+                              <div
+                                key={t}
+                                className="bg-[#EAE6DF] border border-stone-300 text-stone-400 py-2.5 px-2.5 rounded-xl text-xs font-semibold text-center cursor-not-allowed select-none line-through opacity-80"
+                                title="This showtime is already booked"
+                              >
+                                {t}
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <button
+                              key={t}
+                              type="button"
+                              onClick={() => setSelectedTimeSlot(t)}
+                              className={`py-2.5 px-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer text-center ${
+                                isSelected
+                                  ? 'bg-[#2D4536] text-white border border-[#2D4536] shadow-sm'
+                                  : 'bg-white border border-[#E5E0D8] text-[#1C1A17] hover:border-[#2D4536] hover:bg-[#F4F0EA]'
+                              }`}
+                            >
+                              {t}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+
+                  return (
+                    <div className="flex flex-col gap-4">
+                      {renderSlotGroup('Morning Showtimes', morningTimes, Sunrise)}
+                      {renderSlotGroup('Afternoon Showtimes', afternoonTimes, Sun)}
+                      {renderSlotGroup('Evening Showtimes', eveningTimes, Moon)}
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Confirm Action Button */}
@@ -2737,9 +2807,10 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                   type="button"
                   onClick={() => {
                     const mName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][bookingMonth];
+                    const dayVal = selectedCalendarDay || new Date().getDate();
                     const chosenSlot = {
-                      _id: `slot_${selectedCalendarDay}_${selectedTimeSlot}`,
-                      date: `${mName} ${selectedCalendarDay}`,
+                      _id: `slot_${dayVal}_${selectedTimeSlot}`,
+                      date: `${mName} ${dayVal}`,
                       time: selectedTimeSlot,
                       isBooked: false
                     };
@@ -2748,8 +2819,8 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                   }}
                   className="flex-[2] py-3 bg-[#2D4536] hover:bg-[#1E2E24] text-white text-xs font-extrabold rounded-2xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
                 >
-                  <span>Confirm Date & Time</span>
-                  <span>→</span>
+                  <span>Confirm Selected Slot</span>
+                  <ChevronRight className="w-4 h-4 text-white" />
                 </button>
               </div>
 

@@ -1256,9 +1256,6 @@ export default function ProviderDashboard() {
                       </div>
 
                       <div className="flex items-center gap-1.5 min-w-0">
-                        <svg className="w-3.5 h-3.5 text-[#2D4536] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
-                        </svg>
                         <span className="font-bold text-[#1C1A17]">₹{a.fee}</span>
                       </div>
                     </div>
