@@ -112,7 +112,7 @@ export default function MinimalHome({
       {/* 3. SOS • EMERGENCY SECTION */}
       <div
         onClick={onSosClick}
-        className="w-full relative z-10 py-2 sm:py-3 flex flex-row items-center justify-between gap-4 cursor-pointer group select-none min-h-[180px] sm:min-h-[210px]"
+        className="w-full relative z-10 py-3 sm:py-4 flex flex-row items-center justify-between gap-4 cursor-pointer group select-none min-h-[250px] sm:min-h-[290px]"
       >
         {/* Left Column: Text & Terracotta CTA Arrow */}
         <div className="flex flex-col items-start max-w-[310px] xs:max-w-[350px] sm:max-w-[400px]">
@@ -135,8 +135,6 @@ export default function MinimalHome({
           </div>
         </div>
 
-        <div className="relative flex items-center justify-center shrink-0 w-48 xs:w-56 sm:w-68 md:w-76 h-[220px] sm:h-[260px]">
-        </div>
       </div>
 
       {/* 4. SUBTLE LANDING PAGE IMPACT SECTION */}

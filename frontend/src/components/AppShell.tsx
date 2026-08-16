@@ -60,14 +60,14 @@ export default function AppShell({ children, backdropImage, bgColor = '#F5F2EC' 
       {/* Full-Screen Backdrop Layer - ONLY rendered on homepage or when explicitly provided */}
       {backdropImage && (
         <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-          <div className="relative w-full h-[40%] sm:h-[30%] overflow-hidden">
+          <div className="relative w-full h-[460px] sm:h-[540px] overflow-hidden">
             <img
               src={backdropImage}
               alt="Soft sunlight backdrop"
-              className="w-full h-full object-cover object-top opacity-80 mix-blend-multiply"
+              className="w-full h-full object-cover object-[75%_top] sm:object-top opacity-90 mix-blend-multiply"
             />
             {/* Soft Smudge Dissolve Gradient Overlay from below */}
-            <div className="absolute translate-y-10 inset-x-0 bottom-0 h-28 sm:h-40" style={{ background: `linear-gradient(to top, ${bgColor} 0%, ${bgColor}fa 40%, ${bgColor}cc 70%, ${bgColor}66 85%, transparent 100%)` }} />
+            <div className="absolute inset-x-0 bottom-0 h-24 sm:h-36" style={{ background: `linear-gradient(to top, ${bgColor} 0%, ${bgColor}f0 35%, ${bgColor}99 70%, transparent 100%)` }} />
           </div>
         </div>
       )}
@@ -76,7 +76,7 @@ export default function AppShell({ children, backdropImage, bgColor = '#F5F2EC' 
       <Header deferredPrompt={deferredPrompt} onInstallClick={handleInstallClick} />
 
       {/* MAIN CONTENT AREA */}
-      <div className="flex-grow w-full max-w-3xl md:max-w-5xl lg:max-w-6xl mx-auto px-3 sm:px-6 py-4 pb-28 sm:pb-36 relative z-10">
+      <div className="flex-grow w-full max-w-3xl md:max-w-5xl lg:max-w-6xl mx-auto px-3 sm:px-6 pt-1 sm:pt-2 pb-24 sm:pb-32 relative z-10">
         {!firebaseUser ? (
           <AuthScreen />
         ) : isNewUser ? (
