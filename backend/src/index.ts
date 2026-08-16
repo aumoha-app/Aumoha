@@ -2930,6 +2930,85 @@ app.get('/api/appointments', authMiddleware, async (req: Request, res: Response)
 });
 
 /**
+ * DELETE /api/appointments/:id
+ * Delete an appointment permanently
+ */
+app.delete('/api/appointments/:id', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    if (mongoose.connection.readyState === 1) {
+      const isObjectId = mongoose.Types.ObjectId.isValid(id);
+      const appt = await Appointment.findOne({
+        $or: [
+          ...(isObjectId ? [{ _id: id }] : []),
+          { bookingId: id }
+        ]
+      });
+
+      if (appt) {
+        await Appointment.deleteOne({ _id: appt._id });
+      }
+    }
+
+    const fbIdx = fallbackAppointments.findIndex((a: any) => a._id === id || a.bookingId === id);
+    if (fbIdx !== -1) {
+      fallbackAppointments.splice(fbIdx, 1);
+    }
+
+    return res.json({ status: 'success', message: 'Appointment deleted successfully' });
+  } catch (error) {
+    console.error('Error in DELETE /api/appointments/:id:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+// In-memory STUN/ICE signaling buffer for WebRTC video calls
+const callSignals: Record<string, Array<{ sender: string; signal: any; timestamp: number }>> = {};
+
+/**
+ * POST /api/appointments/:id/call/signal
+ * WebRTC signaling exchange (Offers, Answers, ICE candidates)
+ */
+app.post('/api/appointments/:id/call/signal', authMiddleware, (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { signal } = req.body;
+    const sender = req.user?.email || 'participant';
+
+    if (!callSignals[id]) callSignals[id] = [];
+    callSignals[id].push({ sender, signal, timestamp: Date.now() });
+
+    if (callSignals[id].length > 100) {
+      callSignals[id] = callSignals[id].slice(-100);
+    }
+
+    return res.json({ status: 'success' });
+  } catch (error) {
+    return res.status(500).json({ status: 'error', message: 'Signaling failed' });
+  }
+});
+
+/**
+ * GET /api/appointments/:id/call/signals
+ * Retrieve WebRTC signals sent after timestamp
+ */
+app.get('/api/appointments/:id/call/signals', authMiddleware, (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const since = parseInt((req.query.since as string) || '0', 10);
+    const userEmail = req.user?.email || 'participant';
+
+    const allSignals = callSignals[id] || [];
+    const signals = allSignals.filter(s => s.timestamp > since && s.sender !== userEmail);
+
+    return res.json({ status: 'success', signals });
+  } catch (error) {
+    return res.status(500).json({ status: 'error', message: 'Signal fetch failed' });
+  }
+});
+
+/**
  * POST /api/appointments/:id/call/request
  * Request a voice/video call session for a confirmed appointment (Status: requested)
  */
@@ -3227,13 +3306,12 @@ app.post('/api/provider/me/slots/bulk', authMiddleware, async (req: Request, res
   try {
     const userEmail = req.user?.email;
     const { dates, startTime, endTime, intervalMinutes } = req.body;
-    // dates: string[] e.g. ['2026-08-12', '2026-08-13']
-    // startTime: '09:00', endTime: '17:00', intervalMinutes: 30
+    const dateList = Array.isArray(dates) && dates.length > 0 ? dates : ['Daily'];
 
     if (!userEmail) {
       return res.status(401).json({ status: 'error', message: 'Authentication required' });
     }
-    if (!Array.isArray(dates) || dates.length === 0 || !startTime || !endTime) {
+    if (!startTime || !endTime) {
       return res.status(400).json({ status: 'error', message: 'Invalid bulk slot parameters' });
     }
 
@@ -3250,7 +3328,7 @@ app.post('/api/provider/me/slots/bulk', authMiddleware, async (req: Request, res
 
     const generatedSlots: any[] = [];
 
-    dates.forEach((dateStr: string) => {
+    dateList.forEach((dateStr: string) => {
       let current = startTotal;
       while (current + interval <= endTotal) {
         const h = Math.floor(current / 60);

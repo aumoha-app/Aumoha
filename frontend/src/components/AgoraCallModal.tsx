@@ -1,123 +1,498 @@
+'use client';
+
 import React, { Component, ErrorInfo, ReactNode, useState, useEffect, useRef } from 'react';
-import dynamic from 'next/dynamic';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE } from '../lib/api';
 
-// Built-in Live Consultation Video UI Component
-function AgoraUIKit({ rtcProps, callbacks }: { rtcProps: any; callbacks: any }) {
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+interface VideoCallInterfaceProps {
+  appointment?: any;
+  targetApptId: string;
+  onEndCall: () => void;
+}
+
+function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallInterfaceProps) {
+  const { token: authToken } = useAuth();
+  
+  const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
+  const selfVideoRef = useRef<HTMLVideoElement | null>(null);
+  const pipRef = useRef<HTMLDivElement | null>(null);
+
   const [streamActive, setStreamActive] = useState<boolean>(false);
+  const [remoteConnected, setRemoteConnected] = useState<boolean>(false);
   const [muted, setMuted] = useState<boolean>(false);
   const [videoOff, setVideoOff] = useState<boolean>(false);
+  const [callDuration, setCallDuration] = useState<number>(0);
 
-  const streamRef = useRef<MediaStream | null>(null);
+  // Draggable PiP State
+  const [pipPos, setPipPos] = useState<{ x: number; y: number } | null>(null);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const dragOffsetRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
+  const localStreamRef = useRef<MediaStream | null>(null);
+  const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
+  const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
+  const lastSignalTimeRef = useRef<number>(0);
+
+  // 1. Freeze body scroll when video call modal is open
   useEffect(() => {
+    if (typeof document !== 'undefined') {
+      const originalStyle = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      document.body.classList.add('video-call-active');
+
+      return () => {
+        document.body.style.overflow = originalStyle;
+        document.body.classList.remove('video-call-active');
+      };
+    }
+  }, []);
+
+  // Timer for active call duration
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCallDuration((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Acquire Local Camera & Microphone
+  useEffect(() => {
+    let isSubscribed = true;
+
     if (typeof window !== 'undefined' && navigator.mediaDevices?.getUserMedia) {
       navigator.mediaDevices
-        .getUserMedia({ video: true, audio: true })
+        .getUserMedia({
+          video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: true
+        })
         .then((stream) => {
-          streamRef.current = stream;
-          if (videoRef.current) {
-            videoRef.current.srcObject = stream;
+          if (!isSubscribed) return;
+          localStreamRef.current = stream;
+
+          if (selfVideoRef.current) {
+            selfVideoRef.current.srcObject = stream;
           }
           setStreamActive(true);
         })
         .catch((err) => {
-          console.warn('Video stream access note:', err);
+          console.warn('Local media access note:', err);
+          if (isSubscribed) setStreamActive(false);
         });
     }
 
     return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
+      isSubscribed = false;
+      if (localStreamRef.current) {
+        localStreamRef.current.getTracks().forEach((t) => t.stop());
       }
     };
   }, []);
 
+  // WebRTC Peer Connection & Signaling Setup
   useEffect(() => {
-    if (streamRef.current) {
-      streamRef.current.getAudioTracks().forEach((track) => {
-        track.enabled = !muted;
-      });
-    }
-  }, [muted]);
+    if (!targetApptId) return;
 
-  useEffect(() => {
-    if (streamRef.current) {
-      streamRef.current.getVideoTracks().forEach((track) => {
-        track.enabled = !videoOff;
+    const pc = new RTCPeerConnection({
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' }
+      ]
+    });
+    peerConnectionRef.current = pc;
+
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach((track) => {
+        pc.addTrack(track, localStreamRef.current!);
       });
     }
-  }, [videoOff]);
+
+    pc.ontrack = (event) => {
+      if (event.streams && event.streams[0]) {
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = event.streams[0];
+        }
+        setRemoteConnected(true);
+      }
+    };
+
+    pc.onicecandidate = (event) => {
+      if (event.candidate) {
+        sendSignal({ type: 'candidate', candidate: event.candidate });
+      }
+    };
+
+    const channelName = `aumoha_call_${targetApptId}`;
+    let bc: BroadcastChannel | null = null;
+    try {
+      if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+        bc = new BroadcastChannel(channelName);
+        broadcastChannelRef.current = bc;
+        bc.onmessage = (ev) => {
+          handleIncomingSignal(ev.data);
+        };
+      }
+    } catch (e) {
+      console.warn('BroadcastChannel not supported:', e);
+    }
+
+    const sendSignal = async (signalData: any) => {
+      if (bc) {
+        try {
+          bc.postMessage(signalData);
+        } catch (e) {}
+      }
+
+      if (authToken) {
+        try {
+          await fetch(`${API_BASE}/appointments/${targetApptId}/call/signal`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${authToken}`
+            },
+            body: JSON.stringify({ signal: signalData })
+          });
+        } catch (e) {}
+      }
+    };
+
+    const handleIncomingSignal = async (signal: any) => {
+      if (!pc || pc.signalingState === 'closed') return;
+
+      try {
+        if (signal.type === 'offer') {
+          await pc.setRemoteDescription(new RTCSessionDescription(signal.offer));
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          sendSignal({ type: 'answer', answer });
+        } else if (signal.type === 'answer') {
+          if (pc.signalingState === 'have-local-offer') {
+            await pc.setRemoteDescription(new RTCSessionDescription(signal.answer));
+          }
+        } else if (signal.type === 'candidate') {
+          try {
+            await pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
+          } catch (e) {}
+        }
+      } catch (err) {
+        console.warn('Error handling WebRTC signal:', err);
+      }
+    };
+
+    const initiateOffer = async () => {
+      try {
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        sendSignal({ type: 'offer', offer });
+      } catch (e) {
+        console.warn('Error creating WebRTC offer:', e);
+      }
+    };
+
+    initiateOffer();
+
+    const signalInterval = setInterval(async () => {
+      if (!authToken || pc.signalingState === 'closed') return;
+      try {
+        const res = await fetch(`${API_BASE}/appointments/${targetApptId}/call/signals?since=${lastSignalTimeRef.current}`, {
+          headers: { Authorization: `Bearer ${authToken}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.signals && data.signals.length > 0) {
+            for (const item of data.signals) {
+              if (item.timestamp > lastSignalTimeRef.current) {
+                lastSignalTimeRef.current = item.timestamp;
+                handleIncomingSignal(item.signal);
+              }
+            }
+          }
+        }
+      } catch (e) {}
+    }, 1500);
+
+    return () => {
+      clearInterval(signalInterval);
+      if (bc) bc.close();
+      pc.close();
+    };
+  }, [targetApptId, authToken]);
+
+  // Handle Mute Button
+  const handleToggleMute = () => {
+    const nextMuted = !muted;
+    setMuted(nextMuted);
+    if (localStreamRef.current) {
+      localStreamRef.current.getAudioTracks().forEach((track) => {
+        track.enabled = !nextMuted;
+      });
+    }
+  };
+
+  // Handle Camera Button
+  const handleToggleVideo = () => {
+    const nextVideoOff = !videoOff;
+    setVideoOff(nextVideoOff);
+    if (localStreamRef.current) {
+      localStreamRef.current.getVideoTracks().forEach((track) => {
+        track.enabled = !nextVideoOff;
+      });
+    }
+  };
+
+  // PiP Drag Start (Mouse & Touch)
+  const handleDragStart = (clientX: number, clientY: number) => {
+    if (!pipRef.current) return;
+    const rect = pipRef.current.getBoundingClientRect();
+    dragOffsetRef.current = {
+      x: clientX - rect.left,
+      y: clientY - rect.top
+    };
+    setIsDragging(true);
+    setPipPos({ x: rect.left, y: rect.top });
+  };
+
+  // PiP Drag Move
+  const handleDragMove = (clientX: number, clientY: number) => {
+    if (!isDragging) return;
+    setPipPos({
+      x: clientX - dragOffsetRef.current.x,
+      y: clientY - dragOffsetRef.current.y
+    });
+  };
+
+  // PiP Drag End - Snap/Stick to sides
+  const handleDragEnd = () => {
+    if (!isDragging || !pipRef.current) return;
+    setIsDragging(false);
+
+    const winWidth = typeof window !== 'undefined' ? window.innerWidth : 400;
+    const winHeight = typeof window !== 'undefined' ? window.innerHeight : 700;
+    const rect = pipRef.current.getBoundingClientRect();
+
+    const padding = 16;
+    const targetX = rect.left + rect.width / 2 > winWidth / 2 
+      ? winWidth - rect.width - padding 
+      : padding;
+    
+    const targetY = Math.max(
+      padding + 70, 
+      Math.min(rect.top, winHeight - rect.height - 95)
+    );
+
+    setPipPos({ x: targetX, y: targetY });
+  };
+
+  // Global mouse / touch listeners for smooth PiP drag
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const onMouseMove = (e: MouseEvent) => handleDragMove(e.clientX, e.clientY);
+    const onMouseUp = () => handleDragEnd();
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches[0]) handleDragMove(e.touches[0].clientX, e.touches[0].clientY);
+    };
+    const onTouchEnd = () => handleDragEnd();
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('touchmove', onTouchMove);
+    window.addEventListener('touchend', onTouchEnd);
+
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+    };
+  }, [isDragging]);
+
+  const patientName = appointment?.petName || 'Patient';
+  const doctorOrTitle = appointment?.vetName || 'Consultant';
 
   return (
-    <div className="relative w-full h-full min-h-[360px] bg-[#09090B] flex flex-col items-center justify-center overflow-hidden">
-      {/* Video Container */}
-      <div className="relative w-full h-full flex items-center justify-center bg-stone-900">
-        {!videoOff && streamActive ? (
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            className="w-full h-full object-cover max-h-[80vh]"
-          />
-        ) : (
-          <div className="flex flex-col items-center justify-center p-8 text-white text-center gap-3 select-none">
-            <div className="w-20 h-20 rounded-full bg-[#2D4536] border-2 border-emerald-500/40 flex items-center justify-center text-3xl shadow-xl">
-              👨‍⚕️
+    <div className="fixed inset-0 z-[3000] bg-[#09090B] flex flex-col items-center justify-center overflow-hidden select-none touch-none">
+      
+      {/* Top Glassmorphism Header */}
+      <div className="absolute top-0 left-0 right-0 z-30 bg-gradient-to-b from-black/90 via-black/40 to-transparent p-4 sm:p-6 flex items-center justify-between pointer-events-auto">
+        <div className="flex items-center gap-3">
+          <div className="bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/15 text-white flex items-center gap-2">
+            <span className="text-[11px] font-extrabold uppercase tracking-wider text-stone-200">
+              Live Consultation
+            </span>
+            <span className="text-white/40">•</span>
+            <span className="text-xs font-mono font-bold text-emerald-400">
+              {formatDuration(callDuration)}
+            </span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={onEndCall}
+          className="px-4 py-2 bg-white/10 hover:bg-rose-600 hover:text-white border border-white/15 text-white text-xs font-bold rounded-xl transition-all cursor-pointer backdrop-blur-md"
+        >
+          Leave Room
+        </button>
+      </div>
+
+      {/* Main Video Screen Container */}
+      <div className="relative w-full h-full flex items-center justify-center bg-[#121215]">
+        
+        {/* Remote Participant Video Stream (Always Mounted) */}
+        <video
+          ref={remoteVideoRef}
+          autoPlay
+          playsInline
+          className={`w-full h-full object-cover transition-opacity duration-300 ${remoteConnected ? 'opacity-100' : 'opacity-0 absolute'}`}
+        />
+
+        {/* Remote Participant Connecting / Placeholder Screen */}
+        {!remoteConnected && (
+          <div className="flex flex-col items-center justify-center p-8 text-white text-center gap-4 animate-fadeIn">
+            <div className="relative">
+              <div className="w-24 h-24 rounded-full bg-[#1C2E24] border border-emerald-600/40 flex items-center justify-center text-4xl shadow-2xl text-emerald-400 font-extrabold">
+                {patientName.charAt(0).toUpperCase()}
+              </div>
             </div>
             <div>
-              <h4 className="text-base font-extrabold text-white">Live Consultation Active</h4>
-              <p className="text-xs text-stone-400 font-semibold mt-1">
-                Connected to encrypted room #{rtcProps?.channel?.slice(-6) || 'vet-care'}
+              <h4 className="text-lg font-extrabold text-white">{doctorOrTitle} & {patientName}</h4>
+              <p className="text-xs text-stone-400 font-medium mt-1">
+                {streamActive ? 'Waiting for participant to join stream...' : 'Connecting live video room...'}
               </p>
             </div>
           </div>
         )}
 
-        {/* Floating Self Preview Thumbnail */}
-        <div className="absolute bottom-4 right-4 w-28 h-36 bg-black/80 rounded-2xl border border-white/20 overflow-hidden shadow-2xl flex items-center justify-center">
-          <div className="text-center text-[10px] text-stone-400 font-bold p-2">
-            <span>📹 You</span>
+        {/* DRAGGABLE & SIDE-STICKING Picture-in-Picture (PiP) Self Preview Window */}
+        <div
+          ref={pipRef}
+          onMouseDown={(e) => handleDragStart(e.clientX, e.clientY)}
+          onTouchStart={(e) => e.touches[0] && handleDragStart(e.touches[0].clientX, e.touches[0].clientY)}
+          style={
+            pipPos
+              ? {
+                  position: 'fixed',
+                  left: `${pipPos.x}px`,
+                  top: `${pipPos.y}px`,
+                  transition: isDragging ? 'none' : 'all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)'
+                }
+              : undefined
+          }
+          className={`w-32 h-44 sm:w-40 sm:h-52 bg-black/90 rounded-2xl border border-white/20 overflow-hidden shadow-2xl z-40 group select-none ${
+            pipPos ? '' : 'absolute bottom-24 right-4 sm:bottom-28 sm:right-6'
+          } ${isDragging ? 'cursor-grabbing scale-105 shadow-2xl' : 'cursor-grab hover:border-emerald-400/50'}`}
+        >
+          <video
+            ref={selfVideoRef}
+            autoPlay
+            playsInline
+            muted
+            className={`w-full h-full object-cover transform -scale-x-100 pointer-events-none ${!videoOff ? 'block' : 'hidden'}`}
+          />
+
+          {videoOff && (
+            <div className="w-full h-full flex flex-col items-center justify-center bg-stone-900 text-stone-400 text-xs font-bold gap-1 pointer-events-none">
+              <svg className="w-6 h-6 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <line x1="1" y1="1" x2="23" y2="23" />
+                <path d="M21 21l-4.35-4.35M17 11V7a2 2 0 0 0-2-2H7" />
+              </svg>
+              <span>Camera Off</span>
+            </div>
+          )}
+
+          {/* Drag Handle & Label */}
+          <div className="absolute top-2 right-2 opacity-60 group-hover:opacity-100 transition-opacity bg-black/50 p-1 rounded-md">
+            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path d="M8 9h8M8 15h8" />
+            </svg>
+          </div>
+
+          <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-md text-[10px] text-white font-bold pointer-events-none">
+            You
           </div>
         </div>
+
       </div>
 
-      {/* Floating Call Control Bar */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/70 backdrop-blur-md border border-white/10 px-6 py-3 rounded-full flex items-center gap-5 shadow-2xl z-20">
+      {/* Floating Call Controls Panel */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-[#18181C]/90 backdrop-blur-xl border border-white/15 px-6 py-3 rounded-full flex items-center gap-4 sm:gap-6 shadow-2xl z-30 pointer-events-auto">
+        
+        {/* Toggle Audio Mute */}
         <button
           type="button"
-          onClick={() => setMuted(!muted)}
-          className={`w-11 h-11 rounded-full flex items-center justify-center transition-all cursor-pointer ${
-            muted ? 'bg-rose-600 text-white' : 'bg-white/15 hover:bg-white/25 text-white'
+          onClick={handleToggleMute}
+          className={`w-12 h-12 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-sm ${
+            muted
+              ? 'bg-rose-600 text-white'
+              : 'bg-white/10 hover:bg-white/20 text-white border border-white/10'
           }`}
-          title={muted ? 'Unmute Mic' : 'Mute Mic'}
+          title={muted ? 'Unmute Microphone' : 'Mute Microphone'}
         >
-          {muted ? '🎙️❌' : '🎙️'}
+          {muted ? (
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <line x1="1" y1="1" x2="23" y2="23" />
+              <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6" />
+              <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23" />
+              <line x1="12" y1="19" x2="12" y2="23" />
+              <line x1="8" y1="23" x2="16" y2="23" />
+            </svg>
+          ) : (
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+              <line x1="12" y1="19" x2="12" y2="23" />
+              <line x1="8" y1="23" x2="16" y2="23" />
+            </svg>
+          )}
         </button>
 
+        {/* Toggle Video Camera */}
         <button
           type="button"
-          onClick={() => setVideoOff(!videoOff)}
-          className={`w-11 h-11 rounded-full flex items-center justify-center transition-all cursor-pointer ${
-            videoOff ? 'bg-rose-600 text-white' : 'bg-white/15 hover:bg-white/25 text-white'
+          onClick={handleToggleVideo}
+          className={`w-12 h-12 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-sm ${
+            videoOff
+              ? 'bg-rose-600 text-white'
+              : 'bg-white/10 hover:bg-white/20 text-white border border-white/10'
           }`}
           title={videoOff ? 'Turn On Camera' : 'Turn Off Camera'}
         >
-          {videoOff ? '📷❌' : '📷'}
+          {videoOff ? (
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34l1 1L23 7v10" />
+              <line x1="1" y1="1" x2="23" y2="23" />
+            </svg>
+          ) : (
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <polygon points="23 7 16 12 23 17 23 7" />
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+            </svg>
+          )}
         </button>
 
+        {/* End Call CTA */}
         <button
           type="button"
-          onClick={() => callbacks?.EndCall?.()}
-          className="w-12 h-12 rounded-full bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center transition-all shadow-md cursor-pointer font-bold"
+          onClick={onEndCall}
+          className="w-12 h-12 rounded-full bg-rose-600 hover:bg-rose-700 active:scale-95 text-white flex items-center justify-center transition-all shadow-md cursor-pointer shrink-0"
           title="End Call"
         >
-          📞
+          <svg className="w-5 h-5 transform rotate-[135deg]" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.27c1.21.49 2.53.76 3.88.76a1 1 0 011 1V20a1 1 0 01-1 1C10.07 21 3 13.93 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.35.27 2.67.76 3.88a1 1 0 01-.27 1.11l-2.2 2.2z" />
+          </svg>
         </button>
+
       </div>
+
     </div>
   );
 }
@@ -136,35 +511,35 @@ export class SafeCallBoundary extends Component<SafeCallBoundaryProps, SafeCallB
 
   private handleGlobalError = (event: ErrorEvent) => {
     if (
-      event.error && 
-      (event.error.name === 'NotAllowedError' || 
-       event.error.name === 'NotReadableError' ||
-       String(event.error).includes('AgoraRTC') || 
-       event.message.includes('Permission denied') ||
-       event.message.includes('getUserMedia') ||
-       event.message.includes('GATEWAY_SERVER'))
+      event.error &&
+      (event.error.name === 'NotAllowedError' ||
+        event.error.name === 'NotReadableError' ||
+        String(event.error).includes('AgoraRTC') ||
+        event.message.includes('Permission denied') ||
+        event.message.includes('getUserMedia') ||
+        event.message.includes('GATEWAY_SERVER'))
     ) {
-      console.warn("Caught global Agora error:", event.error);
+      console.warn('Caught call boundary error:', event.error);
       this.setState({ hasError: true, error: event.error });
-      event.preventDefault(); // Prevents the red dev overlay in development mode
+      event.preventDefault();
     }
   };
 
   private handleGlobalRejection = (event: PromiseRejectionEvent) => {
     const reason = event.reason;
     if (
-      reason && 
-      (reason.name === 'NotAllowedError' || 
-       reason.name === 'NotReadableError' ||
-       String(reason).includes('AgoraRTC') || 
-       String(reason).includes('Permission denied') ||
-       String(reason).includes('getUserMedia') ||
-       String(reason).includes('GATEWAY_SERVER'))
+      reason &&
+      (reason.name === 'NotAllowedError' ||
+        reason.name === 'NotReadableError' ||
+        String(reason).includes('AgoraRTC') ||
+        String(reason).includes('Permission denied') ||
+        String(reason).includes('getUserMedia') ||
+        String(reason).includes('GATEWAY_SERVER'))
     ) {
-      console.warn("Caught global Agora promise rejection:", reason);
+      console.warn('Caught call promise rejection:', reason);
       const err = reason instanceof Error ? reason : new Error(String(reason));
       this.setState({ hasError: true, error: err });
-      event.preventDefault(); // Prevents the red dev overlay in development mode
+      event.preventDefault();
     }
   };
 
@@ -183,7 +558,7 @@ export class SafeCallBoundary extends Component<SafeCallBoundaryProps, SafeCallB
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Agora Call Boundary caught an error:", error, errorInfo);
+    console.error('Call Boundary caught error:', error, errorInfo);
   }
 
   public render() {
@@ -194,17 +569,15 @@ export class SafeCallBoundary extends Component<SafeCallBoundaryProps, SafeCallB
           <div>
             <h4 className="text-sm font-extrabold text-rose-800">Call Connection Failed</h4>
             <p className="text-xs text-rose-900/70 font-semibold leading-relaxed mt-1">
-              The video calling session encountered a network connection issue or device conflict. Please verify your camera is not in use, ensure your internet connection is active, and try again.
+              The video session encountered a device conflict or permission issue. Please check your camera permissions and try again.
             </p>
           </div>
-          <div className="flex gap-3">
-            <button 
-              onClick={() => this.setState({ hasError: false })}
-              className="py-2.5 px-5 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl text-xs font-bold transition-all shadow-sm"
-            >
-              Retry Connection
-            </button>
-          </div>
+          <button
+            onClick={() => this.setState({ hasError: false })}
+            className="py-2.5 px-5 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl text-xs font-bold transition-all shadow-sm cursor-pointer"
+          >
+            Retry Connection
+          </button>
         </div>
       );
     }
@@ -222,239 +595,13 @@ interface AgoraCallModalProps {
 export default function AgoraCallModal({ appointmentId, channelName, appointment, onClose }: AgoraCallModalProps) {
   const { token: authToken } = useAuth();
   const targetApptId = appointmentId || channelName || (appointment ? (appointment.bookingId || appointment._id) : '');
-  const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID || '';
-  const [permissionState, setPermissionState] = useState<'checking' | 'granted' | 'denied'>('checking');
-  const [permissionError, setPermissionError] = useState<string>('');
-  const [agoraToken, setAgoraToken] = useState<string | null>(null);
-  const [loadingToken, setLoadingToken] = useState<boolean>(true);
-  const originalGetUserMediaRef = useRef<any>(null);
-
-  // Track body class for active video call to hide bottom nav
-  useEffect(() => {
-    if (typeof document !== 'undefined') {
-      document.body.classList.add('video-call-active');
-    }
-    return () => {
-      if (typeof document !== 'undefined') {
-        document.body.classList.remove('video-call-active');
-      }
-    };
-  }, []);
-
-  // 1. Fetch Agora dynamic token from backend
-  useEffect(() => {
-    const fetchAgoraToken = async () => {
-      try {
-        const headers: Record<string, string> = {};
-        if (authToken) {
-          headers['Authorization'] = `Bearer ${authToken}`;
-        }
-        
-        const res = await fetch(`${API_BASE}/appointments/${targetApptId}/token`, {
-          headers
-        });
-        
-        if (res.ok) {
-          const data = await res.json();
-          if (data.status === 'success') {
-            setAgoraToken(data.token);
-          }
-        }
-      } catch (err) {
-        console.error("Error fetching Agora token from backend:", err);
-      } finally {
-        setLoadingToken(false);
-      }
-    };
-
-    if (targetApptId) {
-      fetchAgoraToken();
-    } else {
-      setLoadingToken(false);
-    }
-  }, [targetApptId, authToken]);
-
-  // 2. Request local media permissions
-  useEffect(() => {
-    if (!appId) return;
-
-    if (typeof window !== 'undefined' && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-        .then(() => {
-          setPermissionState('granted');
-        })
-        .catch((err) => {
-          console.error("Media permission check failed:", err);
-          setPermissionState('denied');
-          setPermissionError(err.message || String(err));
-        });
-    } else {
-      setPermissionState('denied');
-      setPermissionError('Media devices are not supported or this is not a secure (HTTPS/localhost) context.');
-    }
-  }, [appId]);
-
-  // 3. Stub getUserMedia to return mock tracks if joining call anyway (avoiding SDK device conflict crash)
-  useEffect(() => {
-    if (permissionState === 'granted' && permissionError) {
-      if (typeof window !== 'undefined' && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        if (!originalGetUserMediaRef.current) {
-          originalGetUserMediaRef.current = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
-        }
-        const original = originalGetUserMediaRef.current;
-
-        navigator.mediaDevices.getUserMedia = async (constraints) => {
-          try {
-            // Attempt to grab the real hardware sources first in case they became free
-            return await original(constraints);
-          } catch (e) {
-            console.warn("Hardware devices busy. Providing software fallback tracks:", e);
-
-            const fallbackTracks: MediaStreamTrack[] = [];
-
-            // A. Create software canvas video track if video was requested
-            if (constraints?.video) {
-              const canvas = document.createElement('canvas');
-              canvas.width = 320;
-              canvas.height = 240;
-              const ctx = canvas.getContext('2d');
-              if (ctx) {
-                ctx.fillStyle = '#18181B';
-                ctx.fillRect(0, 0, 320, 240);
-                // Draw a camera placeholder text
-                ctx.fillStyle = '#A8A29E';
-                ctx.font = '12px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('Camera in use by another app', 160, 120);
-              }
-              const stream = (canvas as any).captureStream ? (canvas as any).captureStream(10) : null;
-              if (stream && stream.getVideoTracks().length > 0) {
-                fallbackTracks.push(stream.getVideoTracks()[0]);
-              }
-            }
-
-            // B. Create silent audio track if audio was requested
-            if (constraints?.audio) {
-              const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-              if (AudioCtx) {
-                const audioCtx = new AudioCtx();
-                const dst = audioCtx.createMediaStreamDestination();
-                const oscillator = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                gain.gain.value = 0; // Completely silent
-                oscillator.connect(gain);
-                gain.connect(dst);
-                if (dst.stream && dst.stream.getAudioTracks().length > 0) {
-                  fallbackTracks.push(dst.stream.getAudioTracks()[0]);
-                }
-              }
-            }
-
-            if (fallbackTracks.length > 0) {
-              return new MediaStream(fallbackTracks);
-            }
-            throw e;
-          }
-        };
-      }
-    }
-
-    return () => {
-      // Restore original getUserMedia on component unmount
-      if (typeof window !== 'undefined' && navigator.mediaDevices && originalGetUserMediaRef.current) {
-        navigator.mediaDevices.getUserMedia = originalGetUserMediaRef.current;
-      }
-    };
-  }, [permissionState, permissionError]);
-
-  // 4. Update status to 'ongoing' on backend when channel opens
-  useEffect(() => {
-    if (permissionState === 'granted' && targetApptId) {
-      fetch(`${API_BASE}/appointments/${targetApptId}/call/join`, {
-        method: 'PUT',
-        headers: authToken ? { 'Authorization': `Bearer ${authToken}` } : {}
-      }).catch(err => console.error('Error notifying join:', err));
-    }
-  }, [permissionState, targetApptId, authToken]);
-
-  if (!appId) {
-    return (
-      <div className="fixed inset-0 z-[3000] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
-        <div className="bg-white rounded-3xl p-6 w-full max-w-sm text-center flex flex-col gap-4 shadow-xl border border-warmBeige">
-          <div className="text-3xl">🔑</div>
-          <h4 className="text-sm font-extrabold text-charcoal">Agora App ID Missing</h4>
-          <p className="text-xs text-stone-500 font-semibold leading-relaxed">
-            Agora App ID is not configured. Please add `NEXT_PUBLIC_AGORA_APP_ID` to your environment variables.
-          </p>
-          <button onClick={onClose} className="w-full py-3 bg-terracotta hover:bg-[#c2502f] text-white font-extrabold rounded-2xl text-xs shadow-sm transition-all">
-            Close
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (permissionState === 'checking' || loadingToken) {
-    return (
-      <div className="fixed inset-0 z-[3000] bg-[#121212] flex flex-col items-center justify-center p-4 text-white animate-fadeIn">
-        <div className="w-12 h-12 rounded-full border-4 border-[#222] border-t-emerald-500 animate-spin mb-4" />
-        <h4 className="text-sm font-extrabold">Configuring Call Session</h4>
-        <p className="text-xs text-stone-400 mt-1">Please allow camera and mic access when prompted...</p>
-        <button onClick={onClose} className="mt-6 px-5 py-2 bg-white/10 hover:bg-rose-600 rounded-xl text-xs font-bold transition-all">
-          Cancel
-        </button>
-      </div>
-    );
-  }
-
-  if (permissionState === 'denied') {
-    return (
-      <div className="fixed inset-0 z-[3000] bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn animate-scaleIn">
-        <div className="bg-white rounded-3xl p-6 w-full max-w-sm text-center flex flex-col gap-4 shadow-xl border border-warmBeige">
-          <div className="text-3xl">🎙️</div>
-          <h4 className="text-sm font-extrabold text-charcoal">Device Access Issue</h4>
-          <p className="text-xs text-stone-500 font-semibold leading-relaxed">
-            Could not access camera/microphone. They may be blocked, not connected, or in use by another application.
-          </p>
-          <div className="text-[10px] text-stone-500 bg-[#FCFAF7] p-3 rounded-xl border border-[#F0EBE1] max-h-24 overflow-y-auto font-mono text-left select-text">
-            Error: {permissionError}
-          </div>
-          <div className="flex flex-col gap-2 mt-2">
-            <button 
-              onClick={() => {
-                setPermissionState('checking');
-                navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-                  .then(() => setPermissionState('granted'))
-                  .catch(err => {
-                    setPermissionState('denied');
-                    setPermissionError(err.message || String(err));
-                  });
-              }}
-              className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-2xl text-xs shadow-sm transition-all"
-            >
-              Try Again
-            </button>
-            <button 
-              onClick={() => setPermissionState('granted')}
-              className="w-full py-3 bg-[#FAF2EE] hover:bg-[#F5DFD8] text-terracotta font-extrabold rounded-2xl text-xs shadow-sm transition-all border border-[#F5DFD8]"
-            >
-              Join Call Anyway
-            </button>
-            <button onClick={onClose} className="w-full py-3 bg-stone-100 hover:bg-stone-200 text-stone-600 font-extrabold rounded-2xl text-xs transition-all">
-              Cancel
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   const handleEndCall = async () => {
     try {
       if (targetApptId) {
         await fetch(`${API_BASE}/appointments/${targetApptId}/call/end`, {
           method: 'PUT',
-          headers: authToken ? { 'Authorization': `Bearer ${authToken}` } : {}
+          headers: authToken ? { Authorization: `Bearer ${authToken}` } : {}
         });
       }
     } catch (err) {
@@ -464,41 +611,15 @@ export default function AgoraCallModal({ appointmentId, channelName, appointment
     }
   };
 
-  const rtcProps = {
-    appId,
-    channel: targetApptId || 'default-channel',
-    token: agoraToken, // Passes backend generated dynamic token (or null if tokenless)
-    enableRtm: false,  // Disables RTM chat signals to prevent RTM Error Code 5 (vendor dynamic key error)
-  };
-
-  const callbacks = {
-    EndCall: () => {
-      handleEndCall();
-    },
-  };
-
   return (
     <div className="fixed inset-0 z-[3000] bg-black flex flex-col animate-fadeIn">
-      {/* Call Header */}
-      <div className="bg-[#121212] border-b border-[#222] px-6 py-4 flex justify-between items-center text-white">
-        <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-ping" />
-          <span className="text-xs font-extrabold uppercase tracking-wider text-stone-300">Live Video Consultation</span>
-        </div>
-        <button 
-          onClick={handleEndCall}
-          className="px-4 py-2 bg-white/10 hover:bg-rose-600 hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
-        >
-          Leave Call
-        </button>
-      </div>
-
-      {/* Video Stream Area wrapped in Error Boundary */}
-      <div className="flex-grow relative bg-[#18181B] flex items-center justify-center">
-        <SafeCallBoundary>
-          <AgoraUIKit rtcProps={rtcProps} callbacks={callbacks} />
-        </SafeCallBoundary>
-      </div>
+      <SafeCallBoundary>
+        <VideoCallInterface
+          appointment={appointment}
+          targetApptId={targetApptId}
+          onEndCall={handleEndCall}
+        />
+      </SafeCallBoundary>
     </div>
   );
 }
