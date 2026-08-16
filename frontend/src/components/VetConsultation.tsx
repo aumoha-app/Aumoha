@@ -470,7 +470,9 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
   // Action: Pick Vet & Slot to Start booking
   const handleStartBooking = (vet: Vet, slot?: Slot) => {
     setSelectedVet(vet);
-    setSelectedSlot(slot || vet.availableSlots?.[0] || { _id: `slot_${Date.now()}`, date: 'Today', time: '10:30 AM', isBooked: false });
+    setSelectedSlot(slot || null);
+    setSelectedTimeSlot(slot?.time || '');
+    setIsCustomTimeActive(false);
     setBookingStep(1);
     setBookingMode(subTab === 'tele' ? 'tele-consult' : 'in-clinic');
 
@@ -1030,27 +1032,12 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                   </div>
                 </div>
 
-                {/* Lower Slot Bar */}
-                <div className="px-3 py-2.5 sm:px-5 sm:py-3 bg-[#EDE8DE] border-t border-[#E7E0D3] flex items-center justify-between gap-1.5 xs:gap-2.5 select-none min-w-0">
-                  <span className="text-xs sm:text-sm font-bold text-[#1C1A17] pl-0.5 shrink-0">Today</span>
-
-                  <div className="flex-1 min-w-0 flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-hide py-0.5 px-0.5">
-                    {(vet.availableSlots && vet.availableSlots.length > 0 ? vet.availableSlots : [
-                      { _id: 's1', time: vetIndex === 0 ? '10:30 AM' : '9:00 AM' },
-                      { _id: 's2', time: vetIndex === 0 ? '1:00 PM' : '11:00 AM' },
-                      { _id: 's3', time: vetIndex === 0 ? '3:30 PM' : '2:00 PM' }
-                    ]).slice(0, 3).map((slot: any, slotIdx: number) => (
-                      <button
-                        key={slot._id || slotIdx}
-                        onClick={() => handleStartBooking(vet, slot)}
-                        className="px-2.5 xs:px-3.5 sm:px-4 py-1.5 rounded-full text-[11px] xs:text-xs font-semibold transition-all shrink-0 cursor-pointer active:scale-95 whitespace-nowrap bg-white border border-[#DCD5C7] text-[#1C1A17] hover:bg-[#F5F2EC]"
-                      >
-                        {slot.time}
-                      </button>
-                    ))}
-                  </div>
+                {/* Lower CTA Bar */}
+                <div className="px-3 py-2.5 sm:px-5 sm:py-3 bg-[#EDE8DE] border-t border-[#E7E0D3] flex items-center justify-between gap-3 select-none">
+                  <span className="text-xs text-stone-600 font-bold">Consultation Available</span>
 
                   <button
+                    type="button"
                     onClick={() => {
                       const defaultSlot = vet.availableSlots?.[0] || {
                         _id: `slot_${new Date().getDate()}`,
@@ -1060,9 +1047,10 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                       };
                       handleStartBooking(vet, defaultSlot);
                     }}
-                    className="text-[11px] xs:text-xs sm:text-sm font-semibold text-stone-600 hover:text-stone-900 shrink-0 cursor-pointer whitespace-nowrap flex items-center gap-0.5 pl-0.5"
+                    className="px-4 py-2 bg-[#2D4536] hover:bg-[#1E2E24] active:scale-95 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
                   >
-                    View all →
+                    <span>Book Appointment</span>
+                    <span>→</span>
                   </button>
                 </div>
               </div>
@@ -1556,14 +1544,8 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                               type="button"
                               onClick={() => {
                                 setSelectedCalendarDay(item.dateNum);
-                                if (selectedVet) {
-                                  setSelectedSlot({
-                                    _id: `slot_${item.dateNum}`,
-                                    date: item.dateStr,
-                                    time: selectedTimeSlot || '10:30 AM',
-                                    isBooked: false
-                                  });
-                                }
+                                setSelectedTimeSlot('');
+                                setIsCustomTimeActive(false);
                               }}
                               className={`py-2.5 px-4 rounded-2xl text-xs font-bold transition-all shrink-0 flex flex-col items-center min-w-[85px] cursor-pointer ${
                                 isSelected
@@ -1783,11 +1765,16 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                   </button>
                   <button
                     type="button"
+                    disabled={!selectedTimeSlot}
                     onClick={() => setBookingStep(3)}
-                    className="px-7 py-3 bg-[#2D4536] hover:bg-[#1E2E24] active:scale-[0.98] text-white text-xs sm:text-sm font-extrabold rounded-full shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+                    className={`px-7 py-3 text-xs sm:text-sm font-extrabold rounded-full transition-all flex items-center gap-2 ${
+                      selectedTimeSlot
+                        ? 'bg-[#2D4536] hover:bg-[#1E2E24] active:scale-[0.98] text-white cursor-pointer shadow-sm'
+                        : 'bg-stone-200 text-stone-400 cursor-not-allowed border border-stone-300 opacity-60'
+                    }`}
                   >
                     <span>Next</span>
-                    <ChevronRight className="w-4 h-4 text-white" />
+                    <ChevronRight className={`w-4 h-4 ${selectedTimeSlot ? 'text-white' : 'text-stone-400'}`} />
                   </button>
                 </div>
               </div>

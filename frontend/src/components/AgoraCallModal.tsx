@@ -4,6 +4,14 @@ import React, { Component, ErrorInfo, ReactNode, useState, useEffect, useRef } f
 import { useAuth } from '../context/AuthContext';
 import { API_BASE } from '../lib/api';
 
+interface ChatMessage {
+  id: string;
+  senderName: string;
+  text: string;
+  time: string;
+  isSelf: boolean;
+}
+
 interface VideoCallInterfaceProps {
   appointment?: any;
   targetApptId: string;
@@ -11,17 +19,24 @@ interface VideoCallInterfaceProps {
 }
 
 function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallInterfaceProps) {
-  const { token: authToken } = useAuth();
+  const { token: authToken, user } = useAuth();
   
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
   const selfVideoRef = useRef<HTMLVideoElement | null>(null);
   const pipRef = useRef<HTMLDivElement | null>(null);
+  const chatMessagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const [streamActive, setStreamActive] = useState<boolean>(false);
   const [remoteConnected, setRemoteConnected] = useState<boolean>(false);
   const [muted, setMuted] = useState<boolean>(false);
   const [videoOff, setVideoOff] = useState<boolean>(false);
   const [callDuration, setCallDuration] = useState<number>(0);
+
+  // In-Call Chat State
+  const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
+  const [chatInput, setChatInput] = useState<string>('');
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
 
   // Draggable PiP State
   const [pipPos, setPipPos] = useState<{ x: number; y: number } | null>(null);
@@ -30,10 +45,15 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
 
   const localStreamRef = useRef<MediaStream | null>(null);
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
+  const dataChannelRef = useRef<RTCDataChannel | null>(null);
   const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
   const lastSignalTimeRef = useRef<number>(0);
 
-  // 1. Freeze body scroll when video call modal is open
+  const selfName = user?.fullName || (appointment?.userEmail ? appointment.userEmail.split('@')[0] : 'You');
+  const patientName = appointment?.petName || 'Patient';
+  const doctorOrTitle = appointment?.vetName || 'Doctor';
+
+  // 1. Freeze body scroll when call modal is open
   useEffect(() => {
     if (typeof document !== 'undefined') {
       const originalStyle = document.body.style.overflow;
@@ -55,36 +75,53 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
     return () => clearInterval(timer);
   }, []);
 
+  // Auto-scroll chat feed to bottom
+  useEffect(() => {
+    if (isChatOpen) {
+      setUnreadCount(0);
+      chatMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, isChatOpen]);
+
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Acquire Local Camera & Microphone
+  // Acquire Local Camera & Microphone (Mobile & Desktop Compatible)
   useEffect(() => {
     let isSubscribed = true;
 
-    if (typeof window !== 'undefined' && navigator.mediaDevices?.getUserMedia) {
-      navigator.mediaDevices
-        .getUserMedia({
-          video: { width: { ideal: 1280 }, height: { ideal: 720 } },
-          audio: true
-        })
-        .then((stream) => {
-          if (!isSubscribed) return;
-          localStreamRef.current = stream;
+    const getMedia = async () => {
+      if (typeof window === 'undefined' || !navigator.mediaDevices?.getUserMedia) return;
 
-          if (selfVideoRef.current) {
-            selfVideoRef.current.srcObject = stream;
-          }
-          setStreamActive(true);
-        })
-        .catch((err) => {
-          console.warn('Local media access note:', err);
-          if (isSubscribed) setStreamActive(false);
+      try {
+        // High quality media request
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
+          audio: true
         });
-    }
+        if (!isSubscribed) return;
+        localStreamRef.current = stream;
+        if (selfVideoRef.current) selfVideoRef.current.srcObject = stream;
+        setStreamActive(true);
+      } catch (err) {
+        try {
+          // Mobile fallback media request
+          const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+          if (!isSubscribed) return;
+          localStreamRef.current = fallbackStream;
+          if (selfVideoRef.current) selfVideoRef.current.srcObject = fallbackStream;
+          setStreamActive(true);
+        } catch (fallbackErr) {
+          console.warn('Media capture note:', fallbackErr);
+          if (isSubscribed) setStreamActive(false);
+        }
+      }
+    };
+
+    getMedia();
 
     return () => {
       isSubscribed = false;
@@ -94,29 +131,64 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
     };
   }, []);
 
-  // WebRTC Peer Connection & Signaling Setup
+  // WebRTC Peer Connection, ICE Candidates & Dual Signaling
   useEffect(() => {
     if (!targetApptId) return;
 
+    // Robust STUN & TURN Relay Configuration for strict 4G/5G mobile networks
     const pc = new RTCPeerConnection({
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'stun:stun2.l.google.com:19302' }
+        { urls: 'stun:stun2.l.google.com:19302' },
+        { urls: 'stun:global.stun.twilio.com:3478' },
+        { urls: 'turn:openrelay.metered.ca:80', username: 'openrelay', credential: 'openrelay' },
+        { urls: 'turn:openrelay.metered.ca:443', username: 'openrelay', credential: 'openrelay' },
+        { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelay', credential: 'openrelay' }
       ]
     });
     peerConnectionRef.current = pc;
 
+    // Attach local media stream tracks
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach((track) => {
         pc.addTrack(track, localStreamRef.current!);
       });
     }
 
+    // WebRTC DataChannel for 0ms instant text messaging
+    try {
+      const dc = pc.createDataChannel('chat');
+      dataChannelRef.current = dc;
+      dc.onmessage = (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          if (data.type === 'chat') {
+            receiveChatMessage(data.senderName, data.text);
+          }
+        } catch (err) {}
+      };
+    } catch (e) {}
+
+    pc.ondatachannel = (event) => {
+      const dc = event.channel;
+      dataChannelRef.current = dc;
+      dc.onmessage = (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          if (data.type === 'chat') {
+            receiveChatMessage(data.senderName, data.text);
+          }
+        } catch (err) {}
+      };
+    };
+
+    // Attach remote stream
     pc.ontrack = (event) => {
       if (event.streams && event.streams[0]) {
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = event.streams[0];
+          remoteVideoRef.current.play().catch(() => {});
         }
         setRemoteConnected(true);
       }
@@ -128,20 +200,18 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
       }
     };
 
+    // BroadcastChannel for instant same-browser multi-tab WebRTC
     const channelName = `aumoha_call_${targetApptId}`;
     let bc: BroadcastChannel | null = null;
     try {
       if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
         bc = new BroadcastChannel(channelName);
         broadcastChannelRef.current = bc;
-        bc.onmessage = (ev) => {
-          handleIncomingSignal(ev.data);
-        };
+        bc.onmessage = (ev) => handleIncomingSignal(ev.data);
       }
-    } catch (e) {
-      console.warn('BroadcastChannel not supported:', e);
-    }
+    } catch (e) {}
 
+    // Send Signal helper
     const sendSignal = async (signalData: any) => {
       if (bc) {
         try {
@@ -163,6 +233,7 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
       }
     };
 
+    // Process incoming signal (Offers, Answers, ICE Candidates, Chat)
     const handleIncomingSignal = async (signal: any) => {
       if (!pc || pc.signalingState === 'closed') return;
 
@@ -180,24 +251,26 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
           try {
             await pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
           } catch (e) {}
+        } else if (signal.type === 'chat') {
+          receiveChatMessage(signal.senderName, signal.text);
         }
       } catch (err) {
-        console.warn('Error handling WebRTC signal:', err);
+        console.warn('WebRTC signal handler:', err);
       }
     };
 
+    // Initiate WebRTC offer
     const initiateOffer = async () => {
       try {
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
         sendSignal({ type: 'offer', offer });
-      } catch (e) {
-        console.warn('Error creating WebRTC offer:', e);
-      }
+      } catch (e) {}
     };
 
     initiateOffer();
 
+    // Polling signal loop for cross-network & mobile compatibility
     const signalInterval = setInterval(async () => {
       if (!authToken || pc.signalingState === 'closed') return;
       try {
@@ -216,7 +289,7 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
           }
         }
       } catch (e) {}
-    }, 1500);
+    }, 1200);
 
     return () => {
       clearInterval(signalInterval);
@@ -225,7 +298,79 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
     };
   }, [targetApptId, authToken]);
 
-  // Handle Mute Button
+  // Helper: Append incoming chat message
+  const receiveChatMessage = (senderName: string, text: string) => {
+    if (!text || !text.trim()) return;
+    const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    setMessages((prev) => {
+      // Prevent duplicate messages
+      if (prev.some((m) => m.text === text && m.senderName === senderName && Math.abs(Date.now() - Number(m.id)) < 2000)) {
+        return prev;
+      }
+      return [
+        ...prev,
+        {
+          id: String(Date.now()),
+          senderName,
+          text,
+          time: nowStr,
+          isSelf: false
+        }
+      ];
+    });
+
+    if (!isChatOpen) {
+      setUnreadCount((count) => count + 1);
+    }
+  };
+
+  // Helper: Send Chat Message
+  const handleSendMessage = async () => {
+    if (!chatInput.trim()) return;
+    const textToSend = chatInput.trim();
+    const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const newMsg: ChatMessage = {
+      id: String(Date.now()),
+      senderName: selfName,
+      text: textToSend,
+      time: nowStr,
+      isSelf: true
+    };
+
+    setMessages((prev) => [...prev, newMsg]);
+    setChatInput('');
+
+    // Send via DataChannel if open
+    if (dataChannelRef.current && dataChannelRef.current.readyState === 'open') {
+      try {
+        dataChannelRef.current.send(JSON.stringify({ type: 'chat', senderName: selfName, text: textToSend }));
+      } catch (e) {}
+    }
+
+    // Send via BroadcastChannel
+    if (broadcastChannelRef.current) {
+      try {
+        broadcastChannelRef.current.postMessage({ type: 'chat', senderName: selfName, text: textToSend });
+      } catch (e) {}
+    }
+
+    // Send via Server Signal Buffer
+    if (authToken) {
+      try {
+        await fetch(`${API_BASE}/appointments/${targetApptId}/call/signal`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authToken}`
+          },
+          body: JSON.stringify({ signal: { type: 'chat', senderName: selfName, text: textToSend } })
+        });
+      } catch (e) {}
+    }
+  };
+
+  // Toggle Mute
   const handleToggleMute = () => {
     const nextMuted = !muted;
     setMuted(nextMuted);
@@ -236,7 +381,7 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
     }
   };
 
-  // Handle Camera Button
+  // Toggle Camera
   const handleToggleVideo = () => {
     const nextVideoOff = !videoOff;
     setVideoOff(nextVideoOff);
@@ -247,7 +392,7 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
     }
   };
 
-  // PiP Drag Start (Mouse & Touch)
+  // PiP Drag Handlers
   const handleDragStart = (clientX: number, clientY: number) => {
     if (!pipRef.current) return;
     const rect = pipRef.current.getBoundingClientRect();
@@ -259,7 +404,6 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
     setPipPos({ x: rect.left, y: rect.top });
   };
 
-  // PiP Drag Move
   const handleDragMove = (clientX: number, clientY: number) => {
     if (!isDragging) return;
     setPipPos({
@@ -268,7 +412,6 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
     });
   };
 
-  // PiP Drag End - Snap/Stick to sides
   const handleDragEnd = () => {
     if (!isDragging || !pipRef.current) return;
     setIsDragging(false);
@@ -290,7 +433,6 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
     setPipPos({ x: targetX, y: targetY });
   };
 
-  // Global mouse / touch listeners for smooth PiP drag
   useEffect(() => {
     if (!isDragging) return;
 
@@ -314,9 +456,6 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
       window.removeEventListener('touchend', onTouchEnd);
     };
   }, [isDragging]);
-
-  const patientName = appointment?.petName || 'Patient';
-  const doctorOrTitle = appointment?.vetName || 'Consultant';
 
   return (
     <div className="fixed inset-0 z-[3000] bg-[#09090B] flex flex-col items-center justify-center overflow-hidden select-none touch-none">
@@ -347,7 +486,7 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
       {/* Main Video Screen Container */}
       <div className="relative w-full h-full flex items-center justify-center bg-[#121215]">
         
-        {/* Remote Participant Video Stream (Always Mounted) */}
+        {/* Remote Participant Video Stream */}
         <video
           ref={remoteVideoRef}
           autoPlay
@@ -355,7 +494,7 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
           className={`w-full h-full object-cover transition-opacity duration-300 ${remoteConnected ? 'opacity-100' : 'opacity-0 absolute'}`}
         />
 
-        {/* Remote Participant Connecting / Placeholder Screen */}
+        {/* Remote Participant Connecting Placeholder */}
         {!remoteConnected && (
           <div className="flex flex-col items-center justify-center p-8 text-white text-center gap-4 animate-fadeIn">
             <div className="relative">
@@ -409,7 +548,6 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
             </div>
           )}
 
-          {/* Drag Handle & Label */}
           <div className="absolute top-2 right-2 opacity-60 group-hover:opacity-100 transition-opacity bg-black/50 p-1 rounded-md">
             <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path d="M8 9h8M8 15h8" />
@@ -423,8 +561,84 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
 
       </div>
 
-      {/* Floating Call Controls Panel */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-[#18181C]/90 backdrop-blur-xl border border-white/15 px-6 py-3 rounded-full flex items-center gap-4 sm:gap-6 shadow-2xl z-30 pointer-events-auto">
+      {/* FLOATING IN-CALL CHAT DRAWER */}
+      {isChatOpen && (
+        <div className="absolute bottom-24 left-4 right-4 sm:left-auto sm:right-6 sm:w-96 max-h-[420px] bg-[#18181C]/95 backdrop-blur-2xl border border-white/20 rounded-3xl p-4 shadow-2xl z-50 flex flex-col gap-3 animate-fadeIn pointer-events-auto">
+          {/* Chat Header */}
+          <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+              <h4 className="text-xs font-extrabold text-white uppercase tracking-wider">In-Call Chat</h4>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsChatOpen(false)}
+              className="text-stone-400 hover:text-white text-xs font-bold p-1 rounded-lg hover:bg-white/10 transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Messages Feed */}
+          <div className="flex-1 overflow-y-auto max-h-64 flex flex-col gap-2.5 pr-1 text-xs">
+            {messages.length === 0 ? (
+              <div className="text-center py-8 text-stone-500 text-[11px] font-medium italic">
+                No messages yet. Type a message below...
+              </div>
+            ) : (
+              messages.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={`flex flex-col max-w-[85%] ${
+                    msg.isSelf ? 'ml-auto items-end' : 'mr-auto items-start'
+                  }`}
+                >
+                  <span className="text-[9.5px] font-bold text-stone-400 mb-0.5 px-1">
+                    {msg.senderName} • {msg.time}
+                  </span>
+                  <div
+                    className={`px-3 py-2 rounded-2xl text-xs font-medium leading-relaxed break-words ${
+                      msg.isSelf
+                        ? 'bg-emerald-600 text-white rounded-br-none'
+                        : 'bg-white/15 text-stone-100 rounded-bl-none border border-white/10'
+                    }`}
+                  >
+                    {msg.text}
+                  </div>
+                </div>
+              ))
+            )}
+            <div ref={chatMessagesEndRef} />
+          </div>
+
+          {/* Chat Input Field */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSendMessage();
+            }}
+            className="flex items-center gap-2 pt-1 border-t border-white/10"
+          >
+            <input
+              type="text"
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              placeholder="Type message..."
+              className="flex-1 bg-white/10 text-white placeholder-stone-400 text-xs px-3.5 py-2.5 rounded-xl border border-white/15 focus:border-emerald-400 focus:outline-none transition-colors"
+            />
+            <button
+              type="submit"
+              disabled={!chatInput.trim()}
+              className="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all shadow-sm cursor-pointer shrink-0"
+            >
+              Send
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* Floating Call Controls Panel (Mic, Video, Chat, End Call) */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-[#18181C]/90 backdrop-blur-xl border border-white/15 px-5 py-3 rounded-full flex items-center gap-4 shadow-2xl z-30 pointer-events-auto">
         
         {/* Toggle Audio Mute */}
         <button
@@ -476,6 +690,27 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
               <polygon points="23 7 16 12 23 17 23 7" />
               <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
             </svg>
+          )}
+        </button>
+
+        {/* Toggle In-Call Chat (Right Next to Mic & Video) */}
+        <button
+          type="button"
+          onClick={() => setIsChatOpen((prev) => !prev)}
+          className={`relative w-12 h-12 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-sm ${
+            isChatOpen
+              ? 'bg-emerald-600 text-white border border-emerald-400'
+              : 'bg-white/10 hover:bg-white/20 text-white border border-white/10'
+          }`}
+          title="In-Call Chat"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+          {unreadCount > 0 && !isChatOpen && (
+            <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-rose-600 text-white text-[10px] font-extrabold flex items-center justify-center border-2 border-[#09090B] animate-pulse">
+              {unreadCount}
+            </span>
           )}
         </button>
 

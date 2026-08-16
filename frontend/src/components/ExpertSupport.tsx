@@ -1291,38 +1291,16 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                     </div>
                   </div>
 
-                  {/* BOTTOM SLOT SELECTOR ROW */}
-                  <div className="bg-[#F4EFE6] border-t border-[#E8E2D8] px-4 py-3 sm:px-5 flex items-center justify-between gap-3 flex-wrap">
-                    <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                      <span className="font-serif text-sm sm:text-base font-bold text-[#1C1A17] mr-1">Today</span>
-                      {(exp.availableSlots && exp.availableSlots.length > 0
-                        ? exp.availableSlots.filter(s => !s.isBooked).slice(0, 3)
-                        : [
-                            { _id: 's1', time: '9:00 AM' },
-                            { _id: 's2', time: '11:00 AM' },
-                            { _id: 's3', time: '2:00 PM' }
-                          ]
-                      ).map((slot, sIdx) => (
-                        <button
-                          key={slot._id || sIdx}
-                          type="button"
-                          onClick={() => {
-                            setSelectedSlot(slot as any);
-                            handleSelectExpert(exp);
-                          }}
-                          className="px-3.5 py-1.5 sm:px-4 sm:py-2 bg-white hover:bg-[#2D4536] hover:text-white border border-[#E5E0D8] rounded-full text-xs font-extrabold text-[#1C1A17] transition-all shadow-2xs cursor-pointer"
-                        >
-                          {slot.time}
-                        </button>
-                      ))}
-                    </div>
+                  {/* BOTTOM CTA ROW */}
+                  <div className="bg-[#F4EFE6] border-t border-[#E8E2D8] px-4 py-3 sm:px-5 flex items-center justify-between gap-3">
+                    <span className="text-xs text-stone-500 font-bold">Online & In-Person Sessions</span>
 
                     <button
                       type="button"
                       onClick={() => handleSelectExpert(exp)}
-                      className="text-xs sm:text-sm font-extrabold text-[#2D4536] hover:underline cursor-pointer flex items-center gap-1 ml-auto"
+                      className="px-4 py-2 bg-[#2D4536] hover:bg-[#1E2E24] active:scale-95 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
                     >
-                      <span>View all</span>
+                      <span>Book Session</span>
                       <span>→</span>
                     </button>
                   </div>
@@ -1673,12 +1651,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                                 type="button"
                                 onClick={() => {
                                   setCalendarSelectedDay(item.dateNum);
-                                  setSelectedSlot({
-                                    _id: `slot_${item.dateNum}`,
-                                    date: item.dateStr,
-                                    time: selectedTimeSlot || '10:30 AM',
-                                    isBooked: false
-                                  });
+                                  setSelectedTimeSlot('');
                                 }}
                                 className={`py-2.5 px-4 rounded-2xl text-xs font-bold transition-all shrink-0 flex flex-col items-center min-w-[85px] cursor-pointer ${
                                   isSelected
@@ -1891,11 +1864,16 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                     </button>
                     <button
                       type="button"
+                      disabled={!selectedTimeSlot}
                       onClick={() => setWizardStep(3)}
-                      className="px-7 py-3 bg-[#2D4536] hover:bg-[#1E2E24] active:scale-[0.98] text-white text-xs sm:text-sm font-extrabold rounded-full shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+                      className={`px-7 py-3 text-xs sm:text-sm font-extrabold rounded-full transition-all flex items-center gap-2 ${
+                        selectedTimeSlot
+                          ? 'bg-[#2D4536] hover:bg-[#1E2E24] active:scale-[0.98] text-white cursor-pointer shadow-sm'
+                          : 'bg-stone-200 text-stone-400 cursor-not-allowed border border-stone-300 opacity-60'
+                      }`}
                     >
                       <span>Next</span>
-                      <ChevronRight className="w-4 h-4 text-white" />
+                      <ChevronRight className={`w-4 h-4 ${selectedTimeSlot ? 'text-white' : 'text-stone-400'}`} />
                     </button>
                   </div>
                 </div>

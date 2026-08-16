@@ -536,13 +536,12 @@ export default function ProviderDashboard() {
           <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
             <Link
               href="/"
-              className="px-3 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl bg-[#FCFAF7] hover:bg-[#F4F0EA] border border-warmBeige text-stone-700 hover:text-charcoal text-xs font-extrabold flex items-center gap-1.5 transition-all shadow-2xs shrink-0 cursor-pointer group"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-[#FCFAF7] hover:bg-[#F4F0EA] border border-warmBeige text-stone-700 hover:text-charcoal flex items-center justify-center transition-all shadow-2xs shrink-0 cursor-pointer group"
               title="Back to Main App"
             >
-              <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:-translate-x-0.5 transition-transform text-stone-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              <span>Back</span>
             </Link>
 
             <div className="h-7 w-px bg-stone-200 shrink-0 hidden xs:block" />
