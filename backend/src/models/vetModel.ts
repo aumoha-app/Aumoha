@@ -14,6 +14,10 @@ export interface IVet extends Document {
   specialisation: string;
   category: string;
   specialtyTags?: string[];
+  registrationNo?: string;
+  qualification?: string;
+  languages?: string[];
+  consultationModes?: string[];
   experience: number;
   fee: number;
   bio?: string;
@@ -44,6 +48,10 @@ const VetSchema = new Schema(
     specialisation: { type: String, required: true },
     category: { type: String, default: 'vet' },
     specialtyTags: { type: [String], default: [] },
+    registrationNo: { type: String, default: 'WBV-10432' },
+    qualification: { type: String, default: 'BVSc & AH' },
+    languages: { type: [String], default: ['English', 'Hindi', 'Odia'] },
+    consultationModes: { type: [String], default: ['Video Consultation', 'Chat Consultation', 'In-person Consultation'] },
     experience: { type: Number, required: true },
     fee: { type: Number, required: true },
     bio: { type: String, default: '' },

@@ -193,21 +193,20 @@ export const fallbackVets: any[] = [
     _id: 'vet4',
     name: 'Dr. Sima Rath',
     photo: '/warden-3.png',
-    specialisation: 'Veterinary Surgeon & Pet Care Specialist',
+    specialisation: 'Exotic & Wildlife',
     category: 'vet',
-    specialtyTags: ['Exotics', 'Small Animals', 'Surgery'],
-    experience: 8,
+    specialtyTags: ['Exotics', 'Reptiles'],
+    experience: 7,
     fee: 500,
-    bio: 'Specialist in companion animal medicine, soft tissue surgery, and preventive pet healthcare.',
-    rating: 4.9,
-    reviewCount: 48,
+    bio: 'Passionate about reptiles, birds, pocket pets, and native wildlife rehabilitation.',
+    rating: 4.7,
+    reviewCount: 74,
     isOnline: true,
-    email: 'abhijeetkhelechess@gmail.com',
     availableSlots: [
-      { _id: 'slot16', date: 'Today', time: '10:30 AM', isBooked: true },
-      { _id: 'slot17', date: 'Today', time: '12:00 PM', isBooked: true },
-      { _id: 'slot18', date: 'Today', time: '02:30 PM', isBooked: true },
-      { _id: 'slot19', date: 'Today', time: '05:00 PM', isBooked: true }
+      { _id: 'slot16', date: 'Today', time: '12:00 PM', isBooked: false },
+      { _id: 'slot17', date: 'Today', time: '4:00 PM', isBooked: false },
+      { _id: 'slot18', date: 'Tomorrow', time: '10:00 AM', isBooked: false },
+      { _id: 'slot19', date: 'Tomorrow', time: '2:00 PM', isBooked: false }
     ]
   },
   {
@@ -474,68 +473,7 @@ export const fallbackVets: any[] = [
   }
 ];
 
-export const fallbackAppointments: any[] = [
-  {
-    _id: 'sima_booking_1',
-    bookingId: 'AMC-109842',
-    userEmail: 'priya.petparent@gmail.com',
-    vetId: 'vet4',
-    petName: 'Bruno (Golden Retriever • 4 yrs • Male)',
-    date: 'Today',
-    time: '10:30 AM',
-    fee: 500,
-    mode: 'tele-consult',
-    type: 'vet',
-    status: 'confirmed',
-    notes: 'Severe skin irritation, itching around paws and belly. Requesting video diagnosis.',
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: 'sima_booking_2',
-    bookingId: 'AMC-109843',
-    userEmail: 'rohit.doglover@gmail.com',
-    vetId: 'vet4',
-    petName: 'Milo (Labrador • 3 yrs • Male)',
-    date: 'Today',
-    time: '12:00 PM',
-    fee: 500,
-    mode: 'tele-consult',
-    type: 'vet',
-    status: 'confirmed',
-    notes: 'Routine dietary consultation and post-vaccination follow-up check.',
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: 'sima_booking_3',
-    bookingId: 'AMC-109844',
-    userEmail: 'ananya.poodle@gmail.com',
-    vetId: 'vet4',
-    petName: 'Coco (Poodle • 5 yrs • Female)',
-    date: 'Today',
-    time: '02:30 PM',
-    fee: 500,
-    mode: 'tele-consult',
-    type: 'vet',
-    status: 'confirmed',
-    notes: 'Ear infection symptoms, mild discharge and head shaking.',
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: 'sima_booking_4',
-    bookingId: 'AMC-109845',
-    userEmail: 'sunita.catparent@gmail.com',
-    vetId: 'vet4',
-    petName: 'Bella (Persian Cat • 2 yrs • Female)',
-    date: 'Today',
-    time: '05:00 PM',
-    fee: 500,
-    mode: 'in-clinic',
-    type: 'vet',
-    status: 'confirmed',
-    notes: 'Annual booster vaccination & general dental checkup.',
-    createdAt: new Date().toISOString()
-  }
-];
+export const fallbackAppointments: any[] = [];
 export const fallbackCallSessions: any[] = [];
 export const fallbackUsers: any[] = [
   {
@@ -1670,6 +1608,25 @@ app.delete('/api/products/:id', authMiddleware, adminMiddleware, async (req: Req
   } catch (error) {
     console.error('Error in DELETE /api/products/:id:', error);
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * POST /api/products/reset
+ * Admin endpoint to reset product collection to clean seed catalog
+ */
+app.post('/api/products/reset', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    if (mongoose.connection.readyState === 1) {
+      await Product.deleteMany({});
+      const seedData = fallbackProducts.map(({ _id, ...rest }) => rest);
+      const inserted = await Product.insertMany(seedData);
+      return res.json({ status: 'success', products: inserted });
+    }
+    return res.json({ status: 'success', products: fallbackProducts });
+  } catch (error) {
+    console.error('Error in POST /api/products/reset:', error);
+    return res.status(500).json({ status: 'error', message: 'Failed to reset product catalog' });
   }
 });
 
@@ -3540,7 +3497,7 @@ app.post('/api/admin/users/assign-role', authMiddleware, adminMiddleware, async 
       return res.status(400).json({ status: 'error', message: 'Email and role are required.' });
     }
 
-    const validRoles = ['normal', 'doctor', 'expert', 'rescuer', 'feeder', 'volunteer', 'paravet', 'admin', 'ngo'];
+    const validRoles = ['normal', 'doctor', 'expert', 'pet_service_provider', 'service_provider', 'rescuer', 'feeder', 'volunteer', 'paravet', 'admin', 'ngo'];
     if (!validRoles.includes(role)) {
       return res.status(400).json({ status: 'error', message: `Invalid role. Must be one of: ${validRoles.join(', ')}` });
     }
@@ -3594,13 +3551,18 @@ app.post('/api/admin/users/assign-role', authMiddleware, adminMiddleware, async 
       }
     }
 
-    // Create Pending Doctor/Specialist profile if role is doctor or expert
-    if (role === 'doctor' || role === 'expert') {
+    // Create Pending Doctor/Specialist/Pet Service profile if role is doctor, expert, or pet_service_provider
+    if (role === 'doctor' || role === 'expert' || role === 'pet_service_provider' || role === 'service_provider') {
       const isExpert = role === 'expert';
+      const isPetService = role === 'pet_service_provider' || role === 'service_provider';
+      const providerCategory = isPetService ? 'pet_service' : isExpert ? 'expert' : 'vet';
+      const defaultSpecialisation = isPetService ? 'Pet Care, Grooming & Boarding Specialist' : isExpert ? 'Veterinary Care Specialist' : 'Veterinary Surgeon & Physician';
+      const defaultTags = isPetService ? ['Grooming', 'Boarding', 'Daycare', 'Pet Sitting', 'Walking'] : isExpert ? ['Specialist', 'Care Consultant'] : ['General Medicine', 'Surgery'];
+
       if (mongoose.connection.readyState === 1) {
         const existingVet = await Vet.findOne({ email: { $regex: new RegExp(`^${escapedEmail}$`, 'i') } });
         if (existingVet) {
-          existingVet.category = isExpert ? 'expert' : 'vet';
+          existingVet.category = providerCategory;
           if (existingVet.isApproved === undefined) existingVet.isApproved = false;
           await existingVet.save();
         } else {
@@ -3608,23 +3570,23 @@ app.post('/api/admin/users/assign-role', authMiddleware, adminMiddleware, async 
             name: updatedUser.fullName || cleanEmail.split('@')[0],
             email: cleanEmail,
             photo: '/sairaj_avatar.png',
-            specialisation: isExpert ? 'Veterinary Care Specialist' : 'Veterinary Surgeon & Physician',
-            category: isExpert ? 'expert' : 'vet',
-            specialtyTags: isExpert ? ['Specialist', 'Care Consultant'] : ['General Medicine', 'Surgery'],
-            experience: 5,
-            fee: isExpert ? 450 : 400,
-            bio: 'Certified practitioner awaiting admin verification.',
+            specialisation: defaultSpecialisation,
+            category: providerCategory,
+            specialtyTags: defaultTags,
+            experience: 4,
+            fee: isPetService ? 350 : isExpert ? 450 : 400,
+            bio: 'Certified pet service practitioner providing compassionate care.',
             rating: 5.0,
             reviewCount: 0,
             isOnline: false,
-            isApproved: false, // Default to false so it lands in Pending Doctor Verifications queue
+            isApproved: false,
             availableSlots: []
           });
         }
       } else {
         const fbVet = fallbackVets.find((v: any) => v.email && v.email.toLowerCase() === cleanEmail);
         if (fbVet) {
-          fbVet.category = isExpert ? 'expert' : 'vet';
+          fbVet.category = providerCategory;
           if (fbVet.isApproved === undefined) fbVet.isApproved = false;
         } else {
           fallbackVets.push({
@@ -3632,16 +3594,16 @@ app.post('/api/admin/users/assign-role', authMiddleware, adminMiddleware, async 
             name: updatedUser.fullName || cleanEmail.split('@')[0],
             email: cleanEmail,
             photo: '/sairaj_avatar.png',
-            specialisation: isExpert ? 'Veterinary Care Specialist' : 'Veterinary Surgeon & Physician',
-            category: isExpert ? 'expert' : 'vet',
-            specialtyTags: isExpert ? ['Specialist', 'Care Consultant'] : ['General Medicine', 'Surgery'],
-            experience: 5,
-            fee: isExpert ? 450 : 400,
-            bio: 'Certified practitioner awaiting admin verification.',
+            specialisation: defaultSpecialisation,
+            category: providerCategory,
+            specialtyTags: defaultTags,
+            experience: 4,
+            fee: isPetService ? 350 : isExpert ? 450 : 400,
+            bio: 'Certified pet service practitioner providing compassionate care.',
             rating: 5.0,
             reviewCount: 0,
             isOnline: false,
-            isApproved: false, // Default to false so it lands in Pending Doctor Verifications queue
+            isApproved: false,
             availableSlots: []
           });
         }
@@ -4156,7 +4118,7 @@ app.post('/api/vets', authMiddleware, adminMiddleware, async (req: Request, res:
 app.put('/api/vets/:id', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, photo, specialisation, category, specialtyTags, experience, fee, bio, isOnline, availableSlots, email, phone, isApproved, location } = req.body;
+    const { name, photo, specialisation, category, specialtyTags, registrationNo, qualification, languages, consultationModes, experience, fee, bio, isOnline, availableSlots, email, phone, isApproved, location } = req.body;
 
     if (mongoose.connection.readyState !== 1) {
       const vet = fallbackVets.find(v => v._id === id);
@@ -4197,6 +4159,10 @@ app.put('/api/vets/:id', authMiddleware, adminMiddleware, async (req: Request, r
     if (specialisation) vet.specialisation = specialisation;
     if (category !== undefined) vet.category = category;
     if (specialtyTags !== undefined) vet.specialtyTags = specialtyTags;
+    if (registrationNo !== undefined) vet.registrationNo = registrationNo;
+    if (qualification !== undefined) vet.qualification = qualification;
+    if (languages !== undefined) vet.languages = languages;
+    if (consultationModes !== undefined) vet.consultationModes = consultationModes;
     if (experience) vet.experience = Number(experience);
     if (fee) vet.fee = Number(fee);
     if (bio) vet.bio = bio;
@@ -4304,92 +4270,7 @@ app.get('/api/provider/me', authMiddleware, async (req: Request, res: Response) 
       if (providerId && mongoose.Types.ObjectId.isValid(providerId)) {
         vetProfile = await Vet.findById(providerId).lean();
       } else {
-        vetProfile = await Vet.findOne({ email: { $regex: new RegExp(`^${userEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } }).lean();
-      }
-
-      // Auto-heal / create Dr. Sima Rath profile for abhijeetkhelechess@gmail.com if missing in DB
-      if (!vetProfile && userEmail.toLowerCase() === 'abhijeetkhelechess@gmail.com') {
-        const createdVet = await Vet.create({
-          name: 'Dr. Sima Rath',
-          email: 'abhijeetkhelechess@gmail.com',
-          photo: '/warden-3.png',
-          specialisation: 'Veterinary Surgeon & Pet Care Specialist',
-          category: 'vet',
-          specialtyTags: ['Exotics', 'Small Animals', 'Surgery'],
-          experience: 8,
-          fee: 500,
-          bio: 'Specialist in companion animal medicine, soft tissue surgery, and preventive pet healthcare.',
-          rating: 4.9,
-          reviewCount: 48,
-          isOnline: true,
-          availableSlots: [
-            { _id: new mongoose.Types.ObjectId(), date: 'Today', time: '10:30 AM', isBooked: true },
-            { _id: new mongoose.Types.ObjectId(), date: 'Today', time: '12:00 PM', isBooked: true },
-            { _id: new mongoose.Types.ObjectId(), date: 'Today', time: '02:30 PM', isBooked: true },
-            { _id: new mongoose.Types.ObjectId(), date: 'Today', time: '05:00 PM', isBooked: true }
-          ]
-        });
-        vetProfile = createdVet.toObject();
-
-        // Seed sample bookings for this doctor in MongoDB
-        await Appointment.insertMany([
-          {
-            bookingId: 'AMC-109842',
-            userEmail: 'priya.petparent@gmail.com',
-            vetId: String(vetProfile._id),
-            petName: 'Bruno (Golden Retriever • 4 yrs • Male)',
-            date: 'Today',
-            time: '10:30 AM',
-            fee: 500,
-            mode: 'tele-consult',
-            type: 'vet',
-            status: 'confirmed',
-            notes: 'Severe skin irritation, itching around paws and belly. Requesting video diagnosis.',
-            createdAt: new Date()
-          },
-          {
-            bookingId: 'AMC-109843',
-            userEmail: 'rohit.doglover@gmail.com',
-            vetId: String(vetProfile._id),
-            petName: 'Milo (Labrador • 3 yrs • Male)',
-            date: 'Today',
-            time: '12:00 PM',
-            fee: 500,
-            mode: 'tele-consult',
-            type: 'vet',
-            status: 'confirmed',
-            notes: 'Routine dietary consultation and post-vaccination follow-up check.',
-            createdAt: new Date()
-          },
-          {
-            bookingId: 'AMC-109844',
-            userEmail: 'ananya.poodle@gmail.com',
-            vetId: String(vetProfile._id),
-            petName: 'Coco (Poodle • 5 yrs • Female)',
-            date: 'Today',
-            time: '02:30 PM',
-            fee: 500,
-            mode: 'tele-consult',
-            type: 'vet',
-            status: 'confirmed',
-            notes: 'Ear infection symptoms, mild discharge and head shaking.',
-            createdAt: new Date()
-          },
-          {
-            bookingId: 'AMC-109845',
-            userEmail: 'sunita.catparent@gmail.com',
-            vetId: String(vetProfile._id),
-            petName: 'Bella (Persian Cat • 2 yrs • Female)',
-            date: 'Today',
-            time: '05:00 PM',
-            fee: 500,
-            mode: 'in-clinic',
-            type: 'vet',
-            status: 'confirmed',
-            notes: 'Annual booster vaccination & general dental checkup.',
-            createdAt: new Date()
-          }
-        ]);
+        vetProfile = await Vet.findOne({ email: { $regex: new RegExp(`^${userEmail}$`, 'i') } }).lean();
       }
     }
     
@@ -4501,29 +4382,56 @@ app.put('/api/provider/slots', authMiddleware, async (req: Request, res: Respons
 });
 
 /**
- * PUT /api/provider/profile
- * Allows logged-in provider to update their profile bio, fee, experience, and specialization.
+ * PUT /api/provider/profile and PUT /api/provider/me/profile
+ * Allows logged-in doctor to update full profile details live.
  */
-app.put('/api/provider/profile', authMiddleware, async (req: Request, res: Response) => {
+const handleProviderProfileUpdate = async (req: Request, res: Response) => {
   try {
     const userEmail = req.user?.email;
-    const { providerId, bio, fee, experience, specialisation, photo } = req.body;
+    const {
+      providerId,
+      name,
+      specialisation,
+      category,
+      registrationNo,
+      qualification,
+      specialtyTags,
+      languages,
+      consultationModes,
+      experience,
+      fee,
+      bio,
+      photo,
+      phone,
+      location,
+      availableSlots
+    } = req.body;
 
     if (mongoose.connection.readyState !== 1) {
       const vet = fallbackVets.find(v => (providerId && v._id === providerId) || (v.email && userEmail && v.email.toLowerCase() === userEmail.toLowerCase()));
       if (vet) {
-        if (bio !== undefined) vet.bio = bio;
-        if (fee !== undefined) vet.fee = Number(fee);
-        if (experience !== undefined) vet.experience = Number(experience);
+        if (name !== undefined) vet.name = name;
         if (specialisation !== undefined) vet.specialisation = specialisation;
+        if (category !== undefined) vet.category = category;
+        if (registrationNo !== undefined) vet.registrationNo = registrationNo;
+        if (qualification !== undefined) vet.qualification = qualification;
+        if (specialtyTags !== undefined) vet.specialtyTags = Array.isArray(specialtyTags) ? specialtyTags : specialtyTags.split(',').map((t: string) => t.trim()).filter(Boolean);
+        if (languages !== undefined) vet.languages = Array.isArray(languages) ? languages : languages.split(',').map((l: string) => l.trim()).filter(Boolean);
+        if (consultationModes !== undefined) vet.consultationModes = Array.isArray(consultationModes) ? consultationModes : consultationModes.split(',').map((m: string) => m.trim()).filter(Boolean);
+        if (experience !== undefined) vet.experience = Number(experience);
+        if (fee !== undefined) vet.fee = Number(fee);
+        if (bio !== undefined) vet.bio = bio;
         if (photo !== undefined) vet.photo = photo;
-        return res.json({ status: 'success', provider: vet });
+        if (phone !== undefined) vet.phone = phone;
+        if (location !== undefined) vet.location = location;
+        if (availableSlots !== undefined) vet.availableSlots = availableSlots;
+        return res.json({ status: 'success', provider: vet, vet });
       }
       return res.status(404).json({ status: 'error', message: 'Provider profile not found' });
     }
 
     let vet = null;
-    if (providerId) {
+    if (providerId && mongoose.Types.ObjectId.isValid(providerId)) {
       vet = await Vet.findById(providerId);
     } else if (userEmail) {
       vet = await Vet.findOne({ email: { $regex: new RegExp(`^${userEmail}$`, 'i') } });
@@ -4533,19 +4441,32 @@ app.put('/api/provider/profile', authMiddleware, async (req: Request, res: Respo
       return res.status(404).json({ status: 'error', message: 'Provider profile not found' });
     }
 
-    if (bio !== undefined) vet.bio = bio;
-    if (fee !== undefined) vet.fee = Number(fee);
-    if (experience !== undefined) vet.experience = Number(experience);
+    if (name !== undefined) vet.name = name;
     if (specialisation !== undefined) vet.specialisation = specialisation;
+    if (category !== undefined) vet.category = category;
+    if (registrationNo !== undefined) vet.registrationNo = registrationNo;
+    if (qualification !== undefined) vet.qualification = qualification;
+    if (specialtyTags !== undefined) vet.specialtyTags = Array.isArray(specialtyTags) ? specialtyTags : specialtyTags.split(',').map((t: string) => t.trim()).filter(Boolean);
+    if (languages !== undefined) vet.languages = Array.isArray(languages) ? languages : languages.split(',').map((l: string) => l.trim()).filter(Boolean);
+    if (consultationModes !== undefined) vet.consultationModes = Array.isArray(consultationModes) ? consultationModes : consultationModes.split(',').map((m: string) => m.trim()).filter(Boolean);
+    if (experience !== undefined) vet.experience = Number(experience);
+    if (fee !== undefined) vet.fee = Number(fee);
+    if (bio !== undefined) vet.bio = bio;
     if (photo !== undefined) vet.photo = photo;
+    if (phone !== undefined) vet.phone = phone;
+    if (location !== undefined) vet.location = location;
+    if (availableSlots !== undefined) vet.availableSlots = availableSlots;
     await vet.save();
 
-    return res.json({ status: 'success', provider: vet });
+    return res.json({ status: 'success', provider: vet.toObject(), vet: vet.toObject() });
   } catch (error) {
-    console.error('Error in PUT /api/provider/profile:', error);
+    console.error('Error in provider profile update:', error);
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
   }
-});
+};
+
+app.put('/api/provider/profile', authMiddleware, handleProviderProfileUpdate);
+app.put('/api/provider/me/profile', authMiddleware, handleProviderProfileUpdate);
 
 /**
  * PUT /api/provider/availability
