@@ -48,7 +48,7 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const dataChannelRef = useRef<RTCDataChannel | null>(null);
   const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
-  const lastSignalTimeRef = useRef<number>(0);
+  const lastSignalTimeRef = useRef<number>(typeof Date !== 'undefined' ? Date.now() - 500 : 0);
   const makingOfferRef = useRef<boolean>(false);
   const ignoreOfferRef = useRef<boolean>(false);
 
@@ -176,6 +176,8 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
   // WebRTC Perfect Negotiation & Dual Signaling (Works across 4G/5G mobile & desktop)
   useEffect(() => {
     if (!targetApptId) return;
+
+    lastSignalTimeRef.current = Date.now() - 500;
 
     const pc = new RTCPeerConnection({
       iceServers: [
@@ -365,10 +367,9 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
 
   // Force play remote stream on user interaction if mobile browser blocked autoplay
   const handleUserPlayRemote = () => {
+    setPlayBlocked(false);
     if (remoteVideoRef.current) {
-      remoteVideoRef.current.play().then(() => {
-        setPlayBlocked(false);
-      }).catch(() => {});
+      remoteVideoRef.current.play().catch(() => {});
     }
   };
 

@@ -3783,6 +3783,72 @@ app.get('/api/appointments/:id/token', authMiddleware, async (req: Request, res:
   }
 });
 
+const callSignalStore: { [channelId: string]: Array<{ timestamp: number; signal: any }> } = {};
+
+/**
+ * POST /api/appointments/:id/call/signal
+ * Send WebRTC signal (Offer, Answer, ICE Candidate, Chat)
+ */
+app.post('/api/appointments/:id/call/signal', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { signal } = req.body;
+    if (!signal) return res.status(400).json({ status: 'error', message: 'Signal payload required' });
+
+    if (!callSignalStore[id]) {
+      callSignalStore[id] = [];
+    }
+
+    callSignalStore[id].push({
+      timestamp: Date.now(),
+      signal
+    });
+
+    if (callSignalStore[id].length > 100) {
+      callSignalStore[id].shift();
+    }
+
+    return res.json({ status: 'success' });
+  } catch (err) {
+    console.error('Error posting call signal:', err);
+    return res.status(500).json({ status: 'error', message: 'Failed to process call signal' });
+  }
+});
+
+/**
+ * GET /api/appointments/:id/call/signals
+ * Fetch WebRTC signals for call room since timestamp
+ */
+app.get('/api/appointments/:id/call/signals', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const since = Number(req.query.since || 0);
+
+    const roomSignals = callSignalStore[id] || [];
+    const signals = roomSignals.filter((item) => item.timestamp > since);
+
+    return res.json({ status: 'success', signals });
+  } catch (err) {
+    console.error('Error fetching call signals:', err);
+    return res.status(500).json({ status: 'error', message: 'Failed to fetch call signals' });
+  }
+});
+
+/**
+ * PUT /api/appointments/:id/call/end
+ * End call session and clear signal buffer for clean rejoining
+ */
+app.put('/api/appointments/:id/call/end', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    delete callSignalStore[id];
+    return res.json({ status: 'success', message: 'Call room signals cleared' });
+  } catch (err) {
+    console.error('Error ending call session:', err);
+    return res.status(500).json({ status: 'error', message: 'Failed to end call session' });
+  }
+});
+
 /**
  * PUT /api/appointments/:id/reschedule
  * Change date/time slot of an existing appointment
