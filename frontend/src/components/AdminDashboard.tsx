@@ -839,6 +839,37 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
     });
   };
 
+  const handleResetProducts = () => {
+    openConfirmation({
+      title: 'Reset Marketplace Catalog?',
+      message: 'Are you sure you want to restore the marketplace inventory to the clean minimal product catalog? Custom items will be replaced with clean default items.',
+      confirmText: 'Reset Catalog',
+      cancelText: 'Cancel',
+      isDestructive: false,
+      onConfirm: async () => {
+        setIsLoading(true);
+        try {
+          const res = await fetch(`${API_BASE}/products/reset`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'X-Admin-Password': adminPassword
+            }
+          });
+          if (res.ok) {
+            fetchProducts(adminPassword);
+          } else {
+            setErrorMessage('Failed to reset marketplace catalog.');
+          }
+        } catch (err) {
+          setErrorMessage('Network error resetting products catalog.');
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    });
+  };
+
   // Auth lock screen
   if (!isAuthenticated) {
     return (
@@ -1372,9 +1403,19 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
 
           {/* PRODUCTS LIST */}
           <section className="flex flex-col gap-3">
-            <h2 className="font-serif text-lg text-[#1C1A17] font-normal border-b border-[#EBE3D5] pb-2">
-              Current Products ({products.length})
-            </h2>
+            <div className="flex items-center justify-between border-b border-[#EBE3D5] pb-2">
+              <h2 className="font-serif text-lg text-[#1C1A17] font-normal">
+                Current Products ({products.length})
+              </h2>
+              <button
+                type="button"
+                onClick={handleResetProducts}
+                className="px-3 py-1 bg-[#2D4536]/10 hover:bg-[#2D4536]/20 border border-[#2D4536]/30 text-[#2D4536] text-[11px] font-extrabold rounded-xl transition-all cursor-pointer shadow-2xs flex items-center gap-1"
+              >
+                <span>↺</span>
+                <span>Restore Clean Catalog</span>
+              </button>
+            </div>
 
             {isLoading ? (
               <div className="flex flex-col items-center justify-center py-10 gap-3 text-stone-400 select-none">
@@ -1396,7 +1437,8 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                           alt={product.title}
                           className="w-full h-full object-cover"
                           onError={(e) => {
-                            e.currentTarget.src = '/sw.js';
+                            const fb = product.category === 'food' ? '/real-pet-food.png' : product.category === 'toys' ? '/real-pet-toy.png' : '/real-pet-med.png';
+                            e.currentTarget.src = fb;
                           }}
                         />
                       </div>
@@ -2270,6 +2312,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                 >
                   <option value="doctor">🩺 Doctor / Veterinarian (Full Medical Dashboard)</option>
                   <option value="expert">🎓 Veterinary Specialist / Care Expert</option>
+                  <option value="pet_service_provider">🐾 Pet Service Provider (Grooming, Boarding, Training, Walking)</option>
                   <option value="rescuer">🛡️ Certified Rescuer (Emergency SOS Access)</option>
                   <option value="feeder">🥣 Community Feeder</option>
                   <option value="volunteer">🤝 Rescue Volunteer</option>
@@ -2320,6 +2363,8 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
                     admin: 'bg-[#2D4536]/15 text-[#2D4536] border-[#2D4536]/30',
                     doctor: 'bg-emerald-100 text-emerald-900 border-emerald-300',
                     expert: 'bg-teal-100 text-teal-900 border-teal-300',
+                    pet_service_provider: 'bg-purple-100 text-purple-900 border-purple-300',
+                    service_provider: 'bg-purple-100 text-purple-900 border-purple-300',
                     rescuer: 'bg-red-100 text-red-900 border-red-300',
                     feeder: 'bg-amber-100 text-amber-900 border-amber-300',
                     ngo: 'bg-blue-100 text-blue-900 border-blue-300',

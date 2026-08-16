@@ -14,7 +14,7 @@ export default function ProviderPage() {
     if (!loading) {
       const role = user?.role;
       const email = user?.email?.toLowerCase();
-      const isAllowed = isProvider || role === 'doctor' || role === 'expert' || role === 'admin' || email === 'admin@aumoha.com' || email?.includes('vet') || email?.includes('expert');
+      const isAllowed = isProvider || role === 'doctor' || role === 'expert' || role === 'pet_service_provider' || role === 'service_provider' || role === 'admin' || email === 'admin@aumoha.com' || email?.includes('vet') || email?.includes('expert') || email?.includes('service');
       if (!isAllowed) {
         router.replace('/');
       }
