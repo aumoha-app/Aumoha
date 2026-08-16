@@ -27,6 +27,11 @@ interface Vet {
   photo?: string;
   specialisation: string;
   category?: string;
+  specialtyTags?: string[];
+  registrationNo?: string;
+  qualification?: string;
+  languages?: string[];
+  consultationModes?: string[];
   experience: number;
   fee: number;
   bio?: string;
@@ -82,7 +87,8 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(null);
 
-  // Selection states for booking flow
+  // Selection states for booking flow & Rich Doctor Profile View
+  const [viewingDoctorDetail, setViewingDoctorDetail] = useState<Vet | null>(null);
   const [bookingStep, setBookingStep] = useState<number>(1);
   const [vets, setVets] = useState<Vet[]>([]);
   const [selectedVet, setSelectedVet] = useState<Vet | null>(null);
@@ -443,9 +449,9 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
   });
 
   // Action: Pick Vet & Slot to Start booking
-  const handleStartBooking = (vet: Vet, slot: Slot) => {
+  const handleStartBooking = (vet: Vet, slot?: Slot) => {
     setSelectedVet(vet);
-    setSelectedSlot(slot);
+    setSelectedSlot(slot || vet.availableSlots?.[0] || { _id: `slot_${Date.now()}`, date: 'Today', time: '10:30 AM', isBooked: false });
     setBookingStep(1);
     setBookingMode(subTab === 'tele' ? 'tele-consult' : 'in-clinic');
 
@@ -743,68 +749,118 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
 
   return (
     <>
-      <div className="w-full flex flex-col gap-5 sm:gap-6 animate-fadeIn select-none font-sans text-[#1C1A17] pb-4">
+      <div className="w-full flex flex-col gap-5 sm:gap-6 animate-fadeIn select-none font-sans text-[#1C1A17] pb-32 sm:pb-40">
 
 
-        {/* 1. SEAMLESS HERO IMAGE COVERING FULL CONTAINER WIDTH (ZERO TOP SPACE GAP) */}
-        <div className="relative -mx-4 sm:-mx-6 -mt-4 sm:-mt-6 mb-3 overflow-hidden min-h-[210px] xs:min-h-[240px] sm:min-h-[300px] flex flex-col justify-between pt-3 px-4 pb-4 xs:pt-4 xs:px-5 xs:pb-5 sm:pt-5 sm:px-7 sm:pb-6 select-none">
-          {/* Background Image Absolute Covering Full Width */}
-          <img
-            src="/VetCareHero.png"
-            alt="Vet Care Hero"
-            className="absolute inset-0 w-full h-full object-cover object-center z-0"
-          />
+        {/* TOP NAVIGATION / HERO BANNER (PHOTO BANNER ONLY ON VET CARE HOMEPAGE; REMOVED WHEN DOCTOR SELECTED TO SAVE VERTICAL SPACE) */}
+        {currentView === 'home' && !selectedVet ? (
+          <div className="relative -mx-3 sm:-mx-6 -mt-1 sm:-mt-2 mb-3 overflow-hidden min-h-[190px] xs:min-h-[215px] sm:min-h-[250px] flex flex-col justify-between pt-3 px-4 pb-4 xs:pt-4 xs:px-5 xs:pb-5 sm:pt-5 sm:px-7 sm:pb-6 select-none rounded-2xl sm:rounded-3xl border border-[#E8E2D8] bg-[#FAF8F5]">
+            {/* Background Image Absolute Covering Full Width */}
+            <img
+              src="/VetCareHero.png"
+              alt="Vet Care Hero"
+              className="absolute inset-0 w-full h-full object-cover object-[85%_center] z-0"
+            />
 
-          {/* Floating Top Bar (Back Button & Admin Trigger) */}
-          <div className="relative z-10 flex items-center justify-between w-full">
-            <button
-              onClick={() => {
-                if (currentView !== 'home') {
-                  setCurrentView('home');
-                } else {
-                  setActiveTab('home');
-                }
-              }}
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-white/80 bg-[#F5F2EC]/90 backdrop-blur-md flex items-center justify-center hover:bg-white transition-all shadow-2xs cursor-pointer active:scale-95 shrink-0"
-            >
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-stone-800">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-            </button>
+            {/* Subtle Gradient Wash on Left Side Only */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#FAF8F5] via-[#FAF8F5]/70 to-transparent z-[1] pointer-events-none w-3/5 sm:w-1/2" />
 
-            {/* Gated Admin Panel Button */}
+            {/* Floating Top Bar (Back Button & Admin Trigger) */}
+            <div className="relative z-10 flex items-center justify-between w-full">
+              <button
+                onClick={() => {
+                  if (currentView !== 'home') {
+                    setCurrentView('home');
+                  } else {
+                    setActiveTab('home');
+                  }
+                }}
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-white/80 bg-white/80 backdrop-blur-md flex items-center justify-center hover:bg-white transition-all shadow-2xs cursor-pointer active:scale-95 shrink-0"
+              >
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-stone-800">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
+
+              {/* Gated Admin Panel Button */}
+              {isAdminUser && (
+                <button
+                  onClick={() => {
+                    setSubTab('admin');
+                    setCurrentView('home');
+                  }}
+                  className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl border text-[10.5px] font-extrabold flex items-center gap-1.5 transition-all backdrop-blur-md cursor-pointer ${subTab === 'admin'
+                      ? 'bg-[#C85341] border-[#C85341] text-white shadow-xs'
+                      : 'border-[#D5CEBF] bg-white/85 hover:bg-white text-[#C85341]'
+                    }`}
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg>
+                  Admin Panel
+                </button>
+              )}
+            </div>
+
+            {/* HERO TYPOGRAPHY TEXT BLOCK - CLEAN ON LEFT, NO COVERING BOX */}
+            <div className="relative z-10 flex flex-col gap-1 max-w-[210px] xs:max-w-[250px] sm:max-w-[310px] mt-2 sm:mt-4">
+              <span className="text-[10px] sm:text-[11px] font-extrabold tracking-[0.18em] text-[#C85341] uppercase">
+                VET CARE
+              </span>
+              <h2 className="font-serif text-xl xs:text-2xl sm:text-3xl font-bold text-[#1C1A17] leading-[1.15] tracking-tight">
+                Find the right care for your companion.
+              </h2>
+              <p className="text-[11px] sm:text-xs text-stone-600 font-sans font-semibold leading-snug mt-0.5">
+                Expert medical care, when they need it.
+              </p>
+            </div>
+          </div>
+        ) : (
+          /* COMPACT HEADER BAR WHEN DOCTOR SELECTED OR IN DIRECTORY VIEW - NO PHOTO BANNER WASTING SPACE */
+          <div className="flex items-center justify-between w-full pt-1 pb-2 border-b border-[#E7E0D3] mb-2 select-none">
+            <div className="flex items-center gap-2.5">
+              <button
+                onClick={() => {
+                  if (selectedVet || currentView !== 'home') {
+                    setSelectedVet(null);
+                    setCurrentView('home');
+                    setBookingStep(1);
+                  } else {
+                    setActiveTab('home');
+                  }
+                }}
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-[#D5CEBF] bg-white flex items-center justify-center hover:bg-[#EFEAE2] transition-all shadow-2xs cursor-pointer active:scale-95 shrink-0"
+              >
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#1C1A17]">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
+              <div>
+                <span className="text-[9.5px] sm:text-[10px] font-extrabold uppercase tracking-widest text-[#2D4536] block">
+                  {selectedVet ? 'Vet Appointment Booking' : 'Vet Care Directory'}
+                </span>
+                <h3 className="font-serif text-base sm:text-lg font-semibold text-[#1C1A17] leading-tight">
+                  {selectedVet ? selectedVet.name : 'Select a Doctor'}
+                </h3>
+              </div>
+            </div>
+
             {isAdminUser && (
               <button
                 onClick={() => {
                   setSubTab('admin');
                   setCurrentView('home');
                 }}
-                className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl border text-[10.5px] font-extrabold flex items-center gap-1.5 transition-all backdrop-blur-md cursor-pointer ${subTab === 'admin'
+                className={`px-3 py-1.5 rounded-xl border text-[10.5px] font-extrabold flex items-center gap-1.5 transition-all cursor-pointer ${subTab === 'admin'
                     ? 'bg-[#C85341] border-[#C85341] text-white shadow-xs'
-                    : 'border-[#D5CEBF] bg-[#F5F2EC]/85 hover:bg-white text-[#C85341]'
+                    : 'border-[#D5CEBF] bg-[#F5F2EC] hover:bg-white text-[#C85341]'
                   }`}
               >
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                </svg>
                 Admin Panel
               </button>
             )}
           </div>
-
-          {/* HERO TYPOGRAPHY TEXT BLOCK - MATCHING SCREENSHOT EXACTLY */}
-          <div className="relative z-10 flex flex-col gap-1 max-w-[260px] xs:max-w-[310px] sm:max-w-[380px] mt-4 sm:mt-6 -translate-y-12">
-            <span className="text-[10.5px] sm:text-xs font-bold tracking-[0.18em] text-[#6E685E] uppercase">
-              VET CARE
-            </span>
-            <h2 className="font-serif text-xl xs:text-2xl sm:text-3xl font-normal text-[#1C1A17] leading-[1.15] tracking-tight">
-              Find the right care for your companion.
-            </h2>
-            <p className="text-[11px] sm:text-xs text-[#5C564C] font-sans font-medium leading-snug mt-0.5">
-              Expert medical care, when they need it.
-            </p>
-          </div>
-        </div>
+        )}
 
         {/* 2. SEARCH BAR */}
         {currentView === 'home' && subTab !== 'admin' && (
@@ -913,8 +969,11 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                 key={vet._id || vetIndex}
                 className="bg-[#F5F2EC] border border-[#E7E0D3] rounded-2xl sm:rounded-[28px] overflow-hidden shadow-2xs flex flex-col"
               >
-                {/* Upper Details Row */}
-                <div className="flex flex-row items-stretch min-h-[140px] xs:min-h-[155px] sm:min-h-[175px]">
+                {/* Upper Details Row - Clickable to open Doctor Profile */}
+                <div 
+                  onClick={() => setViewingDoctorDetail(vet)}
+                  className="flex flex-row items-stretch min-h-[140px] xs:min-h-[155px] sm:min-h-[175px] cursor-pointer hover:bg-[#EDE8DE]/40 transition-colors group"
+                >
                   {/* Left Side Portrait Photo */}
                   <div className="w-24 xs:w-32 sm:w-44 max-w-[32%] sm:max-w-[40%] bg-[#EAE4D8] relative shrink-0 overflow-hidden">
                     <img
@@ -1061,8 +1120,11 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                   key={vet._id}
                   className="bg-[#EFEAE2] border border-[#D5CEBF] rounded-[24px] p-4 flex flex-col gap-3.5 shadow-sm"
                 >
-                  {/* Vet Header card section */}
-                  <div className="flex justify-between items-start">
+                  {/* Vet Header card section - Clickable to open Doctor Profile */}
+                  <div 
+                    onClick={() => setViewingDoctorDetail(vet)}
+                    className="flex justify-between items-start cursor-pointer hover:opacity-90 transition-all group"
+                  >
                     <div className="flex items-center gap-3">
                       <div className="w-14 h-14 rounded-full overflow-hidden bg-stone-100 border border-[#F0EBE1]/60 relative shrink-0">
                         {vet.photo ? (
@@ -2652,7 +2714,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
 
         {/* VIEW ALL AVAILABLE SLOTS & SHOWTIME PICKER MODAL (BOOK MY SHOW STYLE) */}
         {isViewingAllSlotsVet && (
-          <div className="fixed inset-0 bg-[#1C1A17]/65 backdrop-blur-md z-[2000] flex items-center justify-center p-4 transition-all animate-fadeIn">
+          <div className="fixed inset-0 bg-[#1C1A17]/65 backdrop-blur-md z-[2000] flex items-center justify-center p-4 transition-all animate-fadeIn pb-24 sm:pb-32">
             <div className="bg-[#FAF8F5] border border-[#EFEAE2] w-full max-w-xl rounded-[28px] shadow-2xl p-6 flex flex-col gap-5 max-h-[90vh] overflow-y-auto">
 
               {/* Modal Header */}
@@ -2828,6 +2890,219 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
           </div>
         )}
       </div>
+
+      {/* RICH DOCTOR PROFILE / ABOUT DOCTOR MODAL - ALIGNED TO VET CARE FOREST GREEN THEME */}
+      {viewingDoctorDetail && (
+        <div className="fixed inset-0 z-[2000] bg-black/65 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-fadeIn select-none pb-24 sm:pb-32">
+          <div className="bg-[#FAF9F6] border border-[#DCE6DE] rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl p-5 sm:p-7 text-[#1C1A17] font-sans relative my-auto animate-scaleUp max-h-[90vh] flex flex-col">
+            
+            {/* Top Header Row with Back Button & Close Icon */}
+            <div className="flex items-center justify-between pb-3 border-b border-[#E2ECE4] shrink-0">
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setViewingDoctorDetail(null)}
+                  className="w-8 h-8 rounded-full border border-[#C2D8C7] bg-white flex items-center justify-center text-[#2D4536] hover:bg-[#E8F0EA] transition-all cursor-pointer active:scale-95 shadow-2xs"
+                >
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="15 18 9 12 15 6" />
+                  </svg>
+                </button>
+                <h3 className="font-serif text-lg sm:text-xl font-bold text-[#1C1A17]">
+                  Doctor Profile
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewingDoctorDetail(null)}
+                className="w-8 h-8 rounded-full bg-[#E8F0EA] text-[#2D4536] hover:bg-[#D8E8DC] flex items-center justify-center transition-all cursor-pointer font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Scrollable Content Body */}
+            <div className="overflow-y-auto pt-4 space-y-5 pr-1 scrollbar-thin">
+              {/* Doctor Header Banner Card - Forest Green Blend */}
+              <div className="bg-gradient-to-br from-[#F4F7F4] via-[#E8F0EA] to-[#DCEDE0] border border-[#D0E0D4] rounded-2xl p-4 sm:p-5 flex items-center gap-4 relative overflow-hidden shadow-2xs">
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-white shadow-md bg-stone-200 shrink-0">
+                  {viewingDoctorDetail.photo ? (
+                    <img src={viewingDoctorDetail.photo} alt={viewingDoctorDetail.name} className="w-full h-full object-cover object-top" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-[#2D4536] to-[#1E2E24] flex items-center justify-center text-white font-serif font-bold text-xl">
+                      {viewingDoctorDetail.name.split(' ').map(n => n[0]).join('').replace('Dr.', '')}
+                    </div>
+                  )}
+                  {viewingDoctorDetail.isOnline && (
+                    <span className="absolute bottom-1 right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white" />
+                  )}
+                </div>
+
+                <div className="min-w-0 flex-1 z-10">
+                  <h2 className="font-serif text-lg sm:text-2xl font-bold text-[#1C1A17] leading-tight truncate">
+                    {viewingDoctorDetail.name}
+                  </h2>
+                  <p className="text-xs sm:text-sm font-semibold text-[#2D4536] mt-0.5 truncate">
+                    {viewingDoctorDetail.specialisation}
+                  </p>
+                  <span className="inline-block text-[10.5px] font-extrabold text-[#2D4536] bg-white px-2.5 py-0.5 rounded-full border border-[#C2D8C7] mt-1.5 shadow-2xs">
+                    {viewingDoctorDetail.category === 'expert' ? 'Specialist Expert' : 'Veterinary Specialist'}
+                  </span>
+
+                  <div className="flex items-center gap-1.5 mt-2 bg-[#2D4536]/10 border border-[#2D4536]/20 text-[#2D4536] text-[10px] sm:text-[11px] font-extrabold px-2.5 py-1 rounded-xl w-fit">
+                    <svg className="w-3.5 h-3.5 text-[#2D4536] fill-[#2D4536]" viewBox="0 0 24 24">
+                      <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
+                    </svg>
+                    <span>Verified Veterinarian</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Minimal Structured Doctor Details List with Green Icons */}
+              <div className="bg-white border border-[#DCE6DE] rounded-2xl p-4 divide-y divide-[#EBF2EC] shadow-2xs space-y-3">
+                {/* Veterinary Registration No */}
+                <div className="flex items-center justify-between pt-1">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-[#E8F0EA] flex items-center justify-center text-[#2D4536]">
+                      <svg className="w-4 h-4 text-[#2D4536]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <rect x="3" y="4" width="18" height="16" rx="2" />
+                        <line x1="7" y1="8" x2="11" y2="8" />
+                        <line x1="7" y1="12" x2="17" y2="12" />
+                        <line x1="7" y1="16" x2="13" y2="16" />
+                      </svg>
+                    </div>
+                    <span className="text-xs font-semibold text-stone-600">Veterinary Registration No.</span>
+                  </div>
+                  <span className="text-xs font-bold font-mono text-[#1C1A17]">
+                    {viewingDoctorDetail.registrationNo || 'WBV-10432'}
+                  </span>
+                </div>
+
+                {/* Experience */}
+                <div className="flex items-center justify-between pt-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-[#E8F0EA] flex items-center justify-center text-[#2D4536]">
+                      <svg className="w-4 h-4 text-[#2D4536]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                        <line x1="16" y1="2" x2="16" y2="6" />
+                        <line x1="8" y1="2" x2="8" y2="6" />
+                        <line x1="3" y1="10" x2="21" y2="10" />
+                      </svg>
+                    </div>
+                    <span className="text-xs font-semibold text-stone-600">Experience</span>
+                  </div>
+                  <span className="text-xs font-bold text-[#1C1A17]">
+                    {viewingDoctorDetail.experience}+ Years
+                  </span>
+                </div>
+
+                {/* Qualification */}
+                <div className="flex items-center justify-between pt-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-[#E8F0EA] flex items-center justify-center text-[#2D4536]">
+                      <svg className="w-4 h-4 text-[#2D4536]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                      </svg>
+                    </div>
+                    <span className="text-xs font-semibold text-stone-600">Qualification</span>
+                  </div>
+                  <span className="text-xs font-bold text-[#1C1A17]">
+                    {viewingDoctorDetail.qualification || 'BVSc & AH'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Areas of Expertise */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-extrabold text-[#2D4536] uppercase tracking-wider">Areas of Expertise</h4>
+                <div className="flex flex-wrap gap-2">
+                  {(viewingDoctorDetail.specialtyTags && viewingDoctorDetail.specialtyTags.length > 0 
+                    ? viewingDoctorDetail.specialtyTags 
+                    : ['Dermatology', 'Surgery', 'Nutrition', 'Exotics', 'Wildlife Medicine']
+                  ).map((tag, idx) => (
+                    <span key={idx} className="bg-[#E8F0EA] border border-[#C2D8C7] text-[#2D4536] text-xs font-bold px-3 py-1 rounded-full shadow-2xs">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Consultation Modes */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-extrabold text-[#2D4536] uppercase tracking-wider">Consultation Modes</h4>
+                <div className="grid grid-cols-3 gap-2.5">
+                  <div className="p-3 bg-white border border-[#DCE6DE] hover:border-[#2D4536]/40 rounded-2xl flex flex-col items-center gap-1.5 text-center shadow-2xs transition-all">
+                    <svg className="w-5 h-5 text-[#2D4536]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    <span className="text-[10.5px] font-bold text-[#1C1A17] leading-tight">Video Consultation</span>
+                  </div>
+
+                  <div className="p-3 bg-white border border-[#DCE6DE] hover:border-[#2D4536]/40 rounded-2xl flex flex-col items-center gap-1.5 text-center shadow-2xs transition-all">
+                    <svg className="w-5 h-5 text-[#2D4536]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                    <span className="text-[10.5px] font-bold text-[#1C1A17] leading-tight">Chat Consultation</span>
+                  </div>
+
+                  <div className="p-3 bg-white border border-[#DCE6DE] hover:border-[#2D4536]/40 rounded-2xl flex flex-col items-center gap-1.5 text-center shadow-2xs transition-all">
+                    <svg className="w-5 h-5 text-[#2D4536]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span className="text-[10.5px] font-bold text-[#1C1A17] leading-tight">In-person Consultation</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Consultation Fee & Languages Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3.5 bg-white border border-[#DCE6DE] rounded-2xl flex flex-col gap-1 shadow-2xs">
+                  <span className="text-[10px] font-extrabold text-[#2D4536] uppercase tracking-wider">Consultation Fee</span>
+                  <span className="text-base font-extrabold text-[#1C1A17]">₹{viewingDoctorDetail.fee}</span>
+                  <span className="text-[10px] text-stone-500 font-medium">Per Consultation</span>
+                </div>
+
+                <div className="p-3.5 bg-white border border-[#DCE6DE] rounded-2xl flex flex-col gap-1 shadow-2xs">
+                  <span className="text-[10px] font-extrabold text-[#2D4536] uppercase tracking-wider">Languages</span>
+                  <span className="text-xs font-bold text-[#1C1A17]">
+                    {viewingDoctorDetail.languages?.join(', ') || 'English, Hindi, Bengali'}
+                  </span>
+                </div>
+              </div>
+
+              {/* About Bio Section */}
+              <div className="space-y-1.5 bg-white border border-[#DCE6DE] rounded-2xl p-4 shadow-2xs">
+                <h4 className="text-xs font-extrabold text-[#2D4536] uppercase tracking-wider flex items-center gap-1.5">
+                  <svg className="w-4 h-4 text-[#2D4536]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  About Doctor
+                </h4>
+                <p className="text-xs text-stone-700 font-medium leading-relaxed">
+                  {viewingDoctorDetail.bio || 'Passionate about companion animal health, soft tissue surgery, and preventive care. Providing compassionate treatment for pets and native wildlife.'}
+                </p>
+              </div>
+            </div>
+
+            {/* Fixed Bottom Book CTA Button in Signature Forest Green */}
+            <div className="pt-4 border-t border-[#E2ECE4] shrink-0 mt-3">
+              <button
+                type="button"
+                onClick={() => {
+                  const vetToBook = viewingDoctorDetail;
+                  setViewingDoctorDetail(null);
+                  handleStartBooking(vetToBook);
+                }}
+                className="w-full py-3.5 bg-[#2D4536] hover:bg-[#1E2E24] text-white text-xs font-extrabold rounded-2xl shadow-md transition-all cursor-pointer active:scale-98 flex items-center justify-center gap-2"
+              >
+                <span>Book Consultation with {viewingDoctorDetail.name.split(' ')[0]} {viewingDoctorDetail.name.split(' ')[1] || ''}</span>
+                <span>→</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Custom Alert Popup Modal */}
       <PopupModal config={popupConfig} onClose={() => setPopupConfig(null)} />

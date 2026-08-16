@@ -19,6 +19,8 @@ import {
   X
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE } from '../lib/api';
+import { processRazorpayPayment } from '../lib/razorpay';
 
 export type ServiceType = 'All' | 'Grooming' | 'Boarding' | 'Walking' | 'Training';
 
@@ -123,7 +125,7 @@ interface PetCareServicesProps {
 }
 
 export default function PetCareServices({ activeFilter, searchQuery = '', sortBy = 'rating' }: PetCareServicesProps) {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
 
   // Modal States
   const [selectedProvider, setSelectedProvider] = useState<PetCareProvider | null>(null);
@@ -184,9 +186,76 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
     }
   };
 
-  const handleConfirmBooking = (e: React.FormEvent) => {
+  const submitBookingToBackend = async (paymentDetails?: { razorpayPaymentId?: string; razorpayOrderId?: string; razorpaySignature?: string }) => {
+    if (!bookingProvider) return;
+    const slotId = `slot_pet_${bookingProvider.id}_${Date.now()}`;
+    try {
+      if (token) {
+        const res = await fetch(`${API_BASE}/appointments`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            vetId: String((bookingProvider as any)._id || bookingProvider.id || `pet_svc_${bookingProvider.serviceTag.toLowerCase()}`),
+            slotId,
+            date: bookingDate,
+            time: bookingTime,
+            petName: selectedPet || 'My Pet',
+            mode: 'in-clinic',
+            type: 'pet_service',
+            fee: bookingProvider.price || 499,
+            vetName: bookingProvider.title,
+            vetSpecialisation: `${bookingProvider.serviceTag} Provider`,
+            notes: `Pet Service Request: ${bookingProvider.serviceTag} (${bookingProvider.title})`,
+            razorpayPaymentId: paymentDetails?.razorpayPaymentId || '',
+            razorpayOrderId: paymentDetails?.razorpayOrderId || '',
+            razorpaySignature: paymentDetails?.razorpaySignature || ''
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          console.warn('Pet booking API error:', data.message);
+        }
+      }
+    } catch (err) {
+      console.error('Error submitting pet service booking:', err);
+    } finally {
+      setBookingConfirmed(true);
+    }
+  };
+
+  const handleConfirmBooking = async (e: React.FormEvent) => {
     e.preventDefault();
-    setBookingConfirmed(true);
+    if (!selectedPet?.trim()) return;
+    if (!bookingProvider) return;
+    // Trigger Razorpay payment first
+    processRazorpayPayment({
+      amount: bookingProvider.price,
+      receipt: `receipt_pet_${Date.now()}`,
+      name: `${bookingProvider.serviceTag} Session - ${bookingProvider.title}`,
+      description: `Booking for ${selectedPet}`,
+      prefill: {
+        name: user?.fullName || '',
+        email: user?.email || '',
+        contact: user?.phone || '',
+      },
+      onSuccess: (paymentResp: any) => {
+        submitBookingToBackend({
+          razorpayPaymentId: paymentResp?.razorpay_payment_id,
+          razorpayOrderId: paymentResp?.razorpay_order_id,
+          razorpaySignature: paymentResp?.razorpay_signature
+        });
+      },
+      onFailure: () => {
+        // On payment failure/cancel, don't confirm booking
+      }
+    });
+  };
+
+  const handlePayLater = async () => {
+    await submitBookingToBackend();
   };
 
   return (
@@ -563,15 +632,25 @@ export default function PetCareServices({ activeFilter, searchQuery = '', sortBy
                 {/* Price total */}
                 <div className="flex justify-between items-center bg-[#FCFAF7] border border-[#F0EBE1] rounded-2xl p-3.5 my-1">
                   <span className="text-xs font-bold text-stone-600">Total Fee</span>
-                  <span className="text-base font-extrabold text-terracotta">₹{bookingProvider.price}</span>
+                  <span className="text-base font-extrabold text-[#2D4536]">₹{bookingProvider.price}</span>
                 </div>
 
-                <button
-                  type="submit"
-                  className="w-full py-3.5 bg-terracotta hover:bg-[#C85236] text-white font-bold rounded-2xl text-xs transition-all shadow-md shadow-terracotta/20 cursor-pointer active:scale-98"
-                >
-                  Confirm Reservation
-                </button>
+                <div className="flex flex-col gap-2.5">
+                  <button
+                    type="submit"
+                    className="w-full py-3.5 bg-[#2D4536] hover:bg-[#1E2E24] text-white font-extrabold rounded-2xl text-sm transition-all shadow-md shadow-[#2D4536]/20 cursor-pointer active:scale-[0.98] flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                    Proceed to Pay ₹{bookingProvider.price}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handlePayLater}
+                    className="w-full py-2.5 bg-white border border-[#DCD5C7] hover:bg-[#FAF8F5] text-[#1C1A17] font-bold rounded-2xl text-xs transition-all cursor-pointer active:scale-[0.98]"
+                  >
+                    Confirm Booking (Pay Later)
+                  </button>
+                </div>
               </form>
             )}
           </div>
