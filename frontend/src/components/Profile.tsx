@@ -8,6 +8,7 @@ import { DogIcon, CatIcon, BirdIcon, FishIcon, RabbitIcon, ReptileIcon, PawIcon 
 import { API_BASE } from '../lib/api';
 import CallSessionButton from './CallSessionButton';
 import AgoraCallModal from './AgoraCallModal';
+import PopupModal, { PopupConfig } from './PopupModal';
 
 interface ProfileProps {
   onOpenAdmin?: () => void;
@@ -1222,6 +1223,7 @@ function ProfileBookingHistory({ token, API_BASE }: { token: string | null; API_
   const [appointments, setAppointments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [popupConfig, setPopupConfig] = useState<PopupConfig | null>(null);
 
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [activeCallAppt, setActiveCallAppt] = useState<any | null>(null);
@@ -1297,12 +1299,12 @@ function ProfileBookingHistory({ token, API_BASE }: { token: string | null; API_
   };
 
   const handleDeleteAppointment = (apptId: string) => {
-    openConfirmation({
+    setPopupConfig({
       title: 'Delete Appointment Record',
       message: 'Are you sure you want to delete this appointment record?',
+      type: 'error',
       confirmText: 'Delete',
       cancelText: 'Cancel',
-      isDestructive: true,
       onConfirm: async () => {
         try {
           const res = await fetch(`${API_BASE}/appointments/${apptId}`, {
@@ -1471,6 +1473,8 @@ function ProfileBookingHistory({ token, API_BASE }: { token: string | null; API_
           )}
         </div>
       ))}
+
+      {popupConfig && <PopupModal config={popupConfig} onClose={() => setPopupConfig(null)} />}
 
       {activeCallAppt && (
         <AgoraCallModal

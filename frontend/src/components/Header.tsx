@@ -6,7 +6,7 @@ interface HeaderProps {
 
 export default function Header({ onInstallClick }: HeaderProps) {
   return (
-    <header className="w-full max-w-3xl md:max-w-5xl lg:max-w-6xl mx-auto px-4 sm:px-6 pt-2 sm:pt-3 pb-2 flex justify-between items-center select-none relative z-20">
+    <header id="app-site-header" className="w-full max-w-3xl md:max-w-5xl lg:max-w-6xl mx-auto px-4 sm:px-6 pt-2 sm:pt-3 pb-2 flex justify-between items-center select-none relative z-20">
       {/* Left Side: Brand Logo & Text */}
       <div className="flex items-center gap-2 sm:gap-2.5">
         <img 

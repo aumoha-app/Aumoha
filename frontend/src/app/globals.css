@@ -30,6 +30,16 @@
   }
 }
 
+/* Hide site Header and Navigation when Video Call Modal is Active */
+body.video-call-active header,
+body.video-call-active nav,
+body.video-call-active #app-site-header,
+body.video-call-active [class*="Header"] {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 /* Custom Scrollbar for warm theme */
 ::-webkit-scrollbar {
   width: 8px;
