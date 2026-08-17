@@ -143,7 +143,7 @@ export default function ProviderDashboard() {
   const [bulkEndDate, setBulkEndDate] = useState('');
   const [bulkStartTime, setBulkStartTime] = useState('09:00');
   const [bulkEndTime, setBulkEndTime] = useState('17:00');
-  const [bulkInterval, setBulkInterval] = useState(30);
+  const [bulkInterval, setBulkInterval] = useState(60);
   const [isGeneratingBulk, setIsGeneratingBulk] = useState(false);
 
   // Appointment Filters & Prescription State
@@ -1209,10 +1209,7 @@ export default function ProviderDashboard() {
                     onChange={e => setBulkInterval(Number(e.target.value))}
                     className="w-full px-3.5 py-2.5 bg-[#FCFAF7] border border-stone-200 rounded-xl text-xs font-bold focus:outline-none focus:border-terracotta"
                   >
-                    <option value={15}>15 Minutes</option>
-                    <option value={30}>30 Minutes</option>
-                    <option value={45}>45 Minutes</option>
-                    <option value={60}>60 Minutes</option>
+                    <option value={60}>60 Minutes (1 Hour)</option>
                   </select>
                 </div>
 

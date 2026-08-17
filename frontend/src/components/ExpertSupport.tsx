@@ -294,7 +294,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
   const [concernText, setConcernText] = useState('');
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>('Today');
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('10:30 AM');
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>('10:00 AM');
   const [timeToggle, setTimeToggle] = useState<'Morning' | 'Afternoon' | 'Evening'>('Morning');
   const [selectedPetName, setSelectedPetName] = useState('');
   const [newPetInput, setNewPetInput] = useState(false);
@@ -364,7 +364,7 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
   const [expertFormTagsInput, setExpertFormTagsInput] = useState('');
   const [expertFormSlots, setExpertFormSlots] = useState<{ date: string; time: string }[]>([
     { date: 'Today', time: '10:00 AM' },
-    { date: 'Today', time: '11:30 AM' },
+    { date: 'Today', time: '11:00 AM' },
     { date: 'Tomorrow', time: '02:00 PM' }
   ]);
 
@@ -404,7 +404,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
     isOnline: true,
     availableSlots: [
       { _id: 's1', date: 'Today', time: '10:00 AM', isBooked: false },
-      { _id: 's2', date: 'Today', time: '03:30 PM', isBooked: false },
+      { _id: 's2', date: 'Today', time: '03:00 PM', isBooked: false },
       { _id: 's3', date: 'Tomorrow', time: '11:00 AM', isBooked: false }
     ]
   },
@@ -476,7 +476,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
     isOnline: true,
     availableSlots: [
       { _id: 's8b', date: 'Today', time: '02:00 PM', isBooked: false },
-      { _id: 's8c', date: 'Tomorrow', time: '11:30 AM', isBooked: false }
+      { _id: 's8c', date: 'Tomorrow', time: '11:00 AM', isBooked: false }
     ]
   },
   {
@@ -561,7 +561,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
     reviewCount: 92,
     isOnline: true,
     availableSlots: [
-      { _id: 's12', date: 'Today', time: '02:30 PM', isBooked: false }
+      { _id: 's12', date: 'Today', time: '02:00 PM', isBooked: false }
     ]
   },
   {
@@ -578,7 +578,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
     reviewCount: 240,
     isOnline: true,
     availableSlots: [
-      { _id: 's13', date: 'Tomorrow', time: '04:30 PM', isBooked: false }
+      { _id: 's13', date: 'Tomorrow', time: '04:00 PM', isBooked: false }
     ]
   }
 ];
@@ -926,7 +926,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
     setExpertFormTagsInput('');
     setExpertFormSlots([
       { date: 'Today', time: '10:00 AM' },
-      { date: 'Today', time: '11:30 AM' },
+      { date: 'Today', time: '11:00 AM' },
       { date: 'Tomorrow', time: '02:00 PM' }
     ]);
   };
@@ -1728,7 +1728,6 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
 
                       const handleChooseSlotTime = (t: string) => {
                         setSelectedTimeSlot(t);
-                        setIsChangingTimezone(false);
                         const dayVal = calendarSelectedDay || new Date().getDate();
                         const mName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][calendarMonth];
                         setSelectedSlot({
@@ -1750,7 +1749,7 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                               {times.map((t) => {
                                 const isBooked = checkIsSlotBooked(t);
-                                const isSelected = selectedTimeSlot === t && !isChangingTimezone;
+                                const isSelected = selectedTimeSlot === t;
 
                                 if (isBooked) {
                                   return (
@@ -1800,57 +1799,8 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                         </div>
                       );
                     })()}
-                    </div>
-
-                    {/* OPTIONAL CUSTOM TIME INPUT */}
-                    <div
-                      className={`w-full rounded-2xl p-3 transition-all border flex flex-col gap-2 ${
-                        isChangingTimezone
-                          ? 'bg-[#2D4536] text-white border-[#2D4536] shadow-sm'
-                          : 'bg-white border-[#E8E2D8] text-[#1C1A17] hover:bg-[#F9F6F0]'
-                      }`}
-                    >
-                      <div
-                        onClick={() => setIsChangingTimezone(true)}
-                        className="flex items-center justify-between px-1 cursor-pointer font-bold text-xs select-none"
-                      >
-                        <span className="flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-current" />
-                          <span>Specify Custom Time</span>
-                        </span>
-                      </div>
-
-                      {isChangingTimezone && (
-                        <div className="pt-1 flex items-center gap-2">
-                          <input
-                            type="time"
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              if (val) {
-                                const [hStr, mStr] = val.split(':');
-                                let h = parseInt(hStr, 10);
-                                const m = parseInt(mStr, 10);
-                                const ampm = h >= 12 ? 'PM' : 'AM';
-                                h = h % 12;
-                                h = h ? h : 12;
-                                const formattedTime = `${h}:${m < 10 ? '0' : ''}${m} ${ampm}`;
-                                setSelectedTimeSlot(formattedTime);
-                                const mName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][calendarMonth];
-                                const dayVal = calendarSelectedDay || new Date().getDate();
-                                setSelectedSlot({
-                                  _id: `slot_${dayVal}_${formattedTime}`,
-                                  date: `${mName} ${dayVal}`,
-                                  time: formattedTime,
-                                  isBooked: false
-                                });
-                              }
-                            }}
-                            className="w-full bg-white text-[#1C1A17] border border-[#E5E0D8] rounded-xl px-3 py-2 text-xs font-extrabold outline-none cursor-pointer shadow-inner"
-                          />
-                        </div>
-                      )}
-                    </div>
                   </div>
+                </div>
 
                   {/* STEP 2 NAV BUTTONS */}
                   <div className="flex items-center justify-between gap-3 pt-2">
