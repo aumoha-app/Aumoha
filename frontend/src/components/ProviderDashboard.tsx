@@ -1212,7 +1212,7 @@ export default function ProviderDashboard() {
                     <option value={15}>15 Minutes</option>
                     <option value={30}>30 Minutes</option>
                     <option value={45}>45 Minutes</option>
-                    <option value={60}>60 Minutes</option>
+                    <option value={60}>60 Minutes (1 Hour)</option>
                   </select>
                 </div>
 

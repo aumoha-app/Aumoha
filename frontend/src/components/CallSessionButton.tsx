@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE } from '../lib/api';
-import { isAppointmentExpired } from '../lib/appointmentUtils';
+import { isAppointmentExpired, isAppointmentTimeReached } from '../lib/appointmentUtils';
 
 interface CallSessionButtonProps {
   appointment: any;
@@ -16,6 +16,7 @@ export default function CallSessionButton({ appointment, onJoinCall, className }
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [requesting, setRequesting] = useState<boolean>(false);
+  const [nowTime, setNowTime] = useState<number>(Date.now());
 
   const targetId = appointment ? (appointment.bookingId || appointment._id) : '';
 
@@ -39,7 +40,10 @@ export default function CallSessionButton({ appointment, onJoinCall, className }
   useEffect(() => {
     if (appointment && appointment.mode === 'tele-consult') {
       fetchSessionStatus();
-      const interval = setInterval(fetchSessionStatus, 4000);
+      const interval = setInterval(() => {
+        fetchSessionStatus();
+        setNowTime(Date.now());
+      }, 4000);
       return () => clearInterval(interval);
     }
   }, [appointment, token]);
@@ -125,6 +129,24 @@ export default function CallSessionButton({ appointment, onJoinCall, className }
     );
   }
 
+  // Check if meet time has arrived
+  const isTimeReached = isAppointmentTimeReached(appointment);
+
+  if (!isTimeReached) {
+    return (
+      <div 
+        className={`w-full py-3 px-3 bg-[#EAE6DF] text-stone-600 text-xs font-bold rounded-2xl text-center border border-stone-300 flex items-center justify-center gap-1.5 cursor-not-allowed opacity-85 select-none ${className || ''}`}
+        title="Call button activates when the scheduled appointment time arrives"
+      >
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-stone-500">
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+        <span>Join Call (Active at {appointment.time || 'Meet Time'})</span>
+      </div>
+    );
+  }
+
   // Active / Ready / Direct Join Button
   return (
     <button
@@ -149,3 +171,4 @@ export default function CallSessionButton({ appointment, onJoinCall, className }
     </button>
   );
 }
+

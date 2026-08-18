@@ -108,9 +108,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
   const [medicalReportName, setMedicalReportName] = useState<string>('');
   const [uploadingDocApptId, setUploadingDocApptId] = useState<string | null>(null);
 
-  const [isCustomTimeActive, setIsCustomTimeActive] = useState<boolean>(false);
-  const [customTimeValRaw, setCustomTimeValRaw] = useState<string>('');
-  const [customTimeValue, setCustomTimeValue] = useState<string>('');
+
 
   // Add Pet modal states mimicking profile pet management
   const [isPetModalOpen, setIsPetModalOpen] = useState(false);
@@ -204,7 +202,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
   // All Slots viewer modal state & calendar picker states
   const [isViewingAllSlotsVet, setIsViewingAllSlotsVet] = useState<Vet | null>(null);
   const [modalSelectedDate, setModalSelectedDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
-  const [modalSelectedTime, setModalSelectedTime] = useState<string>('10:30 AM');
+  const [modalSelectedTime, setModalSelectedTime] = useState<string>('10:00 AM');
 
   // Role Security Checking
   const [isAdminUser, setIsAdminUser] = useState(false);
@@ -472,7 +470,6 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
     setSelectedVet(vet);
     setSelectedSlot(slot || null);
     setSelectedTimeSlot(slot?.time || '');
-    setIsCustomTimeActive(false);
     setBookingStep(1);
     setBookingMode(subTab === 'tele' ? 'tele-consult' : 'in-clinic');
 
@@ -964,9 +961,9 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                 reviewCount: 96,
                 photo: '/warden-1.png',
                 availableSlots: [
-                  { _id: 's1', date: 'Today', time: '10:30 AM', isBooked: false },
+                  { _id: 's1', date: 'Today', time: '10:00 AM', isBooked: false },
                   { _id: 's2', date: 'Today', time: '1:00 PM', isBooked: false },
-                  { _id: 's3', date: 'Today', time: '3:30 PM', isBooked: false }
+                  { _id: 's3', date: 'Today', time: '3:00 PM', isBooked: false }
                 ]
               },
               {
@@ -982,7 +979,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                 availableSlots: [
                   { _id: 's4', date: 'Today', time: '9:00 AM', isBooked: false },
                   { _id: 's5', date: 'Today', time: '11:00 AM', isBooked: false },
-                  { _id: 's6', date: 'Today', time: '4:30 PM', isBooked: false }
+                  { _id: 's6', date: 'Today', time: '4:00 PM', isBooked: false }
                 ]
               }
             ]).map((vet: any, vetIndex: number) => (
@@ -1042,7 +1039,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                       const defaultSlot = vet.availableSlots?.[0] || {
                         _id: `slot_${new Date().getDate()}`,
                         date: `Today`,
-                        time: '10:30 AM',
+                        time: '10:00 AM',
                         isBooked: false
                       };
                       handleStartBooking(vet, defaultSlot);
@@ -1545,7 +1542,6 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                               onClick={() => {
                                 setSelectedCalendarDay(item.dateNum);
                                 setSelectedTimeSlot('');
-                                setIsCustomTimeActive(false);
                               }}
                               className={`py-2.5 px-4 rounded-2xl text-xs font-bold transition-all shrink-0 flex flex-col items-center min-w-[85px] cursor-pointer ${
                                 isSelected
@@ -1622,7 +1618,6 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
 
                       const handleChooseSlotTime = (t: string) => {
                         setSelectedTimeSlot(t);
-                        setIsCustomTimeActive(false);
                         const dayVal = selectedCalendarDay || new Date().getDate();
                         const mName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][bookingMonth];
                         if (selectedVet) {
@@ -1646,7 +1641,7 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                               {times.map((t) => {
                                 const isBooked = checkIsSlotBooked(t);
-                                const isSelected = selectedTimeSlot === t && !isCustomTimeActive;
+                                const isSelected = selectedTimeSlot === t;
 
                                 if (isBooked) {
                                   return (
@@ -1696,60 +1691,6 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
                         </div>
                       );
                     })()}
-                  </div>
-
-                  {/* OPTIONAL CUSTOM TIME INPUT */}
-                  <div
-                    className={`w-full rounded-2xl p-3 transition-all border flex flex-col gap-2 ${
-                      isCustomTimeActive
-                        ? 'bg-[#2D4536] text-white border-[#2D4536] shadow-sm'
-                        : 'bg-white border-[#E8E2D8] text-[#1C1A17] hover:bg-[#F9F6F0]'
-                    }`}
-                  >
-                    <div
-                      onClick={() => setIsCustomTimeActive(true)}
-                      className="flex items-center justify-between px-1 cursor-pointer font-bold text-xs select-none"
-                    >
-                      <span className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-current" />
-                        <span>Specify Custom Time</span>
-                      </span>
-                    </div>
-
-                    {isCustomTimeActive && (
-                      <div className="pt-1 flex items-center gap-2">
-                        <input
-                          type="time"
-                          value={customTimeValRaw}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setCustomTimeValRaw(val);
-                            if (val) {
-                              const [hStr, mStr] = val.split(':');
-                              let h = parseInt(hStr, 10);
-                              const m = parseInt(mStr, 10);
-                              const ampm = h >= 12 ? 'PM' : 'AM';
-                              h = h % 12;
-                              h = h ? h : 12;
-                              const formattedTime = `${h}:${m < 10 ? '0' : ''}${m} ${ampm}`;
-                              setCustomTimeValue(formattedTime);
-                              setSelectedTimeSlot(formattedTime);
-                              if (selectedVet) {
-                                const mName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][bookingMonth];
-                                const dayVal = selectedCalendarDay || new Date().getDate();
-                                setSelectedSlot({
-                                  _id: `slot_${dayVal}_${formattedTime}`,
-                                  date: `${mName} ${dayVal}`,
-                                  time: formattedTime,
-                                  isBooked: false
-                                });
-                              }
-                            }
-                          }}
-                          className="w-full bg-white text-[#1C1A17] border border-[#E5E0D8] rounded-xl px-3 py-2 text-xs font-extrabold outline-none cursor-pointer shadow-inner"
-                        />
-                      </div>
-                    )}
                   </div>
                 </div>
 
