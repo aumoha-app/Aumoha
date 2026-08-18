@@ -138,11 +138,17 @@ export const fallbackVets: any[] = [
     email: 'vet1@aumoha.com',
     availableSlots: [
       { _id: 'slot1', date: 'Today', time: '9:00 AM', isBooked: false },
-      { _id: 'slot2', date: 'Today', time: '11:00 AM', isBooked: false },
-      { _id: 'slot3', date: 'Today', time: '2:00 PM', isBooked: false },
-      { _id: 'slot4', date: 'Today', time: '4:00 PM', isBooked: false },
+      { _id: 'slot1_30', date: 'Today', time: '9:30 AM', isBooked: false },
+      { _id: 'slot2', date: 'Today', time: '10:00 AM', isBooked: false },
+      { _id: 'slot2_30', date: 'Today', time: '10:30 AM', isBooked: false },
+      { _id: 'slot3', date: 'Today', time: '11:00 AM', isBooked: false },
+      { _id: 'slot3_30', date: 'Today', time: '11:30 AM', isBooked: false },
+      { _id: 'slot4', date: 'Today', time: '2:00 PM', isBooked: false },
+      { _id: 'slot4_30', date: 'Today', time: '2:30 PM', isBooked: false },
       { _id: 'slot5', date: 'Tomorrow', time: '9:00 AM', isBooked: false },
-      { _id: 'slot6', date: 'Tomorrow', time: '11:00 AM', isBooked: false }
+      { _id: 'slot5_30', date: 'Tomorrow', time: '9:30 AM', isBooked: false },
+      { _id: 'slot6', date: 'Tomorrow', time: '10:00 AM', isBooked: false },
+      { _id: 'slot6_30', date: 'Tomorrow', time: '10:30 AM', isBooked: false }
     ]
   },
   {
@@ -161,10 +167,13 @@ export const fallbackVets: any[] = [
     email: 'vet2@aumoha.com',
     availableSlots: [
       { _id: 'slot7', date: 'Today', time: '10:00 AM', isBooked: false },
+      { _id: 'slot7_30', date: 'Today', time: '10:30 AM', isBooked: false },
       { _id: 'slot8', date: 'Today', time: '1:00 PM', isBooked: false },
+      { _id: 'slot8_30', date: 'Today', time: '1:30 PM', isBooked: false },
       { _id: 'slot9', date: 'Today', time: '3:00 PM', isBooked: false },
+      { _id: 'slot9_30', date: 'Today', time: '3:30 PM', isBooked: false },
       { _id: 'slot10', date: 'Tomorrow', time: '10:00 AM', isBooked: false },
-      { _id: 'slot11', date: 'Tomorrow', time: '1:00 PM', isBooked: false }
+      { _id: 'slot10_30', date: 'Tomorrow', time: '10:30 AM', isBooked: false }
     ]
   },
   {
@@ -183,9 +192,11 @@ export const fallbackVets: any[] = [
     email: 'vet3@aumoha.com',
     availableSlots: [
       { _id: 'slot12', date: 'Tomorrow', time: '9:00 AM', isBooked: false },
+      { _id: 'slot12_30', date: 'Tomorrow', time: '9:30 AM', isBooked: false },
       { _id: 'slot13', date: 'Tomorrow', time: '12:00 PM', isBooked: false },
+      { _id: 'slot13_30', date: 'Tomorrow', time: '12:30 PM', isBooked: false },
       { _id: 'slot14', date: 'Tomorrow', time: '3:00 PM', isBooked: false },
-      { _id: 'slot15', date: 'Tomorrow', time: '5:00 PM', isBooked: false }
+      { _id: 'slot14_30', date: 'Tomorrow', time: '3:30 PM', isBooked: false }
     ]
   },
   {
@@ -203,9 +214,9 @@ export const fallbackVets: any[] = [
     isOnline: true,
     availableSlots: [
       { _id: 'slot16', date: 'Today', time: '12:00 PM', isBooked: false },
+      { _id: 'slot16_30', date: 'Today', time: '12:30 PM', isBooked: false },
       { _id: 'slot17', date: 'Today', time: '4:00 PM', isBooked: false },
-      { _id: 'slot18', date: 'Tomorrow', time: '10:00 AM', isBooked: false },
-      { _id: 'slot19', date: 'Tomorrow', time: '2:00 PM', isBooked: false }
+      { _id: 'slot17_30', date: 'Today', time: '4:30 PM', isBooked: false }
     ]
   },
   {
@@ -224,8 +235,9 @@ export const fallbackVets: any[] = [
     email: 'expert1@aumoha.com',
     availableSlots: [
       { _id: 'slot_e1', date: 'Today', time: '10:00 AM', isBooked: false },
+      { _id: 'slot_e1_30', date: 'Today', time: '10:30 AM', isBooked: false },
       { _id: 'slot_e2', date: 'Today', time: '3:00 PM', isBooked: false },
-      { _id: 'slot_e3', date: 'Tomorrow', time: '11:00 AM', isBooked: false }
+      { _id: 'slot_e2_30', date: 'Today', time: '3:30 PM', isBooked: false }
     ]
   },
   {
@@ -241,10 +253,12 @@ export const fallbackVets: any[] = [
     rating: 4.9,
     reviewCount: 120,
     isOnline: true,
+    email: 'expert1@aumoha.com',
     availableSlots: [
       { _id: 'slot_e4', date: 'Today', time: '9:00 AM', isBooked: false },
+      { _id: 'slot_e4_30', date: 'Today', time: '9:30 AM', isBooked: false },
       { _id: 'slot_e5', date: 'Today', time: '1:00 PM', isBooked: false },
-      { _id: 'slot_e6', date: 'Tomorrow', time: '10:00 AM', isBooked: false }
+      { _id: 'slot_e5_30', date: 'Today', time: '1:30 PM', isBooked: false }
     ]
   },
   {
@@ -262,7 +276,9 @@ export const fallbackVets: any[] = [
     isOnline: false,
     availableSlots: [
       { _id: 'slot_e7', date: 'Tomorrow', time: '9:00 AM', isBooked: false },
-      { _id: 'slot_e8', date: 'Tomorrow', time: '2:00 PM', isBooked: false }
+      { _id: 'slot_e7_30', date: 'Tomorrow', time: '9:30 AM', isBooked: false },
+      { _id: 'slot_e8', date: 'Tomorrow', time: '2:00 PM', isBooked: false },
+      { _id: 'slot_e8_30', date: 'Tomorrow', time: '2:30 PM', isBooked: false }
     ]
   },
   {
@@ -280,7 +296,9 @@ export const fallbackVets: any[] = [
     isOnline: true,
     availableSlots: [
       { _id: 'slot_e9', date: 'Today', time: '11:00 AM', isBooked: false },
-      { _id: 'slot_e10', date: 'Today', time: '4:00 PM', isBooked: false }
+      { _id: 'slot_e9_30', date: 'Today', time: '11:30 AM', isBooked: false },
+      { _id: 'slot_e10', date: 'Today', time: '4:00 PM', isBooked: false },
+      { _id: 'slot_e10_30', date: 'Today', time: '4:30 PM', isBooked: false }
     ]
   },
   {
