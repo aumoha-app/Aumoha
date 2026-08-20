@@ -306,6 +306,87 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
   const [calendarYear, setCalendarYear] = useState(new Date().getFullYear());
   const [calendarSelectedDay, setCalendarSelectedDay] = useState<number | null>(null);
 
+  // Instant Call states
+  const [isFindingInstantDoctor, setIsFindingInstantDoctor] = useState(false);
+  const [matchedInstantDoctor, setMatchedInstantDoctor] = useState<any | null>(null);
+  const [isInstantModalOpen, setIsInstantModalOpen] = useState(false);
+  const [activeCallAppt, setActiveCallAppt] = useState<any | null>(null);
+
+  const handleStartInstantCall = async (category: 'vet' | 'expert' = 'expert') => {
+    if (!token) {
+      showPopup('Please log in to initiate an Instant Call', 'warning');
+      return;
+    }
+    setIsFindingInstantDoctor(true);
+    try {
+      const res = await fetch(`${API_BASE}/instant-consultation/find`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ category })
+      });
+      const data = await res.json();
+      if (res.ok && data.doctor) {
+        setMatchedInstantDoctor(data.doctor);
+        setIsInstantModalOpen(true);
+      } else {
+        showPopup(data.message || 'No specialists are currently online for Instant Call. Please book a slot.', 'info', 'Specialist Unavailable');
+      }
+    } catch (err) {
+      console.error('Instant call search error:', err);
+      showPopup('Error searching for online specialist. Please check your connection.', 'error');
+    } finally {
+      setIsFindingInstantDoctor(false);
+    }
+  };
+
+  const handleConfirmInstantCallPayment = async () => {
+    if (!matchedInstantDoctor) return;
+    const petName = selectedPetName || 'My Pet';
+
+    processRazorpayPayment({
+      amount: matchedInstantDoctor.fee || 500,
+      description: `Instant Consultation with ${matchedInstantDoctor.name}`,
+      notes: { doctor: matchedInstantDoctor.name, pet: petName, type: 'instant' },
+      prefill: { email: user?.email || '', name: user?.fullName || '' },
+      onSuccess: async (paymentData) => {
+        try {
+          const res = await fetch(`${API_BASE}/instant-consultation/create`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              vetId: matchedInstantDoctor._id,
+              petName,
+              callType: 'video',
+              razorpayPaymentId: paymentData.payment_id,
+              razorpayOrderId: paymentData.order_id,
+              razorpaySignature: (paymentData as any).signature || ''
+            })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            setIsInstantModalOpen(false);
+            setConfirmedAppt(data.appointment);
+            setCurrentView('confirmed');
+            setActiveCallAppt(data.appointment); // Directly launch Agora call modal!
+          } else {
+            showPopup(data.message || 'Failed to create instant session', 'error');
+          }
+        } catch (err) {
+          showPopup('Error creating instant session after payment.', 'error');
+        }
+      },
+      onFailure: (err) => {
+        showPopup(err?.message || 'Payment cancelled or declined.', 'error');
+      }
+    });
+  };
+
   // Add Pet modal states mimicking profile pet management
   const [isPetModalOpen, setIsPetModalOpen] = useState(false);
   const [isPetSaving, setIsPetSaving] = useState(false);
@@ -376,13 +457,16 @@ export default function ExpertSupport({ setActiveTab }: ExpertSupportProps) {
           'Authorization': `Bearer ${token}`
         }
       })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) return { status: 'error', isAdmin: false };
+        return res.json().catch(() => ({ status: 'error', isAdmin: false }));
+      })
       .then(data => {
-        if (data.status === 'success') {
-          setIsAdminUser(data.isAdmin);
+        if (data && data.status === 'success') {
+          setIsAdminUser(!!data.isAdmin);
         }
       })
-      .catch(err => console.error('Failed to retrieve admin configuration in Expert Support:', err));
+      .catch(err => console.warn('Failed to retrieve admin configuration in Expert Support:', err));
     } else {
       setIsAdminUser(false);
     }
@@ -1000,6 +1084,40 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
       {/* ==================== SCREEN 1: EXPERT SUPPORT HOME ==================== */}
       {currentView === 'home' && (
         <div className="flex flex-col gap-5 w-full animate-fadeIn">
+          
+          {/* INSTANT CALL HERO BANNER */}
+          <div className="w-full bg-gradient-to-r from-[#1C1A17] via-[#2A2723] to-[#12110F] text-white p-4 sm:p-5 rounded-2xl sm:rounded-[24px] shadow-md flex items-center justify-between gap-4 border border-amber-500/20">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center shrink-0">
+                <span className="text-xl sm:text-2xl animate-pulse">⚡</span>
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-serif text-sm sm:text-base font-bold text-white leading-tight">Instant Specialist Call</h3>
+                  <span className="bg-amber-400 text-stone-950 text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-widest animate-pulse">LIVE NOW</span>
+                </div>
+                <p className="text-[11px] sm:text-xs text-stone-300 font-medium mt-0.5 leading-snug">Need immediate expert guidance? Connect with an online specialist right now.</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleStartInstantCall('expert')}
+              disabled={isFindingInstantDoctor}
+              className="px-3.5 py-2.5 sm:px-4 sm:py-3 bg-amber-400 hover:bg-amber-300 active:scale-95 text-stone-950 text-xs font-extrabold rounded-xl shadow-lg transition-all cursor-pointer shrink-0 flex items-center gap-1.5"
+            >
+              {isFindingInstantDoctor ? (
+                <>
+                  <span className="w-3.5 h-3.5 border-2 border-stone-950/30 border-t-stone-950 rounded-full animate-spin" />
+                  <span>Searching...</span>
+                </>
+              ) : (
+                <>
+                  <span>Instant Call</span>
+                  <span>⚡</span>
+                </>
+              )}
+            </button>
+          </div>
           
           {/* SEARCH BAR + FILTER */}
           <div className="flex gap-2 w-full">
@@ -2496,6 +2614,47 @@ const DEFAULT_MOCK_EXPERTS: Expert[] = [
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {activeCallAppt && (
+        <AgoraCallModal
+          appointmentId={activeCallAppt.bookingId || activeCallAppt._id}
+          appointment={activeCallAppt}
+          onClose={() => setActiveCallAppt(null)}
+        />
+      )}
+
+      {/* INSTANT CALL MATCHED SPECIALIST MODAL */}
+      {isInstantModalOpen && matchedInstantDoctor && (
+        <div className="fixed inset-0 z-[3000] bg-[#1C1A17]/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full border border-[#F0EBE1] shadow-2xl p-6 flex flex-col gap-4 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">⚡</span>
+                <h3 className="font-serif text-lg font-bold text-[#1C1A17]">Instant Specialist Found</h3>
+              </div>
+              <button onClick={() => setIsInstantModalOpen(false)} className="text-stone-400 hover:text-stone-700 font-bold p-1">✕</button>
+            </div>
+
+            <div className="flex items-center gap-4 bg-[#FCFAF7] p-4 rounded-2xl border border-[#F0EBE1]">
+              <img src={matchedInstantDoctor.photo || '/sairaj_avatar.png'} alt={matchedInstantDoctor.name} className="w-14 h-14 rounded-2xl object-cover" />
+              <div>
+                <h4 className="font-serif font-bold text-base text-[#1C1A17]">{matchedInstantDoctor.name}</h4>
+                <p className="text-xs text-stone-600 font-medium">{matchedInstantDoctor.specialisation}</p>
+                <span className="text-xs font-bold text-amber-700 mt-1 block">Fee: ₹{matchedInstantDoctor.fee} • Online Now</span>
+              </div>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 p-3 rounded-xl text-xs text-amber-900 font-medium">
+              ⚡ You will be connected via live Agora Video Call immediately after payment.
+            </div>
+
+            <div className="flex items-center gap-3 mt-1">
+              <button onClick={() => setIsInstantModalOpen(false)} className="flex-1 py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-2xl text-xs transition-colors cursor-pointer">Cancel</button>
+              <button onClick={handleConfirmInstantCallPayment} className="flex-1 py-3 bg-amber-500 hover:bg-amber-600 text-stone-950 font-extrabold rounded-2xl text-xs shadow-md transition-colors cursor-pointer">Pay ₹{matchedInstantDoctor.fee} & Connect ⚡</button>
+            </div>
           </div>
         </div>
       )}

@@ -175,6 +175,63 @@ export function isSlotTimePast(slotTimeStr: string, selectedDateNum?: number): b
   return now > slotDateTime;
 }
 
+export function isSlotBookingCutoff(slotTimeStr: string, slotDateStr?: string): boolean {
+  if (!slotTimeStr) return false;
+
+  try {
+    const now = new Date();
+    let slotYear = now.getFullYear();
+    let slotMonth = now.getMonth();
+    let slotDay = now.getDate();
+
+    if (slotDateStr) {
+      const dStr = slotDateStr.trim().toLowerCase();
+      if (dStr === 'today' || dStr === 'daily') {
+        // keep today
+      } else if (dStr === 'tomorrow') {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        slotYear = tomorrow.getFullYear();
+        slotMonth = tomorrow.getMonth();
+        slotDay = tomorrow.getDate();
+      } else {
+        const isoMatch = slotDateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+        if (isoMatch) {
+          slotYear = parseInt(isoMatch[1], 10);
+          slotMonth = parseInt(isoMatch[2], 10) - 1;
+          slotDay = parseInt(isoMatch[3], 10);
+        } else {
+          const monthDayMatch = slotDateStr.match(/^([a-z]+)\s+(\d{1,2})/i);
+          if (monthDayMatch) {
+            const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+            const mIdx = monthNames.findIndex(m => monthDayMatch[1].toLowerCase().startsWith(m));
+            if (mIdx !== -1) slotMonth = mIdx;
+            slotDay = parseInt(monthDayMatch[2], 10);
+          }
+        }
+      }
+    }
+
+    const match = slotTimeStr.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+    if (!match) return false;
+
+    let hours = parseInt(match[1], 10);
+    const minutes = parseInt(match[2], 10);
+    const ampm = match[3] ? match[3].toUpperCase() : null;
+
+    if (ampm === 'PM' && hours < 12) hours += 12;
+    if (ampm === 'AM' && hours === 12) hours = 0;
+
+    const slotStartTime = new Date(slotYear, slotMonth, slotDay, hours, minutes, 0, 0);
+    // 10:00 slot cutoff is 10:20 (10 min before slot end / 10 min into 30-min window)
+    const cutoffTime = new Date(slotStartTime.getTime() - 10 * 60 * 1000);
+
+    return now > cutoffTime;
+  } catch (e) {
+    return false;
+  }
+}
+
 export function getAppointmentDisplayStatus(appt: any): { label: string; statusClass: string; isExpired: boolean } {
   if (!appt) return { label: 'UNKNOWN', statusClass: 'bg-stone-100 text-stone-600 border-stone-200', isExpired: false };
 

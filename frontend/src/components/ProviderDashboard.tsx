@@ -27,7 +27,7 @@ interface Appointment {
   fee: number;
   mode: 'in-clinic' | 'tele-consult';
   type: 'vet' | 'expert' | 'pet_service';
-  status: 'confirmed' | 'pending' | 'cancelled';
+  status: 'confirmed' | 'pending' | 'cancelled' | 'completed';
   notes?: string;
   medicalDocument?: string;
   prescription?: string;
@@ -216,6 +216,40 @@ export default function ProviderDashboard() {
       }
     } catch (err) {
       console.error('Error fetching appointments:', err);
+    }
+  };
+
+  const handleAcceptInstantRequest = async (appt: Appointment) => {
+    try {
+      const res = await fetch(`${API_BASE}/appointments/${appt._id || appt.bookingId}/accept`, {
+        method: 'PUT',
+        headers: getAuthHeaders()
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setPopupConfig({ message: 'Instant consultation request accepted!', type: 'success' });
+        if (provider?._id) fetchAppointments(provider._id);
+        setActiveCallAppt(appt);
+      } else {
+        setPopupConfig({ message: data.message || 'Failed to accept request', type: 'error' });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleRejectInstantRequest = async (appt: Appointment) => {
+    try {
+      const res = await fetch(`${API_BASE}/appointments/${appt._id || appt.bookingId}/reject`, {
+        method: 'PUT',
+        headers: getAuthHeaders()
+      });
+      if (res.ok) {
+        setPopupConfig({ message: 'Instant request declined', type: 'info' });
+        if (provider?._id) fetchAppointments(provider._id);
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -611,6 +645,43 @@ export default function ProviderDashboard() {
         {/* TAB 1: OVERVIEW & CONSULTATION DASHBOARD */}
         {activeTab === 'overview' && (
           <div className="space-y-6">
+
+            {/* PENDING INSTANT CONSULTATION NOTIFICATION BANNER */}
+            {(() => {
+              const pendingInstant = appointments.find(a => (a.status === 'pending' || (a as any).isInstant) && a.status !== 'cancelled' && a.status !== 'completed');
+              if (!pendingInstant) return null;
+              return (
+                <div className="w-full bg-gradient-to-r from-[#2D4536] via-[#1E2E24] to-[#121E17] text-white p-5 rounded-3xl shadow-xl border-2 border-emerald-400 animate-pulse flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-emerald-400 text-stone-950 flex items-center justify-center font-extrabold text-2xl animate-bounce shrink-0">
+                      ⚡
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-base font-extrabold text-white">Incoming Instant Call Request!</h4>
+                        <span className="bg-emerald-400 text-stone-950 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase">PAID & READY</span>
+                      </div>
+                      <p className="text-xs text-stone-300 font-semibold mt-0.5">Pet: {pendingInstant.petName} • Owner: {pendingInstant.userEmail}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 w-full sm:w-auto shrink-0">
+                    <button
+                      onClick={() => handleRejectInstantRequest(pendingInstant)}
+                      className="flex-1 sm:flex-none px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-xl transition-all cursor-pointer"
+                    >
+                      Decline
+                    </button>
+                    <button
+                      onClick={() => handleAcceptInstantRequest(pendingInstant)}
+                      className="flex-1 sm:flex-none px-5 py-2.5 bg-emerald-400 hover:bg-emerald-300 text-stone-950 font-extrabold text-xs rounded-xl shadow-lg transition-all cursor-pointer flex items-center gap-1.5"
+                    >
+                      <span>Accept & Connect Video Call</span>
+                      <span>⚡</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
             
             {/* 1. HERO GREETING BANNER */}
             <div className="bg-[#FAF5EF] border border-[#EBE3D5] rounded-3xl p-5 sm:p-6 shadow-sm flex items-center justify-between relative overflow-hidden select-none">

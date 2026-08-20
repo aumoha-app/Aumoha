@@ -31,14 +31,14 @@ export default function CallSessionButton({ appointment, onJoinCall, className }
         setSession(data.session);
       }
     } catch {
-      // Silent catch during background polling or server restarts
+      // Silent catch during background polling
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (appointment && appointment.mode === 'tele-consult') {
+    if (appointment) {
       fetchSessionStatus();
       const interval = setInterval(() => {
         fetchSessionStatus();
@@ -47,29 +47,6 @@ export default function CallSessionButton({ appointment, onJoinCall, className }
       return () => clearInterval(interval);
     }
   }, [appointment, token]);
-
-  const handleRequestCall = async () => {
-    if (!targetId) return;
-    setRequesting(true);
-    try {
-      const res = await fetch(`${API_BASE}/appointments/${targetId}/call/request`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({ callType: 'video' })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setSession(data.session);
-      }
-    } catch (err) {
-      console.error('Error requesting call:', err);
-    } finally {
-      setRequesting(false);
-    }
-  };
 
   const handleDirectJoin = async () => {
     if (requesting) return;
@@ -98,7 +75,7 @@ export default function CallSessionButton({ appointment, onJoinCall, className }
     }
   };
 
-  if (!appointment || appointment.mode !== 'tele-consult') {
+  if (!appointment) {
     return null;
   }
 
@@ -120,7 +97,6 @@ export default function CallSessionButton({ appointment, onJoinCall, className }
     );
   }
 
-  // If call was completed/ended
   if (session && session.status === 'ended') {
     return (
       <div className={`w-full py-2.5 bg-stone-100 text-stone-500 text-xs font-bold rounded-2xl text-center border border-stone-200 ${className || ''}`}>
@@ -129,41 +105,27 @@ export default function CallSessionButton({ appointment, onJoinCall, className }
     );
   }
 
-  // Check if meet time has arrived
-  const isTimeReached = isAppointmentTimeReached(appointment);
+  // Instant consultations & tele-consultations are immediately joinable
+  const isTimeReached = appointment.isInstant || isAppointmentTimeReached(appointment);
 
-  if (!isTimeReached) {
-    return (
-      <div 
-        className={`w-full py-3 px-3 bg-[#EAE6DF] text-stone-600 text-xs font-bold rounded-2xl text-center border border-stone-300 flex items-center justify-center gap-1.5 cursor-not-allowed opacity-85 select-none ${className || ''}`}
-        title="Call button activates when the scheduled appointment time arrives"
-      >
-        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-stone-500">
-          <circle cx="12" cy="12" r="10" />
-          <polyline points="12 6 12 12 16 14" />
-        </svg>
-        <span>Join Call (Active at {appointment.time || 'Meet Time'})</span>
-      </div>
-    );
-  }
-
-  // Active / Ready / Direct Join Button
   return (
     <button
       type="button"
       onClick={handleDirectJoin}
       disabled={requesting}
-      className={`w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white text-xs font-extrabold rounded-2xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer ${className || ''}`}
+      className={`w-full py-3.5 bg-[#2D4536] hover:bg-[#1E2E24] active:scale-[0.99] text-white text-xs font-extrabold rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer ${className || ''}`}
     >
       {requesting ? (
         <>
-          <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-          <span>Connecting...</span>
+          <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          <span>Connecting to Call Room...</span>
         </>
       ) : (
         <>
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
-            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+            <polygon points="23 7 16 12 23 17 23 7" />
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
           </svg>
           <span>Join Call Room</span>
         </>
@@ -171,4 +133,3 @@ export default function CallSessionButton({ appointment, onJoinCall, className }
     </button>
   );
 }
-
