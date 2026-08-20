@@ -965,6 +965,34 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
         </div>
       </header>
 
+      {/* LIVE SYSTEM METRICS & COUNTERS GRID */}
+      <div className="grid grid-cols-2 xs:grid-cols-3 md:grid-cols-6 gap-3 select-none">
+        <div className="bg-[#FAF5EF] border border-[#EBE3D5] p-3.5 rounded-2xl flex flex-col gap-1">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-stone-500">Total Users</span>
+          <span className="font-serif text-xl sm:text-2xl font-black text-[#1C1A17]">{usersList.length || 1}</span>
+        </div>
+        <div className="bg-[#FAF5EF] border border-[#EBE3D5] p-3.5 rounded-2xl flex flex-col gap-1">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#9A4B1A]">Doctors / Vets</span>
+          <span className="font-serif text-xl sm:text-2xl font-black text-[#9A4B1A]">{vets.filter(v => v.category === 'vet' || !v.category).length || 1}</span>
+        </div>
+        <div className="bg-[#FAF5EF] border border-[#EBE3D5] p-3.5 rounded-2xl flex flex-col gap-1">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-800">Specialists</span>
+          <span className="font-serif text-xl sm:text-2xl font-black text-emerald-800">{vets.filter(v => v.category === 'expert').length || 1}</span>
+        </div>
+        <div className="bg-[#FAF5EF] border border-[#EBE3D5] p-3.5 rounded-2xl flex flex-col gap-1">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-rose-700">SOS Alerts</span>
+          <span className="font-serif text-xl sm:text-2xl font-black text-rose-700">{sosReports.length}</span>
+        </div>
+        <div className="bg-[#FAF5EF] border border-[#EBE3D5] p-3.5 rounded-2xl flex flex-col gap-1">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-800">Active Calls</span>
+          <span className="font-serif text-xl sm:text-2xl font-black text-blue-800">{callSessions.filter(s => s.status !== 'ended').length}</span>
+        </div>
+        <div className="bg-[#FAF5EF] border border-[#EBE3D5] p-3.5 rounded-2xl flex flex-col gap-1">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-stone-600">Products</span>
+          <span className="font-serif text-xl sm:text-2xl font-black text-stone-700">{products.length}</span>
+        </div>
+      </div>
+
       {/* TAB NAVIGATION PILLS */}
       <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scrollbar-none pb-2.5 border-b border-[#EBE3D5] select-none -mx-1 px-1">
         <button
