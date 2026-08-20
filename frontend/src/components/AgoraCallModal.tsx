@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Component, ErrorInfo, ReactNode, useState, useEffect, useRef } from 'react';
+import React, { Component, ErrorInfo, ReactNode, useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE } from '../lib/api';
 
@@ -21,8 +21,8 @@ interface VideoCallInterfaceProps {
 function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallInterfaceProps) {
   const { token: authToken, user } = useAuth();
   
-  const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
-  const selfVideoRef = useRef<HTMLVideoElement | null>(null);
+  const remoteVideoRef = useRef<HTMLDivElement | null>(null);
+  const selfVideoRef = useRef<HTMLDivElement | null>(null);
   const pipRef = useRef<HTMLDivElement | null>(null);
   const chatMessagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -31,7 +31,6 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
   const [muted, setMuted] = useState<boolean>(false);
   const [videoOff, setVideoOff] = useState<boolean>(false);
   const [callDuration, setCallDuration] = useState<number>(0);
-  const [playBlocked, setPlayBlocked] = useState<boolean>(false);
 
   // In-Call Chat State
   const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
@@ -44,21 +43,16 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const dragOffsetRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
-  const localStreamRef = useRef<MediaStream | null>(null);
-  const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
-  const dataChannelRef = useRef<RTCDataChannel | null>(null);
-  const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
-  const lastSignalTimeRef = useRef<number>(typeof Date !== 'undefined' ? Date.now() - 500 : 0);
-  const makingOfferRef = useRef<boolean>(false);
-  const ignoreOfferRef = useRef<boolean>(false);
+  // Agora SDK refs
+  const agoraClientRef = useRef<any>(null);
+  const localAudioTrackRef = useRef<any>(null);
+  const localVideoTrackRef = useRef<any>(null);
+  const joinedRef = useRef<boolean>(false);
 
   const selfEmail = user?.email || (typeof window !== 'undefined' ? sessionStorage.getItem('user_email') || 'user_a' : 'user_a');
   const selfName = user?.fullName || (appointment?.userEmail ? appointment.userEmail.split('@')[0] : 'You');
   const patientName = appointment?.petName || 'Patient';
   const doctorOrTitle = appointment?.vetName || 'Doctor';
-
-  // Determine polite vs impolite peer to resolve WebRTC glare
-  const isPolite = useRef<boolean>(true);
 
   // 1. Freeze body scroll when call modal is open
   useEffect(() => {
@@ -96,285 +90,148 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Acquire Local Camera & Microphone (Mobile & Desktop Compatible + Fallback Stream Generator)
+  // Agora SDK initialization and join
   useEffect(() => {
-    let isSubscribed = true;
+    if (typeof window === 'undefined' || !targetApptId) return;
 
-    const getMedia = async () => {
-      if (typeof window === 'undefined') return;
+    let isMounted = true;
+    const AGORA_APP_ID = process.env.NEXT_PUBLIC_AGORA_APP_ID || '';
 
-      let stream: MediaStream | null = null;
-      if (navigator.mediaDevices?.getUserMedia) {
-        try {
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
-            audio: true
-          });
-        } catch (err) {
-          try {
-            stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-          } catch (fallbackErr) {
-            console.warn('Media capture fallback note:', fallbackErr);
-          }
-        }
-      }
+    const initAgora = async () => {
+      try {
+        const AgoraRTC = (await import('agora-rtc-sdk-ng')).default;
+        
+        const client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+        agoraClientRef.current = client;
 
-      // Canvas Fallback Stream Generator if camera is locked by another app
-      if (!stream) {
-        try {
-          const canvas = document.createElement('canvas');
-          canvas.width = 320;
-          canvas.height = 240;
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            ctx.fillStyle = '#1C2E24';
-            ctx.fillRect(0, 0, 320, 240);
-            ctx.fillStyle = '#10B981';
-            ctx.font = '20px sans-serif';
-            ctx.fillText(selfName.charAt(0).toUpperCase(), 150, 125);
-          }
-          const canvasStream = canvas.captureStream(15);
-          stream = canvasStream;
-        } catch (e) {}
-      }
-
-      if (!isSubscribed) return;
-
-      if (stream) {
-        localStreamRef.current = stream;
-        if (selfVideoRef.current) {
-          selfVideoRef.current.srcObject = stream;
-          selfVideoRef.current.play().catch(() => {});
-        }
-        setStreamActive(true);
-
-        // Dynamically add tracks to PeerConnection if instantiated
-        if (peerConnectionRef.current) {
-          const pc = peerConnectionRef.current;
-          const senders = pc.getSenders();
-          stream.getTracks().forEach((track) => {
-            if (!senders.some((s) => s.track === track)) {
-              try {
-                pc.addTrack(track, stream!);
-              } catch (e) {}
+        client.on('user-published', async (remoteUser: any, mediaType: 'audio' | 'video') => {
+          await client.subscribe(remoteUser, mediaType as any);
+          
+          if (mediaType === 'video') {
+            if (isMounted) setRemoteConnected(true);
+            if (remoteVideoRef.current) {
+              remoteUser.videoTrack?.play(remoteVideoRef.current);
             }
-          });
-        }
-      }
-    };
-
-    getMedia();
-
-    return () => {
-      isSubscribed = false;
-      if (localStreamRef.current) {
-        localStreamRef.current.getTracks().forEach((t) => t.stop());
-      }
-    };
-  }, []);
-
-  // WebRTC Perfect Negotiation & Dual Signaling (Works across 4G/5G mobile & desktop)
-  useEffect(() => {
-    if (!targetApptId) return;
-
-    lastSignalTimeRef.current = Date.now() - 500;
-
-    const pc = new RTCPeerConnection({
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'stun:stun2.l.google.com:19302' },
-        { urls: 'stun:global.stun.twilio.com:3478' },
-        { urls: 'turn:openrelay.metered.ca:80', username: 'openrelay', credential: 'openrelay' },
-        { urls: 'turn:openrelay.metered.ca:443', username: 'openrelay', credential: 'openrelay' },
-        { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelay', credential: 'openrelay' }
-      ]
-    });
-    peerConnectionRef.current = pc;
-
-    // Attach local media stream tracks
-    if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach((track) => {
-        try {
-          pc.addTrack(track, localStreamRef.current!);
-        } catch (e) {}
-      });
-    }
-
-    // DataChannel for 0ms chat
-    try {
-      const dc = pc.createDataChannel('chat');
-      dataChannelRef.current = dc;
-      dc.onmessage = (e) => {
-        try {
-          const data = JSON.parse(e.data);
-          if (data.type === 'chat') receiveChatMessage(data.senderName, data.text);
-        } catch (err) {}
-      };
-    } catch (e) {}
-
-    pc.ondatachannel = (event) => {
-      const dc = event.channel;
-      dataChannelRef.current = dc;
-      dc.onmessage = (e) => {
-        try {
-          const data = JSON.parse(e.data);
-          if (data.type === 'chat') receiveChatMessage(data.senderName, data.text);
-        } catch (err) {}
-      };
-    };
-
-    // Attach Remote Track & Trigger Playback
-    pc.ontrack = (event) => {
-      setRemoteConnected(true);
-      const remoteStream = event.streams && event.streams[0] ? event.streams[0] : new MediaStream([event.track]);
-      if (remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = remoteStream;
-        remoteVideoRef.current.play().then(() => {
-          setPlayBlocked(false);
-        }).catch((err) => {
-          console.warn('Autoplay restriction note:', err);
-          setPlayBlocked(true);
+          }
+          
+          if (mediaType === 'audio') {
+            remoteUser.audioTrack?.play();
+          }
         });
-      }
-    };
 
-    // BroadcastChannel for instant same-browser multi-tab WebRTC
-    const channelName = `aumoha_call_${targetApptId}`;
-    let bc: BroadcastChannel | null = null;
-    try {
-      if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
-        bc = new BroadcastChannel(channelName);
-        broadcastChannelRef.current = bc;
-        bc.onmessage = (ev) => handleIncomingSignal(ev.data);
-      }
-    } catch (e) {}
+        client.on('user-unpublished', (remoteUser: any, mediaType: string) => {
+          if (mediaType === 'video') {
+            // keep status
+          }
+        });
 
-    // Send Signal helper
-    const sendSignal = async (signalData: any) => {
-      const payload = { ...signalData, senderEmail: selfEmail };
-      if (bc) {
+        client.on('user-left', () => {
+          if (isMounted) setRemoteConnected(false);
+        });
+
+        let agoraToken: string | null = null;
+        let uid: number = Math.floor(Math.random() * 100000);
+        
         try {
-          bc.postMessage(payload);
-        } catch (e) {}
-      }
-
-      if (authToken) {
-        try {
-          await fetch(`${API_BASE}/appointments/${targetApptId}/call/signal`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${authToken}`
-            },
-            body: JSON.stringify({ signal: payload })
+          const tokenRes = await fetch(`${API_BASE}/appointments/${targetApptId}/token`, {
+            headers: authToken ? { Authorization: `Bearer ${authToken}` } : {}
           });
-        } catch (e) {}
-      }
-    };
+          if (tokenRes.ok) {
+            const tokenData = await tokenRes.json();
+            if (tokenData.token) {
+              agoraToken = tokenData.token;
+              if (tokenData.uid) uid = tokenData.uid;
+            }
+          }
+        } catch (err) {
+          console.warn('Token fetch failed, joining without token:', err);
+        }
 
-    // ICE Candidate Exchange
-    pc.onicecandidate = (event) => {
-      if (event.candidate) {
-        sendSignal({ type: 'candidate', candidate: event.candidate });
-      }
-    };
+        try {
+          const [audioTrack, videoTrack] = await AgoraRTC.createMicrophoneAndCameraTracks(
+            { encoderConfig: 'speech_standard' },
+            { encoderConfig: { width: 640, height: 480, frameRate: 15 } }
+          );
 
-    // W3C Perfect Negotiation handler (Resolves WebRTC glare)
-    pc.onnegotiationneeded = async () => {
-      try {
-        makingOfferRef.current = true;
-        await pc.setLocalDescription();
-        sendSignal({ type: 'description', description: pc.localDescription });
-      } catch (err) {
-        console.warn('Negotiation error:', err);
-      } finally {
-        makingOfferRef.current = false;
-      }
-    };
-
-    // Process incoming signals using Perfect Negotiation logic
-    const handleIncomingSignal = async (signal: any) => {
-      if (!pc || pc.signalingState === 'closed') return;
-      if (signal.senderEmail === selfEmail) return; // Ignore own signals
-
-      // Determine polite status: Doctor/Host is impolite, Patient is polite
-      isPolite.current = selfEmail < (signal.senderEmail || '');
-
-      try {
-        if (signal.type === 'description' || signal.description) {
-          const description = signal.description || signal.offer || signal.answer;
-          const offerCollision = description.type === 'offer' && (makingOfferRef.current || pc.signalingState !== 'stable');
-
-          ignoreOfferRef.current = !isPolite.current && offerCollision;
-          if (ignoreOfferRef.current) {
+          if (!isMounted) {
+            audioTrack.close();
+            videoTrack.close();
             return;
           }
 
-          await pc.setRemoteDescription(new RTCSessionDescription(description));
-          if (description.type === 'offer') {
-            await pc.setLocalDescription();
-            sendSignal({ type: 'description', description: pc.localDescription });
+          localAudioTrackRef.current = audioTrack;
+          localVideoTrackRef.current = videoTrack;
+
+          if (selfVideoRef.current) {
+            videoTrack.play(selfVideoRef.current);
           }
-        } else if (signal.type === 'candidate' && signal.candidate) {
+          setStreamActive(true);
+        } catch (mediaErr) {
+          console.warn('Camera/mic access issue, attempting audio-only:', mediaErr);
           try {
-            await pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
-          } catch (err) {
-            if (!ignoreOfferRef.current) {
-              console.warn('Error adding ICE candidate:', err);
+            const audioTrack = await AgoraRTC.createMicrophoneAudioTrack({ encoderConfig: 'speech_standard' });
+            if (!isMounted) {
+              audioTrack.close();
+              return;
             }
+            localAudioTrackRef.current = audioTrack;
+            setStreamActive(true);
+          } catch (audioErr) {
+            console.warn('Audio capture also failed:', audioErr);
+            setStreamActive(true);
           }
-        } else if (signal.type === 'chat') {
-          receiveChatMessage(signal.senderName, signal.text);
-        } else if (signal.type === 'ping') {
-          sendSignal({ type: 'pong' });
         }
+
+        const channelName = targetApptId;
+        await client.join(AGORA_APP_ID, channelName, agoraToken, uid);
+        joinedRef.current = true;
+
+        const tracksToPublish = [localAudioTrackRef.current, localVideoTrackRef.current].filter(Boolean);
+        if (tracksToPublish.length > 0) {
+          await client.publish(tracksToPublish);
+        }
+
+        if (authToken) {
+          try {
+            await fetch(`${API_BASE}/appointments/${targetApptId}/consultation/start`, {
+              method: 'PUT',
+              headers: { Authorization: `Bearer ${authToken}` }
+            });
+          } catch (e) {}
+        }
+
       } catch (err) {
-        console.warn('Signal handling note:', err);
+        console.error('Agora init error:', err);
       }
     };
 
-    // Signal Polling Loop (every 1s for cross-network mobile connectivity)
-    const signalInterval = setInterval(async () => {
-      if (!authToken || pc.signalingState === 'closed') return;
-      try {
-        const res = await fetch(`${API_BASE}/appointments/${targetApptId}/call/signals?since=${lastSignalTimeRef.current}`, {
-          headers: { Authorization: `Bearer ${authToken}` }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.signals && data.signals.length > 0) {
-            for (const item of data.signals) {
-              if (item.timestamp > lastSignalTimeRef.current) {
-                lastSignalTimeRef.current = item.timestamp;
-                handleIncomingSignal(item.signal);
-              }
-            }
-          }
-        }
-      } catch (e) {}
-    }, 1000);
-
-    // Initial ping to trigger negotiation
-    sendSignal({ type: 'ping' });
+    initAgora();
 
     return () => {
-      clearInterval(signalInterval);
-      if (bc) bc.close();
-      pc.close();
+      isMounted = false;
+      const cleanup = async () => {
+        try {
+          if (localAudioTrackRef.current) {
+            localAudioTrackRef.current.close();
+            localAudioTrackRef.current = null;
+          }
+          if (localVideoTrackRef.current) {
+            localVideoTrackRef.current.close();
+            localVideoTrackRef.current = null;
+          }
+          if (agoraClientRef.current && joinedRef.current) {
+            await agoraClientRef.current.leave();
+            joinedRef.current = false;
+          }
+        } catch (e) {
+          console.warn('Agora cleanup error:', e);
+        }
+      };
+      cleanup();
     };
-  }, [targetApptId, authToken, selfEmail]);
+  }, [targetApptId, authToken]);
 
-  // Force play remote stream on user interaction if mobile browser blocked autoplay
-  const handleUserPlayRemote = () => {
-    setPlayBlocked(false);
-    if (remoteVideoRef.current) {
-      remoteVideoRef.current.play().catch(() => {});
-    }
-  };
-
-  // Append incoming chat message
-  const receiveChatMessage = (senderName: string, text: string) => {
+  const receiveChatMessage = useCallback((senderName: string, text: string) => {
     if (!text || !text.trim()) return;
     const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
@@ -397,9 +254,38 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
     if (!isChatOpen) {
       setUnreadCount((count) => count + 1);
     }
-  };
+  }, [isChatOpen]);
 
-  // Send Chat Message
+  const lastSignalTimeRef = useRef<number>(typeof Date !== 'undefined' ? Date.now() - 500 : 0);
+  
+  useEffect(() => {
+    if (!authToken || !targetApptId) return;
+    
+    const signalInterval = setInterval(async () => {
+      try {
+        const res = await fetch(`${API_BASE}/appointments/${targetApptId}/call/signals?since=${lastSignalTimeRef.current}`, {
+          headers: { Authorization: `Bearer ${authToken}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.signals && data.signals.length > 0) {
+            for (const item of data.signals) {
+              if (item.timestamp > lastSignalTimeRef.current) {
+                lastSignalTimeRef.current = item.timestamp;
+                const signal = item.signal;
+                if (signal && signal.type === 'chat' && signal.senderEmail !== selfEmail) {
+                  receiveChatMessage(signal.senderName, signal.text);
+                }
+              }
+            }
+          }
+        }
+      } catch (e) {}
+    }, 2000);
+
+    return () => clearInterval(signalInterval);
+  }, [authToken, targetApptId, selfEmail, receiveChatMessage]);
+
   const handleSendMessage = async () => {
     if (!chatInput.trim()) return;
     const textToSend = chatInput.trim();
@@ -415,18 +301,6 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
     setMessages((prev) => [...prev, newMsg]);
     setChatInput('');
 
-    if (dataChannelRef.current && dataChannelRef.current.readyState === 'open') {
-      try {
-        dataChannelRef.current.send(JSON.stringify({ type: 'chat', senderName: selfName, text: textToSend }));
-      } catch (e) {}
-    }
-
-    if (broadcastChannelRef.current) {
-      try {
-        broadcastChannelRef.current.postMessage({ type: 'chat', senderName: selfName, text: textToSend });
-      } catch (e) {}
-    }
-
     if (authToken) {
       try {
         await fetch(`${API_BASE}/appointments/${targetApptId}/call/signal`, {
@@ -435,35 +309,28 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
             'Content-Type': 'application/json',
             Authorization: `Bearer ${authToken}`
           },
-          body: JSON.stringify({ signal: { type: 'chat', senderName: selfName, text: textToSend } })
+          body: JSON.stringify({ signal: { type: 'chat', senderName: selfName, senderEmail: selfEmail, text: textToSend } })
         });
       } catch (e) {}
     }
   };
 
-  // Toggle Mute
   const handleToggleMute = () => {
     const nextMuted = !muted;
     setMuted(nextMuted);
-    if (localStreamRef.current) {
-      localStreamRef.current.getAudioTracks().forEach((track) => {
-        track.enabled = !nextMuted;
-      });
+    if (localAudioTrackRef.current) {
+      localAudioTrackRef.current.setEnabled(!nextMuted);
     }
   };
 
-  // Toggle Camera
   const handleToggleVideo = () => {
     const nextVideoOff = !videoOff;
     setVideoOff(nextVideoOff);
-    if (localStreamRef.current) {
-      localStreamRef.current.getVideoTracks().forEach((track) => {
-        track.enabled = !nextVideoOff;
-      });
+    if (localVideoTrackRef.current) {
+      localVideoTrackRef.current.setEnabled(!nextVideoOff);
     }
   };
 
-  // PiP Drag Handlers
   const handleDragStart = (clientX: number, clientY: number) => {
     if (!pipRef.current) return;
     const rect = pipRef.current.getBoundingClientRect();
@@ -555,30 +422,13 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
       </div>
 
       {/* Main Video Screen Container */}
-      <div 
-        onClick={handleUserPlayRemote}
-        className="relative w-full h-full flex items-center justify-center bg-[#121215] cursor-pointer"
-      >
-        {/* Remote Participant Video Stream */}
-        <video
+      <div className="relative w-full h-full flex items-center justify-center bg-[#121215]">
+        <div
           ref={remoteVideoRef}
-          autoPlay
-          playsInline
-          className={`w-full h-full object-cover transition-opacity duration-300 ${remoteConnected ? 'opacity-100' : 'opacity-0 absolute'}`}
+          className={`w-full h-full transition-opacity duration-300 ${remoteConnected ? 'opacity-100' : 'opacity-0 absolute'}`}
+          style={{ background: 'transparent' }}
         />
 
-        {/* Play Blocked Tap Banner for Mobile Browsers */}
-        {playBlocked && remoteConnected && (
-          <div className="absolute inset-0 z-40 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center text-white gap-3 animate-fadeIn">
-            <div className="w-16 h-16 rounded-full bg-emerald-600 text-white flex items-center justify-center text-2xl font-bold shadow-2xl animate-pulse">
-              ▶
-            </div>
-            <h4 className="text-base font-extrabold">Tap to Join Live Stream</h4>
-            <p className="text-xs text-stone-300">Mobile browser blocked automatic video playback. Tap anywhere on screen to start video.</p>
-          </div>
-        )}
-
-        {/* Remote Participant Connecting Placeholder */}
         {!remoteConnected && (
           <div className="flex flex-col items-center justify-center p-8 text-white text-center gap-4 animate-fadeIn">
             <div className="relative">
@@ -595,7 +445,6 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
           </div>
         )}
 
-        {/* DRAGGABLE & SIDE-STICKING Picture-in-Picture (PiP) Self Preview Window */}
         <div
           ref={pipRef}
           onMouseDown={(e) => handleDragStart(e.clientX, e.clientY)}
@@ -614,12 +463,10 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
             pipPos ? '' : 'absolute bottom-24 right-4 sm:bottom-28 sm:right-6'
           } ${isDragging ? 'cursor-grabbing scale-105 shadow-2xl' : 'cursor-grab hover:border-emerald-400/50'}`}
         >
-          <video
+          <div
             ref={selfVideoRef}
-            autoPlay
-            playsInline
-            muted
-            className={`w-full h-full object-cover transform -scale-x-100 pointer-events-none ${!videoOff ? 'block' : 'hidden'}`}
+            className={`w-full h-full pointer-events-none ${!videoOff ? 'block' : 'hidden'}`}
+            style={{ transform: 'scaleX(-1)' }}
           />
 
           {videoOff && (
@@ -648,7 +495,6 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
       {/* FLOATING IN-CALL CHAT DRAWER */}
       {isChatOpen && (
         <div className="absolute bottom-24 left-4 right-4 sm:left-auto sm:right-6 sm:w-96 max-h-[420px] bg-[#18181C]/95 backdrop-blur-2xl border border-white/20 rounded-3xl p-4 shadow-2xl z-50 flex flex-col gap-3 animate-fadeIn pointer-events-auto">
-          {/* Chat Header */}
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <div className="flex items-center gap-2">
               <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -663,7 +509,6 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
             </button>
           </div>
 
-          {/* Messages Feed */}
           <div className="flex-1 overflow-y-auto max-h-64 flex flex-col gap-2.5 pr-1 text-xs">
             {messages.length === 0 ? (
               <div className="text-center py-8 text-stone-500 text-[11px] font-medium italic">
@@ -695,7 +540,6 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
             <div ref={chatMessagesEndRef} />
           </div>
 
-          {/* Chat Input Field */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -724,7 +568,6 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
       {/* Floating Call Controls Panel */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-[#18181C]/90 backdrop-blur-xl border border-white/15 px-5 py-3 rounded-full flex items-center gap-4 shadow-2xl z-30 pointer-events-auto">
         
-        {/* Toggle Audio Mute */}
         <button
           type="button"
           onClick={handleToggleMute}
@@ -753,7 +596,6 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
           )}
         </button>
 
-        {/* Toggle Video Camera */}
         <button
           type="button"
           onClick={handleToggleVideo}
@@ -777,7 +619,6 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
           )}
         </button>
 
-        {/* Toggle In-Call Chat */}
         <button
           type="button"
           onClick={() => setIsChatOpen((prev) => !prev)}
@@ -798,7 +639,6 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
           )}
         </button>
 
-        {/* End Call CTA */}
         <button
           type="button"
           onClick={onEndCall}
@@ -918,6 +758,10 @@ export default function AgoraCallModal({ appointmentId, channelName, appointment
   const handleEndCall = async () => {
     try {
       if (targetApptId) {
+        await fetch(`${API_BASE}/appointments/${targetApptId}/consultation/end`, {
+          method: 'PUT',
+          headers: authToken ? { Authorization: `Bearer ${authToken}` } : {}
+        });
         await fetch(`${API_BASE}/appointments/${targetApptId}/call/end`, {
           method: 'PUT',
           headers: authToken ? { Authorization: `Bearer ${authToken}` } : {}
