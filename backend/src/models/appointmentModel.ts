@@ -13,7 +13,7 @@ export interface IAppointment extends Document {
   type: 'vet' | 'expert' | 'pet_service';
   petName: string;
   petId?: string;
-  status: 'confirmed' | 'pending' | 'cancelled';
+  status: 'confirmed' | 'pending' | 'cancelled' | 'completed';
   notes?: string;
   medicalDocument?: string; // base64 or URL
   prescription?: string;      // base64 or URL or text
@@ -22,6 +22,9 @@ export interface IAppointment extends Document {
   razorpayPaymentId?: string;
   razorpayOrderId?: string;
   razorpaySignature?: string;
+  isInstant?: boolean;
+  consultationStartedAt?: Date;
+  consultationEndedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -41,7 +44,7 @@ const AppointmentSchema = new Schema(
     type: { type: String, enum: ['vet', 'expert', 'pet_service'], default: 'vet' },
     petName: { type: String, required: true },
     petId: { type: String, default: '' },
-    status: { type: String, enum: ['confirmed', 'pending', 'cancelled'], default: 'confirmed' },
+    status: { type: String, enum: ['confirmed', 'pending', 'cancelled', 'completed'], default: 'confirmed' },
     notes: { type: String, default: '' },
     medicalDocument: { type: String, default: '' },
     prescription: { type: String, default: '' },
@@ -49,7 +52,10 @@ const AppointmentSchema = new Schema(
     bookingId: { type: String, required: true, unique: true },
     razorpayPaymentId: { type: String, default: '' },
     razorpayOrderId: { type: String, default: '' },
-    razorpaySignature: { type: String, default: '' }
+    razorpaySignature: { type: String, default: '' },
+    isInstant: { type: Boolean, default: false },
+    consultationStartedAt: { type: Date, default: null },
+    consultationEndedAt: { type: Date, default: null }
   },
   {
     timestamps: true

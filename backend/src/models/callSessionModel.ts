@@ -7,6 +7,9 @@ export interface ICallSession extends Document {
   callType: 'audio' | 'video';
   status: 'requested' | 'ready' | 'ongoing' | 'ended' | 'cancelled';
   agoraChannelName: string;
+  isInstant?: boolean;
+  consultationStartedAt?: Date;
+  consultationEndedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
   endedAt?: Date;
@@ -24,6 +27,9 @@ const CallSessionSchema = new Schema(
       default: 'requested'
     },
     agoraChannelName: { type: String, required: true },
+    isInstant: { type: Boolean, default: false },
+    consultationStartedAt: { type: Date, default: null },
+    consultationEndedAt: { type: Date, default: null },
     endedAt: { type: Date }
   },
   {

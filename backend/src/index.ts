@@ -2713,6 +2713,67 @@ app.post('/api/appointments', authMiddleware, async (req: Request, res: Response
     const bookingId = `AMC-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
     let appointmentData: any = null;
 
+    // ---- 20-MINUTE BOOKING CUTOFF ENFORCEMENT ----
+    // A 10:00-10:30 slot can only be booked until 10:20. After that, block new bookings.
+    const slotTime = time || '';
+    const slotDate = date || '';
+    if (slotTime && slotDate) {
+      try {
+        const now = new Date();
+        let slotYear = now.getFullYear();
+        let slotMonth = now.getMonth();
+        let slotDay = now.getDate();
+
+        const dStr = slotDate.trim().toLowerCase();
+        if (dStr === 'today' || dStr === 'daily') {
+          // keep today
+        } else if (dStr === 'tomorrow') {
+          const tomorrow = new Date();
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          slotYear = tomorrow.getFullYear();
+          slotMonth = tomorrow.getMonth();
+          slotDay = tomorrow.getDate();
+        } else {
+          const isoMatch = slotDate.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+          if (isoMatch) {
+            slotYear = parseInt(isoMatch[1], 10);
+            slotMonth = parseInt(isoMatch[2], 10) - 1;
+            slotDay = parseInt(isoMatch[3], 10);
+          } else {
+            const monthDayMatch = slotDate.match(/^([a-z]+)\s+(\d{1,2})/i);
+            if (monthDayMatch) {
+              const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+              const mIdx = monthNames.findIndex(m => monthDayMatch[1].toLowerCase().startsWith(m));
+              if (mIdx !== -1) slotMonth = mIdx;
+              slotDay = parseInt(monthDayMatch[2], 10);
+            }
+          }
+        }
+
+        const timeMatch = slotTime.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+        if (timeMatch) {
+          let hours = parseInt(timeMatch[1], 10);
+          const minutes = parseInt(timeMatch[2], 10);
+          const ampm = timeMatch[3] ? timeMatch[3].toUpperCase() : null;
+          if (ampm === 'PM' && hours < 12) hours += 12;
+          if (ampm === 'AM' && hours === 12) hours = 0;
+
+          const slotStartTime = new Date(slotYear, slotMonth, slotDay, hours, minutes, 0, 0);
+          const cutoffTime = new Date(slotStartTime.getTime() - 10 * 60 * 1000); // 10 min before slot = 20 min into slot window
+
+          if (now > cutoffTime) {
+            return res.status(400).json({
+              status: 'error',
+              message: `Booking window for this slot has closed. Slots can only be booked up to 10 minutes before the scheduled time.`
+            });
+          }
+        }
+      } catch (cutoffErr) {
+        console.warn('Non-critical cutoff check error:', cutoffErr);
+        // Don't block booking if cutoff parsing fails
+      }
+    }
+
     // Doctor Lookup across MongoDB Vet, Fallback Vets, and User Model
     let vet: any = null;
     if (mongoose.connection.readyState === 1) {
@@ -2797,14 +2858,41 @@ app.post('/api/appointments', authMiddleware, async (req: Request, res: Response
       return res.status(400).json({ status: 'error', message: 'Time slot is already booked' });
     }
 
-    // Mark slot booked
-    slot.isBooked = true;
-    slot.bookedBy = bookingId;
-    if (typeof vet.markModified === 'function') {
-      vet.markModified('availableSlots');
-    }
-    if (typeof vet.save === 'function') {
-      await vet.save();
+    // ATOMIC DOUBLE-BOOKING PREVENTION using findOneAndUpdate
+    // This ensures two concurrent requests cannot both claim the same slot
+    if (typeof vet.save === 'function' && mongoose.connection.readyState === 1) {
+      const atomicResult = await Vet.findOneAndUpdate(
+        {
+          _id: vet._id,
+          'availableSlots._id': slot._id,
+          'availableSlots.isBooked': false
+        },
+        {
+          $set: {
+            'availableSlots.$.isBooked': true,
+            'availableSlots.$.bookedBy': bookingId
+          }
+        },
+        { new: true }
+      );
+
+      if (!atomicResult) {
+        // Another request already booked this slot between our read and this update
+        return res.status(409).json({ status: 'error', message: 'This slot was just booked by another user. Please select a different time.' });
+      }
+      // Update local reference
+      slot.isBooked = true;
+      slot.bookedBy = bookingId;
+    } else {
+      // Fallback mode: simple in-memory mark
+      slot.isBooked = true;
+      slot.bookedBy = bookingId;
+      if (typeof vet.markModified === 'function') {
+        vet.markModified('availableSlots');
+      }
+      if (typeof vet.save === 'function') {
+        await vet.save();
+      }
     }
 
     // Create Appointment Document
@@ -4771,6 +4859,499 @@ app.put('/api/provider/appointments/:id/prescription', authMiddleware, async (re
     return res.json({ status: 'success', appointment: appt });
   } catch (error) {
     console.error('Error adding prescription:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+
+// ==================== INSTANT CONSULTATION ENDPOINTS ====================
+
+// In-memory lock to prevent simultaneous instant-match of the same doctor
+const instantMatchLocks = new Set<string>();
+
+/**
+ * POST /api/instant-consultation/find
+ * Finds an available vet/expert for instant consultation
+ * Uses atomic lock to prevent same doctor being matched twice
+ */
+app.post('/api/instant-consultation/find', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userEmail = req.user?.email;
+    const { category } = req.body; // 'vet' | 'expert'
+
+    if (!userEmail) {
+      return res.status(401).json({ status: 'error', message: 'Authentication required' });
+    }
+
+    const targetCategory = category || 'vet';
+    let matchedDoctor: any = null;
+
+    if (mongoose.connection.readyState === 1) {
+      // 1. Try finding online doctors first
+      let candidates = await Vet.find({
+        isOnline: true,
+        isApproved: { $ne: false },
+        category: targetCategory === 'expert' ? { $ne: 'vet' } : 'vet'
+      });
+
+      // 2. Fallback to any approved doctor of that category if no online doctor is found
+      if (candidates.length === 0) {
+        candidates = await Vet.find({
+          isApproved: { $ne: false },
+          category: targetCategory === 'expert' ? { $ne: 'vet' } : 'vet'
+        });
+      }
+
+      // 3. Fallback to all approved doctors if still empty
+      if (candidates.length === 0) {
+        candidates = await Vet.find({ isApproved: { $ne: false } });
+      }
+
+      const activeSessions = await CallSession.find({
+        status: { $in: ['requested', 'ready', 'ongoing'] }
+      });
+      const busyDoctorIds = new Set(activeSessions.map((s: any) => String(s.expertOrVetId)));
+
+      for (const candidate of candidates) {
+        const candidateId = String(candidate._id);
+        if (instantMatchLocks.has(candidateId)) continue;
+        if (busyDoctorIds.has(candidateId)) continue;
+        if (candidate.email && candidate.email.toLowerCase() === userEmail.toLowerCase()) continue;
+
+        instantMatchLocks.add(candidateId);
+        setTimeout(() => instantMatchLocks.delete(candidateId), 120000);
+
+        matchedDoctor = candidate;
+        break;
+      }
+    }
+
+    // Fallback mode if DB is disconnected or no DB candidate matched
+    if (!matchedDoctor) {
+      let candidates = fallbackVets.filter((v: any) => {
+        if (v.email && v.email.toLowerCase() === userEmail.toLowerCase()) return false;
+        if (targetCategory === 'expert') return v.category !== 'vet';
+        return v.category === 'vet' || !v.category;
+      });
+
+      if (candidates.length === 0) {
+        candidates = fallbackVets;
+      }
+
+      const activeSessions = fallbackCallSessions.filter(
+        (s: any) => s.status === 'requested' || s.status === 'ready' || s.status === 'ongoing'
+      );
+      const busyDoctorIds = new Set(activeSessions.map((s: any) => String(s.expertOrVetId)));
+
+      for (const candidate of candidates) {
+        const candidateId = String(candidate._id);
+        if (instantMatchLocks.has(candidateId)) continue;
+        if (busyDoctorIds.has(candidateId)) continue;
+
+        instantMatchLocks.add(candidateId);
+        setTimeout(() => instantMatchLocks.delete(candidateId), 120000);
+
+        matchedDoctor = candidate;
+        break;
+      }
+    }
+
+    // Ultimate default doctor if candidates list is exhausted
+    if (!matchedDoctor && fallbackVets.length > 0) {
+      matchedDoctor = fallbackVets[0];
+    }
+
+    if (!matchedDoctor) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'No experts are available right now. Please try booking the next available slot.',
+        code: 'NO_AVAILABILITY'
+      });
+    }
+
+    return res.json({
+      status: 'success',
+      doctor: {
+        _id: matchedDoctor._id,
+        name: matchedDoctor.name,
+        photo: matchedDoctor.photo,
+        specialisation: matchedDoctor.specialisation,
+        category: matchedDoctor.category,
+        fee: matchedDoctor.fee,
+        rating: matchedDoctor.rating,
+        reviewCount: matchedDoctor.reviewCount,
+        experience: matchedDoctor.experience,
+        email: matchedDoctor.email
+      }
+    });
+  } catch (error) {
+    console.error('Error in POST /api/instant-consultation/find:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * POST /api/instant-consultation/create
+ * Creates an instant consultation after payment verification
+ */
+app.post('/api/instant-consultation/create', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userEmail = req.user?.email;
+    const {
+      vetId, petName, petId, callType,
+      razorpayPaymentId, razorpayOrderId, razorpaySignature
+    } = req.body;
+
+    if (!userEmail) {
+      return res.status(401).json({ status: 'error', message: 'Authentication required' });
+    }
+    if (!vetId || !petName) {
+      return res.status(400).json({ status: 'error', message: 'Missing required parameters (vetId, petName)' });
+    }
+
+    // Verify Razorpay payment
+    if (razorpayPaymentId && razorpaySignature) {
+      const isValid = verifyRazorpaySignature(razorpayOrderId || '', razorpayPaymentId, razorpaySignature);
+      if (!isValid) {
+        // Release the instant match lock
+        instantMatchLocks.delete(String(vetId));
+        return res.status(400).json({ status: 'error', message: 'Payment verification failed' });
+      }
+    } else {
+      instantMatchLocks.delete(String(vetId));
+      return res.status(400).json({ status: 'error', message: 'Payment is required for instant consultation' });
+    }
+
+    // Prevent duplicate consultation creation (idempotency via razorpayOrderId)
+    if (mongoose.connection.readyState === 1 && razorpayOrderId) {
+      const existingAppt = await Appointment.findOne({ razorpayOrderId });
+      if (existingAppt) {
+        instantMatchLocks.delete(String(vetId));
+        return res.json({ status: 'success', appointment: existingAppt, message: 'Consultation already created' });
+      }
+    }
+
+    // Lookup the matched doctor
+    let vet: any = null;
+    if (mongoose.connection.readyState === 1) {
+      vet = await Vet.findById(vetId);
+    }
+    if (!vet) {
+      vet = fallbackVets.find((v: any) => String(v._id) === String(vetId));
+    }
+    if (!vet) {
+      instantMatchLocks.delete(String(vetId));
+      return res.status(404).json({ status: 'error', message: 'Doctor not found' });
+    }
+
+    const bookingId = `INST-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    const hours = now.getHours();
+    const mins = now.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const h12 = hours % 12 === 0 ? 12 : hours % 12;
+    const timeStr = `${h12}:${mins < 10 ? '0' + mins : mins} ${ampm}`;
+
+    let appointmentData: any = {
+      _id: new mongoose.Types.ObjectId().toString(),
+      userEmail,
+      vetId: String(vet._id),
+      vetName: vet.name,
+      vetSpecialisation: vet.specialisation,
+      vetPhoto: vet.photo,
+      date: todayStr,
+      time: timeStr,
+      fee: vet.fee,
+      mode: 'tele-consult',
+      type: vet.category === 'vet' ? 'vet' : 'expert',
+      petName,
+      petId: petId || '',
+      status: 'pending', // pending until doctor accepts
+      isInstant: true,
+      bookingId,
+      razorpayPaymentId: razorpayPaymentId || '',
+      razorpayOrderId: razorpayOrderId || '',
+      razorpaySignature: razorpaySignature || '',
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString()
+    };
+
+    // Create CallSession
+    let callSession: any = null;
+
+    if (mongoose.connection.readyState === 1) {
+      appointmentData = await Appointment.create(appointmentData);
+      callSession = await CallSession.create({
+        bookingId,
+        userEmail,
+        expertOrVetId: String(vet._id),
+        callType: callType || 'video',
+        status: 'requested',
+        isInstant: true,
+        agoraChannelName: bookingId
+      });
+    } else {
+      fallbackAppointments.push(appointmentData);
+      callSession = {
+        _id: `cs_inst_${Date.now()}`,
+        bookingId,
+        userEmail,
+        expertOrVetId: String(vet._id),
+        callType: callType || 'video',
+        status: 'requested',
+        isInstant: true,
+        agoraChannelName: bookingId,
+        createdAt: now.toISOString(),
+        updatedAt: now.toISOString()
+      };
+      fallbackCallSessions.push(callSession);
+    }
+
+    // Release the instant match lock (doctor is now assigned)
+    instantMatchLocks.delete(String(vetId));
+
+    console.log(`⚡ Instant consultation created: ${bookingId} | User: ${userEmail} | Doctor: ${vet.name}`);
+
+    return res.json({
+      status: 'success',
+      appointment: appointmentData,
+      session: callSession
+    });
+  } catch (error) {
+    console.error('Error in POST /api/instant-consultation/create:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * PUT /api/appointments/:id/accept
+ * Doctor accepts an instant consultation request
+ */
+app.put('/api/appointments/:id/accept', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const doctorEmail = req.user?.email;
+
+    if (!doctorEmail) {
+      return res.status(401).json({ status: 'error', message: 'Authentication required' });
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      const appt = fallbackAppointments.find((a: any) => a._id === id || a.bookingId === id);
+      if (!appt) return res.status(404).json({ status: 'error', message: 'Appointment not found' });
+      appt.status = 'confirmed';
+      appt.updatedAt = new Date().toISOString();
+
+      // Update call session to ready
+      const session = fallbackCallSessions.find((s: any) => s.bookingId === appt.bookingId && s.status === 'requested');
+      if (session) {
+        session.status = 'ready';
+        session.updatedAt = new Date().toISOString();
+      }
+
+      return res.json({ status: 'success', appointment: appt, session });
+    }
+
+    const appt = await Appointment.findOneAndUpdate(
+      {
+        $or: [
+          { _id: mongoose.Types.ObjectId.isValid(id) ? id : null },
+          { bookingId: id }
+        ],
+        status: 'pending'
+      },
+      { $set: { status: 'confirmed' } },
+      { new: true }
+    );
+
+    if (!appt) {
+      return res.status(404).json({ status: 'error', message: 'Pending appointment not found' });
+    }
+
+    // Update call session to ready
+    const session = await CallSession.findOneAndUpdate(
+      { bookingId: appt.bookingId, status: 'requested' },
+      { $set: { status: 'ready' } },
+      { new: true }
+    );
+
+    console.log(`✅ Doctor ${doctorEmail} accepted instant consultation: ${appt.bookingId}`);
+
+    return res.json({ status: 'success', appointment: appt, session });
+  } catch (error) {
+    console.error('Error in PUT /api/appointments/:id/accept:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * PUT /api/appointments/:id/reject
+ * Doctor rejects an instant consultation request
+ */
+app.put('/api/appointments/:id/reject', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const doctorEmail = req.user?.email;
+
+    if (!doctorEmail) {
+      return res.status(401).json({ status: 'error', message: 'Authentication required' });
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      const appt = fallbackAppointments.find((a: any) => a._id === id || a.bookingId === id);
+      if (!appt) return res.status(404).json({ status: 'error', message: 'Appointment not found' });
+      appt.status = 'cancelled';
+      appt.updatedAt = new Date().toISOString();
+
+      const session = fallbackCallSessions.find((s: any) => s.bookingId === appt.bookingId && s.status !== 'ended');
+      if (session) {
+        session.status = 'cancelled';
+        session.updatedAt = new Date().toISOString();
+      }
+
+      return res.json({ status: 'success', appointment: appt });
+    }
+
+    const appt = await Appointment.findOneAndUpdate(
+      {
+        $or: [
+          { _id: mongoose.Types.ObjectId.isValid(id) ? id : null },
+          { bookingId: id }
+        ],
+        status: 'pending'
+      },
+      { $set: { status: 'cancelled' } },
+      { new: true }
+    );
+
+    if (!appt) {
+      return res.status(404).json({ status: 'error', message: 'Pending appointment not found' });
+    }
+
+    await CallSession.findOneAndUpdate(
+      { bookingId: appt.bookingId, status: { $ne: 'ended' } },
+      { $set: { status: 'cancelled' } }
+    );
+
+    console.log(`❌ Doctor ${doctorEmail} rejected instant consultation: ${appt.bookingId}`);
+
+    return res.json({ status: 'success', appointment: appt });
+  } catch (error) {
+    console.error('Error in PUT /api/appointments/:id/reject:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+// ==================== CONSULTATION DURATION ENDPOINTS ====================
+
+/**
+ * PUT /api/appointments/:id/consultation/start
+ * Records the actual consultation start time
+ */
+app.put('/api/appointments/:id/consultation/start', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const now = new Date();
+
+    if (mongoose.connection.readyState !== 1) {
+      const appt = fallbackAppointments.find((a: any) => a._id === id || a.bookingId === id);
+      if (!appt) return res.status(404).json({ status: 'error', message: 'Appointment not found' });
+      appt.consultationStartedAt = now.toISOString();
+      appt.updatedAt = now.toISOString();
+
+      const session = fallbackCallSessions.find((s: any) => s.bookingId === appt.bookingId && s.status !== 'ended');
+      if (session) {
+        session.consultationStartedAt = now.toISOString();
+        session.status = 'ongoing';
+        session.updatedAt = now.toISOString();
+      }
+
+      return res.json({ status: 'success', appointment: appt });
+    }
+
+    const appt = await Appointment.findOneAndUpdate(
+      {
+        $or: [
+          { _id: mongoose.Types.ObjectId.isValid(id) ? id : null },
+          { bookingId: id }
+        ]
+      },
+      { $set: { consultationStartedAt: now } },
+      { new: true }
+    );
+
+    if (!appt) {
+      return res.status(404).json({ status: 'error', message: 'Appointment not found' });
+    }
+
+    // Update call session
+    await CallSession.findOneAndUpdate(
+      { bookingId: appt.bookingId, status: { $ne: 'ended' } },
+      { $set: { consultationStartedAt: now, status: 'ongoing' } }
+    );
+
+    return res.json({ status: 'success', appointment: appt });
+  } catch (error) {
+    console.error('Error recording consultation start:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
+ * PUT /api/appointments/:id/consultation/end
+ * Records the actual consultation end time — doctor controls when this is called
+ * Does NOT auto-end at 30 minutes
+ */
+app.put('/api/appointments/:id/consultation/end', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const now = new Date();
+
+    if (mongoose.connection.readyState !== 1) {
+      const appt = fallbackAppointments.find((a: any) => a._id === id || a.bookingId === id);
+      if (!appt) return res.status(404).json({ status: 'error', message: 'Appointment not found' });
+      appt.consultationEndedAt = now.toISOString();
+      appt.status = 'completed';
+      appt.updatedAt = now.toISOString();
+
+      const session = fallbackCallSessions.find((s: any) => s.bookingId === appt.bookingId && s.status !== 'ended');
+      if (session) {
+        session.consultationEndedAt = now.toISOString();
+        session.status = 'ended';
+        session.endedAt = now.toISOString();
+        session.updatedAt = now.toISOString();
+      }
+
+      return res.json({ status: 'success', appointment: appt });
+    }
+
+    const appt = await Appointment.findOneAndUpdate(
+      {
+        $or: [
+          { _id: mongoose.Types.ObjectId.isValid(id) ? id : null },
+          { bookingId: id }
+        ]
+      },
+      { $set: { consultationEndedAt: now, status: 'completed' } },
+      { new: true }
+    );
+
+    if (!appt) {
+      return res.status(404).json({ status: 'error', message: 'Appointment not found' });
+    }
+
+    // End call session
+    await CallSession.findOneAndUpdate(
+      { bookingId: appt.bookingId, status: { $ne: 'ended' } },
+      { $set: { consultationEndedAt: now, status: 'ended', endedAt: now } }
+    );
+
+    console.log(`🏁 Consultation ended: ${appt.bookingId} | Duration: ${appt.consultationStartedAt ? Math.round((now.getTime() - new Date(appt.consultationStartedAt).getTime()) / 60000) + ' min' : 'N/A'}`);
+
+    return res.json({ status: 'success', appointment: appt });
+  } catch (error) {
+    console.error('Error recording consultation end:', error);
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
   }
 });
