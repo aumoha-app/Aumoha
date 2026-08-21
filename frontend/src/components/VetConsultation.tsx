@@ -966,34 +966,35 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
 
         {/* 1.5 INSTANT CALL HERO BANNER */}
         {currentView === 'home' && subTab !== 'admin' && (
-          <div className="w-full bg-gradient-to-r from-[#2D4536] via-[#1E2E24] to-[#121E17] text-white p-4 sm:p-5 rounded-2xl sm:rounded-[24px] shadow-md flex items-center justify-between gap-4 border border-emerald-500/20 my-1">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center shrink-0">
-                <span className="text-xl sm:text-2xl animate-pulse">⚡</span>
+          <div className="w-full bg-[#2D4536] text-white p-3.5 sm:p-4 md:p-5 rounded-2xl sm:rounded-[24px] shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 border border-[#2D4536]/30 my-1 overflow-hidden relative">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                </svg>
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="font-serif text-sm sm:text-base font-bold text-white leading-tight">Instant Video Call</h3>
-                  <span className="bg-emerald-500 text-stone-950 text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-widest animate-pulse">LIVE NOW</span>
-                </div>
-                <p className="text-[11px] sm:text-xs text-stone-300 font-medium mt-0.5 leading-snug">Need immediate advice? Connect with an online doctor right now.</p>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-serif text-sm sm:text-base font-bold text-white leading-tight whitespace-nowrap">Instant Video Call</h3>
+                <p className="text-[11px] sm:text-xs text-stone-200 font-medium mt-0.5 leading-snug">Need immediate advice? Connect with an online doctor right now.</p>
               </div>
             </div>
             <button
               type="button"
               onClick={() => handleStartInstantCall('vet')}
               disabled={isFindingInstantDoctor}
-              className="px-3.5 py-2.5 sm:px-4 sm:py-3 bg-emerald-400 hover:bg-emerald-300 active:scale-95 text-stone-950 text-xs font-extrabold rounded-xl shadow-lg transition-all cursor-pointer shrink-0 flex items-center gap-1.5"
+              className="w-full sm:w-auto px-4 py-2.5 sm:py-3 bg-white hover:bg-stone-100 active:scale-95 text-[#2D4536] text-xs font-black rounded-xl shadow-sm transition-all cursor-pointer shrink-0 flex items-center justify-center gap-1.5 whitespace-nowrap"
             >
               {isFindingInstantDoctor ? (
                 <>
-                  <span className="w-3.5 h-3.5 border-2 border-stone-950/30 border-t-stone-950 rounded-full animate-spin" />
+                  <span className="w-3.5 h-3.5 border-2 border-[#2D4536]/30 border-t-[#2D4536] rounded-full animate-spin" />
                   <span>Searching...</span>
                 </>
               ) : (
                 <>
                   <span>Instant Call</span>
-                  <span>⚡</span>
+                  <svg className="w-3.5 h-3.5 fill-current text-[#2D4536]" viewBox="0 0 24 24">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                  </svg>
                 </>
               )}
             </button>
@@ -2693,29 +2694,41 @@ export default function VetConsultation({ setActiveTab }: VetConsultationProps) 
           <div className="fixed inset-0 z-[3000] bg-[#1C1A17]/60 backdrop-blur-sm flex items-center justify-center p-4">
             <div className="bg-white rounded-3xl max-w-md w-full border border-[#F0EBE1] shadow-2xl p-6 flex flex-col gap-4 animate-in fade-in zoom-in duration-200">
               <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">⚡</span>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-[#2D4536]/10 flex items-center justify-center shrink-0">
+                    <svg className="w-4 h-4 text-[#2D4536]" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                    </svg>
+                  </div>
                   <h3 className="font-serif text-lg font-bold text-[#1C1A17]">Instant Doctor Found</h3>
                 </div>
                 <button onClick={() => setIsInstantModalOpen(false)} className="text-stone-400 hover:text-stone-700 font-bold p-1">✕</button>
               </div>
 
               <div className="flex items-center gap-4 bg-[#FCFAF7] p-4 rounded-2xl border border-[#F0EBE1]">
-                <img src={matchedInstantDoctor.photo || '/sairaj_avatar.png'} alt={matchedInstantDoctor.name} className="w-14 h-14 rounded-2xl object-cover" />
+                <img src={matchedInstantDoctor.photo || '/sairaj_avatar.png'} alt={matchedInstantDoctor.name} className="w-14 h-14 rounded-2xl object-cover border border-[#E8E2D8]" />
                 <div>
                   <h4 className="font-serif font-bold text-base text-[#1C1A17]">{matchedInstantDoctor.name}</h4>
                   <p className="text-xs text-stone-600 font-medium">{matchedInstantDoctor.specialisation}</p>
-                  <span className="text-xs font-bold text-emerald-700 mt-1 block">Fee: ₹{matchedInstantDoctor.fee} • Online Now</span>
+                  <span className="text-xs font-bold text-[#2D4536] mt-1 block">Fee: ₹{matchedInstantDoctor.fee} • Online Now</span>
                 </div>
               </div>
 
-              <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl text-xs text-emerald-800 font-medium">
-                ⚡ You will be connected via live Agora Video Call immediately after payment.
+              <div className="bg-[#E8F0EA] border border-[#2D4536]/20 p-3.5 rounded-2xl text-xs text-[#2D4536] font-medium flex items-start gap-2.5">
+                <svg className="w-4 h-4 text-[#2D4536] shrink-0 mt-0.5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                </svg>
+                <span>You will be connected via live Agora Video Call immediately after payment.</span>
               </div>
 
               <div className="flex items-center gap-3 mt-1">
                 <button onClick={() => setIsInstantModalOpen(false)} className="flex-1 py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-2xl text-xs transition-colors cursor-pointer">Cancel</button>
-                <button onClick={handleConfirmInstantCallPayment} className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-2xl text-xs shadow-md transition-colors cursor-pointer">Pay ₹{matchedInstantDoctor.fee} & Connect ⚡</button>
+                <button onClick={handleConfirmInstantCallPayment} className="flex-1 py-3 px-3 bg-[#2D4536] hover:bg-[#1E2E24] text-white font-extrabold rounded-2xl text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap">
+                  <span>Pay ₹{matchedInstantDoctor.fee} & Connect</span>
+                  <svg className="w-3.5 h-3.5 fill-current text-white shrink-0" viewBox="0 0 24 24">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
