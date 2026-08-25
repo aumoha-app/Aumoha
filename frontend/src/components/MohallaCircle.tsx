@@ -594,9 +594,11 @@ export default function MohallaCircle({ onNavigate, userAddress = 'Sector 45, Gu
     const map = L.map(mapId, { zoomControl: false }).setView(center, zoomLevel);
     setInstanceRef.current = map;
 
-    // CartoDB Voyager warm style map layer
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap &copy; CARTO'
+    // Google Maps Standard layer
+    L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+      subdomains: ['0', '1', '2', '3'],
+      maxZoom: 20,
+      attribution: '&copy; Google Maps'
     }).addTo(map);
 
     // User node center dot (White circle with dark forest green center dot)
