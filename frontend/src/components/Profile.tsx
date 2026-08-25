@@ -9,6 +9,8 @@ import { API_BASE } from '../lib/api';
 import CallSessionButton from './CallSessionButton';
 import AgoraCallModal from './AgoraCallModal';
 import PopupModal, { PopupConfig } from './PopupModal';
+import TermsModal from './TermsModal';
+import PrivacyPolicyModal from './PrivacyPolicyModal';
 
 interface ProfileProps {
   onOpenAdmin?: () => void;
@@ -17,6 +19,9 @@ interface ProfileProps {
 export default function Profile({ onOpenAdmin }: ProfileProps) {
   const { user, token, signOut, syncProfile } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState<UserProfile>({
     fullName: '',
@@ -984,7 +989,140 @@ export default function Profile({ onOpenAdmin }: ProfileProps) {
         <ProfileBookingHistory token={token} API_BASE={API_BASE} />
       </section>
 
-      {/* 8. PET MODAL OVERLAY */}
+      {/* 8. LEGAL & POLICIES FOOTER SECTION */}
+      <section className="mt-2 border-t border-[#EBE3D5] pt-6 flex flex-col gap-3 select-none">
+        <div>
+          <h3 className="font-serif text-lg text-[#1C1A17] font-semibold tracking-tight">Legal, Privacy &amp; Compliance</h3>
+          <p className="text-xs text-stone-500 font-medium mt-0.5">
+            Platform governance, user privacy rights &amp; terms of service
+          </p>
+        </div>
+
+        {/* Terms Card */}
+        <div className="bg-white border border-[#E8E2D8] rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold text-[#2D4536]">Terms &amp; Conditions</span>
+              <span className="text-[9px] bg-[#2D4536]/10 text-[#2D4536] px-2 py-0.5 rounded-full font-extrabold">v1.0</span>
+            </div>
+            <p className="text-[11px] text-stone-500 mt-0.5">
+              Service conditions, consultation terms &amp; rescue guidelines
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsTermsOpen(true)}
+              className="px-3.5 py-2 bg-[#FAF8F5] hover:bg-[#F2ECE4] border border-[#D5CEBF] text-[#1C1A17] text-xs font-bold rounded-xl transition-all cursor-pointer"
+            >
+              View Terms
+            </button>
+            <Link
+              href="/terms"
+              className="px-3.5 py-2 bg-[#2D4536] hover:bg-[#1E2E24] text-white text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer"
+            >
+              Full Page
+            </Link>
+          </div>
+        </div>
+
+        {/* Privacy Policy Card */}
+        <div className="bg-white border border-[#E8E2D8] rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold text-[#2D4536]">Privacy Policy</span>
+              <span className="text-[9px] bg-[#2D4536]/10 text-[#2D4536] px-2 py-0.5 rounded-full font-extrabold">v1.0</span>
+            </div>
+            <p className="text-[11px] text-stone-500 mt-0.5">
+              Data protection, permissions, retention &amp; your privacy rights
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsPrivacyOpen(true)}
+              className="px-3.5 py-2 bg-[#FAF8F5] hover:bg-[#F2ECE4] border border-[#D5CEBF] text-[#1C1A17] text-xs font-bold rounded-xl transition-all cursor-pointer"
+            >
+              View Privacy
+            </button>
+            <Link
+              href="/privacy"
+              className="px-3.5 py-2 bg-[#2D4536] hover:bg-[#1E2E24] text-white text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer"
+            >
+              Full Page
+            </Link>
+          </div>
+        </div>
+
+        {/* Privacy Rights & Account Deletion Card */}
+        <div className="bg-[#FAF6F4] border border-[#F2D7D0] rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs mt-1">
+          <div>
+            <span className="text-[11px] font-bold text-[#C85341]">Privacy Rights &amp; Account Deletion</span>
+            <p className="text-[11px] text-stone-500 mt-0.5">
+              Permanently delete your profile and registered pet data per Section 10 of Privacy Policy
+            </p>
+          </div>
+
+          <button
+            type="button"
+            disabled={isDeletingAccount}
+            onClick={() => {
+              openConfirmation({
+                title: 'Delete Account & Data?',
+                message: 'This will permanently remove your profile, registered pets, and personal data from Aumoha in accordance with Privacy Policy Section 10. This cannot be undone.',
+                confirmText: 'Delete My Account',
+                cancelText: 'Cancel',
+                isDestructive: true,
+                onConfirm: async () => {
+                  setIsDeletingAccount(true);
+                  try {
+                    const res = await fetch(`${API_BASE}/auth/account`, {
+                      method: 'DELETE',
+                      headers: {
+                        Authorization: `Bearer ${token}`
+                      }
+                    });
+                    if (res.ok) {
+                      await signOut();
+                    } else {
+                      const data = await res.json();
+                      setError(data.message || 'Failed to delete account.');
+                    }
+                  } catch {
+                    setError('Failed to connect to server for account deletion.');
+                  } finally {
+                    setIsDeletingAccount(false);
+                  }
+                }
+              });
+            }}
+            className="px-3.5 py-2 bg-white hover:bg-red-50 border border-red-200 text-red-600 hover:text-red-700 text-xs font-bold rounded-xl transition-all shadow-2xs cursor-pointer active:scale-95 shrink-0"
+          >
+            {isDeletingAccount ? 'Deleting...' : 'Delete Account'}
+          </button>
+        </div>
+
+        {/* Legal Entity Signature */}
+        <div className="p-3 text-center text-[10.5px] text-stone-400 font-medium">
+          Operated by <strong>Arvista Nova Private Limited</strong>, Rourkela, Odisha, India • Support: <a href="mailto:support.aumoha@gmail.com" className="underline text-stone-600 font-bold">support.aumoha@gmail.com</a>
+        </div>
+      </section>
+
+      {/* Terms & Conditions Modal */}
+      <TermsModal
+        isOpen={isTermsOpen}
+        onClose={() => setIsTermsOpen(false)}
+      />
+
+      {/* Privacy Policy Modal */}
+      <PrivacyPolicyModal
+        isOpen={isPrivacyOpen}
+        onClose={() => setIsPrivacyOpen(false)}
+      />
+
+      {/* 9. PET MODAL OVERLAY */}
       {isPetModalOpen && (
         <div className="fixed inset-0 z-50 bg-[#1C1A17]/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full border border-[#F0EBE1] shadow-2xl p-6 flex flex-col gap-4 animate-in fade-in zoom-in duration-200">

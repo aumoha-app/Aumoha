@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { StethoscopeIcon, LeafIcon, UserIcon, UsersIcon } from './icons/PetIcons';
 import NeighborhoodRadar from './NeighborhoodRadar';
 import MarketplaceCategories from './MarketplaceCategories';
@@ -295,6 +296,36 @@ export default function MinimalHome({
 
       {/* 8. MARKETPLACE QUICK ACTIONS */}
       <MarketplaceCategories onExploreMoreClick={onMarketplaceClick || (() => { })} />
+
+      {/* 9. GLOBAL FOOTER WITH TERMS & PRIVACY */}
+      <footer className="w-full mt-4 pt-6 pb-2 border-t border-[#E8E2D8] flex flex-col sm:flex-row items-center justify-between gap-3 text-stone-500 text-[11px] select-none">
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-stone-700">Aumoha</span>
+          <span>•</span>
+          <span>Arvista Nova Private Limited</span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+          <Link
+            href="/terms"
+            className="font-bold text-[#2D4536] hover:underline transition-all"
+          >
+            Terms &amp; Conditions (v1.0)
+          </Link>
+          <Link
+            href="/privacy"
+            className="font-bold text-[#2D4536] hover:underline transition-all"
+          >
+            Privacy Policy (v1.0)
+          </Link>
+          <a
+            href="mailto:support.aumoha@gmail.com"
+            className="text-stone-500 hover:text-stone-800 transition-colors"
+          >
+            Support
+          </a>
+        </div>
+      </footer>
     </div>
   );
 }

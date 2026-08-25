@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE } from '../lib/api';
+import TermsModal from './TermsModal';
+import PrivacyPolicyModal from './PrivacyPolicyModal';
 
 export default function OnboardingScreen() {
   const { firebaseUser, token, signOut, syncProfile } = useAuth();
@@ -10,6 +12,9 @@ export default function OnboardingScreen() {
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [profilePic, setProfilePic] = useState('');
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [role, setRole] = useState<'normal' | 'feeder' | 'rescuer' | 'volunteer' | 'paravet' | 'adopter' | ''>('');
@@ -355,11 +360,41 @@ export default function OnboardingScreen() {
           </div>
         </div>
 
+        {/* Terms and Conditions Confirmation Checkbox */}
+        <div className="flex items-start gap-2.5 pt-1">
+          <input
+            type="checkbox"
+            id="onboarding-terms"
+            checked={acceptedTerms}
+            onChange={(e) => setAcceptedTerms(e.target.checked)}
+            className="mt-0.5 w-4 h-4 text-[#2D4536] bg-[#F5F3EF] border-[#D5CEBF] rounded focus:ring-[#2D4536] cursor-pointer accent-[#2D4536]"
+          />
+          <label htmlFor="onboarding-terms" className="text-[11px] text-stone-600 leading-snug font-medium">
+            I confirm my details and agree to the{' '}
+            <button
+              type="button"
+              onClick={() => setIsTermsOpen(true)}
+              className="text-[#2D4536] font-bold underline hover:text-[#1E2E24] cursor-pointer"
+            >
+              Terms &amp; Conditions
+            </button>{' '}
+            and{' '}
+            <button
+              type="button"
+              onClick={() => setIsPrivacyOpen(true)}
+              className="text-[#2D4536] font-bold underline hover:text-[#1E2E24] cursor-pointer"
+            >
+              Privacy Policy
+            </button>{' '}
+            (v1.0).
+          </label>
+        </div>
+
         {/* Submit Details Button */}
         <button
           type="submit"
-          disabled={isSaving}
-          className="w-full py-3.5 bg-[#2A3E31] hover:bg-[#1E2E24] active:scale-[0.98] disabled:opacity-75 disabled:pointer-events-none text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-[#2A3E31]/10 flex items-center justify-center gap-2 cursor-pointer"
+          disabled={isSaving || !acceptedTerms}
+          className="w-full py-3.5 bg-[#2A3E31] hover:bg-[#1E2E24] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-[#2A3E31]/10 flex items-center justify-center gap-2 cursor-pointer"
         >
           {isSaving ? (
             <>
@@ -371,6 +406,20 @@ export default function OnboardingScreen() {
           )}
         </button>
       </form>
+
+      {/* Terms & Conditions Modal */}
+      <TermsModal
+        isOpen={isTermsOpen}
+        onClose={() => setIsTermsOpen(false)}
+        showAcceptButton={!acceptedTerms}
+        onAccept={() => setAcceptedTerms(true)}
+      />
+
+      {/* Privacy Policy Modal */}
+      <PrivacyPolicyModal
+        isOpen={isPrivacyOpen}
+        onClose={() => setIsPrivacyOpen(false)}
+      />
     </div>
   );
 }
