@@ -1232,6 +1232,51 @@ app.delete('/api/auth/profile/pets/:petId', authMiddleware, async (req: Request,
 });
 
 /**
+ * DELETE /api/auth/account
+ * Privacy Policy Section 10 & 13: Allows users to request permanent deletion
+ * of their account and associated personal profile data.
+ */
+app.delete('/api/auth/account', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userUid = req.user?.uid;
+    const userEmail = req.user?.email;
+
+    if (!userUid && !userEmail) {
+      return res.status(401).json({ status: 'error', message: 'Unauthorized' });
+    }
+
+    if (mongoose.connection.readyState === 1) {
+      if (userUid) {
+        await User.findOneAndDelete({ uid: userUid });
+      } else if (userEmail) {
+        await User.findOneAndDelete({ email: { $regex: new RegExp(`^${userEmail}$`, 'i') } });
+      }
+    }
+
+    // Remove from in-memory fallback users and cache
+    if (userUid) {
+      userCache.delete(userUid);
+      const idx = fallbackUsers.findIndex(u => u.uid === userUid);
+      if (idx !== -1) fallbackUsers.splice(idx, 1);
+    }
+    if (userEmail) {
+      const idx = fallbackUsers.findIndex(u => u.email?.toLowerCase() === userEmail.toLowerCase());
+      if (idx !== -1) fallbackUsers.splice(idx, 1);
+    }
+
+    console.log(`🗑️ Account deletion completed for user ${userEmail || userUid} per Privacy Policy.`);
+
+    return res.json({
+      status: 'success',
+      message: 'Your account and associated personal data have been deleted successfully in compliance with Aumoha Privacy Policy.'
+    });
+  } catch (error) {
+    console.error('Error in DELETE /api/auth/account:', error);
+    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+/**
  * GET /api/users/rescuers
  * Retrieves all registered users with the 'rescuer' role
  */
@@ -1347,104 +1392,104 @@ export const fallbackProducts: any[] = [
   {
     _id: 'prod_food_1',
     category: 'food',
-    title: 'High-Protein Puppy & Adult Dog Meal Mix',
-    subtitle: 'Nourishment from within',
-    description: 'Formulated with 100% fresh chicken protein, whole brown rice, cold-pressed flaxseed oil, and essential Omega-3 fatty acids. Provides complete daily nutrition for growing puppies and active adult dogs.',
+    title: 'Plant-Based Dog Treats',
+    subtitle: 'Formulated for companion health',
+    description: 'Handcrafted in small batches with real peanut butter, sweet potato, and organic oats. 100% grain-free, vegan, and nutrient-dense treats to reward your companion ethically.',
     features: [
-      '28% Crude Protein supports lean muscle development',
-      'Enriched with prebiotic fibers & probiotics for smooth digestion',
-      'Omega-3 & Omega-6 fatty acids for a soft, glossy coat',
-      '100% natural, free from artificial fillers and by-products'
+      '100% Plant-Based & Grain-Free Formula',
+      'Rich in dietary fiber and essential vitamins for gut health',
+      'Handcrafted in small batches with zero artificial additives',
+      'Ideal training reward for sensitive stomachs & all dog breeds'
     ],
     price: 499,
-    originalPrice: 650,
-    discountBadge: '23% OFF',
-    imageUrl: '/real-pet-food.png'
-  },
-  {
-    _id: 'prod_food_2',
-    category: 'food',
-    title: 'Organic Cat Food Pate with Salmon',
-    subtitle: 'Pure hydration & essential taurine',
-    description: 'Grain-free gourmet salmon pate crafted with wild-caught salmon, taurine, and vital vitamins A, D3 & E. Provides essential daily hydration and urinary health support.',
-    features: [
-      '82% high moisture content ensures vital daily urinary tract hydration',
-      'Essential Taurine for optimal cardiac health & sharp feline vision',
-      'Zero corn, wheat, soy, artificial dyes, or chemical preservatives',
-      'Gentle hypoallergenic recipe suitable for sensitive stomachs'
-    ],
-    price: 349,
-    originalPrice: 420,
+    originalPrice: 599,
     discountBadge: '17% OFF',
-    imageUrl: '/real-pet-food.png'
+    imageUrl: '/product-1.png'
   },
   {
     _id: 'prod_toy_1',
     category: 'toys',
-    title: 'Durable Rubber Tug & Squeak Ball',
-    subtitle: 'Dental cleaning & chew resistance',
-    description: 'Engineered from non-toxic, food-grade natural rubber designed for vigorous chewers and interactive fetch games.',
+    title: 'Wilder & Co. Tactical Collar',
+    subtitle: 'Heavy-duty canvas & brass buckle',
+    description: 'Premium heavy-duty tactical canine collar crafted from double-stitched reinforced military-grade nylon canvas, quick-release solid brass cobra-style buckle, and custom engraved leather label.',
     features: [
-      'Textured dental grooves scrub teeth and massage gums during play',
-      'Protected internal squeaker stimulates natural play instincts',
-      'Ultra-durable elasticity suitable for fetch, tug, and solo chew sessions',
-      '100% non-toxic, BPA-free, and phthalate-free natural rubber'
+      'High-tensile military webbing with reinforced double box stitching',
+      'Solid quick-release zinc & brass alloy buckle with D-ring',
+      'Padded breathable interior lining prevents neck chafing',
+      'Weatherproof, mud-resistant and easy to clean'
     ],
-    price: 249,
-    originalPrice: 350,
-    discountBadge: '28% OFF',
-    imageUrl: '/real-pet-toy.png'
+    price: 599,
+    originalPrice: 799,
+    discountBadge: '25% OFF',
+    imageUrl: '/product-6.png'
   },
   {
     _id: 'prod_toy_2',
     category: 'toys',
-    title: 'Interactive Feather Wand Cat Teaser',
-    subtitle: 'Interactive play & agility wand',
-    description: 'Flexible 36-inch wand equipped with natural cruelty-free feathers and a gentle chime bell to stimulate natural hunting instincts.',
+    title: 'Eco-Pet Cotton Rope Chew Ball',
+    subtitle: 'Natural cotton & beechwood handle',
+    description: 'Handcrafted monkey-fist knotted ball made from 100% organic unbleached cotton rope with a natural polished beechwood toggle. Stimulates teeth cleaning during interactive play.',
     features: [
-      'Encourages vital physical jumping exercise and agility for indoor cats',
-      'Strengthens interactive bond between pet parents and cats',
-      'Ergonomic padded handle with lightweight flexible fiberglass rod',
-      'Channels predatory energy away from furniture and curtains'
-    ],
-    price: 199,
-    originalPrice: 280,
-    discountBadge: '29% OFF',
-    imageUrl: '/real-pet-toy.png'
-  },
-  {
-    _id: 'prod_med_1',
-    category: 'medical',
-    title: 'Antiseptic Wound Healing Spray (100ml)',
-    subtitle: 'Fast-acting botanical wound relief',
-    description: 'Veterinary-grade fast-acting topical spray for minor cuts, scratches, maggot wounds, and skin irritations in dogs, cats, and rescue animals.',
-    features: [
-      'Natural Neem, Aloe Vera & Tea Tree extracts for rapid antimicrobial defense',
-      'Soothes acute itching, reduces skin redness, and accelerates healing',
-      '100% lick-safe, non-stinging botanical formula',
-      'Hygienic pump spray nozzle for targeted application without pain'
+      '100% biodegradable natural cotton fibers clean teeth during play',
+      'Natural beechwood toggle provides ergonomic grip for tug-of-war',
+      'Dye-free, chemical-free and safe for aggressive chewers',
+      'Durable dense knot weave promotes dental hygiene'
     ],
     price: 299,
     originalPrice: 399,
     discountBadge: '25% OFF',
-    imageUrl: '/real-pet-med.png'
+    imageUrl: '/product-3.png'
+  },
+  {
+    _id: 'prod_toy_3',
+    category: 'toys',
+    title: 'Hand-Knitted Plush Puppy Toy',
+    subtitle: 'Organic knit companion for gentle play',
+    description: 'Artisan hand-knitted soft companion toy stuffed with hypoallergenic recycled polyfill. Gentle on puppy gums and perfect for comforting anxious rescues.',
+    features: [
+      'Handcrafted organic yarn with reinforced safety embroidery',
+      'Soft textured knit provides comforting sensory tactile play',
+      'Hypoallergenic, washable and lightweight for all breeds',
+      'Provides security and reduces separation anxiety in pets'
+    ],
+    price: 399,
+    originalPrice: 499,
+    discountBadge: '20% OFF',
+    imageUrl: '/product-4.png'
+  },
+  {
+    _id: 'prod_med_1',
+    category: 'medical',
+    title: 'Aumoha Botanical Paw Wash',
+    subtitle: 'Cleanse • Protect • Nourish (473ml)',
+    description: 'Gentle no-rinse botanical foaming paw cleanser formulated with chamomile, aloe vera, and calendula. Removes outdoor dirt, allergens, bacteria, and street grit while moisturizing paw pads.',
+    features: [
+      'Soap-free botanical formula safe if licked by pets',
+      'Antiseptic chamomile & calendula calm irritated paw pads',
+      'Easy pump action requires no water or rinsing after walks',
+      'Veterinarian formulated for daily hygiene and allergy relief'
+    ],
+    price: 349,
+    originalPrice: 449,
+    discountBadge: '22% OFF',
+    imageUrl: '/product-2.png'
   },
   {
     _id: 'prod_med_2',
     category: 'medical',
-    title: 'Multivitamin & Calcium Syrup for Pets',
-    subtitle: 'Bone strength & immune recovery',
-    description: 'Comprehensive oral nutritional supplement enriched with Bioavailable Calcium, Phosphorus, Vitamin D3 & B-Complex.',
+    title: 'Skin & Coat Support Chewables',
+    subtitle: '60 Chewables • Healthy skin & fur',
+    description: 'Veterinary dietary supplement enriched with Biotin, Omega-3 fatty acids, Zinc, and Vitamin E. Formulated for dogs and cats to reduce shedding, soothe dry itchy skin, and promote a lustrous coat.',
     features: [
-      'Promotes bone strength, cartilage growth & joint flexibility',
-      'Bolsters immune resilience and speeds post-rescue recovery',
-      'Palatable chicken flavor easily mixes with daily food or syringe dosing',
-      'Veterinarian recommended for growing puppies, kittens & rescue cases'
+      '60 savory chewable tablets easily accepted by dogs and cats',
+      'High-potency Biotin & Zinc accelerate fur regrowth & barrier strength',
+      'EPA & DHA Marine Omega-3 fatty acids stop excessive shedding',
+      'Recommended by vets for post-rescue skin recovery and allergies'
     ],
-    price: 380,
-    originalPrice: 480,
-    discountBadge: '20% OFF',
-    imageUrl: '/real-pet-med.png'
+    price: 499,
+    originalPrice: 649,
+    discountBadge: '23% OFF',
+    imageUrl: '/product-5.png'
   }
 ];
 
@@ -1457,36 +1502,45 @@ app.get('/api/products', async (req: Request, res: Response) => {
     let products = [];
     if (mongoose.connection.readyState === 1) {
       products = await Product.find().sort({ createdAt: -1 });
-      if (!products || products.length === 0) {
-        // Seed initial products if DB collection is empty
-        console.log('🌱 Seeding initial marketplace products...');
-        const seedData = fallbackProducts.map(({ _id, ...rest }) => rest);
-        products = await Product.insertMany(seedData);
-      } else {
-        // Auto-enrich any old/short descriptions in MongoDBAtlas
-        for (const p of products) {
-          const matchingFallback = fallbackProducts.find(
-            f => f.category === p.category || f.title.toLowerCase() === p.title.toLowerCase()
-          );
-          if (matchingFallback && (!p.description || p.description.length < 50)) {
-            p.description = matchingFallback.description;
-            await p.save().catch(() => {});
+
+      // If DB is empty or contains old outdated placeholder items (e.g., real-pet-*.png or generic titles), resync
+      const hasOutdatedData = !products || products.length === 0 || products.some((p: any) => 
+        p.imageUrl?.includes('real-pet-') || p.title?.includes('High-Protein Puppy') || p.title?.includes('Organic Cat Food Pate')
+      );
+
+      if (hasOutdatedData) {
+        console.log('🌱 Syncing official Aumoha marketplace products catalog...');
+        // Remove old generic seeded products
+        await Product.deleteMany({
+          $or: [
+            { imageUrl: { $regex: /real-pet-/ } },
+            { title: { $in: ['High-Protein Puppy & Adult Dog Meal Mix', 'Organic Cat Food Pate with Salmon', 'Durable Rubber Tug & Squeak Ball', 'Interactive Feather Wand Cat Teaser', 'Antiseptic Wound Healing Spray (100ml)', 'Multivitamin & Calcium Syrup for Pets'] } }
+          ]
+        }).catch(() => {});
+
+        // Insert official curated catalog
+        for (const item of fallbackProducts) {
+          const exists = await Product.findOne({ title: item.title });
+          if (!exists) {
+            const { _id, ...rest } = item;
+            await Product.create(rest);
+          } else {
+            exists.imageUrl = item.imageUrl;
+            exists.subtitle = item.subtitle;
+            exists.description = item.description;
+            exists.features = item.features;
+            exists.price = item.price;
+            exists.originalPrice = item.originalPrice;
+            exists.discountBadge = item.discountBadge;
+            await exists.save();
           }
         }
+        products = await Product.find().sort({ createdAt: -1 });
       }
     }
+    
     if (!products || products.length === 0) {
       products = fallbackProducts;
-    } else {
-      // Ensure all returned items have rich description field
-      products = products.map((p: any) => {
-        const itemObj = p.toObject ? p.toObject() : p;
-        if (!itemObj.description || itemObj.description.length < 50) {
-          const fb = fallbackProducts.find(f => f.category === itemObj.category);
-          if (fb) itemObj.description = fb.description;
-        }
-        return itemObj;
-      });
     }
     return res.json({
       status: 'success',
@@ -3314,32 +3368,73 @@ app.put('/api/appointments/:id/call/end', authMiddleware, async (req: Request, r
 /**
  * GET /api/provider/me
  * Auto-load doctor/expert profile by authenticated email token (or query providerId)
+ * Returns provider profile, appointments, and live revenue summary
  */
 app.get('/api/provider/me', authMiddleware, async (req: Request, res: Response) => {
   try {
     const userEmail = req.user?.email;
-    const { providerId } = req.query;
+    const providerId = req.query.providerId as string;
 
-    let vet: any = null;
+    if (!userEmail) {
+      return res.status(401).json({ status: 'error', message: 'Authentication required' });
+    }
+
+    let vetProfile: any = null;
 
     if (mongoose.connection.readyState === 1) {
-      if (userEmail) {
-        vet = await Vet.findOne({ email: userEmail });
+      if (providerId && mongoose.Types.ObjectId.isValid(providerId)) {
+        vetProfile = await Vet.findById(providerId).lean();
+      } else {
+        const escapedUserEmail = userEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        vetProfile = await Vet.findOne({ email: { $regex: new RegExp(`^${escapedUserEmail}$`, 'i') } }).lean();
       }
-      if (!vet && providerId) {
-        vet = await Vet.findOne({ $or: [{ _id: mongoose.Types.ObjectId.isValid(String(providerId)) ? String(providerId) : null }, { email: String(providerId) }] });
+    }
+
+    if (!vetProfile) {
+      if (providerId) {
+        vetProfile = fallbackVets.find((v: any) => v._id === providerId || v.email?.toLowerCase() === userEmail.toLowerCase()) || null;
+      } else {
+        vetProfile = fallbackVets.find((v: any) => v.email?.toLowerCase() === userEmail.toLowerCase()) || null;
       }
     }
 
-    if (!vet) {
-      vet = fallbackVets.find((v: any) => v.email === userEmail || v._id === providerId || v.email === providerId);
+    if (!vetProfile) {
+      return res.status(404).json({ status: 'error', message: 'Doctor/Provider profile not found for this account' });
     }
 
-    if (!vet) {
-      return res.status(404).json({ status: 'error', message: 'Doctor profile not found for this account' });
+    // Fetch all appointments where this vet/expert is the provider
+    let appointments: any[] = [];
+    if (mongoose.connection.readyState === 1) {
+      appointments = await Appointment.find({
+        $or: [
+          { vetId: String(vetProfile._id) },
+          { vetId: vetProfile._id },
+          ...(vetProfile.email ? [{ vetId: vetProfile.email }] : [])
+        ]
+      })
+        .sort({ createdAt: -1 })
+        .lean();
     }
+    const fbAppts = fallbackAppointments.filter((a: any) => String(a.vetId) === String(vetProfile._id) || (vetProfile.email && a.vetId === vetProfile.email));
+    const mergedAppts = [...appointments, ...fbAppts.filter(fa => !appointments.some(dbA => String(dbA._id) === String(fa._id)))];
 
-    return res.json({ status: 'success', vet });
+    // Compute live earnings & booking stats
+    const confirmedAppts = mergedAppts.filter((a: any) => a.status === 'confirmed');
+    const totalEarnings = confirmedAppts.reduce((sum: number, a: any) => sum + (Number(a.fee) || Number(vetProfile.fee) || 0), 0);
+    const upcomingAppts = mergedAppts.filter((a: any) => a.status !== 'cancelled');
+
+    return res.json({
+      status: 'success',
+      vet: vetProfile,
+      provider: vetProfile,
+      appointments: mergedAppts,
+      summary: {
+        total: mergedAppts.length,
+        confirmed: confirmedAppts.length,
+        upcoming: upcomingAppts.length,
+        totalEarnings
+      }
+    });
   } catch (error) {
     console.error('Error in GET /api/provider/me:', error);
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
@@ -3347,61 +3442,99 @@ app.get('/api/provider/me', authMiddleware, async (req: Request, res: Response) 
 });
 
 /**
- * PUT /api/provider/me/profile
- * Doctor self-service update endpoint (Fee, Specialisation, Bio, Phone, Photo, Online Status)
+ * Doctor/Provider Profile Update Handler
+ * Supports fee, specialisation, bio, phone, photo, isOnline, availableSlots, registrationNo, qualification, languages, consultationModes, specialtyTags
  */
-app.put('/api/provider/me/profile', authMiddleware, async (req: Request, res: Response) => {
+const handleProviderProfileUpdate = async (req: Request, res: Response) => {
   try {
     const userEmail = req.user?.email;
-    const { name, fee, specialisation, bio, phone, photo, isOnline, availableSlots, specialtyTags, category } = req.body;
+    const {
+      providerId,
+      name,
+      specialisation,
+      category,
+      registrationNo,
+      qualification,
+      specialtyTags,
+      languages,
+      consultationModes,
+      experience,
+      fee,
+      bio,
+      photo,
+      phone,
+      location,
+      isOnline,
+      availableSlots
+    } = req.body;
 
     if (!userEmail) {
       return res.status(401).json({ status: 'error', message: 'Authentication required' });
     }
 
-    let vet: any = null;
-
-    if (mongoose.connection.readyState === 1) {
-      vet = await Vet.findOne({ email: userEmail });
-      if (!vet) {
-        return res.status(404).json({ status: 'error', message: 'Doctor profile not found' });
+    if (mongoose.connection.readyState !== 1) {
+      const vet = fallbackVets.find(v => (providerId && v._id === providerId) || (v.email && userEmail && v.email.toLowerCase() === userEmail.toLowerCase()));
+      if (vet) {
+        if (name !== undefined && name.trim()) vet.name = name.trim();
+        if (specialisation !== undefined) vet.specialisation = specialisation;
+        if (category !== undefined) vet.category = category;
+        if (registrationNo !== undefined) vet.registrationNo = registrationNo;
+        if (qualification !== undefined) vet.qualification = qualification;
+        if (specialtyTags !== undefined) vet.specialtyTags = Array.isArray(specialtyTags) ? specialtyTags : specialtyTags.split(',').map((t: string) => t.trim()).filter(Boolean);
+        if (languages !== undefined) vet.languages = Array.isArray(languages) ? languages : languages.split(',').map((l: string) => l.trim()).filter(Boolean);
+        if (consultationModes !== undefined) vet.consultationModes = Array.isArray(consultationModes) ? consultationModes : consultationModes.split(',').map((m: string) => m.trim()).filter(Boolean);
+        if (experience !== undefined) vet.experience = Number(experience);
+        if (fee !== undefined) vet.fee = Number(fee);
+        if (bio !== undefined) vet.bio = bio;
+        if (photo !== undefined) vet.photo = photo;
+        if (phone !== undefined) vet.phone = phone;
+        if (location !== undefined) vet.location = location;
+        if (isOnline !== undefined) vet.isOnline = isOnline;
+        if (availableSlots !== undefined) vet.availableSlots = availableSlots;
+        return res.json({ status: 'success', provider: vet, vet });
       }
-
-      if (name !== undefined && name.trim()) vet.name = name.trim();
-      if (fee !== undefined) vet.fee = Number(fee);
-      if (specialisation !== undefined) vet.specialisation = specialisation;
-      if (bio !== undefined) vet.bio = bio;
-      if (phone !== undefined) vet.phone = phone;
-      if (photo !== undefined) vet.photo = photo;
-      if (isOnline !== undefined) vet.isOnline = isOnline;
-      if (availableSlots !== undefined) vet.availableSlots = availableSlots;
-      if (specialtyTags !== undefined) vet.specialtyTags = specialtyTags;
-      if (category !== undefined) vet.category = category;
-
-      await vet.save();
-    } else {
-      vet = fallbackVets.find((v: any) => v.email === userEmail);
-      if (!vet) {
-        return res.status(404).json({ status: 'error', message: 'Doctor profile not found' });
-      }
-      if (name !== undefined && name.trim()) vet.name = name.trim();
-      if (fee !== undefined) vet.fee = Number(fee);
-      if (specialisation !== undefined) vet.specialisation = specialisation;
-      if (bio !== undefined) vet.bio = bio;
-      if (phone !== undefined) vet.phone = phone;
-      if (photo !== undefined) vet.photo = photo;
-      if (isOnline !== undefined) vet.isOnline = isOnline;
-      if (availableSlots !== undefined) vet.availableSlots = availableSlots;
-      if (specialtyTags !== undefined) vet.specialtyTags = specialtyTags;
-      if (category !== undefined) vet.category = category;
+      return res.status(404).json({ status: 'error', message: 'Doctor profile not found' });
     }
 
-    return res.json({ status: 'success', vet });
+    let vet = null;
+    if (providerId && mongoose.Types.ObjectId.isValid(providerId)) {
+      vet = await Vet.findById(providerId);
+    } else if (userEmail) {
+      const escapedUserEmail = userEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      vet = await Vet.findOne({ email: { $regex: new RegExp(`^${escapedUserEmail}$`, 'i') } });
+    }
+
+    if (!vet) {
+      return res.status(404).json({ status: 'error', message: 'Doctor profile not found' });
+    }
+
+    if (name !== undefined && name.trim()) vet.name = name.trim();
+    if (specialisation !== undefined) vet.specialisation = specialisation;
+    if (category !== undefined) vet.category = category;
+    if (registrationNo !== undefined) vet.registrationNo = registrationNo;
+    if (qualification !== undefined) vet.qualification = qualification;
+    if (specialtyTags !== undefined) vet.specialtyTags = Array.isArray(specialtyTags) ? specialtyTags : specialtyTags.split(',').map((t: string) => t.trim()).filter(Boolean);
+    if (languages !== undefined) vet.languages = Array.isArray(languages) ? languages : languages.split(',').map((l: string) => l.trim()).filter(Boolean);
+    if (consultationModes !== undefined) vet.consultationModes = Array.isArray(consultationModes) ? consultationModes : consultationModes.split(',').map((m: string) => m.trim()).filter(Boolean);
+    if (experience !== undefined) vet.experience = Number(experience);
+    if (fee !== undefined) vet.fee = Number(fee);
+    if (bio !== undefined) vet.bio = bio;
+    if (photo !== undefined) vet.photo = photo;
+    if (phone !== undefined) vet.phone = phone;
+    if (location !== undefined) vet.location = location;
+    if (isOnline !== undefined) vet.isOnline = isOnline;
+    if (availableSlots !== undefined) vet.availableSlots = availableSlots;
+    await vet.save();
+
+    return res.json({ status: 'success', provider: vet.toObject(), vet: vet.toObject() });
   } catch (error) {
     console.error('Error in PUT /api/provider/me/profile:', error);
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
   }
-});
+};
+
+app.put('/api/provider/me/profile', authMiddleware, handleProviderProfileUpdate);
+app.put('/api/provider/profile', authMiddleware, handleProviderProfileUpdate);
 
 /**
  * POST /api/provider/me/slots/bulk
@@ -3888,71 +4021,7 @@ app.get('/api/appointments/:id/token', authMiddleware, async (req: Request, res:
   }
 });
 
-const callSignalStore: { [channelId: string]: Array<{ timestamp: number; signal: any }> } = {};
 
-/**
- * POST /api/appointments/:id/call/signal
- * Send WebRTC signal (Offer, Answer, ICE Candidate, Chat)
- */
-app.post('/api/appointments/:id/call/signal', async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const { signal } = req.body;
-    if (!signal) return res.status(400).json({ status: 'error', message: 'Signal payload required' });
-
-    if (!callSignalStore[id]) {
-      callSignalStore[id] = [];
-    }
-
-    callSignalStore[id].push({
-      timestamp: Date.now(),
-      signal
-    });
-
-    if (callSignalStore[id].length > 100) {
-      callSignalStore[id].shift();
-    }
-
-    return res.json({ status: 'success' });
-  } catch (err) {
-    console.error('Error posting call signal:', err);
-    return res.status(500).json({ status: 'error', message: 'Failed to process call signal' });
-  }
-});
-
-/**
- * GET /api/appointments/:id/call/signals
- * Fetch WebRTC signals for call room since timestamp
- */
-app.get('/api/appointments/:id/call/signals', async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const since = Number(req.query.since || 0);
-
-    const roomSignals = callSignalStore[id] || [];
-    const signals = roomSignals.filter((item) => item.timestamp > since);
-
-    return res.json({ status: 'success', signals });
-  } catch (err) {
-    console.error('Error fetching call signals:', err);
-    return res.status(500).json({ status: 'error', message: 'Failed to fetch call signals' });
-  }
-});
-
-/**
- * PUT /api/appointments/:id/call/end
- * End call session and clear signal buffer for clean rejoining
- */
-app.put('/api/appointments/:id/call/end', async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    delete callSignalStore[id];
-    return res.json({ status: 'success', message: 'Call room signals cleared' });
-  } catch (err) {
-    console.error('Error ending call session:', err);
-    return res.status(500).json({ status: 'error', message: 'Failed to end call session' });
-  }
-});
 
 /**
  * PUT /api/appointments/:id/reschedule
@@ -4500,74 +4569,6 @@ app.post('/api/donations', authMiddleware, async (req: Request, res: Response) =
 // ==================== PROVIDER (VET/EXPERT) SELF-SERVICE ENDPOINTS ====================
 
 /**
- * GET /api/provider/me
- * Returns the vet/expert profile for the authenticated user (matched by email),
- * plus all appointments where they are the provider.
- */
-app.get('/api/provider/me', authMiddleware, async (req: Request, res: Response) => {
-  try {
-    const userEmail = req.user?.email;
-    const providerId = req.query.providerId as string;
-
-    if (!userEmail) {
-      return res.status(401).json({ status: 'error', message: 'Authentication required' });
-    }
-
-    // Look up vet/expert profile by email or providerId
-    let vetProfile: any = null;
-    if (mongoose.connection.readyState === 1) {
-      if (providerId && mongoose.Types.ObjectId.isValid(providerId)) {
-        vetProfile = await Vet.findById(providerId).lean();
-      } else {
-        vetProfile = await Vet.findOne({ email: { $regex: new RegExp(`^${userEmail}$`, 'i') } }).lean();
-      }
-    }
-    
-    if (!vetProfile) {
-      if (providerId) {
-        vetProfile = fallbackVets.find((v: any) => v._id === providerId || v.email?.toLowerCase() === userEmail.toLowerCase()) || null;
-      } else {
-        vetProfile = fallbackVets.find((v: any) => v.email?.toLowerCase() === userEmail.toLowerCase()) || fallbackVets[0] || null;
-      }
-    }
-
-    if (!vetProfile) {
-      return res.status(404).json({ status: 'error', message: 'No provider profile found for this account' });
-    }
-
-    // Fetch all appointments for this vet/expert
-    let appointments: any[] = [];
-    if (mongoose.connection.readyState === 1) {
-      appointments = await Appointment.find({ vetId: String(vetProfile._id) })
-        .sort({ createdAt: -1 })
-        .lean();
-    }
-    const fbAppts = fallbackAppointments.filter((a: any) => String(a.vetId) === String(vetProfile._id));
-    const mergedAppts = [...appointments, ...fbAppts.filter(fa => !appointments.some(dbA => dbA._id.toString() === fa._id.toString()))];
-
-    // Compute earnings summary
-    const confirmedAppts = mergedAppts.filter((a: any) => a.status === 'confirmed');
-    const totalEarnings = confirmedAppts.reduce((sum: number, a: any) => sum + (a.fee || 0), 0);
-    const upcomingAppts = mergedAppts.filter((a: any) => a.status !== 'cancelled');
-
-    return res.json({
-      status: 'success',
-      provider: vetProfile,
-      appointments: mergedAppts,
-      summary: {
-        total: mergedAppts.length,
-        confirmed: confirmedAppts.length,
-        upcoming: upcomingAppts.length,
-        totalEarnings
-      }
-    });
-  } catch (error) {
-    console.error('Error in GET /api/provider/me:', error);
-    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
-  }
-});
-
-/**
  * PUT /api/provider/slots
  * Allows the authenticated vet/expert to update their available slots.
  * Body: { slots: [{ date: string, time: string }], providerId?: string }
@@ -4605,7 +4606,8 @@ app.put('/api/provider/slots', authMiddleware, async (req: Request, res: Respons
     if (providerId && mongoose.Types.ObjectId.isValid(providerId)) {
       vet = await Vet.findById(providerId);
     } else {
-      vet = await Vet.findOne({ email: { $regex: new RegExp(`^${userEmail}$`, 'i') } });
+      const escapedUserEmail = userEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      vet = await Vet.findOne({ email: { $regex: new RegExp(`^${escapedUserEmail}$`, 'i') } });
     }
 
     if (!vet) {
@@ -4631,93 +4633,6 @@ app.put('/api/provider/slots', authMiddleware, async (req: Request, res: Respons
 });
 
 /**
- * PUT /api/provider/profile and PUT /api/provider/me/profile
- * Allows logged-in doctor to update full profile details live.
- */
-const handleProviderProfileUpdate = async (req: Request, res: Response) => {
-  try {
-    const userEmail = req.user?.email;
-    const {
-      providerId,
-      name,
-      specialisation,
-      category,
-      registrationNo,
-      qualification,
-      specialtyTags,
-      languages,
-      consultationModes,
-      experience,
-      fee,
-      bio,
-      photo,
-      phone,
-      location,
-      availableSlots
-    } = req.body;
-
-    if (mongoose.connection.readyState !== 1) {
-      const vet = fallbackVets.find(v => (providerId && v._id === providerId) || (v.email && userEmail && v.email.toLowerCase() === userEmail.toLowerCase()));
-      if (vet) {
-        if (name !== undefined) vet.name = name;
-        if (specialisation !== undefined) vet.specialisation = specialisation;
-        if (category !== undefined) vet.category = category;
-        if (registrationNo !== undefined) vet.registrationNo = registrationNo;
-        if (qualification !== undefined) vet.qualification = qualification;
-        if (specialtyTags !== undefined) vet.specialtyTags = Array.isArray(specialtyTags) ? specialtyTags : specialtyTags.split(',').map((t: string) => t.trim()).filter(Boolean);
-        if (languages !== undefined) vet.languages = Array.isArray(languages) ? languages : languages.split(',').map((l: string) => l.trim()).filter(Boolean);
-        if (consultationModes !== undefined) vet.consultationModes = Array.isArray(consultationModes) ? consultationModes : consultationModes.split(',').map((m: string) => m.trim()).filter(Boolean);
-        if (experience !== undefined) vet.experience = Number(experience);
-        if (fee !== undefined) vet.fee = Number(fee);
-        if (bio !== undefined) vet.bio = bio;
-        if (photo !== undefined) vet.photo = photo;
-        if (phone !== undefined) vet.phone = phone;
-        if (location !== undefined) vet.location = location;
-        if (availableSlots !== undefined) vet.availableSlots = availableSlots;
-        return res.json({ status: 'success', provider: vet, vet });
-      }
-      return res.status(404).json({ status: 'error', message: 'Provider profile not found' });
-    }
-
-    let vet = null;
-    if (providerId && mongoose.Types.ObjectId.isValid(providerId)) {
-      vet = await Vet.findById(providerId);
-    } else if (userEmail) {
-      vet = await Vet.findOne({ email: { $regex: new RegExp(`^${userEmail}$`, 'i') } });
-    }
-
-    if (!vet) {
-      return res.status(404).json({ status: 'error', message: 'Provider profile not found' });
-    }
-
-    if (name !== undefined) vet.name = name;
-    if (specialisation !== undefined) vet.specialisation = specialisation;
-    if (category !== undefined) vet.category = category;
-    if (registrationNo !== undefined) vet.registrationNo = registrationNo;
-    if (qualification !== undefined) vet.qualification = qualification;
-    if (specialtyTags !== undefined) vet.specialtyTags = Array.isArray(specialtyTags) ? specialtyTags : specialtyTags.split(',').map((t: string) => t.trim()).filter(Boolean);
-    if (languages !== undefined) vet.languages = Array.isArray(languages) ? languages : languages.split(',').map((l: string) => l.trim()).filter(Boolean);
-    if (consultationModes !== undefined) vet.consultationModes = Array.isArray(consultationModes) ? consultationModes : consultationModes.split(',').map((m: string) => m.trim()).filter(Boolean);
-    if (experience !== undefined) vet.experience = Number(experience);
-    if (fee !== undefined) vet.fee = Number(fee);
-    if (bio !== undefined) vet.bio = bio;
-    if (photo !== undefined) vet.photo = photo;
-    if (phone !== undefined) vet.phone = phone;
-    if (location !== undefined) vet.location = location;
-    if (availableSlots !== undefined) vet.availableSlots = availableSlots;
-    await vet.save();
-
-    return res.json({ status: 'success', provider: vet.toObject(), vet: vet.toObject() });
-  } catch (error) {
-    console.error('Error in provider profile update:', error);
-    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
-  }
-};
-
-app.put('/api/provider/profile', authMiddleware, handleProviderProfileUpdate);
-app.put('/api/provider/me/profile', authMiddleware, handleProviderProfileUpdate);
-
-/**
  * PUT /api/provider/availability
  * Toggles the vet/expert's isOnline status.
  * Body: { isOnline: boolean }
@@ -4738,8 +4653,9 @@ app.put('/api/provider/availability', authMiddleware, async (req: Request, res: 
       return res.status(503).json({ status: 'error', message: 'Database unavailable.' });
     }
 
+    const escapedUserEmail = userEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const vet = await Vet.findOneAndUpdate(
-      { email: { $regex: new RegExp(`^${userEmail}$`, 'i') } },
+      { email: { $regex: new RegExp(`^${escapedUserEmail}$`, 'i') } },
       { $set: { isOnline } },
       { new: true }
     );
@@ -4751,44 +4667,6 @@ app.put('/api/provider/availability', authMiddleware, async (req: Request, res: 
     return res.json({ status: 'success', isOnline: vet.isOnline });
   } catch (error) {
     console.error('Error in PUT /api/provider/availability:', error);
-    return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
-  }
-});
-
-/**
- * PUT /api/appointments/:id/medical-document
- * Allows client to upload/set their past medical document for an appointment
- */
-app.put('/api/appointments/:id/medical-document', authMiddleware, async (req: Request, res: Response) => {
-  try {
-    const userEmail = req.user?.email;
-    const { id } = req.params;
-    const { medicalDocument } = req.body; // base64 string or URL
-
-    if (!userEmail) {
-      return res.status(401).json({ status: 'error', message: 'Authentication required' });
-    }
-
-    if (mongoose.connection.readyState !== 1) {
-      const appt = fallbackAppointments.find((a: any) => a._id === id && a.userEmail.toLowerCase() === userEmail.toLowerCase());
-      if (!appt) return res.status(404).json({ status: 'error', message: 'Appointment not found' });
-      appt.medicalDocument = medicalDocument;
-      return res.json({ status: 'success', appointment: appt });
-    }
-
-    const appointment = await Appointment.findOneAndUpdate(
-      { _id: id, userEmail: { $regex: new RegExp(`^${userEmail}$`, 'i') } },
-      { $set: { medicalDocument } },
-      { new: true }
-    );
-
-    if (!appointment) {
-      return res.status(404).json({ status: 'error', message: 'Appointment not found' });
-    }
-
-    return res.json({ status: 'success', appointment });
-  } catch (error) {
-    console.error('Error adding medical document:', error);
     return res.status(500).json({ status: 'error', message: 'Internal Server Error' });
   }
 });

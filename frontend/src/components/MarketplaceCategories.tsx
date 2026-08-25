@@ -9,20 +9,20 @@ export default function MarketplaceCategories({ onExploreMoreClick }: Marketplac
     {
       id: 1,
       title: 'Food',
-      subtitle: 'Meals & treats',
-      icon: '/real-pet-food.png',
+      subtitle: 'Treats & nutrition',
+      icon: '/product-1.png',
     },
     {
       id: 2,
       title: 'Toys',
-      subtitle: 'Gear & fun',
-      icon: '/real-pet-toy.png',
+      subtitle: 'Collars & play gear',
+      icon: '/product-6.png',
     },
     {
       id: 3,
       title: 'Medical',
-      subtitle: 'Supplements & care',
-      icon: '/real-pet-med.png',
+      subtitle: 'Care & supplements',
+      icon: '/product-5.png',
     },
     {
       id: 4,

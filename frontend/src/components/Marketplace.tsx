@@ -302,7 +302,7 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
                                   src={product.imageUrl}
                                   alt={product.title}
                                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                  onError={(e) => { e.currentTarget.src = '/real-pet-food.png'; }}
+                                  onError={(e) => { e.currentTarget.src = '/product-1.png'; }}
                                 />
                               </div>
 
@@ -428,7 +428,7 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
                                   src={product.imageUrl}
                                   alt={product.title}
                                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                  onError={(e) => { e.currentTarget.src = '/real-pet-toy.png'; }}
+                                  onError={(e) => { e.currentTarget.src = '/product-3.png'; }}
                                 />
                               </div>
 
@@ -554,7 +554,7 @@ export default function Marketplace({ onOpenAdmin }: MarketplaceProps) {
                                   src={product.imageUrl}
                                   alt={product.title}
                                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                  onError={(e) => { e.currentTarget.src = '/real-pet-med.png'; }}
+                                  onError={(e) => { e.currentTarget.src = '/product-2.png'; }}
                                 />
                               </div>
 
