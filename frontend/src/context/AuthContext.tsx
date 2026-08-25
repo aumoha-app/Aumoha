@@ -145,10 +145,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Check if this user is a vet/expert provider (non-blocking)
           checkProviderStatus(idToken || '');
         }
-      } else {
-        if (res.status === 401) {
-          handleCacheClear();
+      } else if (res.status === 401) {
+        // Try refreshing token once before clearing cache
+        try {
+          if (firebaseUser && typeof firebaseUser.getIdToken === 'function') {
+            const freshToken = await firebaseUser.getIdToken(true);
+            if (freshToken && freshToken !== idToken) {
+              setToken(freshToken);
+              if (typeof window !== 'undefined') {
+                localStorage.setItem('aumoha_auth_token', freshToken);
+              }
+              const retryRes = await fetch(`${API_BASE}/auth/me`, {
+                headers: { Authorization: `Bearer ${freshToken}` }
+              });
+              if (retryRes.ok) {
+                const retryData = await retryRes.json();
+                setUser(retryData.user);
+                checkProviderStatus(freshToken);
+                return;
+              }
+            }
+          }
+        } catch {
+          // Token refresh failed
         }
+        handleCacheClear();
       }
     } catch (error: any) {
       clearTimeout(timeoutId);
@@ -168,9 +189,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       if (res.ok) {
         const data = await res.json();
-        if (data.status === 'success' && data.provider) {
+        const prof = data.provider || data.vet;
+        if (data.status === 'success' && prof) {
           setIsProvider(true);
-          setVetProfile(data.provider);
+          setVetProfile(prof);
         } else {
           setIsProvider(false);
           setVetProfile(null);

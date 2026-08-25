@@ -66,7 +66,6 @@ export default function SosPage() {
         onResetSos={() => {
           setSosSent(false);
           setSosReason('');
-          router.push('/');
         }}
       />
       <PopupModal config={popupConfig} onClose={() => setPopupConfig(null)} />

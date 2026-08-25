@@ -41,7 +41,7 @@ if (hasFirebaseClientConfig) {
 export interface AuthUser {
   uid: string;
   email: string | null;
-  getIdToken: () => Promise<string>;
+  getIdToken: (forceRefresh?: boolean) => Promise<string>;
 }
 
 // Client Side Mock Auth System
@@ -68,7 +68,7 @@ class MockAuthSystem {
     return {
       uid,
       email,
-      getIdToken: async () => `mock-token-${uid.replace('mock-uid-', '')}:${email}`
+      getIdToken: async (_forceRefresh?: boolean) => `mock-token-${uid.replace('mock-uid-', '')}:${email}`
     };
   }
 
@@ -135,7 +135,7 @@ export const auth = {
           currentRealUser = {
             uid: user.uid,
             email: user.email,
-            getIdToken: () => user.getIdToken()
+            getIdToken: (forceRefresh?: boolean) => user.getIdToken(forceRefresh)
           };
         } else {
           currentRealUser = null;
