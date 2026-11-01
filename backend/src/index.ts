@@ -17,6 +17,8 @@ import { sendEmail, generateBookingEmailHtml, generateDonationEmailHtml } from '
 import { v2 as cloudinary } from 'cloudinary';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
+import { connectDatabase } from './lib/database';
+import { runtimeConfig } from './lib/runtimeConfig';
 
 // Load environment variables
 dotenv.config();
@@ -120,7 +122,7 @@ if (cloudinaryConfigured) {
 
 // Initialize MongoDB Connection
 const MONGODB_URI = process.env.MONGODB_URI;
-if (require.main === module && !MONGODB_URI) {
+if (require.main === module && !MONGODB_URI && process.env.APP_MODE !== 'event') {
   console.error('❌ MONGODB_URI environment variable is missing.');
   process.exit(1);
 }
@@ -666,11 +668,7 @@ async function seedActivities() {
 // Disable Mongoose command buffering globally so queries fail-fast when offline instead of hanging requests
 mongoose.set('bufferCommands', false);
 
-if (require.main === module) mongoose
-  .connect(MONGODB_URI!, {
-    serverSelectionTimeoutMS: 2500, // 2.5s timeout for Atlas connection attempts
-    connectTimeoutMS: 4000,
-  })
+if (require.main === module && MONGODB_URI) connectDatabase()
   .then(() => {
     console.log('🍃 MongoDB connected successfully');
     if (process.env.NODE_ENV !== 'production' && process.env.SEED_DEMO_DATA === 'true') {
@@ -691,12 +689,66 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json({ limit: '10mb' })); // Support base64 image uploads
-app.use('/api', (_req, res, next) => {
+// Public readiness contains booleans only, never credentials.
+app.get('/api/capabilities', (_req, res) => {
   res.setHeader('Cache-Control', 'no-store');
-  if (mongoose.connection.readyState !== 1) {
-    return res.status(503).json({ status: 'error', message: 'Database unavailable. Please retry shortly.' });
+  return res.json({ status: 'success', ...runtimeConfig() });
+});
+
+// Event visitors never initiate customer payments, consultations or demo writes.
+app.use('/api', (req, res, next) => {
+  const config = runtimeConfig();
+  res.setHeader('Cache-Control', 'no-store');
+  const isPayment = ['/create-order', '/verify-payment', '/donations'].includes(req.path);
+  if (isPayment && !config.customerPaymentsAvailable) {
+    return res.status(403).json({ status: 'error', message: 'Customer payments are not open yet' });
+  }
+  if (!config.consultationsAvailable && /^\/(appointments|instant-consultation)(?:\/|$)/.test(req.path)) {
+    return res.status(503).json({ status: 'error', message: 'We are onboarding professionals. Consultations are not available yet.' });
+  }
+  if (config.eventMode && req.path === '/vets' && req.method === 'GET') {
+    return res.json({ status: 'success', vets: [] });
+  }
+  if (config.eventMode && !['GET', 'HEAD', 'OPTIONS'].includes(req.method) &&
+      !req.path.startsWith('/integrations/') && !req.path.startsWith('/auth/')) {
+    return res.status(403).json({ status: 'error', message: 'This event preview does not submit requests' });
   }
   return next();
+});
+// Admin-only integration checks keep test checkout separate from customer bookings.
+app.post('/api/integrations/razorpay/test-order', authMiddleware, adminMiddleware, async (req, res) => {
+  if (!razorpay || !runtimeConfig().paymentsTestMode) {
+    return res.status(503).json({ status: 'error', message: 'Configure Razorpay test credentials for this check' });
+  }
+  try {
+    const order = await razorpay.orders.create({ amount: 100, currency: 'INR', notes: { app_user_uid: req.user!.uid, purpose: 'integration_test' } });
+    return res.json({ status: 'success', order_id: order.id, amount: order.amount, key_id: razorpayKeyId, testMode: true });
+  } catch {
+    return res.status(502).json({ status: 'error', message: 'Razorpay test-order creation failed' });
+  }
+});
+app.get('/api/integrations/agora/test-token', authMiddleware, adminMiddleware, (req, res) => {
+  const appId = process.env.AGORA_APP_ID;
+  const certificate = process.env.AGORA_APP_CERTIFICATE;
+  if (!appId || !certificate) return res.status(503).json({ status: 'error', message: 'Configure Agora credentials for this check' });
+  try {
+    const { RtcTokenBuilder, RtcRole } = require('agora-token');
+    const channelName = 'aumoha-private-integration-check';
+    const uid = crypto.createHash('sha256').update(req.user!.uid).digest().readUInt32BE(0) || 1;
+    const token = RtcTokenBuilder.buildTokenWithUid(appId, certificate, channelName, uid, RtcRole.PUBLISHER, 600, 600);
+    return res.json({ status: 'success', appId, channelName, uid, token, expiresIn: 600 });
+  } catch {
+    return res.status(503).json({ status: 'error', message: 'Agora integration-token generation failed' });
+  }
+});
+
+app.use('/api', async (_req, res, next) => {
+  try {
+    await connectDatabase();
+    return next();
+  } catch {
+    return res.status(503).json({ status: 'error', message: 'Database unavailable. Please retry shortly.' });
+  }
 });
 
 async function findAppointment(id: string) {
@@ -5145,3 +5197,6 @@ if (require.main === module) app.listen(PORT, () => {
 
 
 
+
+// Vercel Express entry point; request middleware initializes the database lazily.
+export default app;

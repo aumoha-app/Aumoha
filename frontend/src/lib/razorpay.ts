@@ -1,5 +1,6 @@
 import { API_BASE } from './api';
 import { auth } from './firebase';
+import { EVENT_MODE } from './eventMode';
 
 declare global {
   interface Window {
@@ -57,6 +58,10 @@ export interface RazorpayOptions {
  * Initiates Razorpay Standard Web Checkout
  */
 export const processRazorpayPayment = async (options: RazorpayOptions): Promise<void> => {
+  if (EVENT_MODE) {
+    options.onFailure?.(new Error('Payments are not open in the event preview'));
+    return;
+  }
   const isLoaded = await loadRazorpayScript();
   if (!isLoaded) {
     console.warn('Failed to load Razorpay SDK. Please check your internet connection.');

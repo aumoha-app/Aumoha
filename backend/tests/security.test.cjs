@@ -35,7 +35,9 @@ const models = {
   activityModel: { findById: () => query({ ...appt, userEmail: 'other@example.test' }) },
   callSessionModel: { findOne: () => query(null), findOneAndUpdate: async () => { writes++; return null; } },
 };
-process.env.RAZORPAY_KEY_ID = 'test-key';
+process.env.APP_MODE = 'test';
+process.env.CUSTOMER_PAYMENTS_ENABLED = 'true';
+process.env.RAZORPAY_KEY_ID = 'rzp_test_fixture';
 process.env.RAZORPAY_KEY_SECRET = 'unit-test-secret';
 process.env.ADMIN_EMAILS = 'admin@example.test';
 process.env.ADMIN_PASSWORD = 'configured-test-password';
@@ -191,5 +193,35 @@ test('full provider directory requires an admin account', async () => {
   assert.equal((await request('/api/admin/vets')).status, 403);
   identity('admin@example.test');
   assert.equal((await request('/api/admin/vets')).status, 200);
+  identity('owner@example.test');
+});
+
+test('event mode reports readiness without secrets and blocks customer payments and bookings even with a signed-in user', async () => {
+  process.env.APP_MODE = 'event';
+  identity('owner@example.test');
+  readyState = 0;
+  const capabilities = await request('/api/capabilities');
+  assert.equal(capabilities.status, 200);
+  const data = await capabilities.json();
+  assert.equal(data.consultationsAvailable, false);
+  assert.equal(data.customerPaymentsAvailable, false);
+  assert.equal(data.paymentsTestMode, true);
+  assert.equal(JSON.stringify(data).includes('unit-test-secret'), false);
+  for (const path of ['/api/create-order', '/api/donations']) assert.equal((await request(path, 'POST', {})).status, 403);
+  for (const path of ['/api/appointments', '/api/instant-consultation/find']) assert.equal((await request(path, 'POST', {})).status, 503);
+  assert.deepEqual((await (await request('/api/vets')).json()).vets, []);
+  assert.equal((await request('/api/sos', 'POST', {})).status, 403);
+  process.env.APP_MODE = 'test';
+  readyState = 1;
+});
+test('integration checks stay private and test checkout never accepts live Razorpay keys', async () => {
+  identity('owner@example.test');
+  assert.equal((await request('/api/integrations/razorpay/test-order', 'POST', {})).status, 403);
+  identity('admin@example.test');
+  assert.equal((await request('/api/integrations/razorpay/test-order', 'POST', {})).status, 200);
+  process.env.RAZORPAY_KEY_ID = 'rzp_live_fixture';
+  assert.equal((await request('/api/integrations/razorpay/test-order', 'POST', {})).status, 503);
+  process.env.RAZORPAY_KEY_ID = 'rzp_test_fixture';
+  assert.equal((await request('/api/integrations/agora/test-token')).status, 503);
   identity('owner@example.test');
 });

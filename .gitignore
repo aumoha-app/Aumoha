@@ -13,3 +13,6 @@ dist/
 backend/dist/
 frontend/.next/
 frontend/out/
+
+!backend/.env.example
+!frontend/.env.example

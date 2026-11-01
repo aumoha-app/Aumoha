@@ -2,6 +2,9 @@
 
 import { useState, useEffect, ReactNode } from 'react';
 import Header from './Header';
+import { usePathname } from 'next/navigation';
+import { EVENT_MODE } from '../lib/eventMode';
+import { EventFeaturePreview, eventPreviewPaths } from './EventFeaturePreview';
 import BottomNav from './BottomNav';
 import { useAuth } from '../context/AuthContext';
 import AuthScreen from './AuthScreen';
@@ -16,6 +19,8 @@ interface AppShellProps {
 
 export default function AppShell({ children, backdropImage, bgColor = '#F5F2EC' }: AppShellProps) {
   const { firebaseUser, loading, isNewUser } = useAuth();
+  const pathname = usePathname();
+  const publicEventPage = EVENT_MODE && (pathname === '/' || eventPreviewPaths.has(pathname));
   const [mounted, setMounted] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [popupConfig, setPopupConfig] = useState<PopupConfig | null>(null);
@@ -51,7 +56,7 @@ export default function AppShell({ children, backdropImage, bgColor = '#F5F2EC' 
     }
   };
 
-  if (!mounted || loading) {
+  if (!mounted || (loading && !publicEventPage)) {
     return (
       <div className="min-h-screen bg-[#FAF6F0] flex flex-col items-center justify-center font-sans select-none">
         <div className="relative w-28 h-28 flex items-center justify-center">
@@ -84,12 +89,13 @@ export default function AppShell({ children, backdropImage, bgColor = '#F5F2EC' 
         </div>
       )}
 
+      {publicEventPage && <div className="relative z-20 border-b border-[#E8E2D8] bg-[#FFF8EF] px-4 py-3 text-center text-xs text-stone-700">Aumoha event preview · Consultations, orders and payments open later.</div>}
       {/* GLOBAL TOP BRAND HEADER */}
       <Header onInstallClick={handleInstallClick} />
 
       {/* MAIN CONTENT AREA */}
       <div className="flex-grow w-full max-w-3xl md:max-w-5xl lg:max-w-6xl mx-auto px-4 sm:px-6 pt-1 sm:pt-2 pb-24 sm:pb-32 relative z-10">
-        {!firebaseUser ? (
+        {publicEventPage ? (pathname === '/' ? children : <EventFeaturePreview path={pathname} />) : !firebaseUser ? (
           <AuthScreen />
         ) : isNewUser ? (
           <OnboardingScreen />
@@ -99,9 +105,10 @@ export default function AppShell({ children, backdropImage, bgColor = '#F5F2EC' 
       </div>
 
       {/* BOTTOM TAB NAVIGATION BAR */}
-      {firebaseUser && !isNewUser && (
+      {(publicEventPage || (firebaseUser && !isNewUser)) && (
         <BottomNav />
       )}
     </div>
   );
 }
+

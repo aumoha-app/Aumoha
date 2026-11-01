@@ -14,7 +14,7 @@ export default function Home() {
     <AppShell backdropImage="/backdrop-sunlight.png">
       <main className="w-full max-w-3xl md:max-w-4xl mx-auto flex flex-col gap-6 transition-all duration-300">
         <MinimalHome
-          userName={user?.fullName || 'Ananya'}
+          userName={user?.fullName || 'Welcome to Aumoha'}
           onSosClick={() => router.push('/sos')}
           onVetCareClick={() => router.push('/vet-consult')}
           onExpertSupportClick={() => router.push('/expert-support')}
@@ -26,3 +26,4 @@ export default function Home() {
     </AppShell>
   );
 }
+

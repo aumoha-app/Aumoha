@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { StethoscopeIcon, LeafIcon, UserIcon, UsersIcon } from './icons/PetIcons';
 import NeighborhoodRadar from './NeighborhoodRadar';
 import MarketplaceCategories from './MarketplaceCategories';
+import { EVENT_MODE } from '../lib/eventMode';
 import { API_BASE } from '../lib/api';
 
 interface MinimalHomeProps {
@@ -63,7 +64,7 @@ export default function MinimalHome({
         console.warn('Error fetching live impact stats:', err);
       }
     };
-    fetchImpact();
+    if (!EVENT_MODE) fetchImpact();
   }, []);
 
   // Extract first name
@@ -292,7 +293,7 @@ export default function MinimalHome({
       </div>
 
       {/* 7. MOHA CIRCLE NEIGHBORHOOD RADAR CARD */}
-      <NeighborhoodRadar onEnterCircle={onCommunityClick} />
+      {!EVENT_MODE && <NeighborhoodRadar onEnterCircle={onCommunityClick} />}
 
       {/* 8. MARKETPLACE QUICK ACTIONS */}
       <MarketplaceCategories onExploreMoreClick={onMarketplaceClick || (() => { })} />
@@ -329,3 +330,4 @@ export default function MinimalHome({
     </div>
   );
 }
+

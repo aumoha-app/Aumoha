@@ -4,12 +4,12 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const ts = require('typescript');
 const source = fs.readFileSync(require.resolve('../src/lib/razorpay.ts'), 'utf8');
-function load({ verifyOk = true, failAuth = false } = {}) {
+function load({ verifyOk = true, failAuth = false, eventMode = false } = {}) {
   const calls = [];
   let checkout;
   const context = {
     exports: {}, process: { env: {} }, console,
-    require: name => name === './api' ? { API_BASE: '/api' } : { auth: { getIdToken: async () => { if (failAuth) throw Error('signed out'); return 'verified-token'; } } },
+    require: name => name === './api' ? { API_BASE: '/api' } : name === './eventMode' ? { EVENT_MODE: eventMode } : { auth: { getIdToken: async () => { if (failAuth) throw Error('signed out'); return 'verified-token'; } } },
     window: { location: { origin: 'https://aumoha.test' }, Razorpay: class { constructor(options) { checkout = options; } on() {} open() {} } },
     fetch: async (url, options) => {
       calls.push({ url, options });
@@ -48,4 +48,13 @@ test('signed-out users do not create payment orders', async () => {
   await h.pay({ amount: 400, onSuccess: () => assert.fail('unexpected success'), onFailure: () => { failed = true; } });
   assert.equal(failed, true);
   assert.equal(h.calls.length, 0);
+});
+
+test('event preview never creates checkout orders', async () => {
+  const h = load({ eventMode: true });
+  let failed = false;
+  await h.pay({ amount: 400, onSuccess: () => assert.fail('unexpected success'), onFailure: () => { failed = true; } });
+  assert.equal(failed, true);
+  assert.equal(h.calls.length, 0);
+  assert.equal(h.checkout(), undefined);
 });
