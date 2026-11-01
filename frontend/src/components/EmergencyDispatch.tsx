@@ -12,6 +12,7 @@ interface EmergencyDispatchProps {
   emergencyType: string;
   setEmergencyType: (val: string) => void;
   sosSent: boolean;
+  reportId?: string;
   onSubmitSos: (
     category: string,
     severity: 'critical' | 'urgent' | 'stable',
@@ -29,6 +30,7 @@ export default function EmergencyDispatch({
   emergencyType,
   setEmergencyType,
   sosSent,
+  reportId,
   onSubmitSos,
   onResetSos
 }: EmergencyDispatchProps) {
@@ -460,6 +462,7 @@ export default function EmergencyDispatch({
         </div>
 
         <EmergencySubmitted
+          reportId={reportId}
           category={activeCategory}
           severity={severity}
           sosReason={sosReason}
@@ -1280,3 +1283,4 @@ export default function EmergencyDispatch({
     </main>
   );
 }
+

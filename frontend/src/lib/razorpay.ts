@@ -1,4 +1,5 @@
 import { API_BASE } from './api';
+import { auth } from './firebase';
 
 declare global {
   interface Window {
@@ -44,7 +45,10 @@ export interface RazorpayOptions {
     email?: string;
     contact?: string;
   };
-  onSuccess: (paymentData: { order_id: string; payment_id: string }) => void;
+  onSuccess: (paymentData: {
+    order_id: string; payment_id: string; signature: string;
+    razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string;
+  }) => void;
   onFailure?: (error: any) => void;
   onDismiss?: () => void;
 }
@@ -61,11 +65,13 @@ export const processRazorpayPayment = async (options: RazorpayOptions): Promise<
   }
 
   try {
+    const idToken = await auth.getIdToken();
     // 1. Call backend to create Razorpay Order
     const res = await fetch(`${API_BASE}/create-order`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        Authorization: `Bearer ${idToken}`,
       },
       body: JSON.stringify({
         amount: options.amount,
@@ -81,7 +87,7 @@ export const processRazorpayPayment = async (options: RazorpayOptions): Promise<
       throw new Error(orderData.message || 'Failed to create payment order');
     }
 
-    const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || orderData.key_id || 'rzp_test_TKxpLxhMCofQDL';
+    const razorpayKey = orderData.key_id;
 
     const logoUrl = typeof window !== 'undefined' ? `${window.location.origin}/logo.png` : '/logo.png';
 
@@ -114,6 +120,7 @@ export const processRazorpayPayment = async (options: RazorpayOptions): Promise<
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+        Authorization: `Bearer ${idToken}`,
             },
             body: JSON.stringify({
               razorpay_order_id: response.razorpay_order_id,
@@ -128,6 +135,10 @@ export const processRazorpayPayment = async (options: RazorpayOptions): Promise<
             options.onSuccess({
               order_id: response.razorpay_order_id,
               payment_id: response.razorpay_payment_id,
+              signature: response.razorpay_signature,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
             });
           } else {
             const errMsg = verifyData.message || 'Payment signature verification failed.';
@@ -164,3 +175,4 @@ export const processRazorpayPayment = async (options: RazorpayOptions): Promise<
     if (options.onFailure) options.onFailure(error);
   }
 };
+

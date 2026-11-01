@@ -16,7 +16,7 @@ export default function CallSessionButton({ appointment, onJoinCall, className }
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [requesting, setRequesting] = useState<boolean>(false);
-  const [nowTime, setNowTime] = useState<number>(Date.now());
+  const [nowTime, setNowTime] = useState<number>(() => Date.now());
 
   const targetId = appointment ? (appointment.bookingId || appointment._id) : '';
 
@@ -133,3 +133,4 @@ export default function CallSessionButton({ appointment, onJoinCall, className }
     </button>
   );
 }
+

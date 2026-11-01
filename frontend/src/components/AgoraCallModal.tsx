@@ -129,23 +129,13 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
           if (isMounted) setRemoteConnected(false);
         });
 
-        let agoraToken: string | null = null;
-        let uid: number = Math.floor(Math.random() * 100000);
-        
-        try {
-          const tokenRes = await fetch(`${API_BASE}/appointments/${targetApptId}/token`, {
-            headers: authToken ? { Authorization: `Bearer ${authToken}` } : {}
-          });
-          if (tokenRes.ok) {
-            const tokenData = await tokenRes.json();
-            if (tokenData.token) {
-              agoraToken = tokenData.token;
-              if (tokenData.uid) uid = tokenData.uid;
-            }
-          }
-        } catch (err) {
-          console.warn('Token fetch failed, joining without token:', err);
-        }
+        const tokenRes = await fetch(`${API_BASE}/appointments/${targetApptId}/token`, {
+          headers: authToken ? { Authorization: `Bearer ${authToken}` } : {}
+        });
+        const tokenData = await tokenRes.json();
+        if (!tokenRes.ok || !tokenData.token) throw new Error(tokenData.message || 'Unable to authorize video call');
+        const agoraToken: string = tokenData.token;
+        const uid: number = tokenData.uid;
 
         try {
           const [audioTrack, videoTrack] = await AgoraRTC.createMicrophoneAndCameraTracks(
@@ -182,8 +172,8 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
           }
         }
 
-        const channelName = targetApptId;
-        await client.join(AGORA_APP_ID, channelName, agoraToken, uid);
+        const channelName = tokenData.channelName;
+        await client.join(tokenData.appId || AGORA_APP_ID, channelName, agoraToken, uid);
         joinedRef.current = true;
 
         const tracksToPublish = [localAudioTrackRef.current, localVideoTrackRef.current].filter(Boolean);
@@ -256,11 +246,12 @@ function VideoCallInterface({ appointment, targetApptId, onEndCall }: VideoCallI
     }
   }, [isChatOpen]);
 
-  const lastSignalTimeRef = useRef<number>(typeof Date !== 'undefined' ? Date.now() - 500 : 0);
+  const lastSignalTimeRef = useRef<number>(0);
   
   useEffect(() => {
     if (!authToken || !targetApptId) return;
     
+    lastSignalTimeRef.current = Date.now() - 500;
     const signalInterval = setInterval(async () => {
       try {
         const res = await fetch(`${API_BASE}/appointments/${targetApptId}/call/signals?since=${lastSignalTimeRef.current}`, {
@@ -786,3 +777,4 @@ export default function AgoraCallModal({ appointmentId, channelName, appointment
     </div>
   );
 }
+

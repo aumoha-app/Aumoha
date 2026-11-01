@@ -1,10 +1,10 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import { initializeApp, cert } from 'firebase-admin/app';
 import { authMiddleware } from './middleware/authMiddleware';
-import { adminMiddleware } from './middleware/adminMiddleware';
+import { adminMiddleware, isAdminUser } from './middleware/adminMiddleware';
 import User from './models/userModel';
 import Product from './models/productModel';
 import SosReport from './models/sosModel';
@@ -21,23 +21,20 @@ import crypto from 'crypto';
 // Load environment variables
 dotenv.config();
 
-const app = express();
+export const app = express();
 const PORT = process.env.PORT || 5001;
 
 // Initialize Razorpay SDK
-const razorpayKeyId = process.env.RAZORPAY_KEY_ID || 'rzp_test_TKxpLxhMCofQDL';
-const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET || 'MPAWug6Bpo3GMoME6SLmC11b';
-
-const razorpay = new Razorpay({
-  key_id: razorpayKeyId,
-  key_secret: razorpayKeySecret,
-});
+const razorpayKeyId = process.env.RAZORPAY_KEY_ID || '';
+const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET || '';
+const razorpay = razorpayKeyId && razorpayKeySecret
+  ? new Razorpay({ key_id: razorpayKeyId, key_secret: razorpayKeySecret }) : null;
 
 /**
  * SECURITY HELPER: Cryptographically verify Razorpay Payment Signatures
  */
 function verifyRazorpaySignature(orderId: string, paymentId: string, signature: string): boolean {
-  if (!orderId || !paymentId || !signature) {
+  if (!razorpayKeySecret || !orderId || !paymentId || typeof signature !== 'string' || !/^[a-f0-9]{64}$/i.test(signature)) {
     return false;
   }
   try {
@@ -45,11 +42,20 @@ function verifyRazorpaySignature(orderId: string, paymentId: string, signature: 
       .createHmac('sha256', razorpayKeySecret)
       .update(`${orderId}|${paymentId}`)
       .digest('hex');
-    return generatedSignature === signature;
+    return crypto.timingSafeEqual(Buffer.from(generatedSignature, 'hex'), Buffer.from(signature, 'hex'));
   } catch (err) {
     console.error('Security error during Razorpay signature verification:', err);
     return false;
   }
+}
+
+async function verifyCapturedPayment(orderId: string, paymentId: string, signature: string, uid: string, amount?: number): Promise<boolean> {
+  if (!razorpay || !verifyRazorpaySignature(orderId, paymentId, signature)) return false;
+  const [order, payment] = await Promise.all([razorpay.orders.fetch(orderId), razorpay.payments.fetch(paymentId)]);
+  return order.notes?.app_user_uid === uid && payment.order_id === orderId &&
+    payment.status === 'captured' && payment.currency === 'INR' && order.currency === 'INR' &&
+    Number(payment.amount) === Number(order.amount) &&
+    (amount === undefined || Number(payment.amount) === Math.round(Number(amount) * 100));
 }
 
 /**
@@ -57,17 +63,16 @@ function verifyRazorpaySignature(orderId: string, paymentId: string, signature: 
  */
 async function isUserAppointmentParticipant(appt: any, userEmail: string, adminPassHeader?: string): Promise<boolean> {
   if (!appt || !userEmail) return false;
-  if (adminPassHeader && adminPassHeader === process.env.ADMIN_PORTAL_PASSWORD) return true;
   if (appt.userEmail && appt.userEmail.toLowerCase() === userEmail.toLowerCase()) return true;
 
   if (mongoose.connection.readyState === 1) {
     const vet = await Vet.findOne({ email: userEmail.toLowerCase() });
-    if (vet && (vet._id.toString() === String(appt.vetId) || (vet.email && vet.email.toLowerCase() === userEmail.toLowerCase()))) {
+    if (vet && (String(vet._id) === String(appt.vetId) || String(appt.vetId).toLowerCase() === userEmail.toLowerCase())) {
       return true;
     }
   } else {
     const vet = fallbackVets.find((v: any) => v.email && v.email.toLowerCase() === userEmail.toLowerCase());
-    if (vet && (vet._id === appt.vetId || (vet.email && vet.email.toLowerCase() === userEmail.toLowerCase()))) {
+    if (vet && (String(vet._id) === String(appt.vetId) || String(appt.vetId).toLowerCase() === userEmail.toLowerCase())) {
       return true;
     }
   }
@@ -115,7 +120,7 @@ if (cloudinaryConfigured) {
 
 // Initialize MongoDB Connection
 const MONGODB_URI = process.env.MONGODB_URI;
-if (!MONGODB_URI) {
+if (require.main === module && !MONGODB_URI) {
   console.error('❌ MONGODB_URI environment variable is missing.');
   process.exit(1);
 }
@@ -661,19 +666,21 @@ async function seedActivities() {
 // Disable Mongoose command buffering globally so queries fail-fast when offline instead of hanging requests
 mongoose.set('bufferCommands', false);
 
-mongoose
-  .connect(MONGODB_URI, {
+if (require.main === module) mongoose
+  .connect(MONGODB_URI!, {
     serverSelectionTimeoutMS: 2500, // 2.5s timeout for Atlas connection attempts
     connectTimeoutMS: 4000,
   })
   .then(() => {
     console.log('🍃 MongoDB connected successfully');
-    seedVets();
-    seedUsers();
-    seedActivities();
+    if (process.env.NODE_ENV !== 'production' && process.env.SEED_DEMO_DATA === 'true') {
+      seedVets();
+      seedUsers();
+      seedActivities();
+    }
   })
   .catch((err) => {
-    console.warn('⚠️ MongoDB connection warning (Running in high-performance local fallback mode):', err.message || err);
+    console.warn('⚠️ MongoDB unavailable; API requests return 503:', err.message || err);
   });
 
 
@@ -684,6 +691,61 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json({ limit: '10mb' })); // Support base64 image uploads
+app.use('/api', (_req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store');
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({ status: 'error', message: 'Database unavailable. Please retry shortly.' });
+  }
+  return next();
+});
+
+async function findAppointment(id: string) {
+  return Appointment.findOne({ $or: [{ _id: id }, { bookingId: id }] });
+}
+
+function appointmentAccess(providerOnly = false) {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const appt = await findAppointment(req.params.id);
+      if (!appt) return res.status(404).json({ status: 'error', message: 'Appointment not found' });
+      const email = req.user?.email?.toLowerCase() || '';
+      const provider = await Vet.findOne({ _id: appt.vetId });
+      const isProvider = !!email && provider?.email?.toLowerCase() === email;
+      const isOwner = !!email && appt.userEmail?.toLowerCase() === email;
+      if (providerOnly ? !isProvider : !isOwner && !isProvider) {
+        return res.status(403).json({ status: 'error', message: 'Appointment access denied' });
+      }
+      if ((req.path.endsWith('/token') || req.path.endsWith('/call/request') ||
+           req.path.endsWith('/call/join') || req.path.endsWith('/consultation/start')) && appt.status !== 'confirmed') {
+        return res.status(409).json({ status: 'error', message: 'This appointment is not confirmed for a call' });
+      }
+      // Pet parents may edit their notes, but only the assigned provider may prescribe.
+      if (req.path.endsWith('/notes') && !isProvider &&
+          (req.body.prescription !== undefined || req.body.prescriptionNotes !== undefined)) {
+        return res.status(403).json({ status: 'error', message: 'Only the assigned provider may prescribe' });
+      }
+      return next();
+    } catch (error) {
+      return res.status(500).json({ status: 'error', message: 'Unable to authorize appointment access' });
+    }
+  };
+}
+
+async function providerAccess(req: Request, res: Response, next: NextFunction) {
+  try {
+    const requestedId = req.body?.providerId || req.query.providerId;
+    if (!requestedId) return next();
+    if (typeof requestedId !== 'string') return res.status(400).json({ status: 'error', message: 'Invalid provider ID' });
+    const provider = await Vet.findOne({ _id: requestedId });
+    if (!provider || provider.email?.toLowerCase() !== req.user?.email?.toLowerCase()) {
+      return res.status(403).json({ status: 'error', message: 'Provider access denied' });
+    }
+    return next();
+  } catch {
+    return res.status(500).json({ status: 'error', message: 'Unable to authorize provider access' });
+  }
+}
+
 
 // In-memory cache for user profile documents to bypass MongoDB Atlas round-trip latency
 const userCache = new Map<string, any>();
@@ -728,8 +790,9 @@ app.get('/api/info', (req: Request, res: Response) => {
  * POST /api/create-order
  * Creates a Razorpay payment order
  */
-app.post('/api/create-order', async (req: Request, res: Response) => {
+app.post('/api/create-order', authMiddleware, async (req: Request, res: Response) => {
   try {
+    if (!razorpay) return res.status(503).json({ status: 'error', message: 'Payments are not configured' });
     const { amount, currency = 'INR', receipt, notes } = req.body;
 
     if (amount === undefined || amount === null) {
@@ -743,7 +806,7 @@ app.post('/api/create-order', async (req: Request, res: Response) => {
     const numericAmount = Number(amount);
     const amountInPaise = Math.round(numericAmount * 100);
 
-    if (amountInPaise < 100) {
+    if (!Number.isSafeInteger(amountInPaise) || amountInPaise < 100 || amountInPaise > 100000000 || currency !== 'INR') {
       return res.status(400).json({
         status: 'error',
         message: 'Minimum order amount must be at least ₹1 (100 paise)'
@@ -754,7 +817,7 @@ app.post('/api/create-order', async (req: Request, res: Response) => {
       amount: amountInPaise,
       currency: (currency || 'INR').toUpperCase(),
       receipt: receipt || `receipt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-      notes: notes || { app: 'Aumoha PWA' }
+      notes: { ...(notes && typeof notes === 'object' ? notes : {}), app: 'Aumoha PWA', app_user_uid: req.user!.uid }
     };
 
     console.log(`💳 Creating Razorpay Order: Amount = ${amountInPaise} paise (${currency})`);
@@ -780,7 +843,7 @@ app.post('/api/create-order', async (req: Request, res: Response) => {
  * POST /api/verify-payment
  * Verifies Razorpay payment signature using HMAC-SHA256
  */
-app.post('/api/verify-payment', async (req: Request, res: Response) => {
+app.post('/api/verify-payment', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
@@ -791,13 +854,7 @@ app.post('/api/verify-payment', async (req: Request, res: Response) => {
       });
     }
 
-    const bodyData = razorpay_order_id + '|' + razorpay_payment_id;
-    const expectedSignature = crypto
-      .createHmac('sha256', razorpayKeySecret)
-      .update(bodyData.toString())
-      .digest('hex');
-
-    const isSignatureValid = expectedSignature === razorpay_signature;
+    const isSignatureValid = await verifyCapturedPayment(razorpay_order_id, razorpay_payment_id, razorpay_signature, req.user!.uid);
 
     if (isSignatureValid) {
       console.log(`✅ Razorpay Payment Verified Successfully: Order ID ${razorpay_order_id}, Payment ID ${razorpay_payment_id}`);
@@ -918,6 +975,8 @@ app.post('/api/auth/profile', authMiddleware, async (req: Request, res: Response
     }
 
     const { fullName, phone, address, profilePic, role } = req.body;
+    const publicRoles = ['normal', 'rescuer', 'feeder', 'volunteer', 'ngo'];
+    const initialRole = publicRoles.includes(role) ? role : 'normal';
 
     if (!fullName || !phone || !address) {
       return res.status(400).json({ 
@@ -952,7 +1011,7 @@ app.post('/api/auth/profile', authMiddleware, async (req: Request, res: Response
         cachedUser.phone = phone;
         cachedUser.address = address;
         cachedUser.profilePic = profilePicUrl;
-        cachedUser.role = role || 'normal';
+        cachedUser.role = cachedUser.role || initialRole;
         cachedUser.updatedAt = new Date().toISOString();
       } else {
         cachedUser = {
@@ -963,7 +1022,7 @@ app.post('/api/auth/profile', authMiddleware, async (req: Request, res: Response
           phone,
           address,
           profilePic: profilePicUrl,
-          role: role || 'normal',
+          role: initialRole,
           pets: [],
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
@@ -987,7 +1046,7 @@ app.post('/api/auth/profile', authMiddleware, async (req: Request, res: Response
         phone,
         address,
         profilePic: profilePicUrl,
-        role: role || 'normal'
+        $setOnInsert: { role: initialRole }
       },
       { new: true, upsert: true, runValidators: true }
     );
@@ -1247,7 +1306,7 @@ app.delete('/api/auth/account', authMiddleware, async (req: Request, res: Respon
 
     if (mongoose.connection.readyState === 1) {
       if (userUid) {
-        await User.findOneAndDelete({ uid: userUid });
+        await User.findOneAndDelete({ firebaseUid: userUid });
       } else if (userEmail) {
         await User.findOneAndDelete({ email: { $regex: new RegExp(`^${userEmail}$`, 'i') } });
       }
@@ -1256,7 +1315,7 @@ app.delete('/api/auth/account', authMiddleware, async (req: Request, res: Respon
     // Remove from in-memory fallback users and cache
     if (userUid) {
       userCache.delete(userUid);
-      const idx = fallbackUsers.findIndex(u => u.uid === userUid);
+      const idx = fallbackUsers.findIndex(u => u.firebaseUid === userUid);
       if (idx !== -1) fallbackUsers.splice(idx, 1);
     }
     if (userEmail) {
@@ -1268,7 +1327,7 @@ app.delete('/api/auth/account', authMiddleware, async (req: Request, res: Respon
 
     return res.json({
       status: 'success',
-      message: 'Your account and associated personal data have been deleted successfully in compliance with Aumoha Privacy Policy.'
+      message: 'Your Aumoha profile has been deleted. Contact support for any remaining account or record deletion requests.'
     });
   } catch (error) {
     console.error('Error in DELETE /api/auth/account:', error);
@@ -1286,19 +1345,13 @@ app.get('/api/users/rescuers', authMiddleware, async (req: Request, res: Respons
     if (mongoose.connection.readyState === 1) {
       rescuers = await User.find({ role: 'rescuer' }).select('fullName phone profilePic address role createdAt');
     }
-    if (!rescuers || rescuers.length === 0) {
-      rescuers = fallbackUsers.filter(u => u.role === 'rescuer');
-    }
     return res.json({
       status: 'success',
       rescuers
     });
   } catch (error) {
     console.error('Error in GET /api/users/rescuers:', error);
-    return res.json({
-      status: 'success',
-      rescuers: fallbackUsers.filter(u => u.role === 'rescuer')
-    });
+    return res.status(503).json({ status: 'error', message: 'Rescuer directory unavailable' });
   }
 });
 
@@ -1312,19 +1365,13 @@ app.get('/api/users', authMiddleware, async (req: Request, res: Response) => {
     if (mongoose.connection.readyState === 1) {
       users = await User.find().select('fullName phone profilePic address role createdAt');
     }
-    if (!users || users.length === 0) {
-      users = fallbackUsers;
-    }
     return res.json({
       status: 'success',
       users
     });
   } catch (error) {
     console.error('Error in GET /api/users:', error);
-    return res.json({
-      status: 'success',
-      users: fallbackUsers
-    });
+    return res.status(503).json({ status: 'error', message: 'Community directory unavailable' });
   }
 });
 
@@ -1335,16 +1382,7 @@ app.get('/api/users', authMiddleware, async (req: Request, res: Response) => {
  */
 app.get('/api/auth/admin-config', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const userEmail = req.user?.email?.toLowerCase();
-    const defaultAdminEmails = ['admin@aumoha.com', 'ananya.patra@aumoha.com'];
-    const adminEmailsEnv = process.env.ADMIN_EMAILS || '';
-    const adminEmails = [
-      ...defaultAdminEmails,
-      ...adminEmailsEnv.split(',').map(email => email.trim().toLowerCase()).filter(Boolean)
-    ];
-
-    const userRole = (req.user as any)?.role;
-    const isAdmin = !!(userRole === 'admin' || (userEmail && adminEmails.includes(userEmail)));
+    const isAdmin = isAdminUser(req.user);
     return res.json({
       status: 'success',
       isAdmin
@@ -1359,10 +1397,11 @@ app.get('/api/auth/admin-config', authMiddleware, async (req: Request, res: Resp
  * POST /api/auth/verify-admin
  * Verifies if the admin password is valid for double-lock protection
  */
-app.post('/api/auth/verify-admin', authMiddleware, async (req: Request, res: Response) => {
+app.post('/api/auth/verify-admin', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     const { password } = req.body;
-    const configuredPass = process.env.ADMIN_PASSWORD || 'aumoha2026';
+    const configuredPass = process.env.ADMIN_PASSWORD;
+    if (!configuredPass) return res.status(503).json({ status: 'error', message: 'Admin passcode is not configured' });
 
     if (!password) {
       return res.status(400).json({
@@ -1371,7 +1410,7 @@ app.post('/api/auth/verify-admin', authMiddleware, async (req: Request, res: Res
       });
     }
 
-    if (password === configuredPass || password === 'aumoha2026') {
+    if (typeof password === 'string' && password === configuredPass) {
       return res.json({
         status: 'success',
         message: 'Admin access verified successfully'
@@ -1497,61 +1536,12 @@ export const fallbackProducts: any[] = [
  * GET /api/products
  * Public endpoint to fetch all products from MongoDB
  */
-app.get('/api/products', async (req: Request, res: Response) => {
+app.get('/api/products', async (_req: Request, res: Response) => {
   try {
-    let products = [];
-    if (mongoose.connection.readyState === 1) {
-      products = await Product.find().sort({ createdAt: -1 });
-
-      // If DB is empty or contains old outdated placeholder items (e.g., real-pet-*.png or generic titles), resync
-      const hasOutdatedData = !products || products.length === 0 || products.some((p: any) => 
-        p.imageUrl?.includes('real-pet-') || p.title?.includes('High-Protein Puppy') || p.title?.includes('Organic Cat Food Pate')
-      );
-
-      if (hasOutdatedData) {
-        console.log('🌱 Syncing official Aumoha marketplace products catalog...');
-        // Remove old generic seeded products
-        await Product.deleteMany({
-          $or: [
-            { imageUrl: { $regex: /real-pet-/ } },
-            { title: { $in: ['High-Protein Puppy & Adult Dog Meal Mix', 'Organic Cat Food Pate with Salmon', 'Durable Rubber Tug & Squeak Ball', 'Interactive Feather Wand Cat Teaser', 'Antiseptic Wound Healing Spray (100ml)', 'Multivitamin & Calcium Syrup for Pets'] } }
-          ]
-        }).catch(() => {});
-
-        // Insert official curated catalog
-        for (const item of fallbackProducts) {
-          const exists = await Product.findOne({ title: item.title });
-          if (!exists) {
-            const { _id, ...rest } = item;
-            await Product.create(rest);
-          } else {
-            exists.imageUrl = item.imageUrl;
-            exists.subtitle = item.subtitle;
-            exists.description = item.description;
-            exists.features = item.features;
-            exists.price = item.price;
-            exists.originalPrice = item.originalPrice;
-            exists.discountBadge = item.discountBadge;
-            await exists.save();
-          }
-        }
-        products = await Product.find().sort({ createdAt: -1 });
-      }
-    }
-    
-    if (!products || products.length === 0) {
-      products = fallbackProducts;
-    }
-    return res.json({
-      status: 'success',
-      products
-    });
-  } catch (error) {
-    console.error('Error in GET /api/products:', error);
-    return res.json({
-      status: 'success',
-      products: fallbackProducts
-    });
+    const products = await Product.find().sort({ createdAt: -1 });
+    return res.json({ status: 'success', products });
+  } catch {
+    return res.status(503).json({ status: 'error', message: 'Product catalog unavailable' });
   }
 });
 
@@ -2214,6 +2204,7 @@ app.post('/api/activities', authMiddleware, async (req: Request, res: Response) 
     if (id) {
       const fbIdx = fallbackActivities.findIndex(a => a._id === id);
       if (fbIdx !== -1) {
+        if (fallbackActivities[fbIdx].userEmail?.toLowerCase() !== userEmail.toLowerCase() && !isAdminUser(req.user)) return res.status(403).json({ status: 'error', message: 'Post access denied' });
         fallbackActivities[fbIdx] = {
           ...fallbackActivities[fbIdx],
           category,
@@ -2233,6 +2224,7 @@ app.post('/api/activities', authMiddleware, async (req: Request, res: Response) 
       if (mongoose.connection.readyState === 1 && mongoose.Types.ObjectId.isValid(id)) {
         const existing = await ActivityPost.findById(id);
         if (existing) {
+          if (existing.userEmail?.toLowerCase() !== userEmail.toLowerCase() && !isAdminUser(req.user)) return res.status(403).json({ status: 'error', message: 'Post access denied' });
           existing.category = category;
           existing.title = title;
           existing.description = description;
@@ -2696,47 +2688,21 @@ app.post('/api/settings/checkout-phone', authMiddleware, adminMiddleware, async 
  * GET /api/vets
  * Retrieve the directory of all active veterinarians
  */
+app.get('/api/admin/vets', authMiddleware, adminMiddleware, async (_req: Request, res: Response) => {
+  try {
+    return res.json({ status: 'success', vets: await Vet.find({}) });
+  } catch {
+    return res.status(503).json({ status: 'error', message: 'Provider directory unavailable' });
+  }
+});
+
 app.get('/api/vets', async (req: Request, res: Response) => {
   try {
-    let showAll = false;
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.split('Bearer ')[1];
-      const adminEmailsEnv = process.env.ADMIN_EMAILS || '';
-      const adminEmails = adminEmailsEnv
-        .split(',')
-        .map(email => email.trim().toLowerCase())
-        .filter(Boolean);
-
-      let email = '';
-      if (token.startsWith('mock-token-')) {
-        const parts = token.replace('mock-token-', '').split(':');
-        if (parts[1]) email = parts[1];
-      } else {
-        try {
-          const parts = token.split('.');
-          if (parts.length === 3) {
-            const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-            const payload = JSON.parse(Buffer.from(base64, 'base64').toString('utf-8'));
-            email = payload.email || '';
-          }
-        } catch (e) {}
-      }
-
-      if (email && adminEmails.includes(email.toLowerCase())) {
-        showAll = true;
-      }
-    }
-
-    if (mongoose.connection.readyState !== 1) {
-      return res.json({ status: 'success', vets: fallbackVets });
-    }
-
-    const vets = await Vet.find({});
+    const vets = await Vet.find({ isApproved: true, isRejected: { $ne: true } });
     return res.json({ status: 'success', vets });
   } catch (error) {
     console.error('Error in GET /api/vets:', error);
-    return res.json({ status: 'success', vets: fallbackVets });
+    return res.status(503).json({ status: 'error', message: 'Directory unavailable' });
   }
 });
 
@@ -2757,7 +2723,7 @@ app.post('/api/appointments', authMiddleware, async (req: Request, res: Response
     }
 
     // Cryptographic Razorpay Signature Verification
-    if (razorpayPaymentId && razorpaySignature) {
+    if (razorpayPaymentId || razorpaySignature || razorpayOrderId) {
       const isValidPayment = verifyRazorpaySignature(razorpayOrderId || '', razorpayPaymentId, razorpaySignature);
       if (!isValidPayment) {
         return res.status(400).json({ status: 'error', message: 'Payment verification failed: Invalid transaction signature' });
@@ -2767,10 +2733,23 @@ app.post('/api/appointments', authMiddleware, async (req: Request, res: Response
     const bookingId = `AMC-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
     let appointmentData: any = null;
 
+    const vet: any = await Vet.findOne({ _id: vetId, isApproved: true, isRejected: { $ne: true } });
+    if (!vet) return res.status(404).json({ status: 'error', message: 'Approved provider not found' });
+    if (vet.email?.toLowerCase() === userEmail.toLowerCase()) {
+      return res.status(400).json({ status: 'error', message: 'You cannot book an appointment with yourself' });
+    }
+    const slot: any = vet.availableSlots.find((s: any) => String(s._id) === String(slotId));
+    if (!slot) return res.status(404).json({ status: 'error', message: 'Available slot not found' });
+    if (razorpayPaymentId || razorpayOrderId || razorpaySignature) {
+      if (!await verifyCapturedPayment(razorpayOrderId, razorpayPaymentId, razorpaySignature, req.user!.uid, vet.fee)) {
+        return res.status(400).json({ status: 'error', message: 'Payment amount, owner, or capture status is invalid' });
+      }
+    }
+
     // ---- 20-MINUTE BOOKING CUTOFF ENFORCEMENT ----
     // A 10:00-10:30 slot can only be booked until 10:20. After that, block new bookings.
-    const slotTime = time || '';
-    const slotDate = date || '';
+    const slotTime = slot.time || '';
+    const slotDate = slot.date || '';
     if (slotTime && slotDate) {
       try {
         const now = new Date();
@@ -2828,85 +2807,6 @@ app.post('/api/appointments', authMiddleware, async (req: Request, res: Response
       }
     }
 
-    // Doctor Lookup across MongoDB Vet, Fallback Vets, and User Model
-    let vet: any = null;
-    if (mongoose.connection.readyState === 1) {
-      const query = mongoose.Types.ObjectId.isValid(vetId)
-        ? { $or: [{ _id: vetId }, { _id: vetId.toString() }] }
-        : { _id: vetId };
-      vet = await Vet.findOne(query);
-    }
-    if (!vet) {
-      vet = fallbackVets.find((v: any) => v._id === vetId || v.email === vetId);
-    }
-
-    // Self-Booking Validation: Prevent doctor from booking an appointment with themselves
-    if (vet && vet.email && vet.email.toLowerCase() === userEmail.toLowerCase()) {
-      return res.status(400).json({ status: 'error', message: 'You cannot book an appointment with yourself' });
-    }
-
-    // Universal Auto-Healing: Create Vet profile from User record if missing
-    if (!vet && mongoose.connection.readyState === 1) {
-      const userDoc = await User.findOne({
-        $or: [
-          { _id: mongoose.Types.ObjectId.isValid(vetId) ? vetId : null },
-          { _id: vetId },
-          { email: vetId }
-        ]
-      });
-      if (userDoc) {
-        if (userDoc.email && userDoc.email.toLowerCase() === userEmail.toLowerCase()) {
-          return res.status(400).json({ status: 'error', message: 'You cannot book an appointment with yourself' });
-        }
-        vet = await Vet.create({
-          _id: userDoc._id,
-          name: userDoc.fullName || vetName || 'Doctor',
-          email: userDoc.email,
-          photo: userDoc.profilePic || vetPhoto || '/sairaj_avatar.png',
-          specialisation: vetSpecialisation || (userDoc.role === 'expert' ? 'Care Specialist' : 'Veterinary Surgeon & Physician'),
-          category: userDoc.role === 'expert' ? 'expert' : 'vet',
-          specialtyTags: ['General Consultation'],
-          experience: 5,
-          fee: fee ? Number(fee) : 500,
-          bio: 'Certified Practitioner',
-          rating: 5.0,
-          reviewCount: 1,
-          isOnline: true,
-          isApproved: true,
-          availableSlots: []
-        });
-      }
-    }
-
-    // Ultimate Fallback: Construct virtual Vet object from client parameters
-    if (!vet) {
-      vet = {
-        _id: vetId,
-        name: vetName || 'Veterinary Specialist',
-        specialisation: vetSpecialisation || (type === 'expert' ? 'Care Specialist' : 'Veterinary Surgeon & Physician'),
-        photo: vetPhoto || '/sairaj_avatar.png',
-        fee: fee ? Number(fee) : 500,
-        availableSlots: []
-      };
-    }
-
-    // Slot Lookup inside Vet availableSlots (Auto-heal slot if missing)
-    let slot = (vet.availableSlots || []).find(
-      (s: any) => String(s._id) === String(slotId) || s.id === slotId
-    );
-
-    if (!slot) {
-      slot = {
-        _id: slotId,
-        date: date || 'Today',
-        time: time || '10:00 AM',
-        isBooked: false,
-        bookedBy: null
-      };
-      if (Array.isArray(vet.availableSlots)) {
-        vet.availableSlots.push(slot);
-      }
-    }
 
     if (slot.isBooked) {
       return res.status(400).json({ status: 'error', message: 'Time slot is already booked' });
@@ -2918,8 +2818,7 @@ app.post('/api/appointments', authMiddleware, async (req: Request, res: Response
       const atomicResult = await Vet.findOneAndUpdate(
         {
           _id: vet._id,
-          'availableSlots._id': slot._id,
-          'availableSlots.isBooked': false
+          availableSlots: { $elemMatch: { _id: slot._id, isBooked: false } }
         },
         {
           $set: {
@@ -2976,7 +2875,15 @@ app.post('/api/appointments', authMiddleware, async (req: Request, res: Response
     };
 
     if (mongoose.connection.readyState === 1) {
-      appointmentData = await Appointment.create(appointmentData);
+      try {
+        appointmentData = await Appointment.create(appointmentData);
+      } catch (error) {
+        await Vet.updateOne(
+          { _id: vet._id, availableSlots: { $elemMatch: { _id: slot._id, bookedBy: bookingId } } },
+          { $set: { 'availableSlots.$.isBooked': false, 'availableSlots.$.bookedBy': null } }
+        );
+        throw error;
+      }
     } else {
       fallbackAppointments.push(appointmentData);
     }
@@ -3022,6 +2929,13 @@ app.get('/api/appointments', authMiddleware, async (req: Request, res: Response)
     }
 
     const { vetId } = req.query;
+    if (vetId) {
+      if (typeof vetId !== 'string') return res.status(400).json({ status: 'error', message: 'Invalid provider ID' });
+      const provider = await Vet.findOne({ $or: [{ _id: vetId }, { email: vetId.toLowerCase() }] });
+      if (!provider || provider.email?.toLowerCase() !== userEmail.toLowerCase()) {
+        return res.status(403).json({ status: 'error', message: 'Provider access denied' });
+      }
+    }
 
     if (mongoose.connection.readyState !== 1) {
       let appts = [];
@@ -3092,7 +3006,7 @@ app.get('/api/appointments', authMiddleware, async (req: Request, res: Response)
  * DELETE /api/appointments/:id
  * Delete an appointment permanently
  */
-app.delete('/api/appointments/:id', authMiddleware, async (req: Request, res: Response) => {
+app.delete('/api/appointments/:id', authMiddleware, appointmentAccess(), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -3129,7 +3043,7 @@ const callSignals: Record<string, Array<{ sender: string; signal: any; timestamp
  * POST /api/appointments/:id/call/signal
  * WebRTC signaling exchange (Offers, Answers, ICE candidates)
  */
-app.post('/api/appointments/:id/call/signal', authMiddleware, (req: Request, res: Response) => {
+app.post('/api/appointments/:id/call/signal', authMiddleware, appointmentAccess(), (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { signal } = req.body;
@@ -3152,7 +3066,7 @@ app.post('/api/appointments/:id/call/signal', authMiddleware, (req: Request, res
  * GET /api/appointments/:id/call/signals
  * Retrieve WebRTC signals sent after timestamp
  */
-app.get('/api/appointments/:id/call/signals', authMiddleware, (req: Request, res: Response) => {
+app.get('/api/appointments/:id/call/signals', authMiddleware, appointmentAccess(), (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const since = parseInt((req.query.since as string) || '0', 10);
@@ -3175,7 +3089,7 @@ app.get('/api/appointments/:id/call/signals', authMiddleware, (req: Request, res
  * POST /api/appointments/:id/call/request
  * Request/initialize a voice/video call session for a confirmed appointment (Status: ready directly)
  */
-app.post('/api/appointments/:id/call/request', authMiddleware, async (req: Request, res: Response) => {
+app.post('/api/appointments/:id/call/request', authMiddleware, appointmentAccess(), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { callType } = req.body; // 'audio' | 'video'
@@ -3249,7 +3163,7 @@ app.post('/api/appointments/:id/call/request', authMiddleware, async (req: Reque
  * GET /api/appointments/:id/call
  * Get active call session status for an appointment
  */
-app.get('/api/appointments/:id/call', authMiddleware, async (req: Request, res: Response) => {
+app.get('/api/appointments/:id/call', authMiddleware, appointmentAccess(), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     if (mongoose.connection.readyState !== 1) {
@@ -3274,7 +3188,7 @@ app.get('/api/appointments/:id/call', authMiddleware, async (req: Request, res: 
  * PUT /api/appointments/:id/call/join
  * Update session status to ongoing when user or expert enters the channel
  */
-app.put('/api/appointments/:id/call/join', authMiddleware, async (req: Request, res: Response) => {
+app.put('/api/appointments/:id/call/join', authMiddleware, appointmentAccess(), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const userEmail = req.user?.email || '';
@@ -3321,7 +3235,7 @@ app.put('/api/appointments/:id/call/join', authMiddleware, async (req: Request, 
  * PUT /api/appointments/:id/call/end
  * End the call session and record end time
  */
-app.put('/api/appointments/:id/call/end', authMiddleware, async (req: Request, res: Response) => {
+app.put('/api/appointments/:id/call/end', authMiddleware, appointmentAccess(), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const userEmail = req.user?.email || '';
@@ -3370,7 +3284,7 @@ app.put('/api/appointments/:id/call/end', authMiddleware, async (req: Request, r
  * Auto-load doctor/expert profile by authenticated email token (or query providerId)
  * Returns provider profile, appointments, and live revenue summary
  */
-app.get('/api/provider/me', authMiddleware, async (req: Request, res: Response) => {
+app.get('/api/provider/me', authMiddleware, providerAccess, async (req: Request, res: Response) => {
   try {
     const userEmail = req.user?.email;
     const providerId = req.query.providerId as string;
@@ -3533,14 +3447,14 @@ const handleProviderProfileUpdate = async (req: Request, res: Response) => {
   }
 };
 
-app.put('/api/provider/me/profile', authMiddleware, handleProviderProfileUpdate);
-app.put('/api/provider/profile', authMiddleware, handleProviderProfileUpdate);
+app.put('/api/provider/me/profile', authMiddleware, providerAccess, handleProviderProfileUpdate);
+app.put('/api/provider/profile', authMiddleware, providerAccess, handleProviderProfileUpdate);
 
 /**
  * POST /api/provider/me/slots/bulk
  * Bulk generate recurring time slots for doctor availability
  */
-app.post('/api/provider/me/slots/bulk', authMiddleware, async (req: Request, res: Response) => {
+app.post('/api/provider/me/slots/bulk', authMiddleware, providerAccess, async (req: Request, res: Response) => {
   try {
     const userEmail = req.user?.email;
     const { dates, startTime, endTime, intervalMinutes } = req.body;
@@ -3553,14 +3467,17 @@ app.post('/api/provider/me/slots/bulk', authMiddleware, async (req: Request, res
       return res.status(400).json({ status: 'error', message: 'Invalid bulk slot parameters' });
     }
 
-    const interval = Number(intervalMinutes) || 30;
+    const interval = intervalMinutes === undefined ? 30 : Number(intervalMinutes);
+    if (!Number.isInteger(interval) || interval < 5 || interval > 1440 || dateList.length > 31 || !dateList.every(d => typeof d === 'string')) {
+      return res.status(400).json({ status: 'error', message: 'Invalid slot interval or dates' });
+    }
     const [startH, startM] = startTime.split(':').map(Number);
     const [endH, endM] = endTime.split(':').map(Number);
 
     const startTotal = startH * 60 + startM;
     const endTotal = endH * 60 + endM;
 
-    if (endTotal <= startTotal) {
+    if (!Number.isInteger(startTotal) || !Number.isInteger(endTotal) || startTotal < 0 || endTotal > 1440 || startM < 0 || startM > 59 || endM < 0 || endM > 59 || endTotal <= startTotal) {
       return res.status(400).json({ status: 'error', message: 'End time must be after start time' });
     }
 
@@ -3941,7 +3858,7 @@ app.post('/api/admin/users/assign-role', authMiddleware, adminMiddleware, async 
  * GET /api/appointments/:id/token
  * Generate dynamic Agora token (Auto-enables ready session if needed)
  */
-app.get('/api/appointments/:id/token', authMiddleware, async (req: Request, res: Response) => {
+app.get('/api/appointments/:id/token', authMiddleware, appointmentAccess(), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const appId = process.env.AGORA_APP_ID;
@@ -3991,29 +3908,24 @@ app.get('/api/appointments/:id/token', authMiddleware, async (req: Request, res:
     }
 
     if (!appCertificate) {
-      return res.json({ status: 'success', token: null });
+      return res.status(503).json({ status: 'error', message: 'Video call authentication is not configured' });
     }
 
     try {
       const { RtcTokenBuilder, RtcRole } = require('agora-token');
       
-      const expirationInSeconds = 3600; // 1 hour
-      const currentTimestamp = Math.floor(Date.now() / 1000);
-      const privilegeExpiredTs = currentTimestamp + expirationInSeconds;
-
+      const expirationInSeconds = 3600;
+      const uid = crypto.createHash('sha256').update(req.user!.uid).digest().readUInt32BE(0) || 1;
+      channelName = appt.bookingId || String(appt._id);
       const token = RtcTokenBuilder.buildTokenWithUid(
-        appId,
-        appCertificate,
-        channelName,
-        0, // uid = 0 allows any user to join
-        RtcRole.PUBLISHER,
-        privilegeExpiredTs
+        appId, appCertificate, channelName, uid, RtcRole.PUBLISHER,
+        expirationInSeconds, expirationInSeconds
       );
 
-      return res.json({ status: 'success', token });
+      return res.json({ status: 'success', token, uid, channelName, appId, expiresIn: expirationInSeconds });
     } catch (tokenBuildErr) {
       console.warn('agora-token package missing or token build fallback:', tokenBuildErr);
-      return res.json({ status: 'success', token: null });
+      return res.status(503).json({ status: 'error', message: 'Video call token generation failed' });
     }
   } catch (error) {
     console.error('Error generating Agora token:', error);
@@ -4027,7 +3939,7 @@ app.get('/api/appointments/:id/token', authMiddleware, async (req: Request, res:
  * PUT /api/appointments/:id/reschedule
  * Change date/time slot of an existing appointment
  */
-app.put('/api/appointments/:id/reschedule', authMiddleware, async (req: Request, res: Response) => {
+app.put('/api/appointments/:id/reschedule', authMiddleware, appointmentAccess(), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { newSlotId } = req.body;
@@ -4046,7 +3958,7 @@ app.put('/api/appointments/:id/reschedule', authMiddleware, async (req: Request,
       // Free old slot
       const oldVet = fallbackVets.find((v: any) => v._id === appt.vetId);
       if (oldVet) {
-        const oldSlot = oldVet.availableSlots.find((s: any) => s.bookedBy === appt.bookingId || (s.date === appt.date && s.time === appt.time));
+        const oldSlot = oldVet.availableSlots.find((s: any) => s.bookedBy === appt.bookingId);
         if (oldSlot) {
           oldSlot.isBooked = false;
           oldSlot.bookedBy = undefined;
@@ -4107,7 +4019,7 @@ app.put('/api/appointments/:id/reschedule', authMiddleware, async (req: Request,
     // Free old slot
     const oldVet = await Vet.findById(appt.vetId);
     if (oldVet) {
-      const oldSlot = oldVet.availableSlots.find((s: any) => s.bookedBy === appt.bookingId || (s.date === appt.date && s.time === appt.time));
+      const oldSlot = oldVet.availableSlots.find((s: any) => s.bookedBy === appt.bookingId);
       if (oldSlot) {
         oldSlot.isBooked = false;
         oldSlot.bookedBy = null;
@@ -4173,7 +4085,7 @@ app.put('/api/appointments/:id/reschedule', authMiddleware, async (req: Request,
  * PUT /api/appointments/:id/cancel
  * Cancel an appointment slot booking
  */
-app.put('/api/appointments/:id/cancel', authMiddleware, async (req: Request, res: Response) => {
+app.put('/api/appointments/:id/cancel', authMiddleware, appointmentAccess(), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const userEmail = req.user?.email;
@@ -4190,7 +4102,7 @@ app.put('/api/appointments/:id/cancel', authMiddleware, async (req: Request, res
 
       const vet = fallbackVets.find((v: any) => v._id === appt.vetId);
       if (vet) {
-        const slot = vet.availableSlots.find((s: any) => s.bookedBy === appt.bookingId || (s.date === appt.date && s.time === appt.time));
+        const slot = vet.availableSlots.find((s: any) => s.bookedBy === appt.bookingId);
         if (slot) {
           slot.isBooked = false;
           slot.bookedBy = undefined;
@@ -4234,7 +4146,7 @@ app.put('/api/appointments/:id/cancel', authMiddleware, async (req: Request, res
 
     const vet = await Vet.findById(appt.vetId);
     if (vet) {
-      const slot = vet.availableSlots.find((s: any) => s.bookedBy === appt.bookingId || (s.date === appt.date && s.time === appt.time));
+      const slot = vet.availableSlots.find((s: any) => s.bookedBy === appt.bookingId);
       if (slot) {
         slot.isBooked = false;
         slot.bookedBy = null;
@@ -4278,7 +4190,7 @@ app.put('/api/appointments/:id/cancel', authMiddleware, async (req: Request, res
  * PUT /api/appointments/:id/medical-document
  * Attach/upload past medical history document (base64) to booking
  */
-app.put('/api/appointments/:id/medical-document', authMiddleware, async (req: Request, res: Response) => {
+app.put('/api/appointments/:id/medical-document', authMiddleware, appointmentAccess(), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { medicalDocument } = req.body;
@@ -4318,7 +4230,7 @@ app.put('/api/appointments/:id/medical-document', authMiddleware, async (req: Re
  * PUT /api/appointments/:id/notes
  * Add/update pet parent notes or doctor e-prescriptions on a booking
  */
-app.put('/api/appointments/:id/notes', authMiddleware, async (req: Request, res: Response) => {
+app.put('/api/appointments/:id/notes', authMiddleware, appointmentAccess(), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { notes, prescription, prescriptionNotes } = req.body;
@@ -4537,7 +4449,11 @@ app.delete('/api/vets/:id', authMiddleware, adminMiddleware, async (req: Request
 app.post('/api/donations', authMiddleware, async (req: Request, res: Response) => {
   try {
     const userEmail = (req as any).user?.email;
-    const { amount, description } = req.body;
+    const { amount, description, razorpayOrderId, razorpayPaymentId, razorpaySignature } = req.body;
+    if (!Number.isFinite(Number(amount)) || Number(amount) <= 0 ||
+        !await verifyCapturedPayment(razorpayOrderId, razorpayPaymentId, razorpaySignature, req.user!.uid, Number(amount))) {
+      return res.status(400).json({ status: 'error', message: 'A captured payment is required before issuing a donation receipt' });
+    }
 
     if (!userEmail) {
       return res.status(401).json({ status: 'error', message: 'Unauthorized client' });
@@ -4573,7 +4489,7 @@ app.post('/api/donations', authMiddleware, async (req: Request, res: Response) =
  * Allows the authenticated vet/expert to update their available slots.
  * Body: { slots: [{ date: string, time: string }], providerId?: string }
  */
-app.put('/api/provider/slots', authMiddleware, async (req: Request, res: Response) => {
+app.put('/api/provider/slots', authMiddleware, providerAccess, async (req: Request, res: Response) => {
   try {
     const userEmail = req.user?.email;
     if (!userEmail) {
@@ -4637,7 +4553,7 @@ app.put('/api/provider/slots', authMiddleware, async (req: Request, res: Respons
  * Toggles the vet/expert's isOnline status.
  * Body: { isOnline: boolean }
  */
-app.put('/api/provider/availability', authMiddleware, async (req: Request, res: Response) => {
+app.put('/api/provider/availability', authMiddleware, providerAccess, async (req: Request, res: Response) => {
   try {
     const userEmail = req.user?.email;
     if (!userEmail) {
@@ -4675,7 +4591,7 @@ app.put('/api/provider/availability', authMiddleware, async (req: Request, res: 
  * PUT /api/provider/appointments/:id/prescription
  * Allows authenticated vet/expert to upload/set prescription & notes for an appointment
  */
-app.put('/api/provider/appointments/:id/prescription', authMiddleware, async (req: Request, res: Response) => {
+app.put('/api/provider/appointments/:id/prescription', authMiddleware, appointmentAccess(true), async (req: Request, res: Response) => {
   try {
     const providerEmail = req.user?.email;
     const { id } = req.params;
@@ -4772,19 +4688,6 @@ app.post('/api/instant-consultation/find', authMiddleware, async (req: Request, 
         category: targetCategory === 'expert' ? { $ne: 'vet' } : 'vet'
       });
 
-      // 2. Fallback to any approved doctor of that category if no online doctor is found
-      if (candidates.length === 0) {
-        candidates = await Vet.find({
-          isApproved: { $ne: false },
-          category: targetCategory === 'expert' ? { $ne: 'vet' } : 'vet'
-        });
-      }
-
-      // 3. Fallback to all approved doctors if still empty
-      if (candidates.length === 0) {
-        candidates = await Vet.find({ isApproved: { $ne: false } });
-      }
-
       const activeSessions = await CallSession.find({
         status: { $in: ['requested', 'ready', 'ongoing'] }
       });
@@ -4804,7 +4707,6 @@ app.post('/api/instant-consultation/find', authMiddleware, async (req: Request, 
       }
     }
 
-    // Fallback mode if DB is disconnected or no DB candidate matched
     if (!matchedDoctor) {
       let candidates = fallbackVets.filter((v: any) => {
         if (v.email && v.email.toLowerCase() === userEmail.toLowerCase()) return false;
@@ -4903,23 +4805,22 @@ app.post('/api/instant-consultation/create', authMiddleware, async (req: Request
     // Prevent duplicate consultation creation (idempotency via razorpayOrderId)
     if (mongoose.connection.readyState === 1 && razorpayOrderId) {
       const existingAppt = await Appointment.findOne({ razorpayOrderId });
+      if (existingAppt && existingAppt.userEmail !== userEmail) {
+        return res.status(409).json({ status: 'error', message: 'Payment already used' });
+      }
       if (existingAppt) {
         instantMatchLocks.delete(String(vetId));
         return res.json({ status: 'success', appointment: existingAppt, message: 'Consultation already created' });
       }
     }
 
-    // Lookup the matched doctor
-    let vet: any = null;
-    if (mongoose.connection.readyState === 1) {
-      vet = await Vet.findById(vetId);
-    }
-    if (!vet) {
-      vet = fallbackVets.find((v: any) => String(v._id) === String(vetId));
-    }
-    if (!vet) {
+    const vet: any = await Vet.findOne({ _id: vetId, isApproved: true, isRejected: { $ne: true }, isOnline: true });
+    if (!vet || vet.email?.toLowerCase() === userEmail.toLowerCase()) {
       instantMatchLocks.delete(String(vetId));
-      return res.status(404).json({ status: 'error', message: 'Doctor not found' });
+      return res.status(409).json({ status: 'error', message: 'Provider is no longer available' });
+    }
+    if (!await verifyCapturedPayment(razorpayOrderId, razorpayPaymentId, razorpaySignature, req.user!.uid, vet.fee)) {
+      return res.status(400).json({ status: 'error', message: 'Payment amount, owner, or capture status is invalid' });
     }
 
     const bookingId = `INST-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
@@ -5006,7 +4907,7 @@ app.post('/api/instant-consultation/create', authMiddleware, async (req: Request
  * PUT /api/appointments/:id/accept
  * Doctor accepts an instant consultation request
  */
-app.put('/api/appointments/:id/accept', authMiddleware, async (req: Request, res: Response) => {
+app.put('/api/appointments/:id/accept', authMiddleware, appointmentAccess(true), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const doctorEmail = req.user?.email;
@@ -5067,7 +4968,7 @@ app.put('/api/appointments/:id/accept', authMiddleware, async (req: Request, res
  * PUT /api/appointments/:id/reject
  * Doctor rejects an instant consultation request
  */
-app.put('/api/appointments/:id/reject', authMiddleware, async (req: Request, res: Response) => {
+app.put('/api/appointments/:id/reject', authMiddleware, appointmentAccess(true), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const doctorEmail = req.user?.email;
@@ -5127,7 +5028,7 @@ app.put('/api/appointments/:id/reject', authMiddleware, async (req: Request, res
  * PUT /api/appointments/:id/consultation/start
  * Records the actual consultation start time
  */
-app.put('/api/appointments/:id/consultation/start', authMiddleware, async (req: Request, res: Response) => {
+app.put('/api/appointments/:id/consultation/start', authMiddleware, appointmentAccess(), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const now = new Date();
@@ -5181,7 +5082,7 @@ app.put('/api/appointments/:id/consultation/start', authMiddleware, async (req: 
  * Records the actual consultation end time — doctor controls when this is called
  * Does NOT auto-end at 30 minutes
  */
-app.put('/api/appointments/:id/consultation/end', authMiddleware, async (req: Request, res: Response) => {
+app.put('/api/appointments/:id/consultation/end', authMiddleware, appointmentAccess(), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const now = new Date();
@@ -5237,9 +5138,10 @@ app.put('/api/appointments/:id/consultation/end', authMiddleware, async (req: Re
 
 // Start server
 
-app.listen(PORT, () => {
+if (require.main === module) app.listen(PORT, () => {
   console.log(`🚀 Aumoha Backend Server running on http://localhost:${PORT}`);
   console.log(`📡 Health-check API endpoint active at http://localhost:${PORT}/health`);
 });
+
 
 

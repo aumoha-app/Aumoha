@@ -21,7 +21,7 @@ export interface PaymentModalProps {
     email?: string;
     contact?: string;
   };
-  onSuccess: (paymentInfo?: { order_id?: string; payment_id?: string; mode?: string }) => void;
+  onSuccess: (paymentInfo?: { order_id?: string; payment_id?: string; signature?: string; mode?: string }) => void;
   onPayLaterSuccess?: () => void;
 }
 
@@ -68,7 +68,7 @@ export default function PaymentModal({
         prefill: userPrefill,
         onSuccess: (data) => {
           setIsProcessing(false);
-          onSuccess({ order_id: data.order_id, payment_id: data.payment_id, mode: 'online' });
+          onSuccess({ order_id: data.order_id, payment_id: data.payment_id, signature: data.signature, mode: 'online' });
           onClose();
         },
         onFailure: (err) => {
@@ -277,3 +277,4 @@ export default function PaymentModal({
     </div>
   );
 }
+

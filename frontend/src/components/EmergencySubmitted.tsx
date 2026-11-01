@@ -7,6 +7,7 @@ import { ClipboardIcon, ShieldIcon, MapPinIcon } from './icons/PetIcons';
 import { API_BASE } from '../lib/api';
 
 interface EmergencySubmittedProps {
+  reportId?: string;
   category: string;
   severity: 'critical' | 'urgent' | 'stable';
   sosReason: string;
@@ -15,6 +16,7 @@ interface EmergencySubmittedProps {
 }
 
 export default function EmergencySubmitted({
+  reportId,
   category,
   severity,
   sosReason,
@@ -90,21 +92,17 @@ export default function EmergencySubmitted({
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedRescuers = rescuers.slice(startIndex, startIndex + itemsPerPage);
 
-  // Generate a mock cryptographic grid case ID
-  const [caseId] = useState(() => 'AUM-' + Math.floor(1000 + Math.random() * 9000));
+  const caseId = reportId || 'Saved report';
 
   const handleShare = () => {
-    const mockUrl = `https://aumoha.app/rescue/${caseId}`;
+    const text = `Animal emergency reported on Aumoha. Reference: ${caseId}. Category: ${category}. Location: ${location}. ${sosReason}. Please contact the reporter to coordinate help.`;
     if (navigator.share) {
-      navigator.share({
-        title: 'Aumoha Rescue Signal',
-        text: `Urgent: Distress category ${category} reported. Responders heading to location coordinates.`,
-        url: mockUrl,
-      }).catch(console.error);
+      navigator.share({ title: 'Aumoha Rescue Report', text }).catch(console.error);
     } else {
-      navigator.clipboard.writeText(mockUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
+      navigator.clipboard.writeText(text).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2500);
+      }).catch(console.error);
     }
   };
 
@@ -443,3 +441,4 @@ export default function EmergencySubmitted({
     </div>
   );
 }
+

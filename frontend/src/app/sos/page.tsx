@@ -13,6 +13,7 @@ export default function SosPage() {
   const { token } = useAuth();
 
   const [sosReason, setSosReason] = useState<string>('');
+  const [reportId, setReportId] = useState<string>('');
   const [sosSent, setSosSent] = useState<boolean>(false);
   const [emergencyType, setEmergencyType] = useState<string>('General');
   const [popupConfig, setPopupConfig] = useState<PopupConfig | null>(null);
@@ -43,6 +44,8 @@ export default function SosPage() {
       });
 
       if (response.ok) {
+        const data = await response.json();
+        setReportId(data.report?._id || '');
         setSosSent(true);
       } else {
         const err = await response.json();
@@ -62,9 +65,11 @@ export default function SosPage() {
         emergencyType={emergencyType}
         setEmergencyType={setEmergencyType}
         sosSent={sosSent}
+        reportId={reportId}
         onSubmitSos={triggerSOS}
         onResetSos={() => {
           setSosSent(false);
+          setReportId('');
           setSosReason('');
         }}
       />
@@ -72,3 +77,4 @@ export default function SosPage() {
     </AppShell>
   );
 }
+

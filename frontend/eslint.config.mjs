@@ -6,6 +6,7 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   {
+    files: ["**/*.{js,jsx,ts,tsx}"],
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-unused-vars": "warn",
@@ -14,6 +15,10 @@ const eslintConfig = defineConfig([
       "react-hooks/exhaustive-deps": "warn",
       "react/no-unescaped-entities": "off"
     }
+  },
+  {
+    files: ["tests/**/*.cjs"],
+    rules: { "@typescript-eslint/no-require-imports": "off" },
   },
   // Override default ignores of eslint-config-next.
   globalIgnores([
@@ -26,3 +31,4 @@ const eslintConfig = defineConfig([
 ]);
 
 export default eslintConfig;
+

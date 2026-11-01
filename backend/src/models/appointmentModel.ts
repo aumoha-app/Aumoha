@@ -62,5 +62,9 @@ const AppointmentSchema = new Schema(
   }
 );
 
+AppointmentSchema.index({ razorpayPaymentId: 1 }, { unique: true, partialFilterExpression: { razorpayPaymentId: { $type: 'string', $gt: '' } } });
+AppointmentSchema.index({ razorpayOrderId: 1 }, { unique: true, partialFilterExpression: { razorpayOrderId: { $type: 'string', $gt: '' } } });
+
 export default mongoose.models.Appointment || mongoose.model<IAppointment>('Appointment', AppointmentSchema);
+
 

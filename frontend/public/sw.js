@@ -1,6 +1,5 @@
-const CACHE_NAME = 'aumoha-cache-v1';
+const CACHE_NAME = 'aumoha-static-v2';
 const ASSETS_TO_CACHE = [
-  '/',
   '/manifest.json',
   '/icon-192x192.png',
   '/icon-512x512.png',
@@ -47,54 +46,19 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // For navigating pages (HTML files), use Network-First strategy
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          // Clone the response and save it to the cache
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone);
-          });
-          return response;
-        })
-        .catch(() => {
-          // If offline, serve from cache
-          return caches.match(event.request).then((cachedResponse) => {
-            if (cachedResponse) {
-              return cachedResponse;
-            }
-            // Fallback if not cached (can also be a custom offline page)
-            return caches.match('/');
-          });
-        })
-    );
-    return;
-  }
-
-  // For static assets (JS, CSS, images), use Cache-First, fallback to Network
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-
-      return fetch(event.request).then((response) => {
-        // Cache valid responses
-        if (!response || response.status !== 200 || response.type !== 'basic') {
-          return response;
-        }
-
-        const responseClone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseClone);
-        });
-
-        return response;
-      }).catch(() => {
-        // Fallback for failing fetch
-      });
-    })
-  );
+  // APIs, authenticated requests and page documents always use the network.
+  // This also clears old v1 private-response caches on activation above.
+  if (url.pathname.startsWith('/api/') || event.request.headers.has('Authorization') ||
+      event.request.mode === 'navigate' || url.pathname.startsWith('/_next/')) return;
+  if (!/\.(png|jpg|jpeg|webp|svg|ico|css|js|woff2?)$/i.test(url.pathname)) return;
+  event.respondWith((async () => {
+    const cached = await caches.match(event.request);
+    if (cached) return cached;
+    const response = await fetch(event.request);
+    if (response.ok && response.type === 'basic') {
+      const cache = await caches.open(CACHE_NAME);
+      await cache.put(event.request, response.clone());
+    }
+    return response;
+  })());
 });

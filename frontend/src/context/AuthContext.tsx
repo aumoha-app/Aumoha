@@ -58,18 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(() => getCachedToken());
   const [isProvider, setIsProvider] = useState(false);
   const [vetProfile, setVetProfile] = useState<any | null>(null);
-  const [firebaseUser, setFirebaseUser] = useState<AuthUser | null>(() => {
-    const cachedProfile = getCachedProfile();
-    const cachedToken = getCachedToken();
-    if (cachedProfile && cachedToken) {
-      return {
-        uid: cachedProfile.firebaseUid || 'cached-uid',
-        email: cachedProfile.email,
-        getIdToken: async () => cachedToken
-      } as AuthUser;
-    }
-    return null;
-  });
+  const [firebaseUser, setFirebaseUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(() => {
     const cachedProfile = getCachedProfile();
     const cachedToken = getCachedToken();
@@ -103,20 +92,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const timeoutId = setTimeout(() => controller.abort(), 3000);
 
     try {
-      // Use cached token directly if available, otherwise fetch with a 1.5s timeout to prevent Google server hangs
-      let idToken = token;
-      if (!idToken) {
-        idToken = await Promise.race([
-          firebaseUser.getIdToken(),
-          new Promise<string>((_, reject) => 
-            setTimeout(() => reject(new Error('Token refresh timed out')), 1500)
-          )
-        ]);
-        setToken(idToken);
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('aumoha_auth_token', idToken);
-        }
-      }
+      const idToken = await firebaseUser.getIdToken();
+      setToken(idToken);
+      if (typeof window !== 'undefined') localStorage.setItem('aumoha_auth_token', idToken);
 
       const res = await fetch(`${API_BASE}/auth/me`, {
         signal: controller.signal,
@@ -171,12 +149,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         handleCacheClear();
       }
-    } catch (error: any) {
+    } catch (error) {
       clearTimeout(timeoutId);
-      // Auto-retry once after 3s if backend server is still initializing
-      setTimeout(() => {
-        syncProfile();
-      }, 3000);
+      console.warn('Unable to refresh profile:', error);
     }
   };
 
@@ -218,6 +193,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(null);
     setFirebaseUser(null);
     setIsNewUser(false);
+    setIsProvider(false);
+    setVetProfile(null);
   };
 
   useEffect(() => {
@@ -232,35 +209,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
     }, 1500);
 
-    const unsubscribe = auth.onAuthStateChanged(async (fUser) => {
+    const unsubscribe = auth.onAuthStateChanged((fUser) => {
       clearTimeout(initTimeout);
       if (fUser) {
+        const cached = getCachedProfile();
+        if (cached && cached.firebaseUid !== fUser.uid) {
+          setUser(null);
+          setToken(null);
+          setIsProvider(false);
+          setVetProfile(null);
+          localStorage.removeItem('aumoha_profile_data');
+          localStorage.removeItem('aumoha_auth_token');
+        }
         setFirebaseUser(fUser);
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('aumoha_is_logged_in', 'true');
-        }
+        localStorage.setItem('aumoha_is_logged_in', 'true');
       } else {
-        // Debounce unauth state check: If we expect a logged-in user, wait 450ms before showing the login screen.
-        // This completely eliminates any layout flash when Firebase Auth client restores its session.
-        const isLoggedIn = typeof window !== 'undefined' && localStorage.getItem('aumoha_is_logged_in') === 'true';
-        if (isLoggedIn) {
-          const timer = setTimeout(() => {
-            setFirebaseUser(curr => {
-              // If still null or using the fallback cached uid, we assume they are really logged out.
-              if (curr === null || curr.uid === 'cached-uid') {
-                handleCacheClear();
-                setLoading(false);
-                return null;
-              }
-              return curr;
-            });
-          }, 450);
-          return () => clearTimeout(timer);
-        } else {
-          setFirebaseUser(null);
-          handleCacheClear();
-          setLoading(false);
-        }
+        handleCacheClear();
+        setLoading(false);
       }
     });
 
@@ -284,9 +249,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     try {
       await auth.signIn(email, password);
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('aumoha_admin_password', password);
-      }
     } catch (error: any) {
       setLoading(false);
       throw new Error(error.message || 'Failed to sign in');
@@ -313,9 +275,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     try {
       await auth.signUp(email, password);
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('aumoha_admin_password', password);
-      }
     } catch (error: any) {
       setLoading(false);
       throw new Error(error.message || 'Failed to sign up');
@@ -391,3 +350,4 @@ export function useAuth() {
   return context;
 }
 export type { AuthContextType };
+

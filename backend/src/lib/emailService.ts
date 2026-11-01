@@ -62,7 +62,7 @@ export async function sendEmail({ to, subject, html }: EmailOptions): Promise<bo
         headers: {
           'Authorization': `Bearer ${resendKey}`,
           'Content-Type': 'application/json',
-          'Content-Length': data.length
+          'Content-Length': Buffer.byteLength(data, 'utf8')
         }
       };
 
@@ -85,6 +85,7 @@ export async function sendEmail({ to, subject, html }: EmailOptions): Promise<bo
         resolve(false);
       });
 
+      req.setTimeout(10000, () => req.destroy(new Error('Email request timed out')));
       req.write(data);
       req.end();
     });
@@ -108,7 +109,7 @@ export async function sendEmail({ to, subject, html }: EmailOptions): Promise<bo
         headers: {
           'Authorization': `Bearer ${sendgridKey}`,
           'Content-Type': 'application/json',
-          'Content-Length': data.length
+          'Content-Length': Buffer.byteLength(data, 'utf8')
         }
       };
 
@@ -131,24 +132,14 @@ export async function sendEmail({ to, subject, html }: EmailOptions): Promise<bo
         resolve(false);
       });
 
+      req.setTimeout(10000, () => req.destroy(new Error('Email request timed out')));
       req.write(data);
       req.end();
     });
   }
 
-  // Fallback logs to standard console log if keys are missing
-  console.log(`
-╔══════════════════════════════════════════════════════════════════════════╗
-║                    💌 MOCK TRANSACTIONAL EMAIL OUTBOX                    ║
-╠══════════════════════════════════════════════════════════════════════════╣
-║ To: ${to.padEnd(68)} ║
-║ Subject: ${subject.padEnd(63)} ║
-╠══════════════════════════════════════════════════════════════════════════╣
-║ HTML Body Preview:                                                       ║
-║ ${html.replace(/<[^>]*>/g, ' ').substring(0, 150).replace(/\s+/g, ' ').trim().padEnd(72)} ║
-╚══════════════════════════════════════════════════════════════════════════╝
-  `);
-  return true;
+  console.warn('Transactional email was not sent: configure an email provider.');
+  return false;
 }
 
 export function generateBookingEmailHtml(appointment: any, mode: 'confirm' | 'reschedule' | 'cancel'): string {
@@ -238,3 +229,4 @@ export function generateDonationEmailHtml(donation: { amount: number; descriptio
     </div>
   `;
 }
+

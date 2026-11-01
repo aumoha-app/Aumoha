@@ -211,7 +211,7 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
     setIsVetsLoading(true);
     setVetsError(null);
     try {
-      const res = await fetch(`${API_BASE}/vets`);
+      const res = await fetch(`${API_BASE}/admin/vets`, { headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) {
         const data = await res.json();
         setVets(data.vets || []);
@@ -2498,3 +2498,4 @@ export default function AdminDashboard({ onClose }: AdminDashboardProps) {
     </main>
   );
 }
+

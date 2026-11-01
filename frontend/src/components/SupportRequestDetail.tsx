@@ -37,44 +37,13 @@ export default function SupportRequestDetail({
 
   const displayDesc = selectedRequest.description || '';
 
-  const rawPhone = requestAny.contactPhone || '9876543210';
+  const rawPhone = requestAny.contactPhone || '';
   const cleanPhone = rawPhone.replace(/\D/g, '');
   const waPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
 
   const [selectedHelpOptions, setSelectedHelpOptions] = useState<string[]>(['vet']);
 
-  const defaultRescuers: CircleMember[] = [
-    {
-      id: 'res_1',
-      name: 'Dr. Ananya Patra',
-      role: 'rescuer',
-      avatar: '/warden-2.png',
-      distance: '0.8 km away',
-      location: 'Saheed Nagar',
-      badge: 'trusted'
-    },
-    {
-      id: 'res_2',
-      name: 'Rohan Sharma',
-      role: 'rescuer',
-      avatar: '/sairaj_avatar.png',
-      distance: '1.4 km away',
-      location: 'Janpath Road',
-      badge: 'level4'
-    },
-    {
-      id: 'res_3',
-      name: 'Bikram Rout',
-      role: 'paravet',
-      avatar: '/warden-1.png',
-      distance: '2.1 km away',
-      location: 'Master Canteen',
-      badge: 'available'
-    }
-  ];
-
-  const computedRescuers = computedMembers ? computedMembers.filter(m => m.role === 'rescuer' || m.role === 'paravet') : [];
-  const activeRescuersList = computedRescuers.length > 0 ? computedRescuers : defaultRescuers;
+  const activeRescuersList = (computedMembers || []).filter(m => m.role === 'rescuer' || m.role === 'paravet');
 
   const handleHelpToggle = (option: string) => {
     setSelectedHelpOptions(prev => 
@@ -510,13 +479,13 @@ export default function SupportRequestDetail({
                   {activeRescuersList.length}
                 </span>
               </h3>
-              <p className="text-[11px] text-stone-400 font-medium mt-0.5">Verified emergency responders within range</p>
+              <p className="text-[11px] text-stone-400 font-medium mt-0.5">Community members available to contact</p>
             </div>
           </div>
 
           <div className="flex flex-col divide-y divide-[#F5F2EC]">
-            {activeRescuersList.map((rescuer, idx) => {
-              const rawNum = (rescuer as any).phone || `987654321${idx + 1}`;
+            {activeRescuersList.map((rescuer) => {
+              const rawNum = (rescuer as any).phone || '';
               const cleanNum = rawNum.replace(/\D/g, '');
               return (
                 <div key={rescuer.id} className="py-3 flex items-center justify-between gap-3.5 first:pt-1 last:pb-1">
@@ -536,13 +505,14 @@ export default function SupportRequestDetail({
                         <h4 className="text-xs sm:text-sm font-bold text-[#1C1A17] truncate leading-tight">{rescuer.name}</h4>
                       </div>
                       <span className="text-[11px] text-stone-500 font-medium mt-1 truncate">
-                        {rescuer.role === 'paravet' ? 'Paravet' : 'Verified Rescuer'} • {rescuer.distance || 'Nearby'}
+                        {rescuer.role === 'paravet' ? 'Paravet' : 'Community Rescuer'} • {rescuer.distance || 'Nearby'}
                       </span>
                     </div>
                   </div>
 
                   <a
-                    href={`tel:${cleanNum}`}
+                    href={cleanNum ? `tel:${cleanNum}` : undefined}
+                    aria-disabled={!cleanNum}
                     className="px-4 py-2 bg-[#2D4536] hover:bg-[#1E2E24] active:scale-95 text-white text-xs font-extrabold rounded-full flex items-center gap-1.5 transition-all shadow-xs shrink-0 cursor-pointer"
                   >
                     <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
@@ -652,7 +622,8 @@ export default function SupportRequestDetail({
             <div className="flex flex-col gap-2.5 mt-2">
               <div className="grid grid-cols-2 gap-2.5">
                 <a 
-                  href={`tel:${rawPhone}`}
+                  href={cleanPhone ? `tel:${cleanPhone}` : undefined}
+                  aria-disabled={!cleanPhone}
                   className="py-3 border border-stone-200 hover:border-charcoal hover:bg-stone-50 active:scale-98 text-charcoal font-bold rounded-2xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer text-center"
                 >
                   <svg className="w-4 h-4 text-[#3D5A45] shrink-0" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
@@ -674,7 +645,8 @@ export default function SupportRequestDetail({
 
                   return (
                     <a 
-                      href={`https://wa.me/${waPhone}?text=${encodeURIComponent(waText)}`}
+                      href={waPhone ? `https://wa.me/${waPhone}?text=${encodeURIComponent(waText)}` : undefined}
+                      aria-disabled={!waPhone}
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={() => {
@@ -720,3 +692,4 @@ export default function SupportRequestDetail({
     </div>
   );
 }
+

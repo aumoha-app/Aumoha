@@ -1,0 +1,44 @@
+{
+  "baseline_commit": "d1b13e6d45c8257502d0e85971bff02f34b58ca7",
+  "audit_date": "2026-11-01",
+  "runtime": "Node.js 24.22.1",
+  "backend": {
+    "typescript_build": "passed",
+    "tests_passed": 18,
+    "tests_failed": 0
+  },
+  "frontend": {
+    "production_build": "passed",
+    "typescript": "passed",
+    "static_pages_generated": 14,
+    "tests_passed": 3,
+    "tests_failed": 0,
+    "lint_errors": 0,
+    "lint_warnings": 150
+  },
+  "diff_check": "passed",
+  "dependency_audits": {
+    "backend": {
+      "info": 0,
+      "low": 0,
+      "moderate": 7,
+      "high": 0,
+      "critical": 0,
+      "total": 7
+    },
+    "frontend": {
+      "info": 0,
+      "low": 0,
+      "moderate": 16,
+      "high": 0,
+      "critical": 0,
+      "total": 16
+    }
+  },
+  "limits": [
+    "Mocked Firebase, database, payments and email in regression tests",
+    "No production deployment, database migration, secret rotation, customer email or real transaction",
+    "No live two-device video or production browser-flow testing",
+    "No exhaustive git-history or binary image review"
+  ]
+}
