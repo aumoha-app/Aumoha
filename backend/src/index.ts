@@ -23,6 +23,13 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5001;
+const defaultClientUrl = process.env.NODE_ENV === 'production'
+  ? 'https://aumoha.com'
+  : 'http://localhost:3000';
+const allowedClientOrigins = (process.env.CLIENT_URL || defaultClientUrl)
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 // Initialize Razorpay SDK
 const razorpayKeyId = process.env.RAZORPAY_KEY_ID || 'rzp_test_TKxpLxhMCofQDL';
@@ -680,7 +687,7 @@ mongoose
 
 // Middleware
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: allowedClientOrigins,
   credentials: true
 }));
 app.use(express.json({ limit: '10mb' })); // Support base64 image uploads
@@ -5241,5 +5248,4 @@ app.listen(PORT, () => {
   console.log(`🚀 Aumoha Backend Server running on http://localhost:${PORT}`);
   console.log(`📡 Health-check API endpoint active at http://localhost:${PORT}/health`);
 });
-
 

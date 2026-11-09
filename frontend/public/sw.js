@@ -43,7 +43,7 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
   // Exclude Next.js dev server files and HMR streams to prevent rendering/reloading hangs in development
-  if (url.pathname.startsWith('/_next') || url.pathname.includes('webpack-hmr')) {
+  if (url.pathname.startsWith('/_next') || url.pathname.startsWith('/api') || url.pathname.includes('webpack-hmr')) {
     return;
   }
 
@@ -66,7 +66,7 @@ self.addEventListener('fetch', (event) => {
               return cachedResponse;
             }
             // Fallback if not cached (can also be a custom offline page)
-            return caches.match('/');
+            return caches.match('/').then((fallback) => fallback || Response.error());
           });
         })
     );
@@ -93,7 +93,7 @@ self.addEventListener('fetch', (event) => {
 
         return response;
       }).catch(() => {
-        // Fallback for failing fetch
+        return Response.error();
       });
     })
   );
