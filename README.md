@@ -42,8 +42,8 @@ npm run build
 ### Deployment Configuration
 The frontend must be configured with the deployed backend URL at build time:
 
-* Set `NEXT_PUBLIC_API_URL` in the frontend hosting provider to the deployed backend API base URL, including `/api` (for example, `https://your-backend-host.example/api`), then rebuild and redeploy the frontend. This value is embedded in the frontend bundle; changing it without rebuilding will not take effect.
-* If the frontend and backend share a domain and the host proxies `/api` to the backend, `NEXT_PUBLIC_API_URL` can be omitted; production uses the relative `/api` path.
+* The production frontend defaults to `https://aumoha.onrender.com/api`. If the backend is deployed elsewhere, set `NEXT_PUBLIC_API_URL` in the frontend hosting provider to its API base URL, including `/api`, then rebuild and redeploy the frontend. This value is embedded in the frontend bundle; changing it without rebuilding will not take effect.
+* If the frontend and backend share a domain and the host proxies `/api` to the backend, set `NEXT_PUBLIC_API_URL=/api`.
 * Set `CLIENT_URL` in the backend environment to the frontend's deployed origin (`https://aumoha.com`) so browser requests pass CORS checks. Multiple allowed origins can be comma-separated. The backend defaults to this production origin when `CLIENT_URL` is unset.
 * Ensure the backend is deployed and listening on the hosting provider's `PORT`. `NEXT_PUBLIC_API_URL` is public and must not contain credentials.
 
